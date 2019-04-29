@@ -40,6 +40,7 @@ import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.util.IndexingCacheUtil;
+import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.junit.After;
@@ -106,6 +107,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
   @AfterClass
   public static void teardown() {
+    SolrClientFactory.close();
     solrComponent.stop();
   }
 

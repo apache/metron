@@ -35,6 +35,7 @@ import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
 import { ConfirmationType } from 'app/model/confirmation-type';
+import {HttpErrorResponse} from "@angular/common/http";
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -277,6 +278,13 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove[this.globalConfig['source.type.field']], '')];
 
     this.metaAlertService.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest).subscribe(() => {
+    }, (res: HttpErrorResponse) => {
+      let message = res.error['message'];
+      this.dialogService
+              .launchDialog(message)
+              .subscribe(action => {
+                this.configSubscription.unsubscribe();
+              })
     });
   }
 

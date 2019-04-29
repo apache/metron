@@ -135,6 +135,30 @@
     <description>The HBase column family which will hold threatintel data in HBase.</description>
     <display-name>HBase Table Column Family</display-name>
   </property>
+  <property>
+    <name>enrichment_list_hbase_provider_impl</name>
+    <value>org.apache.metron.hbase.HTableProvider</value>
+    <description>The HBase table provider implementation to use for obtaining table references.</description>
+    <display-name>Enrichment List HBase Table Provider Implementation</display-name>
+  </property>
+  <property>
+    <name>enrichment_list_hbase_coprocessor_impl</name>
+    <value>org.apache.metron.hbase.coprocessor.EnrichmentCoprocessor</value>
+    <description>The HBase coprocessor implementation to use for managing the enrichment list.</description>
+    <display-name>Enrichment List HBase Coprocessor Implementation</display-name>
+  </property>
+  <property>
+    <name>enrichment_list_hbase_table</name>
+    <value>enrichment_list</value>
+    <description>The HBase table which will hold the list of enrichment types gathered by the enrichment coprocessor.</description>
+    <display-name>Enrichment List HBase Table</display-name>
+  </property>
+  <property>
+    <name>enrichment_list_hbase_cf</name>
+    <value>t</value>
+    <description>The HBase column family which will hold enrichment list data in HBase.</description>
+    <display-name>Enrichment List HBase Column Family</display-name>
+  </property>
 
   <!--
     storm common parameters

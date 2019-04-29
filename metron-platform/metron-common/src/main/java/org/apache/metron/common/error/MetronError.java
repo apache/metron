@@ -23,6 +23,7 @@ import static org.apache.metron.common.Constants.ErrorFields;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +35,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.Constants.ErrorType;
 import org.apache.metron.common.utils.HashUtils;
@@ -180,7 +180,7 @@ public class MetronError {
         // It's unclear if we need a rawMessageBytes field so commenting out for now
         //String rawMessageBytesField = rawMessages.size() == 1 ? ErrorFields.RAW_MESSAGE_BYTES.getName() : ErrorFields.RAW_MESSAGE_BYTES.getName() + "_" + i;
         if(rawMessage instanceof byte[]) {
-          errorMessage.put(rawMessageField, Bytes.toString((byte[])rawMessage));
+          errorMessage.put(rawMessageField, new String((byte[])rawMessage, Charset.forName("UTF-8")));
           //errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList((byte[])rawMessage));
         } else if (rawMessage instanceof JSONObject) {
           JSONObject rawMessageJSON = (JSONObject) rawMessage;
