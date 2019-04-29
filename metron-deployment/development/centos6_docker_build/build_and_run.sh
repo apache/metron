@@ -22,9 +22,9 @@ shopt -s nocasematch
 function help {
  echo " "
  echo "usage: ${0}"
- echo "    --skip-vagrant-up               skip vagrant up"
  echo "    --force-docker-build            force build docker machine"
  echo "    --skip-tags='tag,tag2,tag3'     the ansible skip tags"
+ echo "    --skip-vagrant-up               skip vagrant up"
  echo "    -h/--help                       Usage information."
  echo " "
  echo "example: to skip vagrant up and force docker build with two tags"
