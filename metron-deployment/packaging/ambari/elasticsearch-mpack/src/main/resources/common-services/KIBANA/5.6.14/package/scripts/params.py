@@ -25,6 +25,22 @@ from urlparse import urlparse
 from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
 
+def get_java_home(config):
+  if 'ambariLevelParams' in config.keys():
+    # Ambari 2.7.x
+    return config['ambariLevelParams']['java_home']
+  else:
+    # Ambari 2.6.x
+    return config['hostLevelParams']['java_home']
+
+def get_hostname(config):
+  if 'agentLevelParams' in config.keys():
+    # Ambari 2.7.x
+    return config['agentLevelParams']['hostname']
+  else:
+    # Ambari 2.6.x
+    return config['hostname']
+
 # server configurations
 config = Script.get_config()
 
@@ -44,7 +60,6 @@ es_port = parsed.netloc.split(':')[1]
 kibana_port = config['configurations']['kibana-env']['kibana_server_port']
 kibana_server_host = config['configurations']['kibana-env']['kibana_server_host']
 kibana_default_application = config['configurations']['kibana-env']['kibana_default_application']
-hostname = config['hostname']
-java64_home = config['hostLevelParams']['java_home']
+hostname = get_hostname(config)
+java64_home = get_java_home(config)
 kibana_yml_template = config['configurations']['kibana-site']['content']
-

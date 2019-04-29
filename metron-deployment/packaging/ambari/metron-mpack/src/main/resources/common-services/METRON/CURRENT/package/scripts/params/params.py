@@ -26,7 +26,23 @@ if OSCheck.is_windows_family():
 else:
     from params_linux import *
 
-java_home = config['hostLevelParams']['java_home']
-java_version = expect("/hostLevelParams/java_version", int)
+def get_java_home(config):
+  if 'ambariLevelParams' in config.keys():
+    # Ambari 2.6.x
+    return config['ambariLevelParams']['java_home']
+  else:
+    # Ambari 2.7.x
+    return config['hostLevelParams']['java_home']
 
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+def get_java_version(config):
+  if 'ambariLevelParams' in config.keys():
+    # Ambari 2.6.x
+    return expect("/ambariLevelParams/java_version", int)
+  else:
+    # Ambari 2.7.x
+    return expect("/hostLevelParams/java_version", int)
+
+java_home = get_java_home(config)
+java_version = get_java_version(config)
+
+host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)

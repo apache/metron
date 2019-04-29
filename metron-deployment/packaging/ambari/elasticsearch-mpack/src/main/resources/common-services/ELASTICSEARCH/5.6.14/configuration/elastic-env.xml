@@ -27,6 +27,12 @@
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
+      <user-groups>
+          <property>
+              <type>elastic-env</type>
+              <name>elastic_group</name>
+          </property>
+      </user-groups>
     </value-attributes>
   </property>
   <property>
@@ -34,10 +40,6 @@
     <value>elasticsearch</value>
     <property-type>GROUP</property-type>
     <description>Service group for Elasticsearch</description>
-    <value-attributes>
-      <type>user</type>
-      <overridable>false</overridable>
-    </value-attributes>
   </property>
   <property>
     <name>elastic_log_dir</name>

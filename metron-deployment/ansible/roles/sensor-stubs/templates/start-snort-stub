@@ -58,11 +58,12 @@ if [ ${SECURITY_ENABLED,,} == 'true' ]; then
 fi
 
 while true; do
-
   # transform the timestamp and push to kafka
   SEARCH="[^,]\+ ,"
   REPLACE="`date +'%m\/%d\/%y-%H:%M:%S'`.000000 ,"
-  shuf -n $COUNT $INPUT | sed -e "s/$SEARCH/$REPLACE/g" | $PRODUCER --broker-list $BROKERLIST --topic $TOPIC --security-protocol $KAFKA_SECURITY_PROTOCOL
-
+  shuf -n $COUNT $INPUT | sed -e "s/$SEARCH/$REPLACE/g" | $PRODUCER \
+    --broker-list $BROKERLIST \
+    --topic $TOPIC \
+    --producer-property security.protocol=$KAFKA_SECURITY_PROTOCOL
   sleep $DELAY
 done

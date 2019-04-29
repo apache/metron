@@ -56,8 +56,8 @@
 #
 - name: "Ask Ambari: core_site_tag"
   shell: >
-    {{ curl }} '{{ base_url }}/hosts/{{ namenode_host }}/host_components/NAMENODE' \
-      | python -c '{{ parse_json }}["HostRoles"]["actual_configs"]["core-site"]["default"]'
+    {{ curl }} '{{ base_url }}/configurations?type=core-site' \
+      | python -c '{{ parse_json }}["items"][-1]["tag"]'
   args:
     warn: false
   register: core_site_tag_response
@@ -104,17 +104,16 @@
 # kafka_broker_tag
 #
 - name: "Ask Ambari: kafka_broker_tag"
-  uri:
-    url: "{{ base_url }}/hosts/{{ kafka_broker_hosts[0] }}/host_components/KAFKA_BROKER"
-    user: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    force_basic_auth: yes
-    return_content: yes
+  shell: >
+    {{ curl }} '{{ base_url }}/configurations?type=kafka-broker' \
+      | python -c '{{ parse_json }}["items"][-1]["tag"]'
+  args:
+    warn: false
   register: kafka_broker_tag_response
   when: kafka_broker_tag is undefined
 
 - set_fact:
-    kafka_broker_tag: "{{ (kafka_broker_tag_response.content | from_json).HostRoles.actual_configs['kafka-broker'].default }}"
+    kafka_broker_tag: "{{ kafka_broker_tag_response.stdout_lines[0] }}"
   when: kafka_broker_tag is undefined
 
 #
@@ -158,17 +157,16 @@
 # zookeeper_tag
 #
 - name: "Ask Ambari: zookeeper_tag"
-  uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ zookeeper_hosts[0] }}/host_components/ZOOKEEPER_SERVER"
-    user: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    force_basic_auth: yes
-    return_content: yes
+  shell: >
+    {{ curl }} '{{ base_url }}/configurations?type=zookeeper-env' \
+      | python -c '{{ parse_json }}["items"][-1]["tag"]'
+  args:
+    warn: false
   register: zookeeper_tag_response
   when: zookeeper_tag is undefined
 
 - set_fact:
-    zookeeper_tag: "{{ (zookeeper_tag_response.content | from_json).HostRoles.actual_configs['zoo.cfg'].default }}"
+    zookeeper_tag: "{{ zookeeper_tag_response.stdout_lines[0] }}"
   when: zookeeper_tag is undefined
 
 #
@@ -176,7 +174,7 @@
 #
 - name: "Ask Ambari: zookeeper_url, zookeeper_port"
   uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=zoo.cfg&tag={{ zookeeper_tag }}"
+    url: "{{ base_url }}/configurations?type=zoo.cfg&tag={{ zookeeper_tag }}"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -197,7 +195,7 @@
 #
 - name: "Ask Ambari: metron_hosts"
   uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/METRON/components/METRON_INDEXING"
+    url: "{{ base_url }}/services/METRON/components/METRON_INDEXING"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -214,7 +212,7 @@
 #
 - name: "Ask Ambari: kibana_hosts"
   uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/KIBANA/components/KIBANA_MASTER"
+    url: "{{ base_url }}/services/KIBANA/components/KIBANA_MASTER"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
