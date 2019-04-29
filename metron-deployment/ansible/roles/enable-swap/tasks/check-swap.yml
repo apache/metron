@@ -15,24 +15,15 @@
 #  limitations under the License.
 #
 ---
-- name: "Disable swap space"
-  shell: swapoff -a
+- shell: swapon -s | grep {{ swapfile }}
+  register: swapcheck
+  failed_when: swapcheck.rc != 0 and swapcheck.rc != 1
 
-- name: "Allocate {{ swapspace }} for swap space"
-  shell: dd if=/dev/zero of={{ swapfile }} count={{ swapspace }} bs=1MiB
+- shell: free -m | grep Swap | awk -F" " '{ print $2}'
+  register: actual_swapspace
 
-- name: "Permissioning {{ swapfile }}"
-  file:
-    path: "{{ swapfile }}"
-    mode: "600"
+- debug: msg="Swap is enabled with {{ actual_swapspace.stdout }} mb"
+  when: swapcheck.rc == 0
 
-- name: "Setup swap space"
-  shell: mkswap {{ swapfile }}
-
-- name: "Enable swap space"
-  shell: swapon {{ swapfile }}
-
-- name: "Enable swap on boot"
-  lineinfile:
-    dest: "/etc/fstab"
-    line: "{{ swapfile }} none swap sw 0 0"
+- debug: msg="Swap is NOT enabled"
+  when: swapcheck.rc == 1

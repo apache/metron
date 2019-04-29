@@ -15,17 +15,26 @@
 #  limitations under the License.
 #
 ---
+- name: "Disable swap space"
+  shell: swapoff -a
+
+- name: "Allocate {{ swapspace }} mb for swap space"
+  shell: dd if=/dev/zero of={{ swapfile }} count={{ swapspace }} bs=1MiB
+
+- name: "Permissioning {{ swapfile }}"
+  file:
+    path: "{{ swapfile }}"
+    mode: "600"
+
+- name: "Setup swap space"
+  shell: mkswap {{ swapfile }}
+
+- name: "Enable swap space"
+  shell: swapon {{ swapfile }}
+
+- name: "Enable swap on boot"
+  lineinfile:
+    dest: "/etc/fstab"
+    line: "{{ swapfile }} none swap sw 0 0"
+
 - include_tasks: check-swap.yml
-
-#
-# only enable swap if the swapfile does not already exist
-#
-- name: "Checking for {{ swapfile }}"
-  stat: path="{{ swapfile }}"
-  register: swap
-
-- include_tasks: setup-swap.yml
-  when: swap.stat.exists == False
-
-- debug: msg="No swap changes necessary"
-  when: swap.stat.exists == True
