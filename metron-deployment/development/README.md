@@ -20,7 +20,6 @@ limitations under the License.
 This directory contains environments useful for Metron developers.  These environments are not intended for proof-of-concept, testing, or production use.  These are extremely resource constrained and cannot support anything beyond the most basic work loads.
 
 * Metron running on CentOS 6
-* Metron running on CentOS 6, built in Docker
 * Metron running on Ubuntu 14
 * Fastcapa
 
