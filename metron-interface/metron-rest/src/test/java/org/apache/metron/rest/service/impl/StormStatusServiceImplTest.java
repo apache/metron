@@ -148,7 +148,9 @@ public class StormStatusServiceImplTest {
       add("bro");
       add("snort");
     }});
-    when(sensorParserGroupService.findOne("group")).thenReturn(group);
+    when(sensorParserGroupService.getAll()).thenReturn(new HashMap() {{
+      put("group", group);
+    }});
     when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
     when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
     when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_snort_id", TopologyStatus.class)).thenReturn(topologyStatus);
@@ -165,23 +167,41 @@ public class StormStatusServiceImplTest {
 
   @Test
   public void getAllTopologyStatusShouldReturnAllTopologyStatus() throws Exception {
-    final TopologyStatus topologyStatus = new TopologyStatus();
-    topologyStatus.setStatus(TopologyStatusCode.STARTED);
-    topologyStatus.setName("bro");
-    topologyStatus.setId("bro_id");
+    final TopologyStatus broTopologyStatus = new TopologyStatus();
+    broTopologyStatus.setStatus(TopologyStatusCode.STARTED);
+    broTopologyStatus.setName("bro");
+    broTopologyStatus.setId("bro_id");
+    final TopologyStatus groupTopologyStatus = new TopologyStatus();
+    groupTopologyStatus.setStatus(TopologyStatusCode.STARTED);
+    groupTopologyStatus.setName("snort__yaf");
+    groupTopologyStatus.setId("snort__yaf_id");
     final TopologySummary topologySummary = new TopologySummary();
-    topologySummary.setTopologies(new TopologyStatus[]{topologyStatus});
+    topologySummary.setTopologies(new TopologyStatus[]{broTopologyStatus, groupTopologyStatus});
 
+    SensorParserGroup group = new SensorParserGroup();
+    group.setName("group");
+    group.setSensors(new HashSet<String>() {{
+      add("snort");
+      add("yaf");
+    }});
+    when(sensorParserGroupService.getAll()).thenReturn(new HashMap() {{
+      put("group", group);
+    }});
     when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
     when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
-    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_id", TopologyStatus.class)).thenReturn(topologyStatus);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_id", TopologyStatus.class)).thenReturn(broTopologyStatus);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/snort__yaf_id", TopologyStatus.class)).thenReturn(groupTopologyStatus);
 
-    TopologyStatus expected = new TopologyStatus();
-    expected.setStatus(TopologyStatusCode.STARTED);
-    expected.setName("bro");
-    expected.setId("bro_id");
+    TopologyStatus expectedBro = new TopologyStatus();
+    expectedBro.setStatus(TopologyStatusCode.STARTED);
+    expectedBro.setName("bro");
+    expectedBro.setId("bro_id");
+    TopologyStatus expectedGroup = new TopologyStatus();
+    expectedGroup.setStatus(TopologyStatusCode.STARTED);
+    expectedGroup.setName("group");
+    expectedGroup.setId("snort__yaf_id");
 
-    assertEquals(new ArrayList() {{ add(expected); }}, stormStatusService.getAllTopologyStatus());
+    assertEquals(new ArrayList() {{ add(expectedBro); add(expectedGroup); }}, stormStatusService.getAllTopologyStatus());
   }
 
 
