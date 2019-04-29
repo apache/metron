@@ -16,9 +16,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 Metron on CentOS 6
-==================
+==================================
 
 This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running CentOS 6.
+It utilizes Vagrant for the virtual machine, and Docker for the build and deployment.  Therefore lessens the burden on the user to have the correct versions of the build and deployment tools in order to try Metron.
 
 Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.
 
@@ -29,14 +30,10 @@ Getting Started
 
 The computer used to deploy Apache Metron will need to have the following components installed.
 
- - [Ansible](https://github.com/ansible/ansible) 2.4.0+
  - [Docker](https://www.docker.com/community-edition)
  - [Vagrant](https://www.vagrantup.com) 2.0+
  - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager)
  - [Virtualbox](https://virtualbox.org) 5.0+
- - Python 2.7
- - Maven 3.3.9
- - C++11 compliant compiler, like [GCC](https://gcc.gnu.org/projects/cxx-status.html#cxx11)
 
 Running the following script can help validate whether you have all the prerequisites installed and running correctly.
 
@@ -53,9 +50,7 @@ Any platform that supports these tools is suitable, but the following instructio
 1. Run the following command in a terminal to install all of the required tools.
 
     ```
-    brew cask install vagrant virtualbox docker ansible
-    brew cask install caskroom/versions/java8
-    brew install maven@3.3 git
+    brew cask install vagrant virtualbox docker 
     vagrant plugin install vagrant-hostmanager
     open /Applications/Docker.app
     ```
@@ -66,17 +61,21 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Deploy Metron
 
-    ```
+ ```bash
     cd metron-deployment/development/centos6
-    vagrant up
-    ```
+    ./metron-up.sh -h
+ ```
+ ```bash   
+    usage: ./metron-up.sh
+        --force-docker-build            force build docker machine
+        --skip-tags='tag,tag2,tag3'     the ansible skip tags
+        --skip-vagrant-up               skip vagrant up
+        -h/--help                       Usage information.
 
-    Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
-
-    ```
-    vagrant provision
-    ```
-
+    example: to skip vagrant up and force docker build with two tags
+        metron-up.sh -skip-vagrant-up --force-docker-build --skip-tags='solr,sensors'
+ ```
+    
 ### Explore Metron
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
@@ -88,39 +87,3 @@ Connecting to the host through SSH is as simple as running the following command
 ```
 vagrant ssh
 ```
-
-### Working with Metron
-
-In addition to re-running the entire provisioning play book, you may now re-run an individual Ansible tag or a collection of tags in the following ways.  The following commands will re-run the `sensor-stubs` role on the Vagrant image. This will install and start the sensor stub components.
-
-```
-vagrant --ansible-tags="sensor-stubs" provision
-```
-
-Tags are listed in the playbooks.  Here are some frequently used tags:
-+ `hdp-install` - Install HDP
-+ `hdp-deploy` - Deploy and Start HDP Services (will start all Hadoop Services)
-+ `sensors` - Deploy the sensors (see [Sensors](#sensors) for more details regarding this tag)
-+ `sensor-stubs` - Deploy and start the sensor stubs.
-
-#### Sensors
-
-By default, the Metron development environment uses sensor stubs to mimic the behavior of the full sensors.  This is done because the full sensors take a significant amount of time and CPU to build, install, and run.
-
-From time to time you may want to install the full sensors for testing (see the specifics of what that means [here](../../ansible/playbooks/sensor_install.yml)).  This can be done by running the following command:
-
-```
-vagrant --ansible-skip-tags="sensor-stubs" up
-```
-
-This will skip only the `sensor-stubs` tag, allowing the ansible roles with the `sensors` tag to be run.  This provisions the full sensors in a 'testing mode' so that they are more active, and thus more useful for testing (more details on that [here](../../ansible/roles/sensor-test-mode/)).  **However**, when vagrant completes the sensors will NOT be running.  In order to start the sensors and simulate traffic through them (which will create a fair amount of load on your test system), complete the below steps:
-
-```
-vagrant ssh
-sudo su -
-service pcap-replay restart
-service yaf restart
-service snortd restart
-service snort-producer restart
-```
-

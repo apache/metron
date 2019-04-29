@@ -21,4 +21,4 @@
     - { role: enable-swap,       tags: enable-swap }
     - { role: enable-remote-ssh, tags: enable-remote-ssh }
 
-- import_playbook: ../../../ansible/playbooks/metron_full_install.yml
+- import_playbook: /root/metron/metron-deployment/ansible/playbooks/metron_full_install.yml

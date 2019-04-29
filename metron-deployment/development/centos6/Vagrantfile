@@ -16,31 +16,10 @@
 #
 require 'getoptlong'
 
-ansibleTags=''
-ansibleSkipTags='sensors'
-
 begin
-   opts = GetoptLong.new(
-     [ '--ansible-tags', GetoptLong::OPTIONAL_ARGUMENT ],
-     [ '--ansible-skip-tags', GetoptLong::OPTIONAL_ARGUMENT ]
-   )
-
-   opts.quiet = true
-
-   opts.each do |opt, arg|
-     case opt
-       when '--ansible-tags'
-         ansibleTags=arg
-       when '--ansible-skip-tags'
-         ansibleSkipTags=arg
-     end
-   end
 rescue Exception => ignored
 #Ignore to allow other opts to be passed to Vagrant
 end
-
-puts " Running with ansible-tags: " + ansibleTags.split(",").to_s if ansibleTags != ''
-puts " Running with ansible-skip-tags: " + ansibleSkipTags.split(",").to_s if ansibleSkipTags != ''
 
 hosts = [{
     hostname: "node1",
@@ -92,15 +71,5 @@ Vagrant.configure(2) do |config|
         vb.customize ["modifyvm", :id, "--audio", "none"]
       end
     end
-  end
-
-  # provision the host with ansible
-  config.vm.provision :ansible do |ansible|
-    ansible.playbook = "ansible/playbook.yml"
-    ansible.become = true
-    ansible.tags = ansibleTags.split(",") if ansibleTags != ''
-    ansible.skip_tags = ansibleSkipTags.split(",") if ansibleSkipTags != ''
-    ansible.inventory_path = "ansible/inventory"
-    ansible.compatibility_mode = "auto"
   end
 end
