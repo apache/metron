@@ -15,15 +15,12 @@
 #  limitations under the License.
 #
 ---
-- include_tasks: install-agent-{{ansible_distribution}}-{{ansible_distribution_major_version}}.yml
+- name: Install ambari-agent on CentOS 7
+  yum: name=ambari-agent
 
-- include_tasks: hostname.yml
-
-- name: Ensure ambari-agent is running
-  service:
-    name: ambari-agent
-    state: restarted
-    enabled: yes
-
-- name : Wait for agent to register
-  command : sleep 10
+- name: Force Ambari Agent to use TLSv1.2
+  lineinfile:
+    dest: /etc/ambari-agent/conf/ambari-agent.ini
+    state: present
+    insertafter: '\[security\]'
+    line: "force_https_protocol=PROTOCOL_TLSv1_2"

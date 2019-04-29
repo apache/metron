@@ -15,10 +15,21 @@
 #  limitations under the License.
 #
 ---
-- name: Install ambari-agent on CentOS
-  yum: name=ambari-agent
-  when: ansible_distribution == "CentOS"
+- name: Create ambari-agent hostname script
+  template:
+    src: "../roles/ambari_slave/files/hostname.sh"
+    dest: "/var/lib/ambari-agent/hostname.sh"
+    mode: 0744
+    owner: "{{ ambari_installation_user }}"
+    group: "{{ ambari_installation_user }}"
 
-- name: Install ambari-agent on Ubuntu
-  apt: name=ambari-agent force=yes
-  when: ansible_distribution == "Ubuntu"
+- name: Configure ambari-server hostname in ambari-agent configuration
+  lineinfile:
+    dest: /etc/ambari-agent/conf/ambari-agent.ini
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    insertafter: "{{ item.insertafter }}"
+    backup: yes
+  with_items:
+    - { regexp: "^.*hostname=.*$", line: "hostname={{ groups.ambari_master[0] }}", insertafter: '\[server\]' }
+    - { regexp: "^hostname_script=.*$", line: "hostname_script=/var/lib/ambari-agent/hostname.sh", insertafter: '\[agent\]'}
