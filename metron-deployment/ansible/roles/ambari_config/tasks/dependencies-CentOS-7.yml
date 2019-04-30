@@ -15,12 +15,19 @@
 #  limitations under the License.
 #
 ---
-- name: Install urllib3 with pip
-  pip:
-    name: urllib3
-    version: 1.10.2
+# - name: Install urllib3 with pip
+#   pip:
+#     name: urllib3
+#     version: 1.10.2
+#
+# - name: Install requests with pip
+#   pip:
+#     name: requests
+#     version: 2.6.1
 
-- name: Install requests with pip
-  pip:
-    name: requests
-    version: 2.6.1
+- name: Install Ambari dependencies
+  yum: name={{ item }}
+  with_items:
+      - python-urllib3
+      - python-requests
+  when: ansible_distribution == "CentOS"
