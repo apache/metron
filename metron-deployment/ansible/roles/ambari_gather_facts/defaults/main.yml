@@ -17,3 +17,7 @@
 ---
 curl: "curl -s -u {{ ambari_user }}:{{ ambari_password }} -X GET -H \"X-Requested-By: ambari\""
 parse_json: "import sys, json; print json.load(sys.stdin)"
+ambari_host: "{{ groups.ambari_master[0] }}"
+ambari_port: 8080
+ambari_user: admin
+ambari_password: admin

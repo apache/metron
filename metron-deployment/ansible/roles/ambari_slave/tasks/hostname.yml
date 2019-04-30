@@ -15,21 +15,21 @@
 #  limitations under the License.
 #
 ---
-- name: "Allocate {{ swapspace }} for swap space"
-  shell: fallocate -l {{ swapspace }} {{ swapfile }}
+- name: Create ambari-agent hostname script
+  template:
+    src: "../roles/ambari_slave/files/hostname.sh"
+    dest: "/var/lib/ambari-agent/hostname.sh"
+    mode: 0744
+    owner: "{{ ambari_installation_user }}"
+    group: "{{ ambari_installation_user }}"
 
-- name: "Permissioning {{ swapfile }}"
-  file:
-    path: "{{ swapfile }}"
-    mode: "600"
-
-- name: "Setup swap space"
-  shell: mkswap {{ swapfile }}
-
-- name: "Enable swap space"
-  shell: swapon {{ swapfile }}
-
-- name: "Enable swap on boot"
+- name: Configure ambari-server hostname in ambari-agent configuration
   lineinfile:
-    dest: "/etc/fstab"
-    line: "{{ swapfile }} none swap sw 0 0"
+    dest: /etc/ambari-agent/conf/ambari-agent.ini
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    insertafter: "{{ item.insertafter }}"
+    backup: yes
+  with_items:
+    - { regexp: "^.*hostname=.*$", line: "hostname={{ groups.ambari_master[0] }}", insertafter: '\[server\]' }
+    - { regexp: "^hostname_script=.*$", line: "hostname_script=/var/lib/ambari-agent/hostname.sh", insertafter: '\[agent\]'}

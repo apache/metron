@@ -15,8 +15,15 @@
 #  limitations under the License.
 #
 ---
-- name: Setup Ambari repo on CentOS
-  get_url: url="{{ centos_ambari_install_url }}" dest=/etc/yum.repos.d/ambari.repo
+- shell: swapon -s | grep {{ swapfile }}
+  register: swapcheck
+  failed_when: swapcheck.rc != 0 and swapcheck.rc != 1
 
-- name: Update package cache on CentOS
-  yum: name=* update_cache=yes
+- shell: free -m | grep Swap | awk -F" " '{ print $2}'
+  register: actual_swapspace
+
+- debug: msg="Swap is enabled with {{ actual_swapspace.stdout }} mb"
+  when: swapcheck.rc == 0
+
+- debug: msg="Swap is NOT enabled"
+  when: swapcheck.rc == 1

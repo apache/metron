@@ -15,10 +15,8 @@
 #  limitations under the License.
 #
 ---
-- name: Install ambari-agent on CentOS
-  yum: name=ambari-agent
-  when: ansible_distribution == "CentOS"
-
-- name: Install ambari-agent on Ubuntu
-  apt: name=ambari-agent force=yes
-  when: ansible_distribution == "Ubuntu"
+- name: Install Node.js repo on Ubuntu 14
+  shell: curl -sL https://deb.nodesource.com/setup_6.x | bash -
+  args:
+    warn: false
+  become: true

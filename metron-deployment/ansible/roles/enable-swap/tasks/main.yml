@@ -14,17 +14,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----  
-- name: "Is swap space enabled?"
-  shell: swapon -s | grep {{ swapfile }}
-  register: swapcheck
-  failed_when: swapcheck.rc != 0 and swapcheck.rc != 1
+---
+- include_tasks: check-swap.yml
 
-- debug: msg="Swap space is already enabled"
-  when: swapcheck.rc == 0
+#
+# only enable swap if the swapfile does not already exist
+#
+- name: "Checking for {{ swapfile }}"
+  stat: path="{{ swapfile }}"
+  register: swap
 
-- debug: msg="Swap space is NOT yet enabled"
-  when: swapcheck.rc == 1
+- include_tasks: setup-swap.yml
+  when: swap.stat.exists == False
 
-- include_tasks: enable-swap.yml
-  when: swapcheck.rc != 0
+- debug: msg="No swap changes necessary"
+  when: swap.stat.exists == True

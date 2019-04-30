@@ -15,5 +15,5 @@
 #  limitations under the License.
 #
 ---
-swapfile: /swapfile
-swapspace: 4G
+swapfile: /swappy
+swapspace: 8092
