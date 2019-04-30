@@ -733,7 +733,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 ### `GET /api/v1/sensor/enrichment/config/list/available/enrichments`
   * Description: Lists the available enrichments
   * Returns:
-    * 200 - Returns a list of available enrichments
+    * 200 - Returns a list of available enrichments in lexicographical order
 
 ### `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`
   * Description: Lists the available threat triage aggregators

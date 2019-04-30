@@ -126,7 +126,19 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-enrichment/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-enrichment/metron-enrichment-common/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-enrichment/metron-enrichment-storm/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-hbase-server/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

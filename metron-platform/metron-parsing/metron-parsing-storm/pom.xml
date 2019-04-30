@@ -33,7 +33,7 @@
     <!-- Metron dependencies -->
     <dependency>
       <groupId>org.apache.metron</groupId>
-      <artifactId>metron-common</artifactId>
+      <artifactId>metron-common-storm</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
@@ -44,6 +44,16 @@
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-parsers</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+      <dependency>
+          <groupId>org.apache.metron</groupId>
+          <artifactId>metron-enrichment-common</artifactId>
+          <version>${project.parent.version}</version>
+      </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>metron-writer-storm</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
 
@@ -99,7 +109,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
-      <artifactId>metron-enrichment</artifactId>
+      <artifactId>metron-common</artifactId>
       <version>${project.parent.version}</version>
       <scope>test</scope>
       <type>test-jar</type>

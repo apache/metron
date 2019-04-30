@@ -20,7 +20,7 @@
 
 package org.apache.metron.profiler.storm;
 
-import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
+import org.apache.metron.storm.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.DefaultMessageRouter;
 import org.apache.metron.profiler.MessageRoute;

@@ -42,6 +42,15 @@
         <jwt.version>4.41.2</jwt.version>
     </properties>
     <dependencies>
+        <dependency>
+            <!-- There's an issue with the Javassist versions used by our version of Powermock. Keep the explicit test dep at the top
+            so it takes precedence during testing - https://github.com/powermock/powermock/issues/729
+            -->
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.20.0-GA</version>
+            <scope>test</scope>
+        </dependency>
       <dependency>
           <groupId>com.github.ben-manes.caffeine</groupId>
           <artifactId>caffeine</artifactId>
@@ -350,6 +359,12 @@
             <artifactId>powermock-module-junit4</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>javassist</artifactId>
+                    <groupId>org.javassist</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
@@ -386,6 +401,10 @@
                 <exclusion>
                     <groupId>javax.servlet</groupId>
                     <artifactId>servlet-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>javassist</artifactId>
+                    <groupId>org.javassist</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

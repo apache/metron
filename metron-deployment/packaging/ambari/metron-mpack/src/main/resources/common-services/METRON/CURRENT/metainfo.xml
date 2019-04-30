@@ -441,6 +441,9 @@
               <name>metron-data-management</name>
             </package>
             <package>
+              <name>metron-hbase-server</name>
+            </package>
+            <package>
               <name>metron-management</name>
             </package>
             <package>
@@ -453,7 +456,10 @@
               <name>metron-parsing-storm</name>
             </package>
             <package>
-              <name>metron-enrichment</name>
+              <name>metron-enrichment-common</name>
+            </package>
+            <package>
+              <name>metron-enrichment-storm</name>
             </package>
             <package>
               <name>metron-profiler-storm</name>
@@ -494,7 +500,6 @@
             <package>
               <name>metron-performance</name>
             </package>
-
           </packages>
         </osSpecific>
         <osSpecific>

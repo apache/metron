@@ -17,11 +17,10 @@
  */
 package org.apache.metron.hbase;
 
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
-
-import java.io.IOException;
 
 public class HTableProvider implements TableProvider {
     @Override

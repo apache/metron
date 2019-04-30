@@ -46,7 +46,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-writer</artifactId>
+            <artifactId>metron-writer-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
@@ -182,6 +182,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${global_httpclient_version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.elasticsearch.plugin</groupId>
             <artifactId>transport-netty4-client</artifactId>
             <version>${global_elasticsearch_version}</version>
@@ -246,7 +251,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-enrichment</artifactId>
+            <artifactId>metron-common</artifactId>
             <version>${project.parent.version}</version>
             <type>test-jar</type>
             <scope>test</scope>

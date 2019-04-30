@@ -17,34 +17,6 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.DeleteBuilder;
-import org.apache.curator.framework.api.GetChildrenBuilder;
-import org.apache.curator.framework.api.GetDataBuilder;
-import org.apache.curator.framework.api.SetDataBuilder;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
-import org.apache.metron.common.zookeeper.ConfigurationsCache;
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.service.SensorEnrichmentConfigService;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.data.Stat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -53,6 +25,32 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.DeleteBuilder;
+import org.apache.curator.framework.api.SetDataBuilder;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.service.SensorEnrichmentConfigService;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 @SuppressWarnings("ALL")
 public class SensorEnrichmentConfigServiceImplTest {
@@ -84,13 +82,15 @@ public class SensorEnrichmentConfigServiceImplTest {
   public static String broJson;
 
   ConfigurationsCache cache;
+  private HBaseClient hBaseClient;
 
   @Before
   public void setUp() throws Exception {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
     cache = mock(ConfigurationsCache.class);
-    sensorEnrichmentConfigService = new SensorEnrichmentConfigServiceImpl(objectMapper, curatorFramework, cache);
+    hBaseClient = mock(HBaseClient.class);
+    sensorEnrichmentConfigService = new SensorEnrichmentConfigServiceImpl(objectMapper, curatorFramework, cache, hBaseClient);
   }
 
 
@@ -211,8 +211,15 @@ public class SensorEnrichmentConfigServiceImplTest {
   }
 
   @Test
-  public void getAvailableEnrichmentsShouldReturnEnrichments() throws Exception {
+  public void getAvailableEnrichmentsShouldReturnEnrichmentsSorted() throws Exception {
+    when(hBaseClient.readRecords()).thenReturn(new ArrayList<String>() {{
+      add("geo");
+      add("whois");
+      add("host");
+      add("a-new-one");
+    }});
     assertEquals(new ArrayList<String>() {{
+      add("a-new-one");
       add("geo");
       add("host");
       add("whois");

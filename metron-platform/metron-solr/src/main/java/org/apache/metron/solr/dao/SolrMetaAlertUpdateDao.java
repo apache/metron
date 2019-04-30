@@ -59,12 +59,13 @@ public class SolrMetaAlertUpdateDao extends AbstractLuceneMetaAlertUpdateDao imp
    * @param retrieveLatestDao A RetrieveLatestDao for getting the current state of items being
    *     mutated.
    */
-  public SolrMetaAlertUpdateDao(SolrDao solrDao,
+  public SolrMetaAlertUpdateDao(SolrClient solrClient,
+          SolrDao solrDao,
       SolrMetaAlertSearchDao metaAlertSearchDao,
       SolrMetaAlertRetrieveLatestDao retrieveLatestDao,
       MetaAlertConfig config) {
     super(solrDao, retrieveLatestDao, config);
-    this.solrClient = solrDao.getSolrClient(solrDao.getZkHosts());
+    this.solrClient = solrClient;
     this.metaAlertSearchDao = metaAlertSearchDao;
   }
 

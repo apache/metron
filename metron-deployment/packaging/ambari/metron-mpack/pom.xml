@@ -108,7 +108,7 @@
                             <outputDirectory>${basedir}/src/main/resources/common-services/METRON/CURRENT/package/templates</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${basedir}/../../../../metron-platform/metron-enrichment/src/main/config</directory>
+                                    <directory>${basedir}/../../../../metron-platform/metron-enrichment/metron-enrichment-storm/src/main/config</directory>
                                     <includes>
                                         <include>enrichment-splitjoin.properties.j2</include>
                                         <include>enrichment-unified.properties.j2</include>

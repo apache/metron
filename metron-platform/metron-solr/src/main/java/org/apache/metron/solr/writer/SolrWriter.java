@@ -50,7 +50,6 @@ import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,7 +152,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) throws IOException, SolrServerException {
+  public void init(Map stormConf, WriterConfiguration configurations) throws IOException, SolrServerException {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     initializeFromGlobalConfig(globalConfiguration);
     LOG.info("Initializing SOLR writer: {}", zookeeperUrl);

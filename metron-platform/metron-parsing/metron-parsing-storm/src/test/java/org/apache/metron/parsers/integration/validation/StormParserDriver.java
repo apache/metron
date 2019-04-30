@@ -60,7 +60,7 @@ public class StormParserDriver extends ParserDriver {
     }
 
     @Override
-    public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception {
+    public void init(Map stormConf, WriterConfiguration config) throws Exception {
 
     }
 
