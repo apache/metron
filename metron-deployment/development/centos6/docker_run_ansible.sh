@@ -29,7 +29,10 @@ cd /root/metron || exit 1
 #shellcheck disable=SC1091
 source /opt/rh/devtoolset-6/enable
 
-sed -i -e '/^node1.*/d' ~/.ssh/known_hosts
+# fixup known_hosts if it is there
+if [[  -f ~/.ssh/known_hosts ]]; then
+ sed -i -e '/^node1.*/d' ~/.ssh/known_hosts
+fi
 
 ansible-playbook  \
  -i /root/ansible_config/inventory \
