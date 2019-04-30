@@ -28,18 +28,18 @@ else:
 
 def get_java_home(config):
   if 'ambariLevelParams' in config.keys():
-    # Ambari 2.6.x
+    # Ambari 2.7.x
     return config['ambariLevelParams']['java_home']
   else:
-    # Ambari 2.7.x
+    # Ambari 2.6.x
     return config['hostLevelParams']['java_home']
 
 def get_java_version(config):
   if 'ambariLevelParams' in config.keys():
-    # Ambari 2.6.x
+    # Ambari 2.7.x
     return expect("/ambariLevelParams/java_version", int)
   else:
-    # Ambari 2.7.x
+    # Ambari 2.6.x
     return expect("/hostLevelParams/java_version", int)
 
 java_home = get_java_home(config)
