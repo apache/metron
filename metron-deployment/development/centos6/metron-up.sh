@@ -101,6 +101,7 @@ fi
 
 VAGRANT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 ANSIBLE_PATH=${VAGRANT_PATH}/ansible
+DOCKER_SCRIPT_PATH=${VAGRANT_PATH}/in_docker_scripts
 VAGRANT_KEY_PATH=${VAGRANT_PATH}/.vagrant/machines/node1/virtualbox
 
 # move over to the docker area
@@ -133,43 +134,37 @@ case "${unameOut}" in
  Darwin*)    CYPRESS_CACHE=~/.Library/caches/Cypress;;
 esac
 
-if [ -z "$CYPRESS_CACHE" ]; then
-  echo "No Cypress Cache Found";
-  echo "===============Running Docker==============="
-  docker run -it \
-   -v "${VAGRANT_PATH}/../../..:/root/metron" \
-   -v ~/.m2:/root/.m2 \
-   -v "${VAGRANT_PATH}:/root/vagrant" \
-   -v "${ANSIBLE_PATH}:/root/ansible_config" \
-   -v "${VAGRANT_KEY_PATH}:/root/vagrant_key" \
-   -v "${VAGRANT_PATH}/logs:/root/logs" \
-   -e ANSIBLE_CONFIG='/root/ansible_config/ansible.cfg' \
-   -e ANSIBLE_LOG_PATH="/root/logs/${LOGNAME}" \
-   -e ANSIBLE_SKIP_TAGS="${A_SKIP_TAGS}" \
-   --add-host="node1:${NODE1_IP}" \
-   metron-build-docker:latest bash -c /root/vagrant/docker_run_ansible.sh
+# Build the docker command line
+declare -a DOCKER_CMD_BASE
+DOCKER_CMD="bash -c /root/scripts/docker_run_ansible.sh"
+DOCKER_CMD_BASE[0]="docker run -it "
+DOCKER_CMD_BASE[1]="-v \"${VAGRANT_PATH}/../../..:/root/metron\" "
+DOCKER_CMD_BASE[2]="-v ~/.m2:/root/.m2 "
+DOCKER_CMD_BASE[3]="-v \"${VAGRANT_PATH}:/root/vagrant\" "
+DOCKER_CMD_BASE[4]="-v \"${ANSIBLE_PATH}:/root/ansible_config\" "
+DOCKER_CMD_BASE[5]="-v \"${VAGRANT_KEY_PATH}:/root/vagrant_key\" "
+DOCKER_CMD_BASE[6]="-v \"${VAGRANT_PATH}/logs:/root/logs\" "
+DOCKER_CMD_BASE[7]="-v \"${DOCKER_SCRIPT_PATH}:/root/scripts\" "
+DOCKER_CMD_BASE[8]="-e ANSIBLE_CONFIG=\"/root/ansible_config/ansible.cfg\" "
+DOCKER_CMD_BASE[9]="-e ANSIBLE_LOG_PATH=\"/root/logs/${LOGNAME}\" "
+DOCKER_CMD_BASE[10]="-e ANSIBLE_SKIP_TAGS=\"${A_SKIP_TAGS}\" "
+DOCKER_CMD_BASE[11]="--add-host=\"node1:${NODE1_IP}\" "
 
-  rc=$?; if [[ ${rc} != 0 ]]; then
-  exit ${rc};
-  fi
+if [ ! -z "$CYPRESS_CACHE" ]; then
+    echo "Cypres Cache is set to '$CYPRESS_CACHE'";
+    DOCKER_CMD_BASE[12]="-v \"${CYPRESS_CACHE} :/root/.cache/Cypress\" "
 else
-  echo "Cypres Cache is set to '$CYPRESS_CACHE'";
-  echo "===============Running Docker==============="
-  docker run -it \
-  -v "${VAGRANT_PATH}/../../..:/root/metron" \
-  -v ~/.m2:/root/.m2 \
-  -v "${VAGRANT_PATH}:/root/vagrant" \
-  -v "${ANSIBLE_PATH}:/root/ansible_config" \
-  -v "${VAGRANT_KEY_PATH}:/root/vagrant_key" \
-  -v "${VAGRANT_PATH}/logs:/root/logs" \
-  -v "${CYPRESS_CACHE} :/root/.cache/Cypress" \
-  -e ANSIBLE_CONFIG='/root/ansible_config/ansible.cfg' \
-  -e ANSIBLE_LOG_PATH="/root/logs/${LOGNAME}" \
-  -e ANSIBLE_SKIP_TAGS="${A_SKIP_TAGS}" \
-  --add-host="node1:${NODE1_IP}" \
-  metron-build-docker:latest bash -c /root/vagrant/docker_run_ansible.sh
+    echo "No Cypress Cache Found";
+fi
 
-  rc=$?; if [[ ${rc} != 0 ]]; then
-  exit ${rc};
-  fi
+echo "===============Running Docker==============="
+echo ""
+echo "eval command is: "
+echo "${DOCKER_CMD_BASE[@]}" "${DOCKER_CMD}"
+echo ""
+echo "============================================"
+echo ""
+eval "${DOCKER_CMD_BASE[@]}" metron-build-docker:latest "${DOCKER_CMD}"
+rc=$?; if [[ ${rc} != 0 ]]; then
+    exit ${rc};
 fi
