@@ -28,7 +28,7 @@ import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 
-public class BatchProfileZKIntegrationTest {
+public class BatchProfilerZKIntegrationTest {
   /**
    * {
    *   "profiles": [
