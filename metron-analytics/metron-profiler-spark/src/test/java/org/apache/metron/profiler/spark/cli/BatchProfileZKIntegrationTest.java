@@ -46,7 +46,7 @@ public class BatchProfileZKIntegrationTest {
   private String profile;
 
   @Test
-  public void testProfileZookeeperIntegration() throws Exception {
+  public void testProfilerZookeeperIntegration() throws Exception {
     final byte[] profileExpectedByte = profile.getBytes(StandardCharsets.UTF_8);
     final ProfilerConfig expectedProfileConfig = ProfilerConfig.fromBytes(profileExpectedByte);
 

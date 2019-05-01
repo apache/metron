@@ -96,7 +96,6 @@ public class BatchProfilerCLI implements Serializable {
 
     // read profile information
     profiles = Preconditions.checkNotNull(handleProfileDefinitions(commandLine), "An error occurred while reading profile data");
-
     profilerProps = handleProfilerProperties(commandLine);
     globals = handleGlobals(commandLine);
     readerProps = handleReaderProperties(commandLine);
@@ -253,9 +252,10 @@ public class BatchProfilerCLI implements Serializable {
    */
   private static ProfilerConfig handleProfileDefinitionsZK(final CommandLine commandLine) throws IOException  {
     Preconditions.checkArgument(PROFILE_ZK.has(commandLine));
+    ProfilerConfig profiles;
     final String zkQuorum = PROFILE_ZK.get(commandLine);
     try (final CuratorFramework zkClient = createZKClient(zkQuorum)) {
-      readProfileFromZK(zkClient);
+      profiles = readProfileFromZK(zkClient);
     }
     return profiles;
   }

@@ -42,7 +42,24 @@ The portion of a profile produced by the Batch Profiler should be indistinguisha
 For an introduction to the Profiler, see the [Profiler README](../metron-profiler-common/README.md).
 
 ## Getting Started
-1. Chose if you are going to use a profile already loaded into zookeeper or if you are going to use a profile defined in a JSON file on disk. See [Specifying profiles](#specifying-profiles) for more information.
+1. If a profile file does not already exist, you can create a profile definition by editing `$METRON_HOME/config/zookeeper/profiler.json` as follows.
+
+    ```
+    cat $METRON_HOME/config/zookeeper/profiler.json
+    {
+      "profiles": [
+        {
+          "profile": "hello-world",
+          "foreach": "'global'",
+          "init":    { "count": "0" },
+          "update":  { "count": "count + 1" },
+          "result":  "count"
+        }
+      ],
+      "timestampField": "timestamp"
+    }
+    ```
+    See [Specifying profiles](#specifying-profiles) for information on how to load profile definitions from zookeeper.
  
 1. Ensure that you have archived telemetry available for the Batch Profiler to consume.  By default, Metron will store this in HDFS at `/apps/metron/indexing/indexed/*/*`.
 
@@ -63,7 +80,6 @@ For an introduction to the Profiler, see the [Profiler README](../metron-profile
 	  ```
 	  log4j.logger.org.apache.metron.profiler.spark=DEBUG
 	  ```
-1. Edit 
 1. Run the Batch Profiler.
 
     ```
