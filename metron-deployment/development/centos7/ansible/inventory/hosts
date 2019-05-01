@@ -14,26 +14,34 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Create home directory
-  file: path={{ item }} state=directory mode=0755
-  with_items:
-    - "{{ sensor_stubs_home }}"
-    - "{{ sensor_stubs_bin }}"
-    - "{{ sensor_stubs_data }}"
 
-- name: Distribute stub data
-  copy: src={{ item }} dest={{ sensor_stubs_data }}/
-  with_items:
-    - bro.out
-    - snort.out
-    - yaf.out
+[ambari_master]
+node1
 
-- name: Install sensor stubs scripts
-  template: src={{ item }} dest={{ sensor_stubs_bin }}/ mode=0755
-  with_items:
-    - start-bro-stub
-    - start-snort-stub
-    - start-yaf-stub
+[ambari_slave]
+node1
 
-- include_tasks: install-service-{{ansible_distribution}}-{{ansible_distribution_major_version}}.yml
+[metron]
+node1
+
+[search]
+node1
+
+[sensors]
+node1
+
+[pcap_server]
+node1
+
+[web]
+node1
+
+[zeppelin]
+node1
+
+[monit:children]
+sensors
+pcap_server
+
+[local]
+127.0.0.1

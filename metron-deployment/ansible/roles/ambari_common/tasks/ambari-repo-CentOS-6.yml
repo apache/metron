@@ -15,25 +15,8 @@
 #  limitations under the License.
 #
 ---
-- name: Create home directory
-  file: path={{ item }} state=directory mode=0755
-  with_items:
-    - "{{ sensor_stubs_home }}"
-    - "{{ sensor_stubs_bin }}"
-    - "{{ sensor_stubs_data }}"
+- name: Setup Ambari repo on CentOS
+  get_url: url="{{ centos6_ambari_install_url }}" dest=/etc/yum.repos.d/ambari.repo
 
-- name: Distribute stub data
-  copy: src={{ item }} dest={{ sensor_stubs_data }}/
-  with_items:
-    - bro.out
-    - snort.out
-    - yaf.out
-
-- name: Install sensor stubs scripts
-  template: src={{ item }} dest={{ sensor_stubs_bin }}/ mode=0755
-  with_items:
-    - start-bro-stub
-    - start-snort-stub
-    - start-yaf-stub
-
-- include_tasks: install-service-{{ansible_distribution}}-{{ansible_distribution_major_version}}.yml
+- name: Update package cache on CentOS
+  yum: name=* update_cache=yes
