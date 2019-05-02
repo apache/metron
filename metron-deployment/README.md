@@ -47,6 +47,9 @@ To deploy Apache Metron using Ambari, follow the instructions at [packaging/amba
 How do I deploy Metron on a single VM?
 --------------------------------------
 
+**Note:** The [Parser Aggregation](../metron-platform/metron-parsing/metron-parsing-storm#parser-aggregation) feature does not currently exist in the management UI. In order to address resource limitations in the full dev development environments, bro, yaf, and snort have been aggregated into a single parser
+topology. However, the Management UI is not currently able to display its status until the feature is added. Aggregated parsers can still be created via Ambari and the command line scripts.
+
 This will deploy Metron and all of its dependencies on a virtual machine running on your computer.
 
 #### What is this good for?
