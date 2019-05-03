@@ -40,4 +40,4 @@ ansible-playbook  \
  --user="vagrant" \
  --become \
  --extra-vars="ansible_ssh_private_key_file=/root/vagrant_key/private_key" \
- /root/ansible_config/playbook.yml
+ /root/ansible_config/deploy-playbook.yml

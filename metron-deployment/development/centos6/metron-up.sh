@@ -32,9 +32,11 @@ function help {
  echo " "
 }
 
+
 SKIP_VAGRANT_UP=false
 FORCE_DOCKER_BUILD=false
 A_SKIP_TAGS="sensors,solr"
+SKIP_METRON_BUILD=false
 
 # handle command line options
 for i in "$@"; do
@@ -45,6 +47,15 @@ for i in "$@"; do
  #
   --skip-vagrant-up)
    SKIP_VAGRANT_UP=true
+   shift # past argument
+  ;;
+
+ #
+ # SKIP_METRON_BUILD
+ #
+ #
+  --skip-metron-build)
+   SKIP_METRON_BUILD=true
    shift # past argument
   ;;
 
@@ -90,17 +101,16 @@ done
 
 echo "Running with "
 echo "SKIP_VAGRANT_UP    = $SKIP_VAGRANT_UP"
+echo "SKIP_METRON_BUILD  = $SKIP_METRON_BUILD"
 echo "FORCE_DOCKER_BUILD = $FORCE_DOCKER_BUILD"
 echo "SKIP_TAGS          = $A_SKIP_TAGS"
 echo "==================================================="
 
 
 
+
 VAGRANT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-ANSIBLE_PATH=${VAGRANT_PATH}/ansible
-DOCKER_SCRIPT_PATH=${VAGRANT_PATH}/in_docker_scripts
 HOST_SCRIPT_PATH=${VAGRANT_PATH}/host_scripts
-VAGRANT_KEY_PATH=${VAGRANT_PATH}/.vagrant/machines/node1/virtualbox
 
 # move over to the docker area
 cd ../docker || exit 1
@@ -111,22 +121,25 @@ if [[ "$FORCE_DOCKER_BUILD" = true ]]; then
  docker build -t metron-build-docker:latest .
 fi
 
-
-
-
 # start the build container
+#
+# shellcheck disable=SC2145
+${HOST_SCRIPT_PATH}/docker_run_build_container.sh --vagrant-path="${VAGRANT_PATH}" --skip-tags="${A_SKIP_TAGS[@]}"
 rc=$?; if [[ ${rc} != 0 ]]; then
  exit ${rc};
 fi
-
 # exec the metron build process
-${HOST_SCRIPT_PATH}/docker_exec_build_metron.sh
-rc=$?; if [[ ${rc} != 0 ]]; then
- ${HOST_SCRIPT_PATH}/stop_build_container.sh
- exit ${rc};
+if [[ "$SKIP_METRON_BUILD" = false ]]; then
+ ${HOST_SCRIPT_PATH}/docker_exec_build_metron.sh
+ rc=$?; if [[ ${rc} != 0 ]]; then
+  ${HOST_SCRIPT_PATH}/stop_build_container.sh
+  exit ${rc};
+ fi
 fi
 
 # start the vagrant vm now that the build is complete ( the vm really slows the build down
+cd "${VAGRANT_PATH}" || exit 1
+
 if [[ "$SKIP_VAGRANT_UP" = false ]]; then
  vagrant up
  rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

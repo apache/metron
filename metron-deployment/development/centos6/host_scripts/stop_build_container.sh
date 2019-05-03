@@ -28,25 +28,16 @@ set -o pipefail
 function help {
   echo " "
   echo "usage: ${0}"
-  echo "    --container-name                [REQUIRED] The Docker container name"
   echo "    -h/--help                       Usage information."
   echo " "
 }
 
-CONTAINER_NAME=
+CONTAINER_NAME="MetronBuild"
 
 # Handle command line options
 for i in "$@"; do
   case $i in
-  #
-  # CONTAINER_NAME
-  #
-  #   --container-name
-  #
-    --container-name=*)
-      CONTAINER_NAME="${i#*=}"
-      shift # past argument=value
-    ;;
+
   #
   # -h/--help
   #

@@ -23,95 +23,42 @@ set -E # errtrap
 set -o pipefail
 
 #
-# Runs the bro container
+# Runs the build container
 #
 
 function help {
   echo " "
   echo "usage: ${0}"
-  echo "    --container-name                [OPTIONAL] The Docker container name. Default: bro"
-  echo "    --network-name                  [OPTIONAL] The Docker network name. Default: bro-network"
-  echo "    --scripts-path                  [OPTIONAL] The path with the scripts you may run in the container. These are your scripts, not the built in scripts"
-  echo "    --data-path                     [OPTIONAL] The name of the directory to map to /root/data in the container"
-  echo "    --test-output-path              [REQUIRED] The path to log test data to"
-  echo "    --docker-parameter              [OPTIONAL, MULTIPLE] Each parameter with this name will be passed to docker run"
+  echo "    --vagrant-path                  The path to the vagrant directory"
+  echo "    --skip-tags                     The ansible tags to skip"
   echo "    -h/--help                       Usage information."
   echo " "
 }
 
-BRO_PLUGIN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null && cd ../.. && pwd)"
-CONTAINER_NAME=bro
-NETWORK_NAME=bro-network
-OUR_SCRIPTS_PATH="${BRO_PLUGIN_PATH}/docker/in_docker_scripts"
-SCRIPTS_PATH=
-DATA_PATH=
-TEST_OUTPUT_PATH=
+VAGRANT_PATH=
 
-declare -a DOCKER_PARAMETERS
 
 # Handle command line options
 for i in "$@"; do
   case $i in
   #
-  # CONTAINER_NAME
+  # VAGRANT_PATH
   #
-  #   --container-name
+  #   --vagrant-path
   #
-    --container-name=*)
-      CONTAINER_NAME="${i#*=}"
+    --vagrant-path=*)
+      VAGRANT_PATH="${i#*=}"
       shift # past argument=value
     ;;
-
   #
-  # NETWORK_NAME
+  # SKIP_TAGS
   #
-  #   --network-name
+  #   --skip-tags='foo,bar'
   #
-    --network-name=*)
-      NETWORK_NAME="${i#*=}"
+    --skip-tags=*)
+      A_SKIP_TAGS="${i#*=}"
       shift # past argument=value
     ;;
-
-  #
-  # DATA_PATH
-  #
-  #   --data-path
-  #
-    --data-path=*)
-      DATA_PATH="${i#*=}"
-      shift # past argument=value
-    ;;
-
-  #
-  # SCRIPTS_PATH
-  #
-  #   --scripts-path
-  #
-    --scripts-path=*)
-      SCRIPTS_PATH="${i#*=}"
-      shift # past argument=value
-    ;;
-
-  #
-  # TEST_OUTPUT_PATH
-  #
-  #   --test-output-path
-  #
-    --test-output-path=*)
-      TEST_OUTPUT_PATH="${i#*=}"
-      shift # past argument=value
-    ;;
-
-  #
-  # DOCKER_PARAMETERS
-  #
-  #   --docker-parameter
-  #
-    --docker-parameter=*)
-      DOCKER_PARAMETERS=( "${DOCKER_PARAMETERS[@]}" "${i#*=}" )
-      shift # past argument=value
-    ;;
-
   #
   # -h/--help
   #
@@ -123,13 +70,13 @@ for i in "$@"; do
   esac
 done
 
-echo "Running docker_run_bro_container with "
-echo "CONTAINER_NAME = $CONTAINER_NAME"
-echo "NETWORK_NAME = ${NETWORK_NAME}"
-echo "SCRIPT_PATH = ${SCRIPTS_PATH}"
-echo "DATA_PATH = ${DATA_PATH}"
-echo "TEST_OUTPUT_PATH = ${TEST_OUTPUT_PATH}"
-echo "DOCKER_PARAMETERS = " "${DOCKER_PARAMETERS[@]}"
+ANSIBLE_PATH=${VAGRANT_PATH}/ansible
+DOCKER_SCRIPT_PATH=${VAGRANT_PATH}/in_docker_scripts
+VAGRANT_KEY_PATH=${VAGRANT_PATH}/.vagrant/machines/node1/virtualbox
+
+echo "Running build container with "
+echo "VAGRANT_PATH = " "${VAGRANT_PATH}"
+echo "SKIP_TAGS = " "${A_SKIP_TAGS[@]}"
 echo "==================================================="
 
 

@@ -21,19 +21,19 @@
     - { role: enable-swap,       tags: enable-swap }
     - { role: enable-remote-ssh, tags: enable-remote-ssh }
 
-- import_playbook: solr_install.yml
+- import_playbook: /root/metron/metron-deployment/ansible/playbooks/solr_install.yml
   tags:
     - solr
 
-- import_playbook: ambari_install.yml
+- import_playbook: /root/metron/metron-deployment/ansible/playbooks/ambari_install.yml
   tags:
     - ambari
 
-- import_playbook: metron_install.yml
+- import_playbook: /root/metron/metron-deployment/ansible/playbooks/metron_install.yml
   tags:
     - metron
 
-- import_playbook: sensor_install.yml
+- import_playbook: /root/metron/metron-deployment/ansible/playbooks/sensor_install.yml
 
 - hosts: metron
   become: false
