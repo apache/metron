@@ -18,73 +18,88 @@
 
 package org.apache.metron.enrichment.stellar;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.io.IOUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.common.utils.SerDeUtils;
-import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
-import org.junit.Assert;
+import org.apache.metron.enrichment.cache.ObjectCache;
+import org.apache.metron.enrichment.cache.ObjectCacheConfig;
+import org.apache.metron.stellar.dsl.Context;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ObjectGet.class, ObjectCache.class})
 public class ObjectGetTest {
-  FileSystem fs;
-  List<String> data;
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
+  private ObjectGet objectGet;
+  private ObjectCache objectCache;
+  private Context context;
 
   @Before
-  public void setup() throws IOException {
-    fs = FileSystem.get(new Configuration());
-    data = new ArrayList<>();
-    {
-      data.add("apache");
-      data.add("metron");
-      data.add("is");
-      data.add("great");
-    }
+  public void setup() throws Exception {
+    objectGet = new ObjectGet();
+    objectCache = mock(ObjectCache.class);
+    context = new Context.Builder()
+            .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
+            .build();
 
+    whenNew(ObjectCache.class).withNoArguments().thenReturn(objectCache);
   }
 
   @Test
-  public void test() throws Exception {
-    String filename = "target/ogt/test.ser";
-    Assert.assertTrue(ObjectGet.cache == null || !ObjectGet.cache.asMap().containsKey(filename));
-    assertDataIsReadCorrectly(filename);
-  }
+  public void shouldInitialize() throws Exception {
+    when(objectCache.isInitialized()).thenReturn(true);
 
-  public void assertDataIsReadCorrectly(String filename) throws IOException {
-    try(BufferedOutputStream bos = new BufferedOutputStream(fs.create(new Path(filename), true))) {
-      IOUtils.write(SerDeUtils.toBytes(data), bos);
-    }
-    List<String> readData = (List<String>) StellarProcessorUtils.run("OBJECT_GET(loc)", ImmutableMap.of("loc", filename));
-    Assert.assertEquals(readData, data);
-    Assert.assertTrue(ObjectGet.cache.asMap().containsKey(filename));
+    assertFalse(objectGet.isInitialized());
+    objectGet.initialize(context);
+
+    ObjectCacheConfig expectedConfig = ObjectCacheConfig.fromGlobalConfig(new HashMap<>());
+
+    verify(objectCache, times(1)).initialize(expectedConfig);
+    assertTrue(objectGet.isInitialized());
   }
 
   @Test
-  public void testMultithreaded() throws Exception {
-    String filename = "target/ogt/testmulti.ser";
-    Assert.assertTrue(ObjectGet.cache == null || !ObjectGet.cache.asMap().containsKey(filename));
-    Thread[] ts = new Thread[10];
-    for(int i = 0;i < ts.length;++i) {
-      ts[i] = new Thread(() -> {
-        try {
-          assertDataIsReadCorrectly(filename);
-        } catch (IOException e) {
-          throw new IllegalStateException(e.getMessage(), e);
-        }
-      });
-      ts[i].start();
-    }
-    for(Thread t : ts) {
-      t.join();
-    }
+  public void shouldApplyObjectGet() {
+    Object object = mock(Object.class);
+    when(objectCache.get("/path")).thenReturn(object);
+
+    assertNull(objectGet.apply(Collections.singletonList("/path"), context));
+
+    when(objectCache.isInitialized()).thenReturn(true);
+    objectGet.initialize(context);
+
+    assertNull(objectGet.apply(new ArrayList<>(), context));
+    assertNull(objectGet.apply(Collections.singletonList(null), context));
+    assertEquals(object, objectGet.apply(Collections.singletonList("/path"), context));
   }
+
+  @Test
+  public void shouldThrowIllegalStateExceptionOnInvalidPath() {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Unable to retrieve 1 as it is not a path");
+
+    when(objectCache.isInitialized()).thenReturn(true);
+    objectGet.initialize(context);
+    objectGet.apply(Collections.singletonList(1), context);
+  }
+
 }
