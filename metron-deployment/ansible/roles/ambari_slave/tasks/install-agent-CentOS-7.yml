@@ -15,25 +15,12 @@
 #  limitations under the License.
 #
 ---
-- name: Create home directory
-  file: path={{ item }} state=directory mode=0755
-  with_items:
-    - "{{ sensor_stubs_home }}"
-    - "{{ sensor_stubs_bin }}"
-    - "{{ sensor_stubs_data }}"
+- name: Install ambari-agent on CentOS 7
+  yum: name=ambari-agent
 
-- name: Distribute stub data
-  copy: src={{ item }} dest={{ sensor_stubs_data }}/
-  with_items:
-    - bro.out
-    - snort.out
-    - yaf.out
-
-- name: Install sensor stubs scripts
-  template: src={{ item }} dest={{ sensor_stubs_bin }}/ mode=0755
-  with_items:
-    - start-bro-stub
-    - start-snort-stub
-    - start-yaf-stub
-
-- include_tasks: install-service-{{ansible_distribution}}-{{ansible_distribution_major_version}}.yml
+- name: Force Ambari Agent to use TLSv1.2
+  lineinfile:
+    dest: /etc/ambari-agent/conf/ambari-agent.ini
+    state: present
+    insertafter: '\[security\]'
+    line: "force_https_protocol=PROTOCOL_TLSv1_2"
