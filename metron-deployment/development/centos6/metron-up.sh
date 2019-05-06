@@ -124,15 +124,15 @@ fi
 # start the build container
 #
 # shellcheck disable=SC2145
-${HOST_SCRIPT_PATH}/docker_run_build_container.sh --vagrant-path="${VAGRANT_PATH}" --skip-tags="${A_SKIP_TAGS[@]}"
+"${HOST_SCRIPT_PATH}"/docker_run_build_container.sh --vagrant-path="${VAGRANT_PATH}" --skip-tags="${A_SKIP_TAGS[@]}"
 rc=$?; if [[ ${rc} != 0 ]]; then
  exit ${rc};
 fi
 # exec the metron build process
 if [[ "$SKIP_METRON_BUILD" = false ]]; then
- ${HOST_SCRIPT_PATH}/docker_exec_build_metron.sh
+ "${HOST_SCRIPT_PATH}"/docker_exec_build_metron.sh
  rc=$?; if [[ ${rc} != 0 ]]; then
-  ${HOST_SCRIPT_PATH}/stop_build_container.sh
+  "${HOST_SCRIPT_PATH}"/stop_build_container.sh
   exit ${rc};
  fi
 fi
@@ -146,8 +146,8 @@ if [[ "$SKIP_VAGRANT_UP" = false ]]; then
 fi
 
 # exec the metron install process
-${HOST_SCRIPT_PATH}/docker_exec_deploy_metron.sh
+"${HOST_SCRIPT_PATH}"/docker_exec_deploy_metron.sh
 
 # we don't need to leave the container running
-${HOST_SCRIPT_PATH}/stop_build_container.sh
+"${HOST_SCRIPT_PATH}"/stop_build_container.sh
 exit ${rc};
