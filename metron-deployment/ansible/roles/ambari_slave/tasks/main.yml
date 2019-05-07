@@ -15,26 +15,9 @@
 #  limitations under the License.
 #
 ---
-- include: install-agent.yml
+- include_tasks: install-agent-{{ansible_distribution}}-{{ansible_distribution_major_version}}.yml
 
-- name: Create ambari-agent hostname script
-  template:
-    src: "../roles/ambari_slave/files/hostname.sh"
-    dest: "/var/lib/ambari-agent/hostname.sh"
-    mode: 0744
-    owner: "{{ ambari_installation_user }}"
-    group: "{{ ambari_installation_user }}"
-
-- name: Configure ambari-server hostname in ambari-agent configuration
-  lineinfile:
-    dest: /etc/ambari-agent/conf/ambari-agent.ini
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    insertafter: "{{ item.insertafter }}"
-    backup: yes
-  with_items:
-    - { regexp: "^.*hostname=.*$", line: "hostname={{ groups.ambari_master[0] }}", insertafter: '\[server\]' }
-    - { regexp: "^hostname_script=.*$", line: "hostname_script=/var/lib/ambari-agent/hostname.sh", insertafter: '\[agent\]'}
+- include_tasks: hostname.yml
 
 - name: Ensure ambari-agent is running
   service:

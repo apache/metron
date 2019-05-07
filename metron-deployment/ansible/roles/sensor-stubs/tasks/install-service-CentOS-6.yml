@@ -15,10 +15,8 @@
 #  limitations under the License.
 #
 ---
+- name: Install init.d service
+  template: src=sensor-stubs dest=/etc/init.d/sensor-stubs mode=0755
 
-- name: Setup Ambari repo on Ubuntu
-  shell: echo "deb {{ ubuntu_ambari_repo }} Ambari main" | tee /etc/apt/sources.list.d/ambari.list
-  become: true
-
-- name: Update package cache on Ubuntu
-  apt: update_cache=yes
+- name: Start sensor stubs
+  service: name=sensor-stubs state=restarted

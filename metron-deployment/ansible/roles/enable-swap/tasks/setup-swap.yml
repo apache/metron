@@ -15,25 +15,26 @@
 #  limitations under the License.
 #
 ---
-- name: Create home directory
-  file: path={{ item }} state=directory mode=0755
-  with_items:
-    - "{{ sensor_stubs_home }}"
-    - "{{ sensor_stubs_bin }}"
-    - "{{ sensor_stubs_data }}"
+- name: "Disable swap space"
+  shell: swapoff -a
 
-- name: Distribute stub data
-  copy: src={{ item }} dest={{ sensor_stubs_data }}/
-  with_items:
-    - bro.out
-    - snort.out
-    - yaf.out
+- name: "Allocate {{ swapspace }} mb for swap space"
+  shell: dd if=/dev/zero of={{ swapfile }} count={{ swapspace }} bs=1MiB
 
-- name: Install sensor stubs scripts
-  template: src={{ item }} dest={{ sensor_stubs_bin }}/ mode=0755
-  with_items:
-    - start-bro-stub
-    - start-snort-stub
-    - start-yaf-stub
+- name: "Permissioning {{ swapfile }}"
+  file:
+    path: "{{ swapfile }}"
+    mode: "600"
 
-- include_tasks: install-service-{{ansible_distribution}}-{{ansible_distribution_major_version}}.yml
+- name: "Setup swap space"
+  shell: mkswap {{ swapfile }}
+
+- name: "Enable swap space"
+  shell: swapon {{ swapfile }}
+
+- name: "Enable swap on boot"
+  lineinfile:
+    dest: "/etc/fstab"
+    line: "{{ swapfile }} none swap sw 0 0"
+
+- include_tasks: check-swap.yml
