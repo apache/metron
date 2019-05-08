@@ -51,19 +51,20 @@ Source4:        metron-solr-%{full_version}-archive.tar.gz
 Source5:        metron-enrichment-common-%{full_version}-archive.tar.gz
 Source6:        metron-enrichment-storm-%{full_version}-archive.tar.gz
 Source7:        metron-indexing-common-%{full_version}-archive.tar.gz
-Source8:        metron-pcap-backend-%{full_version}-archive.tar.gz
-Source9:        metron-profiler-storm-%{full_version}-archive.tar.gz
-Source10:       metron-rest-%{full_version}-archive.tar.gz
-Source11:       metron-config-%{full_version}-archive.tar.gz
-Source12:       metron-management-%{full_version}-archive.tar.gz
-Source13:       metron-maas-service-%{full_version}-archive.tar.gz
-Source14:       metron-alerts-%{full_version}-archive.tar.gz
-Source15:       metron-performance-%{full_version}-archive.tar.gz
-Source16:       metron-profiler-spark-%{full_version}-archive.tar.gz
-Source17:       metron-profiler-repl-%{full_version}-archive.tar.gz
-Source18:       metron-parsing-storm-%{full_version}-archive.tar.gz
-Source19:       metron-parsers-%{full_version}-archive.tar.gz
-Source20:       metron-hbase-server-%{full_version}-archive.tar.gz
+Source8:        metron-indexing-storm-%{full_version}-archive.tar.gz
+Source9:        metron-pcap-backend-%{full_version}-archive.tar.gz
+Source10:       metron-profiler-storm-%{full_version}-archive.tar.gz
+Source11:       metron-rest-%{full_version}-archive.tar.gz
+Source12:       metron-config-%{full_version}-archive.tar.gz
+Source13:       metron-management-%{full_version}-archive.tar.gz
+Source14:       metron-maas-service-%{full_version}-archive.tar.gz
+Source15:       metron-alerts-%{full_version}-archive.tar.gz
+Source16:       metron-performance-%{full_version}-archive.tar.gz
+Source17:       metron-profiler-spark-%{full_version}-archive.tar.gz
+Source18:       metron-profiler-repl-%{full_version}-archive.tar.gz
+Source19:       metron-parsing-storm-%{full_version}-archive.tar.gz
+Source20:       metron-parsers-%{full_version}-archive.tar.gz
+Source21:       metron-hbase-server-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -107,6 +108,7 @@ tar -xzf %{SOURCE17} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE18} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE19} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE20} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE21} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -388,9 +390,6 @@ This package installs the Metron Indexing files
 %dir %{metron_home}/bin
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/indexing
-%{metron_home}/bin/start_hdfs_topology.sh
-%{metron_home}/flux/indexing/batch/remote.yaml
-%{metron_home}/flux/indexing/random_access/remote.yaml
 %{metron_home}/config/zookeeper/indexing/bro.json
 %{metron_home}/config/zookeeper/indexing/snort.json
 %{metron_home}/config/zookeeper/indexing/websphere.json
@@ -401,6 +400,27 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zeppelin/metron/metron-connection-report.json
 %{metron_home}/config/zeppelin/metron/metron-ip-report.json
 %{metron_home}/config/zeppelin/metron/metron-connection-volume-report.json
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        indexing-storm
+Summary:        Metron Indexing Storm Files
+Group:          Applications/Internet
+Provides:       indexing-storm = %{version}
+
+%description    indexing-storm
+This package installs the Metron Indexing Storm files
+
+%files          indexing-storm
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/flux
+%dir %{metron_home}/flux/indexing
+%{metron_home}/bin/start_hdfs_topology.sh
+%{metron_home}/flux/indexing/batch/remote.yaml
+%{metron_home}/flux/indexing/random_access/remote.yaml
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -152,11 +152,11 @@ public class HDFSIndexingIntegrationTest extends IndexingIntegrationTest {
 
   @Override
   public String getTemplatePath() {
-    return "../metron-indexing-common/src/main/config/hdfs.properties.j2";
+    return "../metron-indexing-storm/src/main/config/hdfs.properties.j2";
   }
 
   @Override
   public String getFluxPath() {
-    return "../metron-indexing-common/src/main/flux/indexing/batch/remote.yaml";
+    return "../metron-indexing-storm/src/main/flux/indexing/batch/remote.yaml";
   }
 }

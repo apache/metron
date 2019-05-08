@@ -471,7 +471,10 @@
               <name>metron-profiler-repl</name>
             </package>
             <package>
-              <name>metron-indexing</name>
+              <name>metron-indexing-common</name>
+            </package>
+            <package>
+              <name>metron-indexing-storm</name>
             </package>
             <package>
               <name>metron-elasticsearch</name>

@@ -151,6 +151,6 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
 
   @Override
   public String getFluxPath() {
-    return "../metron-indexing-common/src/main/flux/indexing/random_access/remote.yaml";
+    return "../metron-indexing-storm/src/main/flux/indexing/random_access/remote.yaml";
   }
 }

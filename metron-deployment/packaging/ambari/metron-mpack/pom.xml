@@ -123,7 +123,7 @@
                                     <filtering>false</filtering>
                                 </resource>
                                 <resource>
-                                    <directory>${basedir}/../../../../metron-platform/metron-indexing/src/main/config</directory>
+                                    <directory>${basedir}/../../../../metron-platform/metron-indexing/metron-indexing-storm/src/main/config</directory>
                                     <includes>
                                         <include>hdfs.properties.j2</include>
                                     </includes>
