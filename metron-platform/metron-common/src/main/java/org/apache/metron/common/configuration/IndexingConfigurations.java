@@ -36,6 +36,8 @@ public class IndexingConfigurations extends Configurations {
   public static final String INDEX_CONF = "index";
   public static final String OUTPUT_PATH_FUNCTION_CONF = "outputPathFunction";
   public static final String FIELD_NAME_CONVERTER_CONF = "fieldNameConverter";
+  public static final String METRON_ID_CONF = "metronId";
+  public static final String GLOBAL_METRON_ID_CONF = "indexing.writer.metronId";
 
   /**
    * Gets the indexing config for a specific sensor.
@@ -184,6 +186,10 @@ public class IndexingConfigurations extends Configurations {
     return getFieldNameConverter(getSensorIndexingConfig(sensorName, writerName), sensorName);
   }
 
+  public boolean isMetronId(String sensorName, String writerName) {
+    return isMetronId(getGlobalConfig(true), getSensorIndexingConfig(sensorName, writerName));
+  }
+
   /**
    *  Retrieves the enabled value from the config.
    *
@@ -265,6 +271,17 @@ public class IndexingConfigurations extends Configurations {
    */
   public static String getFieldNameConverter(Map<String, Object> conf, String sensorName) {
     return getAs(FIELD_NAME_CONVERTER_CONF, conf, "", String.class);
+  }
+
+  /**
+   * Determines if the Metron generated id should be used when indexing
+   *
+   * @param globalConf The global config
+   * @param sensorConf The indexing config for a given sensor
+   * @return True if the Metron generated id should be used as the id, False otherwise
+   */
+  public static boolean isMetronId(Map<String, Object> globalConf, Map<String, Object> sensorConf) {
+    return getAs(METRON_ID_CONF, sensorConf, getAs(GLOBAL_METRON_ID_CONF, globalConf, false, Boolean.class), Boolean.class);
   }
 
   /**
