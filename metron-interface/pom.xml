@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>Metron</artifactId>
-        <version>0.6.1</version>
+        <version>0.7.1</version>
     </parent>
     <description>Interfaces for Metron</description>
     <url>https://metron.apache.org/</url>
@@ -65,13 +65,4 @@
         <plugins>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>multiline-release-repo</id>
-            <url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 </project>

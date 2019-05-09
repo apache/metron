@@ -46,6 +46,8 @@ import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
+import { Utils } from 'app/utils/utils';
+import {AlertSource} from "../../model/alert-source";
 
 @Component({
   selector: 'app-alerts-list',
@@ -61,13 +63,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   alerts: Alert[] = [];
   searchResponse: SearchResponse = new SearchResponse();
   colNumberTimerId: number;
-  refreshInterval = RefreshInterval.ONE_MIN;
+  refreshInterval = RefreshInterval.TEN_MIN;
   refreshTimer: Subscription;
-  pauseRefresh = POLLING_DEFAULT_STATE;
-  lastPauseRefreshValue = false;
+  isRefreshPaused = POLLING_DEFAULT_STATE;
+  lastIsRefreshPausedValue = false;
   isMetaAlertPresentInSelectedAlerts = false;
   timeStampfilterPresent = false;
-  selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
+
+  readonly DEFAULT_TIME_RANGE = 'last-15-minutes';
+  selectedTimeRange: Filter;
 
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
@@ -101,12 +105,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   addAlertChangedListner() {
-    this.metaAlertsService.alertChanged$.subscribe(metaAlertAddRemoveRequest => {
-      this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
+    this.metaAlertsService.alertChanged$.subscribe(alertSource => {
+      if (alertSource['status'] === 'inactive') {
+        this.removeAlert(alertSource)
+      }
+      this.updateAlert(alertSource);
     });
 
-    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
-      this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
+    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(alertSource => {
+      this.updateAlert(alertSource);
     });
   }
 
@@ -135,7 +142,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   setSelectedTimeRange(filters: Filter[]) {
     filters.forEach(filter => {
       if (filter.field === TIMESTAMP_FIELD_NAME && filter.dateFilterValue) {
-        this.selectedTimeRange = JSON.parse(JSON.stringify(filter));
+        this.selectedTimeRange = filter;
+        this.updateQueryBuilder(filter);
       }
     });
   }
@@ -164,8 +172,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.configureTableService.getTableMetadata(),
         this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
-      this.prepareData(response[0], response[1], resetPaginationForSearch);
+      this.prepareData(response[0], response[1]);
+      this.refreshAlertData(resetPaginationForSearch);
     });
+  }
+
+  private refreshAlertData(resetPaginationForSearch: boolean) {
+    if (this.alerts.length) {
+      this.search(resetPaginationForSearch);
+    }
   }
 
   getColumnNamesForQuery() {
@@ -192,10 +207,18 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         }
       }
     });
+
+    this.setDefaultTimeRange(this.DEFAULT_TIME_RANGE);
     this.getAlertColumnNames(true);
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
     this.addAlertChangedListner();
+  }
+
+  private setDefaultTimeRange(timeRangeId: string) {
+    const timeRange = new Filter(TIMESTAMP_FIELD_NAME, timeRangeId, false);
+    timeRange.dateFilterValue = Utils.timeRangeToDateObj(timeRange.value);
+    this.setSelectedTimeRange([timeRange]);
   }
 
   onClear() {
@@ -222,7 +245,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onSelectedAlertsChange(selectedAlerts) {
     this.selectedAlerts = selectedAlerts;
-    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.metron_alert && alert.source.metron_alert.length > 0));
+    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(
+      alert => (alert.source.metron_alert && alert.source.metron_alert.length > 0)
+    );
 
     if (selectedAlerts.length > 0) {
       this.pause();
@@ -249,8 +274,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onPausePlay() {
-    this.pauseRefresh = !this.pauseRefresh;
-    if (this.pauseRefresh) {
+    this.isRefreshPaused = !this.isRefreshPaused;
+    if (this.isRefreshPaused) {
       this.tryStopPolling();
     } else {
       this.search(false);
@@ -259,17 +284,20 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onResize() {
     clearTimeout(this.colNumberTimerId);
-    this.colNumberTimerId = setTimeout(() => { this.calcColumnsToDisplay(); }, 500);
+    this.colNumberTimerId = window.setTimeout(() => { this.calcColumnsToDisplay(); }, 500);
   }
 
   onTimeRangeChange(filter: Filter) {
-    if (filter.value === ALL_TIME) {
-      this.queryBuilder.removeFilter(filter.field);
-    } else {
-      this.queryBuilder.addOrUpdateFilter(filter);
-    }
-
+    this.updateQueryBuilder(filter);
     this.search();
+  }
+
+  private updateQueryBuilder(timeRangeFilter: Filter) {
+    if (timeRangeFilter.value === ALL_TIME) {
+      this.queryBuilder.removeFilter(timeRangeFilter.field);
+    } else {
+      this.queryBuilder.addOrUpdateFilter(timeRangeFilter);
+    }
   }
 
   prepareColumnData(configuredColumns: ColumnMetadata[], defaultColumns: ColumnMetadata[]) {
@@ -278,19 +306,19 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.calcColumnsToDisplay();
   }
 
-  prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[], resetPagination: boolean) {
+  prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[]) {
     this.tableMetaData = tableMetaData;
     this.refreshInterval = this.tableMetaData.refreshInterval;
 
     this.updateConfigRowsSettings();
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
-
-    this.search(resetPagination);
   }
 
   processEscalate() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
+      const alerts = [...this.selectedAlerts];
       this.updateSelectedAlertStatus('ESCALATE');
+      this.alertsService.escalate(alerts).subscribe();
     });
   }
 
@@ -324,7 +352,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   restoreRefreshState() {
-    this.pauseRefresh = this.lastPauseRefreshValue;
+    this.isRefreshPaused = this.lastIsRefreshPausedValue;
     this.tryStartPolling();
   }
 
@@ -410,17 +438,17 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   saveRefreshState() {
-    this.lastPauseRefreshValue = this.pauseRefresh;
+    this.lastIsRefreshPausedValue = this.isRefreshPaused;
     this.tryStopPolling();
   }
 
   pause() {
-    this.pauseRefresh = true;
+    this.isRefreshPaused = true;
     this.tryStopPolling();
   }
 
   resume() {
-    this.pauseRefresh = false;
+    this.isRefreshPaused = false;
     this.tryStartPolling();
   }
 
@@ -436,7 +464,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   tryStartPolling() {
-    if (!this.pauseRefresh) {
+    if (!this.isRefreshPaused) {
       this.tryStopPolling();
       this.refreshTimer = this.searchService.pollSearch(this.queryBuilder).subscribe(results => {
         this.setData(results);
@@ -454,20 +482,13 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.searchService.interval = this.refreshInterval;
   }
 
-  updateAlert(sensorType: string, guid: string, isDelete: boolean) {
-    if (isDelete) {
-      let alertIndex = -1;
-      this.alerts.forEach((alert, index) => {
-        alertIndex = (alert.source.guid === guid) ? index : alertIndex;
-      });
-      this.alerts.splice(alertIndex, 1);
-      return;
-    }
+  updateAlert(alertSource: AlertSource) {
+    this.alerts.filter(alert => alert.source.guid === alertSource.guid)
+            .map(alert => alert.source = alertSource);
+  }
 
-    this.searchService.getAlert(sensorType, guid).subscribe(alertSource => {
-      this.alerts.filter(alert => alert.source.guid === guid)
-      .map(alert => alert.source = alertSource);
-    });
+  removeAlert(alertSource: AlertSource) {
+    this.alerts = this.alerts.filter(alert => alert.source.guid !== alertSource.guid);
   }
 
   updateSelectedAlertStatus(status: string) {

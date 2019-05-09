@@ -33,6 +33,13 @@ public class HDFSUtils {
     return readBytes(new Path(path));
   }
 
+  /**
+   * Reads a provided path as raw bytes.
+   *
+   * @param inPath The path to be read
+   * @return The raw bytes of the contents
+   * @throws IOException If an error occurs during reading the path
+   */
   public static byte[] readBytes(Path inPath) throws IOException {
     FileSystem fs = FileSystem.get(inPath.toUri(), new Configuration());
     try (FSDataInputStream inputStream = fs.open(inPath)) {
@@ -49,7 +56,7 @@ public class HDFSUtils {
    *
    * @param path path to file
    * @return file contents as a String
-   * @throws IOException
+   * @throws IOException If an error occurs during reading the path
    */
   public static List<String> readFile(String path) throws IOException {
     return readFile(new Configuration(), path);
@@ -64,7 +71,7 @@ public class HDFSUtils {
    * @param config Hadoop configuration
    * @param path path to file
    * @return file contents as a String
-   * @throws IOException
+   * @throws IOException If an error occurs during reading the path
    */
   public static List<String> readFile(Configuration config, String path) throws IOException {
     Path inPath = new Path(path);

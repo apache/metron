@@ -35,6 +35,7 @@ import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
 import { ConfirmationType } from 'app/model/confirmation-type';
+import {HttpErrorResponse} from "@angular/common/http";
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -141,14 +142,14 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   onSort(sortEvent: SortEvent) {
     let sortOrder = (sortEvent.sortOrder === Sort.ASC ? 'asc' : 'desc');
-    let sortBy = sortEvent.sortBy === 'id' ? 'guid' : sortEvent.sortBy;
+    let sortBy = sortEvent.sortBy === 'id' ? '_uid' : sortEvent.sortBy;
     this.queryBuilder.setSort(sortBy, sortOrder);
     this.onRefreshData.emit(true);
   }
 
   getValue(alert: Alert, column: ColumnMetadata, formatData: boolean) {
     if (column.name === 'id') {
-      return this.formatValue(column, alert[column.name]);
+      return this.formatValue(column, alert['id']);
     }
 
     return this.getValueFromSource(alert.source, column, formatData);
@@ -158,9 +159,6 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     let returnValue = '';
     try {
       switch (column.name) {
-        case 'id':
-          returnValue = alertSource['guid'];
-          break;
         case 'alert_status':
           returnValue = alertSource['alert_status'] ? alertSource['alert_status'] : 'NEW';
           break;
@@ -218,7 +216,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   addFilter(field: string, value: string) {
-    field = (field === 'id') ? 'guid' : field;
+    field = (field === 'id') ? '_id' : field;
     this.onAddFilter.emit(new Filter(field, value));
   }
 
@@ -280,6 +278,13 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
     metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove[this.globalConfig['source.type.field']], '')];
 
     this.metaAlertService.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest).subscribe(() => {
+    }, (res: HttpErrorResponse) => {
+      let message = res.error['message'];
+      this.dialogService
+              .launchDialog(message)
+              .subscribe(action => {
+                this.configSubscription.unsubscribe();
+              })
     });
   }
 

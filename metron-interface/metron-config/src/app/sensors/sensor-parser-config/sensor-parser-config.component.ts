@@ -68,16 +68,14 @@ export class SensorParserConfigComponent implements OnInit {
   showFieldSchema: boolean = false;
   showThreatTriage: boolean = false;
   showStormSettings: boolean = false;
-
-  configValid = false;
   sensorNameValid = false;
   sensorNameUnique = true;
+  sensorNameNoSpecChars = false;
   kafkaTopicValid = false;
   parserClassValid = false;
-  grokStatementValid = false;
   availableParsers = {};
   availableParserNames = [];
-  grokStatement = {};
+  grokStatement = '';
   patternLabel = '';
   currentSensors = [];
 
@@ -134,12 +132,12 @@ export class SensorParserConfigComponent implements OnInit {
             if (path) {
               this.hdfsService.read(path).subscribe(
                 contents => {
-                  this.grokStatement = contents;
+                  this.grokStatement = contents as string;
                 },
                 (hdfsError: RestError) => {
                   this.grokValidationService.getStatement(path).subscribe(
                     contents => {
-                      this.grokStatement = contents;
+                      this.grokStatement = contents as string;
                     },
                     (grokError: RestError) => {
                       this.metronAlerts.showErrorMessage(
@@ -296,11 +294,13 @@ export class SensorParserConfigComponent implements OnInit {
 
   onSetSensorName(): void {
     this.sensorNameUnique = this.currentSensors.indexOf(this.sensorName) === -1;
+    this.sensorNameNoSpecChars = !/[^a-zA-Z0-9_-]/.test(this.sensorName);
+
     this.sensorNameValid =
       this.sensorName !== undefined &&
       this.sensorName.length > 0 &&
-      this.sensorNameUnique;
-    this.isConfigValid();
+      this.sensorNameUnique &&
+      this.sensorNameNoSpecChars;
   }
 
   onSetKafkaTopic(): void {
@@ -310,7 +310,6 @@ export class SensorParserConfigComponent implements OnInit {
     if (this.kafkaTopicValid) {
       this.getKafkaStatus();
     }
-    this.isConfigValid();
   }
 
   onParserTypeChange(): void {
@@ -323,23 +322,18 @@ export class SensorParserConfigComponent implements OnInit {
         this.hidePane(Pane.GROK);
       }
     }
-    this.isConfigValid();
   }
 
-  onGrokStatementChange(): void {
-    this.grokStatementValid =
-      this.grokStatement !== undefined &&
-      Object.keys(this.grokStatement).length > 0;
-    this.isConfigValid();
+  isGrokStatementValid(): boolean {
+    return this.grokStatement !== undefined && Object.keys(this.grokStatement).length > 0;
   }
 
   isConfigValid() {
     let isGrokParser = this.isGrokParser(this.sensorParserConfig);
-    this.configValid =
-      this.sensorNameValid &&
-      this.kafkaTopicValid &&
-      this.parserClassValid &&
-      (!isGrokParser || this.grokStatementValid);
+    return this.sensorNameValid &&
+            this.kafkaTopicValid &&
+            this.parserClassValid &&
+            (!isGrokParser || this.isGrokStatementValid());
   }
 
   getKafkaStatus() {

@@ -18,12 +18,13 @@
 import { TestBed } from '@angular/core/testing';
 import { TopologyStatus } from '../model/topology-status';
 import { TopologyResponse } from '../model/topology-response';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import { StormService } from './storm.service';
 import {
   HttpTestingController,
   HttpClientTestingModule
 } from '@angular/common/http/testing';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
 
 describe('StormService', () => {
   let mockBackend: HttpTestingController;
@@ -34,7 +35,7 @@ describe('StormService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         StormService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     mockBackend = TestBed.get(HttpTestingController);

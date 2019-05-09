@@ -19,17 +19,20 @@
 package org.apache.metron.common.configuration;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.common.field.validation.FieldValidation;
-import org.apache.metron.common.field.validation.FieldValidations;
-import org.json.simple.JSONObject;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.common.field.validation.FieldValidation;
+import org.apache.metron.common.field.validation.FieldValidations;
+import org.apache.metron.stellar.dsl.Context;
+import org.json.simple.JSONObject;
 
+/**
+ * Allows for the ability to run validations across messages that are being passed through the
+ * system.
+ */
 public class FieldValidator implements Serializable {
 
   public enum Config {
@@ -42,6 +45,15 @@ public class FieldValidator implements Serializable {
     Config(String key) {
       this.key = key;
     }
+
+    /**
+     * Retrieves the value of the key from the provided config, and casts it to the provided class.
+     *
+     * @param config The config to retrieve the value associated with the key from
+     * @param clazz The class to cast to
+     * @param <T> The type parameter of the class to cast to
+     * @return The value, casted appropriately
+     */
     public <T> T get(Map<String, Object> config, Class<T> clazz) {
       Object o = config.get(key);
       if(o == null) {
@@ -54,6 +66,13 @@ public class FieldValidator implements Serializable {
   private List<String> input;
   private Map<String, Object> config;
 
+  /**
+   * Constructor for a FieldValidator.
+   *
+   * @param o Should be a map, otherwise exception is thrown. From the map, retrieve the various
+   *     necessary components, e.g. input, and ensure they are read appropriately.
+   *
+   */
   public FieldValidator(Object o) {
     if(o instanceof Map) {
       Map<String, Object> validatorConfig = (Map<String, Object>) o;
@@ -96,6 +115,14 @@ public class FieldValidator implements Serializable {
     return config;
   }
 
+  /**
+   * Runs a validation against Json input data.
+   *
+   * @param inputData The Json data being validated
+   * @param globalConfig The global config feeding the validation
+   * @param context The Stellar context of the validation
+   * @return true if valid, false otherwise
+   */
   public boolean isValid(JSONObject inputData, Map<String, Object> globalConfig, Context context) {
     Map<String, Object> in = inputData;
     if(input != null && !input.isEmpty()) {
@@ -108,6 +135,12 @@ public class FieldValidator implements Serializable {
     return validation.isValid(in, config, globalConfig, context);
   }
 
+  /**
+   * Reads the validations from the global config and returns a list of them.
+   *
+   * @param globalConfig The config to read field validations from
+   * @return A list of validations
+   */
   public static List<FieldValidator> readValidations(Map<String, Object> globalConfig) {
     List<FieldValidator> validators = new ArrayList<>();
     List<Object> validations = (List<Object>) Config.FIELD_VALIDATIONS.get(globalConfig, List.class);

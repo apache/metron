@@ -71,7 +71,8 @@ public class GrokServiceImpl implements GrokService {
               throw new RestException("Grok statement is required");
             }
             Grok grok = new Grok();
-            grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")));
+            grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream(
+                "/patterns/common")));
             grok.addPatternFromReader(new StringReader(grokValidation.getStatement()));
             String grokPattern = "%{" + grokValidation.getPatternLabel() + "}";
             grok.compile(grokPattern);

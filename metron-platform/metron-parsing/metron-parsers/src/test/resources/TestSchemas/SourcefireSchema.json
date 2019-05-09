@@ -1,0 +1,34 @@
+{
+	"title": "Sourcefire Schema",
+	"type": "object",
+	"properties": {
+		"ip_src_addr": {
+			"type": "string"
+		},
+		"ip_dst_addr": {
+			"type": "string"
+		},
+		"timestamp": {
+			"type": "integer"
+		},
+		"protocol": {
+			"type": "string"
+		},
+		"original_string": {
+			"type": "string"
+		},
+		"original_string": {
+			"type": "string"
+		},
+		"ip_src_port": {
+			"type": "string"
+		},		
+		"ip_dst_port": {
+			"type": "string"
+		},
+		"key": {
+			"type": "string"
+		}	
+	},
+	"required": ["ip_src_addr", "ip_dst_addr", "ip_src_port", "ip_dst_port","protocol","original_string","key","timestamp"]
+}

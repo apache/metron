@@ -61,7 +61,7 @@ The layout of `/common-services/METRON/CURRENT` is
 * `kerberos.json`
   * Defines the keytabs and other Kerberos configuration to be used when Kerberizing a cluster
 * `metainfo.xml`
-  * Defines the METRON service, along with required packages, services, etc.
+  * Defines the METRON service, along with required packages, services, etc. If you need to have the MPack install a new package (e.g. RPM, DEB), add it here.
 * `service_advisor.py`
   * Handles component layout and validation, along with handling some configurations for other services or that needs configs from other services.
 
@@ -510,7 +510,7 @@ The main steps for upgrading a service are split into add-on and common services
     e.g.
 
     ```
-    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/5.6.2
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/5.6.14
     ```
 
 1. Update metainfo.xml
@@ -518,14 +518,14 @@ The main steps for upgrading a service are split into add-on and common services
     Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
 
     ```
-    <version>5.6.2</version>
+    <version>5.6.14</version>
     ...
     <osSpecifics>
         <osSpecific>
             <osFamily>any</osFamily>
             <packages>
                 <package>
-                    <name>elasticsearch-5.6.2</name>
+                    <name>elasticsearch-5.6.14</name>
                 </package>
             </packages>
         </osSpecific>
@@ -543,7 +543,7 @@ The main steps for upgrading a service are split into add-on and common services
     e.g.
 
     ```
-    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/5.6.2
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/5.6.14
     ```
 
 1. Update repoinfo.xml
@@ -565,8 +565,8 @@ The main steps for upgrading a service are split into add-on and common services
 
     ```
     <name>ELASTICSEARCH</name>
-    <version>5.6.2</version>
-    <extends>common-services/ELASTICSEARCH/5.6.2</extends>
+    <version>5.6.14</version>
+    <extends>common-services/ELASTICSEARCH/5.6.14</extends>
     ```
 
 #### Update mpack.json
@@ -578,7 +578,7 @@ The main steps for upgrading a service are split into add-on and common services
     "service_versions_map": [
       {
         "service_name" : "ELASTICSEARCH",
-        "service_version" : "5.6.2",
+        "service_version" : "5.6.14",
         "applicable_stacks" : [
             ...
         ]
@@ -603,7 +603,7 @@ The main steps for upgrading a service are split into add-on and common services
     e.g.
 
     ```
-    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.14
     ```
 
 1. Update metainfo.xml
@@ -611,12 +611,12 @@ The main steps for upgrading a service are split into add-on and common services
    Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
 
     ```
-    <version>5.6.2</version>
+    <version>5.6.14</version>
     ...
     <packages>
         ...
         <package>
-            <name>kibana-5.6.2</name>
+            <name>kibana-5.6.14</name>
         </package>
     </packages>
     ```
@@ -632,7 +632,7 @@ The main steps for upgrading a service are split into add-on and common services
     e.g.
 
     ```
-    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/5.6.2
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/5.6.14
     ```
 
 1. Update repoinfo.xml
@@ -661,8 +661,8 @@ The main steps for upgrading a service are split into add-on and common services
    Also make sure to update the "extends" version to point to the updated common-services version, e.g.
     ```
     <name>KIBANA</name>
-    <version>5.6.2</version>
-    <extends>common-services/KIBANA/5.6.2</extends>
+    <version>5.6.14</version>
+    <extends>common-services/KIBANA/5.6.14</extends>
     ```
 
 #### Update mpack.json
@@ -674,7 +674,7 @@ The main steps for upgrading a service are split into add-on and common services
     "service_versions_map": [
       {
         "service_name" : "KIBANA",
-        "service_version" : "5.6.2",
+        "service_version" : "5.6.14",
         "applicable_stacks" : [
             ...
         ]

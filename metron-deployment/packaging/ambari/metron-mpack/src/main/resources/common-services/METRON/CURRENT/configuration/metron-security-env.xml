@@ -44,7 +44,7 @@
     <name>metron.ldap.url</name>
     <display-name>LDAP URL</display-name>
     <value>ldap://localhost:33389</value>
-    <description>LDAP Server URL</description>
+    <description>The URL to the LDAP server in the form ldap://[host]:[port] or ldaps://[host]:[port].</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -54,7 +54,7 @@
     <name>metron.ldap.user.dnpattern</name>
     <value>uid={0},ou=people,dc=hadoop,dc=apache,dc=org</value>
     <display-name>User dn pattern</display-name>
-    <description>LDAP user DN</description>
+    <description>Pattern used to create a distinguished name (DN) from a username. This pattern is used for creating a DN string for direct user authentication. The pattern argument {0} will be replaced with the username at runtime.</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -64,7 +64,7 @@
     <name>metron.ldap.user.searchbase</name>
     <display-name>User Search Base</display-name>
     <value>ou=people,dc=hadoop,dc=apache,dc=org</value>
-    <description>LDAP user searchbase</description>
+    <description>The location from which the search starts for user entries.</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -75,7 +75,7 @@
     <name>metron.ldap.group.searchbase</name>
     <display-name>Group Search Base</display-name>
     <value>ou=groups,dc=hadoop,dc=apache,dc=org</value>
-    <description>LDAP group searchbase</description>
+    <description>The location from which the search starts for group entries.</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -86,7 +86,7 @@
     <name>metron.ldap.group.searchfilter</name>
     <display-name>Group Search Filter</display-name>
     <value>member={0}</value>
-    <description>LDAP group search filter</description>
+    <description>The search filter used to locate a group. The pattern argument {0} will be replaced with the username at runtime.</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -108,7 +108,7 @@
     <name>metron.ldap.user.searchfilter</name>
     <display-name>User Search Filter</display-name>
     <value></value>
-    <description>Search filter used for Bind Authentication</description>
+    <description>The search filter used to locate a user. The pattern argument {0} will be replaced with the username at runtime.</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -119,9 +119,10 @@
     <name>metron.ldap.user.password</name>
     <value>userPassword</value>
     <display-name>User password attribute</display-name>
-    <description>LDAP attribute for the user password</description>
+    <description>The name of an attribute containing the SHA-encoded user password. This attribute is used to perform a remote compare operation to authenticate the user. To use bind authentication, leave this field blank.</description>
     <value-attributes>
       <overridable>false</overridable>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -129,7 +130,7 @@
     <name>metron.ldap.group.roleattribute</name>
     <display-name>LDAP group role attribute</display-name>
     <value>cn</value>
-    <description>The LDAP group attribute to be used for determining roles</description>
+    <description>The attribute of a group that defines the group name.</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -139,7 +140,7 @@
     <name>metron.ldap.bind.dn</name>
     <display-name>Bind User</display-name>
     <value>uid=admin,ou=people,dc=hadoop,dc=apache,dc=org</value>
-    <description>Full distinguished name (DN), of an LDAP user account that has privileges to search for users. </description>
+    <description>The fully distinguished name (DN) of an LDAP user account that has privileges to search for users.  For example, `uid=admin,ou=people,dc=hadoop,dc=apache,dc=org` or `admin@mycompany.local`. </description>
     <on-ambari-upgrade add="true"/>
     <value-attributes>
       <overridable>false</overridable>
@@ -151,7 +152,7 @@
     <display-name>Bind User Password</display-name>
     <value></value>
     <property-type>PASSWORD</property-type>
-    <description>Password for the account that can search for users</description>
+    <description>Password for the bind user account.</description>
     <value-attributes>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
@@ -182,5 +183,61 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
-
+  <property>
+    <name>metron.knox.enabled</name>
+    <display-name>Knox Enabled</display-name>
+    <value>false</value>
+    <description>Enable Knox</description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metron.knox.sso.pubkey</name>
+    <display-name>Knox SSO Public Key</display-name>
+    <value></value>
+    <description>Knox public key used to verify Knox SSO tokens.</description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <overridable>false</overridable>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+  <property>
+    <name>metron.knox.sso.token.ttl</name>
+    <display-name>Knox SSO Token Time to live</display-name>
+    <value>300000</value>
+    <description>Controls the time to live for Knox SSO tokens in Metron.  Units are in milliseconds.</description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+  <property>
+    <name>metron_user_role</name>
+    <display-name>User Role Name</display-name>
+    <value>USER</value>
+    <description>Name of the role at the authentication provider that provides user access to Metron.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>metron_admin_role</name>
+    <display-name>Admin Role Name</display-name>
+    <value>ADMIN</value>
+    <description>Name of the role at the authentication provider that provides administrative access to Metron.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

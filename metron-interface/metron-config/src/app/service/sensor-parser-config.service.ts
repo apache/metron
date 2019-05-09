@@ -23,21 +23,21 @@ import { SensorParserConfig } from '../model/sensor-parser-config';
 import { HttpUtil } from '../util/httpUtil';
 import { ParseMessageRequest } from '../model/parse-message-request';
 import { RestError } from '../model/rest-error';
-import { IAppConfig } from '../app.config.interface';
-import { APP_CONFIG } from '../app.config';
+import { METRON_REST_CONFIG } from '../app.config';
 import { ParserGroupModel } from 'app/model/parser-group';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class SensorParserConfigService {
-  readonly parserConfigEndpoint = this.config.apiEndpoint + '/sensor/parser/config';
-  readonly parserGroupEndpoint = this.config.apiEndpoint + '/sensor/parser/group';
+  readonly parserConfigEndpoint = METRON_REST_CONFIG.apiEndpoint + '/sensor/parser/config';
+  readonly parserGroupEndpoint = METRON_REST_CONFIG.apiEndpoint + '/sensor/parser/group';
 
   dataChangedSource = new Subject<string[]>();
   dataChanged$ = this.dataChangedSource.asObservable();
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    private appConfigService: AppConfigService
   ) {}
 
   public getAllGroups(): Observable<ParserGroupModel[]> {

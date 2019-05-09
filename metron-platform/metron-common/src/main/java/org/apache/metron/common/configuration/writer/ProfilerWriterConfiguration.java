@@ -66,7 +66,7 @@ public class ProfilerWriterConfiguration implements WriterConfiguration {
   }
 
   /**
-   * n/a for profiler
+   * n/a for profiler.
    * @param sensorName n/a
    * @return null
    */
@@ -76,7 +76,7 @@ public class ProfilerWriterConfiguration implements WriterConfiguration {
   }
 
   /**
-   * Always enabled in profiler
+   * Always enabled in profiler.
    * @param sensorName n/a
    * @return true
    */

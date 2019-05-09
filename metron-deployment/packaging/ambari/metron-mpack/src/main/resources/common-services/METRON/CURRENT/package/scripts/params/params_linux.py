@@ -43,31 +43,36 @@ hdp_version = default("/commandParams/version", None)
 
 hostname = config['hostname']
 metron_home = status_params.metron_home
+metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
 
 parsers = status_params.parsers
 parser_error_topic = config['configurations']['metron-parsers-env']['parser_error_topic']
-geoip_hdfs_dir = "/apps/metron/geo/default/"
+geoip_hdfs_dir = metron_apps_hdfs_dir + "/geo/default/"
+asn_hdfs_dir = metron_apps_hdfs_dir + "/asn/default/"
+hbase_coprocessor_local_dir = format("{metron_home}/coprocessor")
+hbase_coprocessor_hdfs_dir = metron_apps_hdfs_dir + "/coprocessor"
 metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
 metron_pid_dir = config['configurations']['metron-env']['metron_pid_dir']
-
+metron_rest_host = status_params.metron_rest_host
 metron_rest_port = status_params.metron_rest_port
 metron_management_ui_host = status_params.metron_management_ui_host
 metron_management_ui_port = status_params.metron_management_ui_port
+metron_management_ui_path = metron_home + '/web/management-ui/'
 metron_alerts_ui_host = status_params.metron_alerts_ui_host
 metron_alerts_ui_port = status_params.metron_alerts_ui_port
+metron_alerts_ui_path = metron_home + '/web/alerts-ui/'
 metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
 
 # Construct the profiles as a temp variable first. Only the first time it's set will carry through
-metron_spring_profiles_temp = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
-if config['configurations']['metron-security-env']['metron.ldap.enabled']:
-    if metron_spring_profiles_temp:
-        metron_spring_profiles_active = metron_spring_profiles_temp + ',ldap'
+metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
+metron_ldap_enabled = config['configurations']['metron-security-env']['metron.ldap.enabled']
+if metron_ldap_enabled:
+    if not len(metron_spring_profiles_active) == 0:
+        metron_spring_profiles_active += ',ldap'
     else:
         metron_spring_profiles_active = 'ldap'
-else:
-    metron_spring_profiles_active = metron_spring_profiles_temp
 
 metron_jdbc_driver = config['configurations']['metron-rest-env']['metron_jdbc_driver']
 metron_jdbc_url = config['configurations']['metron-rest-env']['metron_jdbc_url']
@@ -87,8 +92,9 @@ parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_fil
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
 enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
+enrichment_hbase_coprocessor_configured_flag_file = status_params.enrichment_hbase_coprocessor_configured_flag_file
 enrichment_hbase_acl_configured_flag_file = status_params.enrichment_hbase_acl_configured_flag_file
-enrichment_geo_configured_flag_file = status_params.enrichment_geo_configured_flag_file
+enrichment_maxmind_configured_flag_file = status_params.enrichment_maxmind_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
 indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
 indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
@@ -100,6 +106,7 @@ rest_kafka_configured_flag_file = status_params.rest_kafka_configured_flag_file
 rest_kafka_acl_configured_flag_file = status_params.rest_kafka_acl_configured_flag_file
 rest_hbase_configured_flag_file = status_params.rest_hbase_configured_flag_file
 rest_hbase_acl_configured_flag_file = status_params.rest_hbase_acl_configured_flag_file
+metron_knox_installed_flag_file = status_params.metron_knox_installed_flag_file
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -143,6 +150,9 @@ solr_user = config['configurations']['solr-config-env']['solr_config_user']
 solr_principal_name = config['configurations']['solr-config-env']['solr_principal_name']
 solr_keytab_path = config['configurations']['solr-config-env']['solr_keytab_path']
 
+# HDFS
+hdfs_url = status_params.hdfs_url
+
 # Storm
 storm_rest_addr = status_params.storm_rest_addr
 
@@ -160,8 +170,6 @@ if has_kafka_host:
         kafka_broker_port = '6667'
     kafka_brokers = (':' + kafka_broker_port + ',').join(config['clusterHostInfo']['kafka_broker_hosts'])
     kafka_brokers += ':' + kafka_broker_port
-
-metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
 
 # the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
 # well enough until we find a better way via Ambari
@@ -205,6 +213,11 @@ HdfsResource = functools.partial(
 enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_hbase_table = status_params.enrichment_hbase_table
 enrichment_hbase_cf = status_params.enrichment_hbase_cf
+# coprocessor config for enrichment list
+enrichment_list_hbase_provider_impl = status_params.enrichment_list_hbase_provider_impl
+enrichment_list_hbase_coprocessor_impl = status_params.enrichment_list_hbase_coprocessor_impl
+enrichment_list_hbase_table = status_params.enrichment_list_hbase_table
+enrichment_list_hbase_cf = status_params.enrichment_list_hbase_cf
 update_hbase_table = status_params.update_hbase_table
 update_hbase_cf = status_params.update_hbase_cf
 
@@ -291,8 +304,9 @@ metron_ldap_group_role = config['configurations']['metron-security-env']['metron
 metron_ldap_ssl_truststore = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore']
 metron_ldap_ssl_truststore_password = config['configurations']['metron-security-env']['metron.ldap.ssl.truststore.password']
 
-# Management UI
-metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
+# Roles
+metron_user_role = config['configurations']['metron-security-env']['metron_user_role']
+metron_admin_role = config['configurations']['metron-security-env']['metron_admin_role']
 
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
@@ -308,6 +322,7 @@ threat_triage_score_field = config['configurations']['metron-rest-env']['threat_
 # Enrichment
 metron_enrichment_topology = status_params.metron_enrichment_topology
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
+asn_url = config['configurations']['metron-enrichment-env']['asn_url']
 enrichment_host_known_hosts = config['configurations']['metron-enrichment-env']['enrichment_host_known_hosts']
 
 # Enrichment - Kafka
@@ -443,3 +458,31 @@ kafka_spout_parallelism = config['configurations']['metron-pcap-env']['kafka_spo
 # MapReduce
 metron_user_hdfs_dir = '/user/' + metron_user
 metron_user_hdfs_dir_configured_flag_file = status_params.metron_user_hdfs_dir_configured_flag_file
+
+# Knox
+knox_user = config['configurations']['knox-env']['knox_user']
+knox_group = config['configurations']['knox-env']['knox_group']
+metron_knox_root_path = '/gateway/metron'
+metron_rest_path = '/api/v1'
+metron_alerts_ui_login_path = '/login'
+metron_management_ui_login_path = '/login'
+metron_knox_enabled = config['configurations']['metron-security-env']['metron.knox.enabled']
+metron_knox_sso_pubkey = config['configurations']['metron-security-env']['metron.knox.sso.pubkey']
+metron_knox_sso_token_ttl = config['configurations']['metron-security-env']['metron.knox.sso.token.ttl']
+if metron_knox_enabled:
+    metron_rest_path = metron_knox_root_path + '/metron-rest' + metron_rest_path
+    metron_alerts_ui_login_path = metron_knox_root_path + '/metron-alerts/'
+    metron_management_ui_login_path = metron_knox_root_path + '/metron-management/sensors'
+    if not len(metron_spring_options) == 0:
+        metron_spring_options += ' '
+    metron_spring_options += '--knox.root=' + metron_knox_root_path + '/metron-rest'
+    metron_spring_options += ' --knox.sso.pubkey=' + metron_knox_sso_pubkey
+    if not len(metron_spring_profiles_active) == 0:
+        metron_spring_profiles_active += ','
+    metron_spring_profiles_active += 'knox'
+
+knox_home = os.path.join(stack_root, "current", "knox-server")
+knox_hosts = default("/clusterHostInfo/knox_gateway_hosts", [])
+knox_host = ''
+if not len(knox_hosts) == 0:
+    knox_host = knox_hosts[0]

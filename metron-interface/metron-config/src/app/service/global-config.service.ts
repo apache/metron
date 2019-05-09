@@ -21,16 +21,15 @@ import { Response, ResponseOptions } from '@angular/http';
 import {Observable} from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import {HttpUtil} from '../util/httpUtil';
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
+import {AppConfigService} from './app-config.service';
 
 @Injectable()
 export class GlobalConfigService {
-  url = this.config.apiEndpoint + '/global/config';
+  url = this.appConfigService.getApiRoot() + '/global/config';
 
   private globalConfig = {};
 
-  constructor(private http: HttpClient, @Inject(APP_CONFIG) private config: IAppConfig) {
+  constructor(private http: HttpClient, private appConfigService: AppConfigService) {
     this.globalConfig['solr.collection'] = 'metron';
     this.globalConfig['storm.indexingWorkers'] = 1;
     this.globalConfig['storm.indexingExecutors'] = 2;

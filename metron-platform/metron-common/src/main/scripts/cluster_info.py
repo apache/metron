@@ -338,7 +338,7 @@ class ClusterInfo:
                           type="string",
                           dest="metron_home",
                           help="Metron home directory",
-                          default="/usr/metron/0.6.1",
+                          default="/usr/metron/0.7.1",
                           metavar="DIRECTORY")
         parser.add_option("-p", "--hdp_home", 
                           action="store",

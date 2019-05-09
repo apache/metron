@@ -19,6 +19,7 @@ limitations under the License.
 - [Prerequisites](#prerequisites)
 - [Development Setup](#development-setup)
 - [E2E Tests](#e2e-tests)
+- [Cypress Tests](#cypress-tests)
 - [Mpack Integration](#mpack-integration)
 - [Installing on an existing Cluster](#installing-on-an-existing-cluster)
 
@@ -44,7 +45,7 @@ Alerts that are contained in a a meta alert are generally excluded from search r
 * Elasticsearch or Solr should have some alerts populated by Metron topologies, depending on which real-time store is enabled
 * The Management UI should be installed (which includes [Express](https://expressjs.com/))
 * The alerts can be populated using Full Dev or any other setup
-* UI is developed using Angular 6 and uses Angular CLI. 
+* UI is developed using Angular 6 and uses Angular CLI.
 * nvm (or a similar node verison manager) should be installed. The node version required for this project is listed in the [.nvmrc](https://github.com/creationix/nvm#nvmrc) file.
 
 ## Installation
@@ -169,3 +170,43 @@ The application will be available at http://host:4201 assuming the port is set t
     ```
 
 **NOTE**: *e2e tests cover all the general workflows and we will extend them as we need*
+
+## Cypress Tests
+
+Cypress is a test framework that allows developers and test engineers to create E2E or Integration tests and run them inside the browser. It differs from other testing tools by choosing to not use selenium webdriver to control the browser.
+
+Cypress is added to our project as a developer dependency. This means it's installed when you run:
+```
+npm ci
+```
+or
+```
+npm install
+```
+
+Currently both Protractor and Cypress tests are available, so the previous section of this text is still relevant. However, in the near future we're planning to migrate fully to Cypress.
+You can find the public discussion about this in the following link: [Discussion thread](https://lists.apache.org/thread.html/b6a0272c7809c05e8b7aff20171720e8ec76f8a0e9481169c37a4a4a@%3Cdev.metron.apache.org%3E)
+
+
+### Steps to run
+
+The easiest way to run Cypress locally is with the following command:
+```
+npm run cypress:ci
+```
+The same command runs on Travis CI as part of our build process.
+
+If you would like to get some additional information or run test suites one by one you could start the test server manually
+```
+npm run build && npm run start:ci
+```
+and then you can reach the Cypress Dashboard locally with the following command
+```
+npm run cypress:open
+```
+From the dashboard, you'll be able to run tests separately and reach additional information about the test runs.
+
+### Learn more
+
+If you like to learn more about Cypress based tests please visit [Cypress.io](http://cypress.io).
+You can find more information about debuggin in this [section of the official documentation](https://docs.cypress.io/guides/guides/debugging.html#Using-debugger).

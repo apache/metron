@@ -48,6 +48,10 @@ class FakeAppConfigService {
   getApiRoot() {
     return '/api/v1'
   }
+
+  getLoginPath() {
+    return '/login'
+  }
 }
 
 describe('PcapService', () => {

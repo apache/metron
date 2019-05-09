@@ -23,14 +23,15 @@ import { ReplaySubject } from 'rxjs';
 import { GlobalConfigService } from './global-config.service';
 import { DataSource } from './data-source';
 import { AppConfigService } from './app-config.service';
+import {HttpUtil} from "../utils/httpUtil";
 
 @Injectable()
 export class AuthenticationService {
 
   private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl = this.appConfigService.getApiRoot() + '/user';
-  logoutUrl = '/logout';
+  userUrl = this.appConfigService.getApiRoot() + '/user';
+  logoutUrl = this.appConfigService.getApiRoot() + '/logout';
   onLoginEvent: ReplaySubject<boolean> = new ReplaySubject<boolean>();
   $onLoginEvent = this.onLoginEvent.asObservable();
 
@@ -71,24 +72,23 @@ export class AuthenticationService {
 
   public logout(): void {
     this.http.post(this.logoutUrl, {}).subscribe(response => {
-        this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.next(false);
-        this.router.navigateByUrl('/login');
+        this.clearAuthentication();
+        HttpUtil.navigateToLogin();
       },
       error => {
         console.log('Logout failed:', error);
-        this.router.navigateByUrl('/login');
+        HttpUtil.navigateToLogin();
       });
   }
 
   public checkAuthentication() {
     if (!this.isAuthenticated()) {
-      this.router.navigateByUrl('/login');
+      HttpUtil.navigateToLogin();
     }
   }
 
   public getCurrentUser(options?: {}) {
-    return this.http.get(this.loginUrl, options);
+    return this.http.get(this.userUrl, options);
   }
 
   public getCurrentUserName(): string {
@@ -101,5 +101,10 @@ export class AuthenticationService {
 
   public isAuthenticated(): boolean {
     return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED && this.currentUser != null;
+  }
+
+  public clearAuthentication(): void {
+    this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
+    this.onLoginEvent.next(false);
   }
 }

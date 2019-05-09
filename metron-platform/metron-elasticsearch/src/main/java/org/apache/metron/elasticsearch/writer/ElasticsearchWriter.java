@@ -22,16 +22,17 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.field.FieldNameConverters;
 import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.ElasticsearchBulkDocumentWriter;
+import org.apache.metron.elasticsearch.bulk.WriteFailure;
+import org.apache.metron.elasticsearch.bulk.WriteSuccess;
+import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequest;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +41,11 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import static java.lang.String.format;
+import static org.apache.metron.stellar.common.Constants.Fields.TIMESTAMP;
 
 /**
  * A {@link BulkMessageWriter} that writes messages to Elasticsearch.
@@ -57,51 +60,87 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   private transient ElasticsearchClient client;
 
   /**
+   * Responsible for writing documents.
+   *
+   * <p>Uses a {@link MessageIdBasedDocument} to maintain the relationship between
+   * a {@link org.apache.metron.common.writer.MessageId} and the document created from the contents of that message. If
+   * a document cannot be written, the associated message needs to be reported as a failure.
+   */
+  private transient BulkDocumentWriter<MessageIdBasedDocument> documentWriter;
+
+  /**
    * A simple data formatter used to build the appropriate Elasticsearch index name.
    */
   private SimpleDateFormat dateFormat;
 
-
   @Override
-  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
-
+  public void init(Map stormConf, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
-    client = ElasticsearchClientFactory.create(globalConfiguration);
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
+
+    // only create the document writer, if one does not already exist. useful for testing.
+    if(documentWriter == null) {
+      client = ElasticsearchClientFactory.create(globalConfiguration);
+      documentWriter = new ElasticsearchBulkDocumentWriter<>(client);
+    }
   }
 
   @Override
-  public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType,
+                                  WriterConfiguration configurations,
+                                  List<BulkMessage<JSONObject>> messages) {
 
     // fetch the field name converter for this sensor type
     FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
+    String indexPostfix = dateFormat.format(new Date());
+    String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
 
-    final String indexPostfix = dateFormat.format(new Date());
-    BulkRequest bulkRequest = new BulkRequest();
-    for(JSONObject message: messages) {
-
-      JSONObject esDoc = new JSONObject();
-      for(Object k : message.keySet()){
-        copyField(k.toString(), message, esDoc, fieldNameConverter);
-      }
-
-      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
-      IndexRequest indexRequest = new IndexRequest(indexName, sensorType + "_doc");
-      indexRequest.source(esDoc.toJSONString());
-      String guid = (String)esDoc.get(Constants.GUID);
-      if(guid != null) {
-        indexRequest.id(guid);
-      }
-
-      Object ts = esDoc.get("timestamp");
-      if(ts != null) {
-        indexRequest.timestamp(ts.toString());
-      }
-      bulkRequest.add(indexRequest);
+    // create a document from each message
+    for(BulkMessage<JSONObject> bulkWriterMessage: messages) {
+      MessageIdBasedDocument document = createDocument(bulkWriterMessage, sensorType, fieldNameConverter);
+      documentWriter.addDocument(document, indexName);
     }
 
-    BulkResponse bulkResponse = client.getHighLevelClient().bulk(bulkRequest);
-    return buildWriteReponse(tuples, bulkResponse);
+    // write the documents
+    BulkDocumentWriterResults<MessageIdBasedDocument> results = documentWriter.write();
+
+    // build the response
+    BulkWriterResponse response = new BulkWriterResponse();
+    for(WriteSuccess<MessageIdBasedDocument> success: results.getSuccesses()) {
+      response.addSuccess(success.getDocument().getMessageId());
+    }
+    for(WriteFailure<MessageIdBasedDocument> failure: results.getFailures()) {
+      response.addError(failure.getCause(), failure.getDocument().getMessageId());
+    }
+    return response;
+  }
+
+  private MessageIdBasedDocument createDocument(BulkMessage<JSONObject> bulkWriterMessage,
+                                                String sensorType,
+                                                FieldNameConverter fieldNameConverter) {
+    // transform the message fields to the source fields of the indexed document
+    JSONObject source = new JSONObject();
+    JSONObject message = bulkWriterMessage.getMessage();
+    for(Object k : message.keySet()){
+      copyField(k.toString(), message, source, fieldNameConverter);
+    }
+
+    // define the document id
+    String guid = ConversionUtils.convert(source.get(Constants.GUID), String.class);
+    if(guid == null) {
+      LOG.warn("Missing '{}' field; document ID will be auto-generated.", Constants.GUID);
+    }
+
+    // define the document timestamp
+    Long timestamp = null;
+    Object value = source.get(TIMESTAMP.getName());
+    if(value != null) {
+      timestamp = Long.parseLong(value.toString());
+    } else {
+      LOG.warn("Missing '{}' field; timestamp will be set to system time.", TIMESTAMP.getName());
+    }
+
+    return new MessageIdBasedDocument(source, guid, sensorType, timestamp, bulkWriterMessage.getId());
   }
 
   @Override
@@ -109,37 +148,11 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     return "elasticsearch";
   }
 
-  protected BulkWriterResponse buildWriteReponse(Iterable<Tuple> tuples, BulkResponse bulkResponse) throws Exception {
-    // Elasticsearch responses are in the same order as the request, giving us an implicit mapping with Tuples
-    BulkWriterResponse writerResponse = new BulkWriterResponse();
-    if (bulkResponse.hasFailures()) {
-      Iterator<BulkItemResponse> respIter = bulkResponse.iterator();
-      Iterator<Tuple> tupleIter = tuples.iterator();
-      while (respIter.hasNext() && tupleIter.hasNext()) {
-        BulkItemResponse item = respIter.next();
-        Tuple tuple = tupleIter.next();
-
-        if (item.isFailed()) {
-          writerResponse.addError(item.getFailure().getCause(), tuple);
-        } else {
-          writerResponse.addSuccess(tuple);
-        }
-
-        // Should never happen, so fail the entire batch if it does.
-        if (respIter.hasNext() != tupleIter.hasNext()) {
-          throw new Exception(bulkResponse.buildFailureMessage());
-        }
-      }
-    } else {
-      writerResponse.addAllSuccesses(tuples);
-    }
-
-    return writerResponse;
-  }
-
   @Override
   public void close() throws Exception {
-    client.close();
+    if(client != null) {
+      client.close();
+    }
   }
 
   /**
@@ -166,6 +179,14 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     // copy the field
     destination.put(destinationFieldName, source.get(sourceFieldName));
+  }
+
+  /**
+   * Set the document writer.  Primarily used for testing.
+   * @param documentWriter The {@link BulkDocumentWriter} to use.
+   */
+  public void setDocumentWriter(BulkDocumentWriter<MessageIdBasedDocument> documentWriter) {
+    this.documentWriter = documentWriter;
   }
 }
 

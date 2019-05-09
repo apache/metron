@@ -26,7 +26,9 @@ import {
   TestRequest
 } from '@angular/common/http/testing';
 import { ParserGroupModel } from 'app/model/parser-group';
-import { noop } from 'rxjs';
+import {AppConfigService} from './app-config.service';
+import {MockAppConfigService} from './mock.app-config.service';
+
 
 describe('SensorParserConfigService', () => {
   let mockBackend: HttpTestingController;
@@ -37,7 +39,7 @@ describe('SensorParserConfigService', () => {
       imports: [HttpClientTestingModule],
       providers: [
         SensorParserConfigService,
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useClass: MockAppConfigService }
       ]
     });
     mockBackend = TestBed.get(HttpTestingController);

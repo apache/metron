@@ -425,12 +425,31 @@
             "name": "security",
             "display-name": "Security",
             "layout": {
-              "tab-columns": "2",
-              "tab-rows": "1",
+              "tab-columns": "1",
+              "tab-rows": "3",
               "sections": [
                 {
-                  "name": "section-security-ldap",
+                  "name": "section-security-roles",
                   "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-security-roles",
+                      "display-name": "Roles",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-security-ldap",
+                  "row-index": "1",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -440,6 +459,25 @@
                     {
                       "name": "subsection-security-ldap",
                       "display-name": "LDAP",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-security-knox",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-security-knox",
+                      "display-name": "KNOX",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -514,6 +552,10 @@
         },
         {
           "config": "metron-enrichment-env/geoip_url",
+          "subsection-name": "subsection-enrichment-adapters"
+        },
+        {
+          "config": "metron-enrichment-env/asn_url",
           "subsection-name": "subsection-enrichment-adapters"
         },
         {
@@ -881,6 +923,14 @@
           "subsection-name": "subsection-alerts-ui"
         },
         {
+          "config": "metron-security-env/metron_user_role",
+          "subsection-name": "subsection-security-roles"
+        },
+        {
+          "config": "metron-security-env/metron_admin_role",
+          "subsection-name": "subsection-security-roles"
+        },
+        {
           "config": "metron-security-env/metron.ldap.enabled",
           "subsection-name": "subsection-security-ldap"
         },
@@ -931,6 +981,18 @@
         {
           "config": "metron-security-env/metron.ldap.ssl.truststore.password",
           "subsection-name": "subsection-security-ldap"
+        },
+        {
+          "config": "metron-security-env/metron.knox.enabled",
+          "subsection-name": "subsection-security-knox"
+        },
+        {
+          "config": "metron-security-env/metron.knox.sso.pubkey",
+          "subsection-name": "subsection-security-knox"
+        },
+        {
+          "config": "metron-security-env/metron.knox.sso.token.ttl",
+          "subsection-name": "subsection-security-knox"
         },
         {
           "config": "metron-pcap-env/pcap_topology_workers",
@@ -1051,6 +1113,12 @@
       },
       {
         "config": "metron-enrichment-env/geoip_url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/asn_url",
         "widget": {
           "type": "text-field"
         }
@@ -1610,6 +1678,18 @@
         }
       },
       {
+        "config": "metron-security-env/metron_admin_role",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-security-env/metron_user_role",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
         "config": "metron-security-env/metron.ldap.enabled",
         "widget": {
           "type": "toggle"
@@ -1683,6 +1763,24 @@
       },
       {
         "config": "metron-security-env/metron.ldap.group.roleattribute",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.knox.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.knox.sso.pubkey",
+        "widget": {
+          "type": "text-area"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.knox.sso.token.ttl",
         "widget": {
           "type": "text-field"
         }

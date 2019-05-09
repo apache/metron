@@ -34,6 +34,7 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -64,6 +65,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
 
   @AfterClass
   public static void teardown() {
+    SolrClientFactory.close();
     if (solrComponent != null) {
       solrComponent.stop();
     }

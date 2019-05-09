@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
+import {APP_INITIALIZER, NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
 import {HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
@@ -39,7 +39,6 @@ import {MetronDialogBox} from './shared/metron-dialog-box';
 import {GeneralSettingsModule} from './general-settings/general-settings.module';
 import {SensorEnrichmentConfigService} from './service/sensor-enrichment-config.service';
 import {GlobalConfigService} from './service/global-config.service';
-import {APP_CONFIG, METRON_REST_CONFIG} from './app.config';
 import {StormService} from './service/storm.service';
 import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
@@ -48,19 +47,26 @@ import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.i
 import { SensorAggregateModule } from './sensors/sensor-aggregate/sensor-aggregate.module';
 import { SensorAggregateService } from './sensors/sensor-aggregate/sensor-aggregate.service';
 import { SensorParserConfigHistoryListController } from './sensors/sensor-aggregate/sensor-parser-config-history-list.controller';
+import {AppConfigService} from './service/app-config.service';
 
+export function initConfig(appConfigService: AppConfigService) {
+  return () => appConfigService.loadAppConfig();
+}
 
 @NgModule({
   imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule, SensorParserListModule,
     SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule,
     SensorAggregateModule ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
-  providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
+  providers: [  AppConfigService, AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
-    GlobalConfigService, MetronAlerts, MetronDialogBox, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
-    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true }, SensorAggregateService,
-    SensorParserConfigHistoryListController],
+    GlobalConfigService, MetronAlerts, MetronDialogBox,
+    { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true },
+    SensorAggregateService,
+    SensorParserConfigHistoryListController,
+    { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfigService], multi: true }
+    ],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule {

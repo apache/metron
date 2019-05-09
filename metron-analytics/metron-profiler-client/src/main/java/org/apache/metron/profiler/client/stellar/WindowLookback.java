@@ -19,21 +19,20 @@
  */
 package org.apache.metron.profiler.client.stellar;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.metron.profiler.ProfilePeriod;
+import org.apache.metron.profiler.client.window.Window;
+import org.apache.metron.profiler.client.window.WindowProcessor;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.client.window.Window;
-import org.apache.metron.profiler.client.window.WindowProcessor;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Stellar(
@@ -79,8 +78,8 @@ public class WindowLookback implements StellarFunction {
     TimeUnit tickUnit = TimeUnit.valueOf(ProfilerClientConfig.PROFILER_PERIOD_UNITS.get(effectiveConfigs, String.class));
     Window w = null;
     try {
-      w = windowCache.get(windowSelector, () -> WindowProcessor.process(windowSelector));
-    } catch (ExecutionException e) {
+      w = windowCache.get(windowSelector, (selector) -> WindowProcessor.process(selector));
+    } catch (ParseException e) {
       throw new IllegalStateException("Unable to process " + windowSelector + ": " + e.getMessage(), e);
     }
     long end = w.getEndMillis(now);
@@ -94,10 +93,10 @@ public class WindowLookback implements StellarFunction {
 
   @Override
   public void initialize(Context context) {
-    windowCache = CacheBuilder.newBuilder()
-                              .maximumSize(200)
-                              .expireAfterAccess(10, TimeUnit.MINUTES)
-                              .build();
+    windowCache = Caffeine.newBuilder()
+            .maximumSize(200)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build();
   }
 
   @Override

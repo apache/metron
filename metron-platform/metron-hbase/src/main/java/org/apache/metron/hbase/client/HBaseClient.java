@@ -20,6 +20,8 @@
 
 package org.apache.metron.hbase.client;
 
+import static org.apache.commons.collections4.CollectionUtils.size;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -33,6 +35,9 @@ import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.bolt.mapper.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseProjectionCriteria;
@@ -67,7 +72,9 @@ public class HBaseClient implements Closeable {
     try {
       this.table = provider.getTable(configuration, tableName);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      String msg = String.format("Unable to open connection to HBase for table '%s'", tableName);
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
   }
 
@@ -142,9 +149,10 @@ public class HBaseClient implements Closeable {
       table.batch(mutations, result);
       mutations.clear();
 
-    } catch (InterruptedException | IOException e) {
-      LOG.warn("Error performing a mutation to HBase.", e);
-      throw new RuntimeException(e);
+    } catch (Exception e) {
+      String msg = String.format("'%d' HBase write(s) failed on table '%s'", size(mutations), tableName(table));
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
 
     return mutationCount;
@@ -187,8 +195,9 @@ public class HBaseClient implements Closeable {
       return results;
 
     } catch (Exception e) {
-      LOG.warn("Could not perform HBase lookup.", e);
-      throw new RuntimeException(e);
+      String msg = String.format("'%d' HBase read(s) failed on table '%s'", size(gets), tableName(table));
+      LOG.error(msg, e);
+      throw new RuntimeException(msg, e);
     }
   }
 
@@ -197,7 +206,9 @@ public class HBaseClient implements Closeable {
    */
   @Override
   public void close() throws IOException {
-    table.close();
+    if(table != null) {
+      table.close();
+    }
   }
 
   /**
@@ -276,4 +287,51 @@ public class HBaseClient implements Closeable {
     cols.getCounters().forEach(cnt -> inc.addColumn(cnt.getFamily(), cnt.getQualifier(), cnt.getIncrement()));
     return inc;
   }
+
+  /**
+   * Returns the name of the HBase table.
+   * <p>Attempts to avoid any null pointers that might be encountered along the way.
+   * @param table The table to retrieve the name of.
+   * @return The name of the table
+   */
+  private static String tableName(HTableInterface table) {
+    String tableName = "null";
+    if(table != null) {
+      if(table.getName() != null) {
+        tableName = table.getName().getNameAsString();
+      }
+    }
+    return tableName;
+  }
+
+  /**
+   * Puts a record into the configured HBase table synchronously (not batched).
+   */
+  public void put(String rowKey, String columnFamily, String columnQualifier, String value)
+      throws IOException {
+    Put put = new Put(Bytes.toBytes(rowKey));
+    put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(columnQualifier),
+        Bytes.toBytes(value));
+    table.put(put);
+  }
+
+  /**
+   * Scans an entire table returning all row keys as a List of Strings.
+   *
+   * <p>
+   * <b>**WARNING**:</b> Do not use this method unless you're absolutely crystal clear about the performance
+   * impact. Doing full table scans in HBase can adversely impact performance.
+   *
+   * @return List of all row keys as Strings for this table.
+   */
+  public List<String> readRecords() throws IOException {
+    Scan scan = new Scan();
+    ResultScanner scanner = table.getScanner(scan);
+    List<String> rows = new ArrayList<>();
+    for (Result r = scanner.next(); r != null; r = scanner.next()) {
+      rows.add(Bytes.toString(r.getRow()));
+    }
+    return rows;
+  }
+
 }

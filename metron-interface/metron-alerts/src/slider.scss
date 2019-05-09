@@ -22,21 +22,18 @@ $edit-background-border: #5C5C5C;
 
 $dialog-1x-width: 340px;
 $dialog-2x-width: 680px;
-$dialog-4x-width: 1380px;
+$dialog-4x-width: 1340px;
 
 .metron-slider-pane-details
 {
-  display: inline-block;
-  float: right;
-  word-wrap: break-word;
-  height: auto;
-  min-height: 100%;
-  position: absolute;
-
+  position: fixed;
   top: 0;
+  right: 0;
+  height: 100%;
+  max-height: 100%;
   z-index: 9;
+
   background: $edit-child-background;
-  border: 1px solid $edit-background-border;
 
   .close-button
   {
@@ -48,10 +45,8 @@ $dialog-4x-width: 1380px;
 .metron-slider-pane-editable
 {
   @extend .metron-slider-pane-details;
-
-  height: auto;
   background: $eden;
-  padding-bottom: 70px;
+  padding-bottom: 80px;
   border-left: 1px solid $blue-mine;
 }
 
@@ -64,7 +59,7 @@ $dialog-4x-width: 1380px;
   }
 }
 
-@media only screen and (min-width: 2020px) {
+@media only screen and (min-width: 1900px) {
   .dialog1x {
     width: $dialog-2x-width;
   }
@@ -125,15 +120,12 @@ $dialog-4x-width: 1380px;
 
 @include keyframes("keyframe-dialog-rtl", "320px", "0px")
 
-.load-right-to-left{
+.load-right-to-left {
   @include animation("keyframe-dialog-rtl", "0.5s", "linear");
-
-  right: 0px;
-  float: right;
 }
 
 @include keyframes("keyframe-dialog-ltr", "-320px", "0px")
 
-.load-left-to-right{
+.load-left-to-right {
   @include animation("keyframe-dialog-ltr", "0.5s", "linear")
 }

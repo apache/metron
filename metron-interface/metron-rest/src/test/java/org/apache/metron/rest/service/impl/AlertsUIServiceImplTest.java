@@ -20,7 +20,6 @@ package org.apache.metron.rest.service.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,24 +28,20 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.system.FakeClock;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.model.AlertsUIUserSettings;
-import org.apache.metron.hbase.client.UserSettingsClient;
-import org.apache.metron.rest.service.AlertsUIService;
 import org.apache.metron.rest.service.KafkaService;
+import org.apache.metron.rest.user.UserSettingsClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
