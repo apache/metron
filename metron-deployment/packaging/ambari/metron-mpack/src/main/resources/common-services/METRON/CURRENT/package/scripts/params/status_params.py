@@ -23,9 +23,17 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import default, format
 from resource_management.libraries.functions.version import format_stack_version
 
+def get_hostname(config):
+  if 'agentLevelParams' in config.keys():
+    # Ambari 2.7.x
+    return config['agentLevelParams']['hostname']
+  else:
+    # Ambari 2.6.x
+    return config['hostname']
+
 config = Script.get_config()
 
-hostname = config['hostname']
+hostname = get_hostname(config)
 metron_user = config['configurations']['metron-env']['metron_user']
 metron_home = config['configurations']['metron-env']['metron_home']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
@@ -116,10 +124,6 @@ storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
 # Zeppelin
 zeppelin_server_url = config['configurations']['metron-env']['zeppelin_server_url']
 zeppelin_shiro_ini_content = config['configurations']['zeppelin-shiro-ini']['shiro_ini_content']
-
-# Security
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))

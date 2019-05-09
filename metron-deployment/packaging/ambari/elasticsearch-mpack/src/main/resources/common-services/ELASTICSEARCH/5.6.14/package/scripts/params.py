@@ -26,6 +26,23 @@ def yamlify_variables(var) :
   else:
     return var
 
+
+def get_java_home(config):
+  if 'ambariLevelParams' in config.keys():
+    # Ambari 2.7.x
+    return config['ambariLevelParams']['java_home']
+  else:
+    # Ambari 2.6.x
+    return config['hostLevelParams']['java_home']
+
+def get_hostname(config):
+  if 'agentLevelParams' in config.keys():
+    # Ambari 2.7.x
+    return config['agentLevelParams']['hostname']
+  else:
+    # Ambari 2.6.x
+    return config['hostname']
+
 # server configurations
 config = Script.get_config()
 
@@ -43,8 +60,9 @@ elastic_group = config['configurations']['elastic-env']['elastic_group']
 log_dir = config['configurations']['elastic-env']['elastic_log_dir']
 pid_dir = config['configurations']['elastic-env']['elastic_pid_dir']
 
-hostname = config['hostname']
-java64_home = config['hostLevelParams']['java_home']
+hostname = get_hostname(config)
+java64_home = get_java_home(config)
+
 elastic_env_sh_template = config['configurations']['elastic-env']['content']
 sysconfig_template = config['configurations']['elastic-sysconfig']['content']
 

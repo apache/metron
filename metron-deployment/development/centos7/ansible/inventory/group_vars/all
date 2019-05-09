@@ -18,7 +18,11 @@
 # only need to build the RPMs for CentOS
 metron_build_packages_cmd: "shell cd {{ metron_build_dir }}/metron-deployment && mvn clean package -DskipTests -Pbuild-rpms"
 
+# Ambari 2.7.3.0
+centos7_ambari_install_url: http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.7.3.0/ambari.repo
+
 cluster_type: single_node_vm
 elasticsearch_hosts: "{{ groups.search | join(',') }}"
 hdp_host_group: "{{ groups.ambari_slave }}"
-hdp_stack: "2.6"
+hdp_stack: "3.1"
+
