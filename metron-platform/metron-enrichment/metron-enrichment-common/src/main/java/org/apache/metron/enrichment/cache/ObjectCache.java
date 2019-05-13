@@ -18,9 +18,9 @@
 
 package org.apache.metron.enrichment.cache;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -34,7 +34,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -47,7 +46,7 @@ public class ObjectCache {
     return cache;
   }
 
-  public class Loader extends CacheLoader<String, Object> {
+  public class Loader implements CacheLoader<String, Object> {
     FileSystem fs;
 
     public Loader(Configuration hadoopConfig) throws IOException {
@@ -77,7 +76,7 @@ public class ObjectCache {
   public Object get(String path) {
     try {
       return cache.get(path);
-    } catch (ExecutionException e) {
+    } catch (Exception e) {
       throw new IllegalStateException("Unable to retrieve " + path + " because " + e.getMessage(), e);
     }
   }
@@ -105,11 +104,10 @@ public class ObjectCache {
 
   protected LoadingCache<String, Object> setupCache(ObjectCacheConfig config) throws IOException {
     LOG.info("Building ObjectCache with {}", config);
-    return CacheBuilder.newBuilder()
-            .maximumSize(config.getCacheSize())
+    return Caffeine.newBuilder().maximumSize(config.getCacheSize())
             .expireAfterWrite(config.getCacheExpiration(), config.getTimeUnit())
-            .removalListener(removalNotification -> {
-              LOG.debug("Object retrieved from path '{}' was removed with cause {}", removalNotification.getKey(), removalNotification.getCause());
+            .removalListener((path, value, removalCause) -> {
+              LOG.debug("Object retrieved from path '{}' was removed with cause {}", path, removalCause);
             })
             .build(new Loader(new Configuration()));
   }
