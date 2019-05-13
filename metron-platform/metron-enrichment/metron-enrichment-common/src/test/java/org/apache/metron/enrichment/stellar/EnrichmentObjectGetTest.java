@@ -35,11 +35,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_CACHE_EXPIRATION;
-import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_CACHE_SIZE;
-import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_ENRICHMENT_SETTINGS;
-import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_MAX_FILE_SIZE;
-import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_TIME_UNIT;
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_KEY;
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_MAX_FILE_SIZE_KEY;
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_SIZE_KEY;
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_TIME_UNIT_KEY;
+import static org.apache.metron.enrichment.stellar.EnrichmentObjectGet.ENRICHMENT_OBJECT_GET_SETTINGS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -51,18 +51,18 @@ import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({InMemoryEnrichmentGet.class, ObjectCache.class})
-public class InMemoryEnrichmentGetTest {
+@PrepareForTest({EnrichmentObjectGet.class, ObjectCache.class})
+public class EnrichmentObjectGetTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  private InMemoryEnrichmentGet inMemoryEnrichmentGet;
+  private EnrichmentObjectGet enrichmentObjectGet;
   private ObjectCache objectCache;
   private Context context;
 
   @Before
   public void setup() throws Exception {
-    inMemoryEnrichmentGet = new InMemoryEnrichmentGet();
+    enrichmentObjectGet = new EnrichmentObjectGet();
     objectCache = mock(ObjectCache.class);
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
@@ -75,22 +75,22 @@ public class InMemoryEnrichmentGetTest {
   public void shouldInitializeWithDefaultSettings() throws Exception {
     when(objectCache.isInitialized()).thenReturn(true);
 
-    inMemoryEnrichmentGet.initialize(context);
+    enrichmentObjectGet.initialize(context);
 
     ObjectCacheConfig expectedConfig = ObjectCacheConfig.fromGlobalConfig(new HashMap<>());
 
     verify(objectCache, times(1)).initialize(expectedConfig);
-    assertTrue(inMemoryEnrichmentGet.isInitialized());
+    assertTrue(enrichmentObjectGet.isInitialized());
   }
 
   @Test
   public void shouldInitializeWithCustomSettings() throws Exception {
     Map<String, Object> globalConfig = new HashMap<String, Object>() {{
-      put(IN_MEMORY_ENRICHMENT_SETTINGS, new HashMap<String, Object>() {{
-        put(IN_MEMORY_CACHE_SIZE, 1);
-        put(IN_MEMORY_CACHE_EXPIRATION, 2);
-        put(IN_MEMORY_TIME_UNIT, "SECONDS");
-        put(IN_MEMORY_MAX_FILE_SIZE, 3);
+      put(ENRICHMENT_OBJECT_GET_SETTINGS, new HashMap<String, Object>() {{
+        put(OBJECT_CACHE_SIZE_KEY, 1);
+        put(OBJECT_CACHE_EXPIRATION_KEY, 2);
+        put(OBJECT_CACHE_TIME_UNIT_KEY, "SECONDS");
+        put(OBJECT_CACHE_MAX_FILE_SIZE_KEY, 3);
       }});
     }};
 
@@ -99,9 +99,9 @@ public class InMemoryEnrichmentGetTest {
             .with(Context.Capabilities.GLOBAL_CONFIG, () -> globalConfig)
             .build();
 
-    assertFalse(inMemoryEnrichmentGet.isInitialized());
+    assertFalse(enrichmentObjectGet.isInitialized());
 
-    inMemoryEnrichmentGet.initialize(context);
+    enrichmentObjectGet.initialize(context);
 
     ObjectCacheConfig expectedConfig = new ObjectCacheConfig();
     expectedConfig.setCacheSize(1);
@@ -110,23 +110,23 @@ public class InMemoryEnrichmentGetTest {
     expectedConfig.setMaxFileSize(3);
 
     verify(objectCache, times(1)).initialize(expectedConfig);
-    assertTrue(inMemoryEnrichmentGet.isInitialized());
+    assertTrue(enrichmentObjectGet.isInitialized());
   }
 
   @Test
-  public void shouldApplyInMemoryEnrichmentGet() {
+  public void shouldApplyEnrichmentObjectGet() {
     Map<String, Object> enrichment = new HashMap<String, Object>() {{
       put("key", "value");
     }};
     when(objectCache.get("/path")).thenReturn(enrichment);
 
-    assertNull(inMemoryEnrichmentGet.apply(Arrays.asList("/path", "key"), context));
+    assertNull(enrichmentObjectGet.apply(Arrays.asList("/path", "key"), context));
 
     when(objectCache.isInitialized()).thenReturn(true);
-    inMemoryEnrichmentGet.initialize(context);
+    enrichmentObjectGet.initialize(context);
 
-    assertNull(inMemoryEnrichmentGet.apply(Arrays.asList(null, null), context));
-    assertEquals("value", inMemoryEnrichmentGet.apply(Arrays.asList("/path", "key"), context));
+    assertNull(enrichmentObjectGet.apply(Arrays.asList(null, null), context));
+    assertEquals("value", enrichmentObjectGet.apply(Arrays.asList("/path", "key"), context));
   }
 
   @Test
@@ -137,8 +137,8 @@ public class InMemoryEnrichmentGetTest {
     when(objectCache.get("/path")).thenReturn("incorrect format");
 
     when(objectCache.isInitialized()).thenReturn(true);
-    inMemoryEnrichmentGet.initialize(context);
-    inMemoryEnrichmentGet.apply(Arrays.asList("/path", "key"), context);
+    enrichmentObjectGet.initialize(context);
+    enrichmentObjectGet.apply(Arrays.asList("/path", "key"), context);
   }
 
   @Test
@@ -146,7 +146,7 @@ public class InMemoryEnrichmentGetTest {
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("All parameters are mandatory, submit 'hdfs path', 'indicator'");
 
-    inMemoryEnrichmentGet.apply(new ArrayList<>(), context);
+    enrichmentObjectGet.apply(new ArrayList<>(), context);
   }
 
 }

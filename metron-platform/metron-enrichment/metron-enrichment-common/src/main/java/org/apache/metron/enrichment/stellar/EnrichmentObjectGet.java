@@ -34,8 +34,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_KEY;
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_MAX_FILE_SIZE_KEY;
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_SIZE_KEY;
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_TIME_UNIT_KEY;
+
 @Stellar(namespace="ENRICHMENT"
-        ,name="IN_MEMORY_GET"
+        ,name="OBJECT_GET"
         ,description="Retrieve and deserialize a serialized object from HDFS and stores it in the ObjectCache,  " +
         "then returns the value associated with the indicator."
         , params = {
@@ -44,13 +49,9 @@ import java.util.concurrent.TimeUnit;
           }
         , returns="Value associated with the indicator."
 )
-public class InMemoryEnrichmentGet implements StellarFunction {
+public class EnrichmentObjectGet implements StellarFunction {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public final static String IN_MEMORY_ENRICHMENT_SETTINGS = "in.memory.enrichment.settings";
-  public final static String IN_MEMORY_CACHE_SIZE = "cache.size";
-  public final static String IN_MEMORY_CACHE_EXPIRATION = "cache.expiration";
-  public final static String IN_MEMORY_TIME_UNIT = "cache.time.unit";
-  public final static String IN_MEMORY_MAX_FILE_SIZE = "cache.max.file.size";
+  public final static String ENRICHMENT_OBJECT_GET_SETTINGS = "enrichment.object.get.settings";
 
   private ObjectCache objectCache;
 
@@ -87,19 +88,19 @@ public class InMemoryEnrichmentGet implements StellarFunction {
     Map<String, Object> config = (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG, false)
             .orElse(new HashMap<>());
     ObjectCacheConfig objectCacheConfig = ObjectCacheConfig.fromGlobalConfig(config);
-    if (config.containsKey(IN_MEMORY_ENRICHMENT_SETTINGS)) {
-      Map<String, Object> inMemoryEnrichmentConfig = (Map<String, Object>) config.get(IN_MEMORY_ENRICHMENT_SETTINGS);
-      if (inMemoryEnrichmentConfig.containsKey(IN_MEMORY_CACHE_SIZE)) {
-        objectCacheConfig.setCacheSize(ConversionUtils.convert(inMemoryEnrichmentConfig.get(IN_MEMORY_CACHE_SIZE), Long.class));
+    if (config.containsKey(ENRICHMENT_OBJECT_GET_SETTINGS)) {
+      Map<String, Object> enrichmentObjectGetSettings = (Map<String, Object>) config.get(ENRICHMENT_OBJECT_GET_SETTINGS);
+      if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_SIZE_KEY)) {
+        objectCacheConfig.setCacheSize(ConversionUtils.convert(enrichmentObjectGetSettings.get(OBJECT_CACHE_SIZE_KEY), Long.class));
       }
-      if (inMemoryEnrichmentConfig.containsKey(IN_MEMORY_CACHE_EXPIRATION)) {
-        objectCacheConfig.setCacheExpiration(ConversionUtils.convert(inMemoryEnrichmentConfig.get(IN_MEMORY_CACHE_EXPIRATION), Long.class));
+      if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_EXPIRATION_KEY)) {
+        objectCacheConfig.setCacheExpiration(ConversionUtils.convert(enrichmentObjectGetSettings.get(OBJECT_CACHE_EXPIRATION_KEY), Long.class));
       }
-      if (inMemoryEnrichmentConfig.containsKey(IN_MEMORY_TIME_UNIT)) {
-        objectCacheConfig.setTimeUnit(TimeUnit.valueOf((String) inMemoryEnrichmentConfig.get(IN_MEMORY_TIME_UNIT)));
+      if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_TIME_UNIT_KEY)) {
+        objectCacheConfig.setTimeUnit(TimeUnit.valueOf((String) enrichmentObjectGetSettings.get(OBJECT_CACHE_TIME_UNIT_KEY)));
       }
-      if (inMemoryEnrichmentConfig.containsKey(IN_MEMORY_MAX_FILE_SIZE)) {
-        objectCacheConfig.setMaxFileSize(ConversionUtils.convert(inMemoryEnrichmentConfig.get(IN_MEMORY_MAX_FILE_SIZE), Long.class));
+      if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_MAX_FILE_SIZE_KEY)) {
+        objectCacheConfig.setMaxFileSize(ConversionUtils.convert(enrichmentObjectGetSettings.get(OBJECT_CACHE_MAX_FILE_SIZE_KEY), Long.class));
       }
     }
     objectCache = new ObjectCache();
