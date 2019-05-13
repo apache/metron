@@ -50,6 +50,7 @@ public class InMemoryEnrichmentGet implements StellarFunction {
   public final static String IN_MEMORY_CACHE_SIZE = "cache.size";
   public final static String IN_MEMORY_CACHE_EXPIRATION = "cache.expiration";
   public final static String IN_MEMORY_TIME_UNIT = "cache.time.unit";
+  public final static String IN_MEMORY_MAX_FILE_SIZE = "cache.max.file.size";
 
   private ObjectCache objectCache;
 
@@ -96,6 +97,9 @@ public class InMemoryEnrichmentGet implements StellarFunction {
       }
       if (inMemoryEnrichmentConfig.containsKey(IN_MEMORY_TIME_UNIT)) {
         objectCacheConfig.setTimeUnit(TimeUnit.valueOf((String) inMemoryEnrichmentConfig.get(IN_MEMORY_TIME_UNIT)));
+      }
+      if (inMemoryEnrichmentConfig.containsKey(IN_MEMORY_MAX_FILE_SIZE)) {
+        objectCacheConfig.setMaxFileSize(ConversionUtils.convert(inMemoryEnrichmentConfig.get(IN_MEMORY_MAX_FILE_SIZE), Long.class));
       }
     }
     objectCache = new ObjectCache();

@@ -25,15 +25,22 @@ import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ObjectCacheTest {
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
   FileSystem fs;
   List<String> data;
   ObjectCache cache;
@@ -86,5 +93,21 @@ public class ObjectCacheTest {
     for(Thread t : ts) {
       t.join();
     }
+  }
+
+  @Test
+  public void shouldThrowExceptionOnMaxFileSize() throws Exception {
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("File at path 'target/ogt/test.ser' is larger than the configured max file size of 1");
+
+    String filename = "target/ogt/test.ser";
+    try(BufferedOutputStream bos = new BufferedOutputStream(fs.create(new Path(filename), true))) {
+      IOUtils.write(SerDeUtils.toBytes(data), bos);
+    }
+    ObjectCacheConfig objectCacheConfig = ObjectCacheConfig.fromGlobalConfig(new HashMap<>());
+    objectCacheConfig.setMaxFileSize(1);
+    cache.initialize(objectCacheConfig);
+
+    cache.get(filename);
   }
 }

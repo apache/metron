@@ -48,37 +48,41 @@ public class ObjectCache {
 
   public class Loader implements CacheLoader<String, Object> {
     FileSystem fs;
+    ObjectCacheConfig objectCacheConfig;
 
-    public Loader(Configuration hadoopConfig) throws IOException {
+    public Loader(Configuration hadoopConfig, ObjectCacheConfig objectCacheConfig) throws IOException {
       this.fs = FileSystem.get(hadoopConfig);
+      this.objectCacheConfig = objectCacheConfig;
     }
 
     @Override
     public Object load(String s) throws Exception {
       LOG.debug("Loading object from path '{}'", s);
       if (StringUtils.isEmpty(s)) {
-        return null;
+        throw new IllegalArgumentException("Path cannot be empty");
       }
+      Object object = null;
       Path p = new Path(s);
       if (fs.exists(p)) {
-        try (InputStream is = new BufferedInputStream(fs.open(p))) {
-          byte[] serialized = IOUtils.toByteArray(is);
-          if (serialized.length > 0) {
-            return SerDeUtils.fromBytes(serialized, Object.class);
+        if (fs.getFileStatus(p).getLen() <= objectCacheConfig.getMaxFileSize()) {
+          try (InputStream is = new BufferedInputStream(fs.open(p))) {
+            byte[] serialized = IOUtils.toByteArray(is);
+            if (serialized.length > 0) {
+              object = SerDeUtils.fromBytes(serialized, Object.class);
+            }
           }
+        } else {
+          throw new IllegalArgumentException(String.format("File at path '%s' is larger than the configured max file size of %s", p, objectCacheConfig.getMaxFileSize()));
         }
+      } else {
+        throw new IllegalArgumentException(String.format("Path '%s' could not be found in HDFS", s));
       }
-      LOG.warn("Path '{}' could not be found in HDFS", s);
-      return null;
+      return object;
     }
   }
 
   public Object get(String path) {
-    try {
-      return cache.get(path);
-    } catch (Exception e) {
-      throw new IllegalStateException("Unable to retrieve " + path + " because " + e.getMessage(), e);
-    }
+    return cache.get(path);
   }
 
   public void initialize(ObjectCacheConfig config) {
@@ -109,6 +113,6 @@ public class ObjectCache {
             .removalListener((path, value, removalCause) -> {
               LOG.debug("Object retrieved from path '{}' was removed with cause {}", path, removalCause);
             })
-            .build(new Loader(new Configuration()));
+            .build(new Loader(new Configuration(), config));
   }
 }

@@ -30,13 +30,16 @@ public class ObjectCacheConfig {
   public static final String OBJECT_CACHE_EXPIRATION_MINUTES_KEY = "object.cache.expiration.minutes";
   public static final String OBJECT_CACHE_EXPIRATION_KEY = "object.cache.expiration";
   public static final String OBJECT_CACHE_TIME_UNIT_KEY = "object.cache.time.unit";
+  public static final String OBJECT_CACHE_MAX_FILE_SIZE_KEY = "object.cache.max.file.size";
   public static final int OBJECT_CACHE_SIZE_DEFAULT = 1000;
   public static final int OBJECT_CACHE_EXPIRATION_MIN_DEFAULT = 1440;
   public static final TimeUnit OBJECT_CACHE_TIME_UNIT_DEFAULT = TimeUnit.MINUTES;
+  public static final int OBJECT_CACHE_MAX_FILE_SIZE_DEFAULT = 1048576; // default to 1 mb
 
   private long cacheSize;
   private long cacheExpiration;
   private TimeUnit timeUnit;
+  private long maxFileSize;
 
   public long getCacheSize() {
     return cacheSize;
@@ -62,6 +65,14 @@ public class ObjectCacheConfig {
     this.timeUnit = timeUnit;
   }
 
+  public long getMaxFileSize() {
+    return maxFileSize;
+  }
+
+  public void setMaxFileSize(long maxFileSize) {
+    this.maxFileSize = maxFileSize;
+  }
+
   public static ObjectCacheConfig fromGlobalConfig(Map<String, Object> config) {
     ObjectCacheConfig objectCacheConfig = new ObjectCacheConfig();
     long size = ConversionUtils.convert(config.getOrDefault(OBJECT_CACHE_SIZE_KEY, OBJECT_CACHE_SIZE_DEFAULT), Long.class);
@@ -75,9 +86,11 @@ public class ObjectCacheConfig {
       timeUnit = config.containsKey(OBJECT_CACHE_TIME_UNIT_KEY) ?
               TimeUnit.valueOf((String) config.get(OBJECT_CACHE_TIME_UNIT_KEY)) : OBJECT_CACHE_TIME_UNIT_DEFAULT;
     }
+    long maxFileSize = ConversionUtils.convert(config.getOrDefault(OBJECT_CACHE_MAX_FILE_SIZE_KEY, OBJECT_CACHE_MAX_FILE_SIZE_DEFAULT), Long.class);
     objectCacheConfig.setCacheSize(size);
     objectCacheConfig.setCacheExpiration(expiryMin);
     objectCacheConfig.setTimeUnit(timeUnit);
+    objectCacheConfig.setMaxFileSize(maxFileSize);
     return objectCacheConfig;
   }
 
@@ -88,13 +101,14 @@ public class ObjectCacheConfig {
     ObjectCacheConfig that = (ObjectCacheConfig) o;
     return cacheSize == that.cacheSize &&
             cacheExpiration == that.cacheExpiration &&
-            timeUnit == that.timeUnit;
+            timeUnit == that.timeUnit &&
+            maxFileSize == that.maxFileSize;
   }
 
   @Override
   public int hashCode() {
 
-    return Objects.hash(cacheSize, cacheExpiration, timeUnit);
+    return Objects.hash(cacheSize, cacheExpiration, timeUnit, maxFileSize);
   }
 
   @Override
@@ -103,6 +117,7 @@ public class ObjectCacheConfig {
             "cacheSize=" + cacheSize +
             ", cacheExpiration=" + cacheExpiration +
             ", timeUnit=" + timeUnit +
+            ", maxFileSize=" + maxFileSize +
             '}';
   }
 }

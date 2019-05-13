@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_CACHE_EXPIRATION;
 import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_CACHE_SIZE;
 import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_ENRICHMENT_SETTINGS;
+import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_MAX_FILE_SIZE;
 import static org.apache.metron.enrichment.stellar.InMemoryEnrichmentGet.IN_MEMORY_TIME_UNIT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -87,8 +88,9 @@ public class InMemoryEnrichmentGetTest {
     Map<String, Object> globalConfig = new HashMap<String, Object>() {{
       put(IN_MEMORY_ENRICHMENT_SETTINGS, new HashMap<String, Object>() {{
         put(IN_MEMORY_CACHE_SIZE, 1);
-        put(IN_MEMORY_CACHE_EXPIRATION, 1);
+        put(IN_MEMORY_CACHE_EXPIRATION, 2);
         put(IN_MEMORY_TIME_UNIT, "SECONDS");
+        put(IN_MEMORY_MAX_FILE_SIZE, 3);
       }});
     }};
 
@@ -103,8 +105,9 @@ public class InMemoryEnrichmentGetTest {
 
     ObjectCacheConfig expectedConfig = new ObjectCacheConfig();
     expectedConfig.setCacheSize(1);
-    expectedConfig.setCacheExpiration(1);
+    expectedConfig.setCacheExpiration(2);
     expectedConfig.setTimeUnit(TimeUnit.SECONDS);
+    expectedConfig.setMaxFileSize(3);
 
     verify(objectCache, times(1)).initialize(expectedConfig);
     assertTrue(inMemoryEnrichmentGet.isInitialized());
