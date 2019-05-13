@@ -264,8 +264,9 @@ for (( i=0; i<${#HREF_REWRITE_LIST[@]} ; i+=2 )) ; do
             sed -i -e "${HREF_REWRITE_LIST[ $(( i + 1 )) ]}" "${HREF_REWRITE_LIST[$i]}"
             ;;
         darwin*)
+	    # Use absolute path to ensure that MacOS sed is being used
             # MacOS sed needs an empty-string argument after -i option to get the same result
-            sed -i '' -e "${HREF_REWRITE_LIST[ $(( i + 1 )) ]}" "${HREF_REWRITE_LIST[$i]}"
+            /usr/bin/sed -i '' -e "${HREF_REWRITE_LIST[ $(( i + 1 )) ]}" "${HREF_REWRITE_LIST[$i]}"
             ;;
         *)
             echo "ERROR: Unable to determine 'sed' argument list for OS ${OSTYPE}" > /dev/stderr
