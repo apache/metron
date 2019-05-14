@@ -54,7 +54,7 @@
     <property>
         <name>path_data</name>
         <value>"/opt/lmm/es_data"</value>
-        <description>Comma-separated list of directories where to store index data allocated for each node: "/mnt/first","/mnt/second".  Number of paths should relate to number of shards, and preferably should be on separate physical volumes.</description>
+        <description>Comma-separated list of directories where to store index data allocated for each node: [ "/mnt/first", "/mnt/second" ].  Number of paths should relate to number of shards, and preferably should be on separate physical volumes.</description>
     </property>
     <property>
         <name>http_cors_enabled</name>
