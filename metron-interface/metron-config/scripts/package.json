@@ -1,6 +1,6 @@
 {
   "name": "metron-management-ui-web-server",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Metron management ui web server",
   "main": "server.js",
   "dependencies": {

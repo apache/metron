@@ -598,7 +598,7 @@ export KAFKA_HOME=$HDP_HOME/kafka-broker
 export STORM_UI=http://node1:8744
 export ELASTIC=http://node1:9200
 export ZOOKEEPER=node1:2181
-export METRON_VERSION=0.7.1
+export METRON_VERSION=0.7.2
 export METRON_HOME=/usr/metron/${METRON_VERSION}
 ```
 
