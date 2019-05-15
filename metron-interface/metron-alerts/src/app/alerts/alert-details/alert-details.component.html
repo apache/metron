@@ -11,8 +11,14 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="metron-slider-pane-details load-right-to-left dialog1x" [ngClass]="{'is-meta-alert': isMetaAlert}">
-    <div class="container-fluid pl-0 pr-0 h-100">
+<div class="metron-slider-pane-details d-flex load-right-to-left dialog1x" [ngClass]="{'is-meta-alert': isMetaAlert}">
+
+    <div data-qe-id="preloader" class="d-flex flex-column w-100 h-100 justify-content-center align-items-center" *ngIf="!alertSources.length">
+        <div class="spinner-border text-info" role="status"></div>
+        <div class="pt-2"><small>Loading...</small></div>
+    </div>
+
+    <div class="container-fluid pl-0 pr-0 h-100" *ngIf="alertSources.length">
         <div class="h-100 d-flex">
             <div class="nav-container" *ngIf="!isMetaAlert">
                 <ul class="nav flex-column">
@@ -39,15 +45,15 @@
                 </ul>
             </div>
             <div class="details-container">
-                <div class="container-fluid h-100">
-                    <div class="row title-container">
+                <div class="d-flex flex-column h-100">
+                    <div class="title-container d-flex flex-row">
                         <div class="col-md-10 px-0">
-                            <div class="form-title row ml-2">
-                                <div class="col px-0">
+                            <div class="form-title row mx-3">
+                                <div class="pr-3">
                                     <span appAlertSeverity [severity]="getScore(alertSource)"> </span>
                                     <span> {{ getScore(alertSource) }} </span>
                                 </div>
-                                <div class="px-0" style="width: 205px">
+                                <div class="px-0">
                                     <span [ngClass]="{'editable-text': alertSources.length > 1}" *ngIf="!showEditor" (click)="toggleNameEditor()"> {{ (alertSource.name && alertSource.name.length > 0)? alertSource.name : alertId | centerEllipses:20 }} </span>
                                     <div class="input-group" *ngIf="showEditor">
                                         <input type="text" class="form-control"  [(ngModel)]="alertName">
@@ -57,12 +63,12 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-2 px-0">
+                        <div class="col-md-2 pr-3">
                             <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i>
                         </div>
                     </div>
-                    <div class="row justify-content-center py-4 actions">
-                        <table>
+                    <div class="px-3 py-4 actions">
+                        <table class="w-100">
                             <tr>
                                 <td class="title"> Status</td>
                                 <td [ngClass]="{'primary': selectedAlertState === alertState.ESCALATE, 'secondary': selectedAlertState !== alertState.ESCALATE}" data-name="escalate" (click)="processEscalate()">ESCALATE</td>
@@ -82,7 +88,7 @@
                     </div>
 
                     <div class="tabContainer">
-                        <div *ngIf="activeTab === tabs.DETAILS" class="ml-1 my-3 form" >
+                        <div *ngIf="activeTab === tabs.DETAILS" class="mx-3 my-3 form" >
                             <ng-container *ngFor="let alert of alertSources; let i = index;" >
                                 <div class="pb-2 alert-details-title"> Alert {{ i + 1 }} of {{ alertSources.length }}</div>
                                 <ul>
@@ -94,12 +100,11 @@
                             </ng-container>
                         </div>
 
-                        <div *ngIf="activeTab === tabs.COMMENTS" class="my-4">
+                        <div *ngIf="activeTab === tabs.COMMENTS" class="mx-3 my-3">
                             <div> Comments <span *ngIf="alertCommentsWrapper.length > 0"> ({{alertCommentsWrapper.length}}) </span></div>
                             <textarea class="form-control" [(ngModel)]="alertCommentStr"> </textarea>
                             <button class="btn btn-mine_shaft_2" [disabled]="alertCommentStr.trim().length === 0" (click)="onAddComment()">ADD COMMENT</button>
                             <ng-container *ngFor="let alertCommentWrapper of alertCommentsWrapper; let i = index">
-                                <hr>
                                 <div class="comment-container" data-qe-id="comment">
                                     <i
                                         class="fa fa-trash-o"
