@@ -37,7 +37,7 @@ In order to streamline the review of the contribution we ask you follow these gu
   mvn site
   ```
 
-- [ ] Have you ensured that any documentation diagrams have been updated, along with their source files, using draw.io? See [Metron Development Guidelines](https://cwiki.apache.org/confluence/display/METRON/Development+Guidelines) for instructions.
+- [ ] Have you ensured that any documentation diagrams have been updated, along with their source files, using [draw.io](https://www.draw.io/)? See [Metron Development Guidelines](https://cwiki.apache.org/confluence/display/METRON/Development+Guidelines) for instructions.
 
 #### Note:
 Please ensure that once the PR is submitted, you check travis-ci for build issues and submit an update to your PR as soon as possible.
