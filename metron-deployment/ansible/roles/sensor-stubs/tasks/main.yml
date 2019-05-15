@@ -29,15 +29,11 @@
     - snort.out
     - yaf.out
 
-- name: Install service script
-  template: src=sensor-stubs dest=/etc/init.d/sensor-stubs mode=0755
-
-- name: Install sensor stubs
+- name: Install sensor stubs scripts
   template: src={{ item }} dest={{ sensor_stubs_bin }}/ mode=0755
   with_items:
     - start-bro-stub
     - start-snort-stub
     - start-yaf-stub
 
-- name: Start sensor stubs
-  service: name=sensor-stubs state=restarted
+- include_tasks: install-service-{{ansible_distribution}}-{{ansible_distribution_major_version}}.yml

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Component, OnInit, ViewChild, ElementRef} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, NavigationStart} from '@angular/router';
 import * as moment from 'moment/moment';
 import {Subscription} from 'rxjs';
 
@@ -29,7 +29,7 @@ import {PatchRequest} from '../../model/patch-request';
 import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
-import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
+import {CommentAddRemoveRequest} from '../../model/comment-add-remove-request';
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {GlobalConfigService} from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
@@ -88,6 +88,13 @@ export class AlertDetailsComponent implements OnInit {
               private dialogService: DialogService,
               globalConfigService: GlobalConfigService) {
     this.globalConfigService = globalConfigService;
+
+    router.events.subscribe(event => {
+      if (event instanceof NavigationStart && /\/alerts-list\(dialog:details\//.test(event.url)) {
+        this.alertSources = [];
+        this.alertSource = null;
+      }
+    });
   }
 
   goBack() {

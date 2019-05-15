@@ -116,7 +116,8 @@
   }
 
   .nav-link {
-    padding: 15px 1em;
+    padding: 15px 0;
+    text-align: center;
 
     &.active {
       border-left: 4px solid #31ABDF;
@@ -126,7 +127,7 @@
 }
 
 .details-container {
-  width: 340px;
+  width: 100%;
 }
 
 textarea {
@@ -145,14 +146,14 @@ textarea {
 
 .comment-container {
   font-size: 14px;
-  padding: 10px 0px;
+  padding: 10px;
+  border-top: 1px solid #4D4D4D;
 
   i {
-    right: 25px;
     display: none;
     cursor: pointer;
     font-size: 18px;
-    position: absolute;
+    float: right;
   }
 
   .comment {
