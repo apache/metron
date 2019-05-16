@@ -96,7 +96,8 @@ but a convenient index is provided here:
 | [`solr.collection`](../metron-solr#configuration)                                                                     | Indexing      | String     | N/A                                     |
 | [`solr.http.config`](../metron-solr#configuration)                                                                    | Indexing      | String     | N/A                                     |
 | [`fieldValidations`](#validation-framework)                                                                           | Parsing       | Object     | N/A                                     |
-| [`parser.error.topic`](../metron-parsers#parsererrortopic)                                                            | Parsing       | String     | `parser_error_topic`                    |
+| [`parser.error.topic`](../metron-parsing#parsererrortopic)                                                            | Parsing       | String     | `parser_error_topic`                    |
+| [`parser.original.string.global`](../metron-parsing#parseroriginalstring)                                             | Parsing       | Boolean    | N/A                                     |
 | [`stellar.function.paths`](../../metron-stellar/stellar-common#stellarfunctionpaths)                                  | Stellar       | CSV String | N/A                                     |
 | [`stellar.function.resolver.includes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes)   | Stellar       | CSV String | N/A                                     |
 | [`stellar.function.resolver.excludes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes)   | Stellar       | CSV String | N/A                                     |
