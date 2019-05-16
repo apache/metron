@@ -257,8 +257,6 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
       message.put(Constants.GUID, UUID.randomUUID().toString());
     }
     if (handleOriginalStringGlobally(parserConfigurations.getGlobalConfig())) {
-      message.put(Fields.ORIGINAL.getName(), new String(rawMessage.getMessage()));
-    } else {
       message.putIfAbsent(Fields.ORIGINAL.getName(), new String(rawMessage.getMessage()));
     }
     MessageFilter<JSONObject> filter = sensorToParserComponentMap.get(sensorType).getFilter();
