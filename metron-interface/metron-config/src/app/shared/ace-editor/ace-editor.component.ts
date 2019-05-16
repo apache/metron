@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 /// <reference path="../../../../node_modules/@types/ace/index.d.ts" />
-import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input} from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, forwardRef, Input, Output, EventEmitter} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import {AutocompleteOption} from '../../model/autocomplete-option';
 
@@ -38,9 +38,15 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
 
   inputJson: any = '';
   aceConfigEditor: AceAjax.Editor;
-  @Input() type = 'JSON';
+  @Input() type: 'GROK' | 'JSON' | 'STELLAR' = 'JSON';
   @Input() placeHolder = 'Enter text here';
   @Input() options: AutocompleteOption[] = [];
+  @Input() liveAutocompletion = true;
+  @Input() enableSnippets = true;
+  @Input() useWorker = true;
+  @Input() wrapLimitRangeMin: number | null = 72;
+  @Input() wrapLimitRangeMax: number | null = 72;
+  @Output() onChange = new EventEmitter();
   @ViewChild('aceEditor') aceEditorEle: ElementRef;
 
   private onTouchedCallback;
@@ -101,7 +107,7 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
     parserConfigEditor.getSession().setMode(this.getEditorType());
     parserConfigEditor.getSession().setTabSize(2);
     parserConfigEditor.getSession().setUseWrapMode(true);
-    parserConfigEditor.getSession().setWrapLimitRange(72, 72);
+    parserConfigEditor.getSession().setWrapLimitRange(this.wrapLimitRangeMin, this.wrapLimitRangeMax);
 
     parserConfigEditor.$blockScrolling = Infinity;
     parserConfigEditor.setTheme('ace/theme/monokai');
@@ -110,12 +116,16 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
       highlightActiveLine: false,
       maxLines: Infinity,
       enableBasicAutocompletion: true,
-      enableSnippets: true,
-      enableLiveAutocompletion: true
+      enableSnippets: this.enableSnippets,
+      useWorker: this.useWorker,
+      enableLiveAutocompletion: this.liveAutocompletion
     });
     parserConfigEditor.on('change', (e: any) => {
       this.inputJson = this.aceConfigEditor.getValue();
-      this.onChangeCallback(this.aceConfigEditor.getValue());
+      this.onChange.emit(this.inputJson);
+      if (typeof this.onChangeCallback === 'function') {
+        this.onChangeCallback(this.inputJson);
+      }
     });
 
     if (this.type === 'GROK') {
@@ -184,6 +194,8 @@ export class AceEditorComponent implements AfterViewInit, ControlValueAccessor {
   private getEditorType() {
       if (this.type === 'GROK') {
         return 'ace/mode/grok';
+      } else if (this.type === 'STELLAR') {
+        return 'ace/mode/javascript';
       }
 
       return 'ace/mode/json';

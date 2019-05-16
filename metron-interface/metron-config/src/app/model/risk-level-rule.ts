@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 export class RiskLevelRule {
-  name: string = '';
-  comment: string = '';
-  rule: string = '';
-  score: number = 0;
+  name = '';
+  comment = '';
+  rule = '';
+  score = '';
 }
