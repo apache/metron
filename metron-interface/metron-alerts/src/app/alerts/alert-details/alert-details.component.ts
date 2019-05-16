@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, NavigationStart} from '@angular/router';
 import * as moment from 'moment/moment';
 import {Subscription} from 'rxjs';
 
@@ -87,6 +87,13 @@ export class AlertDetailsComponent implements OnInit {
               private dialogService: DialogService,
               globalConfigService: GlobalConfigService) {
     this.globalConfigService = globalConfigService;
+
+    router.events.subscribe(event => {
+      if (event instanceof NavigationStart && /\/alerts-list\(dialog:details\//.test(event.url)) {
+        this.alertSources = [];
+        this.alertSource = null;
+      }
+    });
   }
 
   goBack() {
