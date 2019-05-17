@@ -15,37 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.metron.parsers.cef;
+package org.apache.metron.parsers.leef;
 
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.ParseException;
+import org.apache.metron.parsers.cef.CEFParser;
 import org.apache.metron.parsers.utils.DateUtils;
 import org.apache.metron.parsers.utils.SyslogUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CEFParser extends BasicParser {
+public class LEEFParser extends BasicParser {
 	private static final long serialVersionUID = 1L;
 
 	protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private static final String HEADER_CAPTURE_PATTERN = "[^\\|]*";
-	private static final String EXTENSION_CAPTURE_PATTERN = "(?<!\\\\)=";
 	private static final Charset UTF_8 = Charset.forName("UTF-8");
+	private static final String EXTENSION_CAPTURE_PATTERN = "(?<!\\\\)=";
 
 	private Pattern p;
-	private static final Pattern pext = Pattern.compile(EXTENSION_CAPTURE_PATTERN);
+	private Pattern pext;
 
 	public void init() {
 
@@ -73,7 +73,7 @@ public class CEFParser extends BasicParser {
 
 		sb.append(".*");
 
-		sb.append("CEF: ?0\\|");
+		sb.append("LEEF:(?<Version>1.0|2.0|0)?\\|");
 
 		headerBlock("DeviceVendor", sb);
 		sb.append("\\|");
@@ -83,61 +83,20 @@ public class CEFParser extends BasicParser {
 		sb.append("\\|");
 		headerBlock("DeviceEvent", sb);
 		sb.append("\\|");
-		headerBlock("Name", sb);
+		
+		// add optional delimiter header (only applicable for LEEF 2.0)
+		sb.append("(");
+		headerBlock("Delimiter", sb);
 		sb.append("\\|");
-		headerBlock("Severity", sb);
-		sb.append("\\|");
-
+		sb.append(")?");
+		
 		// extension capture:
-		sb.append("(?<extensions>.*)");
+		sb.append(" ?(?<extensions>.*)");
 		String pattern = sb.toString();
 
 		p = Pattern.compile(pattern);
 
-	}
-
-	public static void parseExtensions(String ext, JSONObject obj) {
-		Matcher m = pext.matcher(ext);
-
-		int index = 0;
-		String key = null;
-		String value = null;
-		Map<String, String> labelMap = new HashMap<String, String>();
-
-		while (m.find()) {
-			if (key == null) {
-				key = ext.substring(index, m.start());
-				index = m.end();
-				if (!m.find()) {
-					break;
-				}
-			}
-			value = ext.substring(index, m.start());
-			index = m.end();
-			int v = value.lastIndexOf(" ");
-			if (v > 0) {
-				String temp = value.substring(0, v).trim();
-				if (key.endsWith("Label")) {
-					labelMap.put(key.substring(0, key.length() - 5), temp);
-				} else {
-					obj.put(key, temp);
-				}
-				key = value.substring(v).trim();
-			}
-		}
-		value = ext.substring(index);
-
-		// Build a map of Label extensions to apply later
-		if (key.endsWith("Label")) {
-			labelMap.put(key.substring(0, key.length() - 5), value);
-		} else {
-			obj.put(key, value);
-		}
-
-		// Apply the labels to custom fields
-		for (Entry<String, String> label : labelMap.entrySet()) {
-			mutate(obj, label.getKey(), label.getValue());
-		}
+		pext = Pattern.compile(EXTENSION_CAPTURE_PATTERN);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -150,43 +109,78 @@ public class CEFParser extends BasicParser {
 
 		while (matcher.find()) {
 			JSONObject obj = new JSONObject();
-			if (matcher.matches()) {
-				LOG.info("Found %d groups", matcher.groupCount());
-				obj.put("DeviceVendor", matcher.group("DeviceVendor"));
-				obj.put("DeviceProduct", matcher.group("DeviceProduct"));
-				obj.put("DeviceVersion", matcher.group("DeviceVersion"));
-				obj.put("DeviceEvent", matcher.group("DeviceEvent"));
-				obj.put("Name", matcher.group("Name"));
-				obj.put("Severity", standardizeSeverity(matcher.group("Severity")));
+			if (!matcher.matches()) {
+				break;
 			}
+			LOG.debug("Found %d groups", matcher.groupCount());
+			obj.put("DeviceVendor", matcher.group("DeviceVendor"));
+			obj.put("DeviceProduct", matcher.group("DeviceProduct"));
+			obj.put("DeviceVersion", matcher.group("DeviceVersion"));
+			obj.put("DeviceEvent", matcher.group("DeviceEvent"));
+			
+			String ext = matcher.group("extensions");
 
-			parseExtensions(matcher.group("extensions"), obj);
+			// In LEEF 2.0 the delimiter can be specified
+			String version = matcher.group("Version");
+			if (version.equals("2.0")) {
+				String delimiter = matcher.group("Delimiter");
+				if (delimiter == null || delimiter.length() == 0) {
+					delimiter = "\\t";
+				}
+				delimiter = "(?<!\\\\)[" + delimiter.replace("^", "\\^").replace("\t", "\\t") + "]";
+				
+				String[] kvs = ext.split(delimiter); 
+				for (String kv: kvs) {
+					String[] a = kv.split("=");
+					obj.put(a[0], a[1]);
+				}
+			} else if (version.equals("1.0") || version.isEmpty()) {
+				// TODO - Support LEEF 1.0 delimiters
+				String delimiter = "\t";
+				String[] kvs = ext.split(delimiter);
+				for (String kv: kvs) {
+					String[] a = kv.split("=");
+					obj.put(a[0], a[1]);
+				}
+			} else {
+				// Found in the wild examples using CEF rules, which need to handle the processing per the CEFParser
+				// Note that technically LEEF does not support the CEF approach to numbered custom variables.
+				// We however do here, due to some found in the wild exceptions to the standard.
+				CEFParser.parseExtensions(ext, obj);
+			}
 
 			// Rename standard CEF fields to comply with Metron standards
 			obj = mutate(obj, "dst", "ip_dst_addr");
-			obj = mutate(obj, "dpt", "ip_dst_port");
+			obj = mutate(obj, "dstPort", "ip_dst_port");
 			obj = convertToInt(obj, "ip_dst_port");
 
 			obj = mutate(obj, "src", "ip_src_addr");
-			obj = mutate(obj, "spt", "ip_src_port");
+			obj = mutate(obj, "srcPort", "ip_src_port");
 			obj = convertToInt(obj, "ip_src_port");
-
-			obj = mutate(obj, "act", "deviceAction");
-			// applicationProtocol
-			obj = mutate(obj, "app", "protocol");
 
 			obj.put("original_string", cefString);
 
-			// apply timestamp from message if present, using rt, syslog
+			// apply timestamp from message if present, using devTime, syslog
 			// timestamp,
 			// default to current system time
-
-			if (obj.containsKey("rt")) {
-				String rt = (String) obj.get("rt");
+			//devTime, devTimeFormat, calLanguage, calCountryOrRegion
+			if (obj.containsKey("devTime")) {
+				String devTime = (String) obj.get("devTime");
 				try {
-					obj.put("timestamp", DateUtils.parseMultiformat(rt, DateUtils.DATE_FORMATS_CEF));
+					// DateFormats allowed in LEEF
+					// epoch
+					// MMM dd yyyy HH:mm:ss
+					// MMM dd yyyy HH:mm:ss.SSS
+					// MMM dd yyyy HH:mm:ss.SSS zzz
+					// custom in devTimeFormat field
+					final String devTimeFormat = (String) obj.get("devTimeFormat");
+					
+					List<SimpleDateFormat> formats = (obj.containsKey("devTimeFormat"))?
+						new ArrayList<SimpleDateFormat>() {{ add(new SimpleDateFormat(devTimeFormat)); }}: 
+						DateUtils.DATE_FORMATS_LEEF;
+					obj.put("timestamp", DateUtils.parseMultiformat(devTime, formats ));
 				} catch (java.text.ParseException e) {
-					throw new IllegalStateException("rt field present in CEF but cannot be parsed", e);
+					throw new IllegalStateException("devTime field present in LEEF but cannot be parsed", e);
 				}
 			} else {
 				String logTimestamp = matcher.group("syslogTime");
@@ -224,40 +218,6 @@ public class CEFParser extends BasicParser {
 		sb.append("(?<").append(name).append(">").append(HEADER_CAPTURE_PATTERN).append(")");
 	}
 
-	/**
-	 * Maps string based severity in CEF format to integer.
-	 * 
-	 * The strings are mapped according to the CEF 23 specification, taking the
-	 * integer value as the value of the range buckets rounded up
-	 * 
-	 * The valid string values are: Unknown, Low, Medium, High, and Very-High.
-	 * The valid integer values are: 0-3=Low, 4-6=Medium, 7- 8=High, and
-	 * 9-10=Very-High.
-	 * 
-	 * @param severity
-	 *            String or Integer
-	 * @return Integer value mapped from the string
-	 */
-	private Integer standardizeSeverity(String severity) {
-		if (severity.length() < 3) {
-			// should be a number
-			return Integer.valueOf(severity);
-		} else {
-			switch (severity) {
-			case "Low":
-				return 2;
-			case "Medium":
-				return 5;
-			case "High":
-				return 8;
-			case "Very-High":
-				return 10;
-			default:
-				return 0;
-			}
-		}
-	}
-
 	@Override
 	public void configure(Map<String, Object> config) {
 		// TODO Auto-generated method stub
@@ -265,7 +225,7 @@ public class CEFParser extends BasicParser {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static JSONObject mutate(JSONObject json, String oldKey, String newKey) {
+	private JSONObject mutate(JSONObject json, String oldKey, String newKey) {
 		if (json.containsKey(oldKey)) {
 			json.put(newKey, json.remove(oldKey));
 		}
@@ -273,3 +233,4 @@ public class CEFParser extends BasicParser {
 	}
 
 }
+
