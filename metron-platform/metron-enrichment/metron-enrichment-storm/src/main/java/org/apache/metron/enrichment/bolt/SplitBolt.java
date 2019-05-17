@@ -20,7 +20,7 @@ package org.apache.metron.enrichment.bolt;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.storm.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;

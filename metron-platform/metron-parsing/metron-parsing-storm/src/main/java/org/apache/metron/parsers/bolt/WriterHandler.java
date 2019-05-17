@@ -27,7 +27,7 @@ import org.apache.metron.common.configuration.writer.ConfigurationStrategy;
 import org.apache.metron.common.configuration.writer.ConfigurationsStrategies;
 import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageWriter;
@@ -75,7 +75,7 @@ public class WriterHandler implements Serializable {
       writerTransformer = config -> new SingleBatchConfigurationFacade(configStrategy.createWriterConfig(messageWriter, config));
     }
     try {
-      messageWriter.init(stormConf, topologyContext, writerTransformer.apply(configurations));
+      messageWriter.init(stormConf, writerTransformer.apply(configurations));
     } catch (Exception e) {
       throw new IllegalStateException("Unable to initialize message writer", e);
     }

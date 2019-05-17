@@ -121,7 +121,7 @@ public class SolrWriterTest {
     String collection = "metron";
     MetronSolrClient solr = Mockito.mock(MetronSolrClient.class);
     SolrWriter writer = new SolrWriter().withMetronSolrClient(solr);
-    writer.init(null, null,new IndexingWriterConfiguration("solr", configurations));
+    writer.init(null,new IndexingWriterConfiguration("solr", configurations));
     verify(solr, times(1)).setDefaultCollection(collection);
 
     collection = "metron2";
@@ -129,7 +129,7 @@ public class SolrWriterTest {
     globalConfig.put("solr.collection", collection);
     configurations.updateGlobalConfig(globalConfig);
     writer = new SolrWriter().withMetronSolrClient(solr);
-    writer.init(null, null, new IndexingWriterConfiguration("solr", configurations));
+    writer.init(null, new IndexingWriterConfiguration("solr", configurations));
     verify(solr, times(1)).setDefaultCollection(collection);
 
     writer.write("test", new IndexingWriterConfiguration("solr", configurations), messages);

@@ -106,7 +106,7 @@ public class WriterBoltTest extends BaseBoltTest{
     }
 
     bolt.prepare(new HashMap(), topologyContext, outputCollector);
-    verify(batchWriter, times(1)).init(any(), any(), any());
+    verify(batchWriter, times(1)).init(any(), any());
     for(int i = 0;i < 4;++i) {
       Tuple t = tuples.get(i);
       bolt.execute(t);
@@ -206,7 +206,7 @@ public class WriterBoltTest extends BaseBoltTest{
 
 
     bolt.prepare(new HashMap(), topologyContext, outputCollector);
-    verify(batchWriter, times(1)).init(any(), any(), any());
+    verify(batchWriter, times(1)).init(any(), any());
 
     for(int i = 0;i < 4;++i) {
       Tuple t = tuples.get(i);
@@ -264,7 +264,7 @@ public class WriterBoltTest extends BaseBoltTest{
     when(errorTuple.getValueByField(eq("message"))).thenReturn(errorMessage);
 
     bolt.prepare(new HashMap(), topologyContext, outputCollector);
-    verify(batchWriter, times(1)).init(any(), any(), any());
+    verify(batchWriter, times(1)).init(any(), any());
 
     for(int i = 0;i < 4;++i) {
       Tuple t = tuples.get(i);
@@ -316,7 +316,7 @@ public class WriterBoltTest extends BaseBoltTest{
 
     bolt.prepare(new HashMap(), topologyContext, outputCollector);
     doThrow(new Exception()).when(batchWriter).write(any(), any(), any());
-    verify(batchWriter, times(1)).init(any(), any(), any());
+    verify(batchWriter, times(1)).init(any(), any());
     for(int i = 0;i < 4;++i) {
       Tuple t = tuples.get(i);
       bolt.execute(t);

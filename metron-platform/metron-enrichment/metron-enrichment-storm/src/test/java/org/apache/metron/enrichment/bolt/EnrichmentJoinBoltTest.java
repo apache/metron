@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;

@@ -157,7 +157,7 @@ public class SchemaValidationIntegrationTest {
         }
       };
 
-      solrWriter.init(null, null, writerConfig);
+      solrWriter.init(null, writerConfig);
 
       BulkWriterResponse response = solrWriter.write(sensorType, writerConfig, messages);
       Assert.assertTrue(response.getErrors().isEmpty());

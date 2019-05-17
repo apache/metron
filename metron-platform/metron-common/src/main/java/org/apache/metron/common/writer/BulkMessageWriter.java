@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.writer;
 
-import org.apache.storm.task.TopologyContext;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 
 import java.io.Serializable;
@@ -26,7 +25,7 @@ import java.util.Map;
 
 public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializable {
 
-  void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception;
+  void init(Map stormConf, WriterConfiguration config) throws Exception;
 
   /**
   * Writes the messages to a particular output (e.g. Elasticsearch).  A response is returned with successful and failed message ids.

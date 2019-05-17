@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Component, OnInit, ViewChild, ElementRef} from '@angular/core';
+import {ActivatedRoute, Router, NavigationStart} from '@angular/router';
 import * as moment from 'moment/moment';
 import {Subscription} from 'rxjs';
 
@@ -29,7 +29,7 @@ import {PatchRequest} from '../../model/patch-request';
 import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
-import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
+import {CommentAddRemoveRequest} from '../../model/comment-add-remove-request';
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {GlobalConfigService} from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
@@ -77,6 +77,7 @@ export class AlertDetailsComponent implements OnInit {
   globalConfig: {} = {};
   globalConfigService: GlobalConfigService;
   configSubscription: Subscription;
+  @ViewChild('metaAlertNameInput') metaAlertNameInput: ElementRef;
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -87,6 +88,13 @@ export class AlertDetailsComponent implements OnInit {
               private dialogService: DialogService,
               globalConfigService: GlobalConfigService) {
     this.globalConfigService = globalConfigService;
+
+    router.events.subscribe(event => {
+      if (event instanceof NavigationStart && /\/alerts-list\(dialog:details\//.test(event.url)) {
+        this.alertSources = [];
+        this.alertSource = null;
+      }
+    });
   }
 
   goBack() {
@@ -98,19 +106,17 @@ export class AlertDetailsComponent implements OnInit {
     this.alertCommentStr = '';
     this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alertSource => {
       this.setAlert(alertSource);
-      this.setComments(alertSource['comments'] || []);
     });
   }
 
   setAlert(alertSource) {
+    this.alertName = alertSource.name;
     this.alertSource = alertSource;
     this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
     this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
-  }
-
-  setComments(alertComments) {
+    let alertComments = alertSource['comments'] || [];
     this.alertCommentsWrapper = alertComments.map(alertComment =>
-        new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
+            new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
   }
 
   getAlertState(alertStatus) {
@@ -177,59 +183,48 @@ export class AlertDetailsComponent implements OnInit {
     let tAlert = new Alert();
     tAlert.source = this.alertSource;
 
-    let previousAlertStatus = this.alertSource['alert_status'];
-    this.alertSource['alert_status'] = state;
-    this.setAlert(this.alertSource);
-    this.updateService.updateAlertState([tAlert], state).subscribe(() => {}, () => {
-      this.alertSource['alert_status'] = previousAlertStatus;
-      this.setAlert(this.alertSource);
+    this.updateService.updateAlertState([tAlert], state).subscribe(alertSource => {
+      this.setAlert(alertSource[0]);
     });
   }
 
   toggleNameEditor() {
     if (this.alertSources.length > 1) {
-      this.alertName = '';
       this.showEditor = !this.showEditor;
     }
+    setTimeout(() => {
+      if (this.showEditor && this.metaAlertNameInput) {
+        this.metaAlertNameInput.nativeElement.focus();
+      }
+    }, 100);
   }
 
   saveName() {
-    if (this.alertName.length > 0) {
+    if (!this.isSaveNameButtonDisabled()) {
       let patchRequest = new PatchRequest();
       patchRequest.guid = this.alertId;
       patchRequest.sensorType = 'metaalert';
       patchRequest.patch = [new Patch('add', '/name', this.alertName)];
 
-      let previousName = this.alertSource['name'];
-      this.alertSource['name'] = this.alertName;
-      this.updateService.patch(patchRequest).subscribe(rep => {
+      this.updateService.patch(patchRequest).subscribe(alertSource => {
+        this.setAlert(alertSource);
         this.toggleNameEditor();
       }, () => {
-        this.alertSource['name'] = previousName;
-        this.alertName = previousName;
         this.toggleNameEditor();
       });
     }
   }
 
   onAddComment() {
-    let newComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
-    let alertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
-    alertComments.unshift(newComment);
-    this.setComments(alertComments);
     let commentRequest = new CommentAddRemoveRequest();
     commentRequest.guid = this.alertSource.guid;
     commentRequest.comment = this.alertCommentStr;
     commentRequest.username = this.authenticationService.getCurrentUserName();
     commentRequest.timestamp = new Date().getTime();
     commentRequest.sensorType = this.alertSourceType;
-    this.updateService.addComment(commentRequest).subscribe(
-        () => {},
-        () => {
-          let previousComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)
-          .filter(alertComment => alertComment !== newComment);
-          this.setComments(previousComments);
-        });
+    this.updateService.addComment(commentRequest).subscribe(alertSource => {
+      this.setAlert(alertSource);
+    });
   }
 
   patchAlert(patch: Patch, onPatchError) {
@@ -252,22 +247,35 @@ export class AlertDetailsComponent implements OnInit {
 
     const confirmedSubscription = this.dialogService.launchDialog(commentText).subscribe(action => {
       if (action === ConfirmationType.Confirmed) {
-        let deletedCommentWrapper = this.alertCommentsWrapper.splice(index, 1)[0];
         let commentRequest = new CommentAddRemoveRequest();
         commentRequest.guid = this.alertSource.guid;
-        commentRequest.comment = deletedCommentWrapper.alertComment.comment;
-        commentRequest.username = deletedCommentWrapper.alertComment.username;
-        commentRequest.timestamp = deletedCommentWrapper.alertComment.timestamp;
+        commentRequest.comment = this.alertCommentsWrapper[index].alertComment.comment;
+        commentRequest.username = this.alertCommentsWrapper[index].alertComment.username;
+        commentRequest.timestamp = this.alertCommentsWrapper[index].alertComment.timestamp;
         commentRequest.sensorType = this.alertSourceType;
-        this.updateService.removeComment(commentRequest).subscribe(
-            null,
-            () => {
-              // add the deleted comment back
-              this.alertCommentsWrapper.unshift(deletedCommentWrapper);
-              this.alertCommentsWrapper.sort((a, b) => b.alertComment.timestamp - a.alertComment.timestamp);
-            });
+        this.updateService.removeComment(commentRequest).subscribe(alertSource => {
+          this.setAlert(alertSource);
+        });
       }
       confirmedSubscription.unsubscribe();
     });
+  }
+
+  isSaveNameButtonDisabled() {
+    return !this.alertName || this.alertName.length === 0;
+  }
+
+  onSaveNameInputKeyPress(e: KeyboardEvent) {
+    if (e.code === 'Enter') {
+      this.saveName();
+    } else if (e.code === 'Escape') {
+      this.alertName = this.alertSource.name;
+      this.toggleNameEditor();
+    }
+  }
+
+  onSaveNameInputCancel() {
+    this.alertName = this.alertSource.name;
+    this.toggleNameEditor();
   }
 }

@@ -218,6 +218,23 @@ form
   border-top: 1px solid $blue-mine;
 }
 
+.metron-button-bar-1x {
+  @extend .pb-3;
+  @extend .dialog1x;
+
+  background: $eden;
+  border-top: 1px solid $blue-mine;
+}
+
+.metron-button-bar-2x {
+  @extend .pb-3;
+  @extend .dialog2x;
+
+  background: $eden;
+  border-top: 1px solid $blue-mine;
+}
+
+
 .btn-all_ports {
   background-color: $all-ports;
   border-color: $all-ports;

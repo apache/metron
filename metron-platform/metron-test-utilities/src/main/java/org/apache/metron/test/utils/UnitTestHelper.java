@@ -17,11 +17,7 @@
  */
 package org.apache.metron.test.utils;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.junit.Assert;
+import static java.lang.String.format;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,8 +29,11 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
 import java.util.Stack;
-
-import static java.lang.String.format;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.junit.Assert;
 
 public class UnitTestHelper {
   public static String findDir(String name) {
@@ -94,6 +93,24 @@ public class UnitTestHelper {
   public static void setLog4jLevel(Class clazz, Level level) {
     Logger logger = Logger.getLogger(clazz);
     logger.setLevel(level);
+  }
+
+  /**
+   * Root logger.
+   * @param level level for root logger
+   */
+  public static void setLog4jLevel(Level level) {
+    Logger logger = Logger.getRootLogger();
+    logger.setLevel(level);
+  }
+
+  /**
+   * Root logger.
+   * @param level level for root logger
+   */
+  public static Level getLog4jLevel() {
+    Logger rootLogger = Logger.getRootLogger();
+    return rootLogger.getLevel();
   }
 
   public static Level getLog4jLevel(Class clazz) {

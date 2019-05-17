@@ -47,6 +47,7 @@ import { GlobalConfigService } from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
+import {AlertSource} from "../../model/alert-source";
 
 @Component({
   selector: 'app-alerts-list',
@@ -104,12 +105,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   addAlertChangedListner() {
-    this.metaAlertsService.alertChanged$.subscribe(metaAlertAddRemoveRequest => {
-      this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
+    this.metaAlertsService.alertChanged$.subscribe(alertSource => {
+      if (alertSource['status'] === 'inactive') {
+        this.removeAlert(alertSource)
+      }
+      this.updateAlert(alertSource);
     });
 
-    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
-      this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
+    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(alertSource => {
+      this.updateAlert(alertSource);
     });
   }
 
@@ -310,35 +314,54 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
   }
 
-  processEscalate() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
-      const alerts = [...this.selectedAlerts];
-      this.updateSelectedAlertStatus('ESCALATE');
-      this.alertsService.escalate(alerts).subscribe();
-    });
+  preventDropdownOptionIfDisabled(event: Event): boolean {
+    if ((event.target as HTMLElement).classList.contains('disabled')) {
+      event.stopPropagation();
+      event.preventDefault();
+      return false;
+    }
+    return true
   }
 
-  processDismiss() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
-      this.updateSelectedAlertStatus('DISMISS');
-    });
+  processEscalate(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
+        const alerts = [...this.selectedAlerts];
+        this.updateSelectedAlertStatus('ESCALATE');
+        this.alertsService.escalate(alerts).subscribe();
+      });
+    }
   }
 
-  processOpen() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
-      this.updateSelectedAlertStatus('OPEN');
-    });
+  processDismiss(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
+        this.updateSelectedAlertStatus('DISMISS');
+      });
+    }
   }
 
-  processResolve() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
-      this.updateSelectedAlertStatus('RESOLVE');
-    });
+  processOpen(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
+        this.updateSelectedAlertStatus('OPEN');
+      });
+    }
   }
 
-  processAddToAlert() {
-    this.metaAlertsService.selectedAlerts = this.selectedAlerts;
-    this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
+  processResolve(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
+        this.updateSelectedAlertStatus('RESOLVE');
+      });
+    }
+  }
+
+  processAddToAlert(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.metaAlertsService.selectedAlerts = this.selectedAlerts;
+      this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
+    }
   }
 
   removeFilter(field: string) {
@@ -478,20 +501,13 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.searchService.interval = this.refreshInterval;
   }
 
-  updateAlert(sensorType: string, guid: string, isDelete: boolean) {
-    if (isDelete) {
-      let alertIndex = -1;
-      this.alerts.forEach((alert, index) => {
-        alertIndex = (alert.source.guid === guid) ? index : alertIndex;
-      });
-      this.alerts.splice(alertIndex, 1);
-      return;
-    }
+  updateAlert(alertSource: AlertSource) {
+    this.alerts.filter(alert => alert.source.guid === alertSource.guid)
+            .map(alert => alert.source = alertSource);
+  }
 
-    this.searchService.getAlert(sensorType, guid).subscribe(alertSource => {
-      this.alerts.filter(alert => alert.source.guid === guid)
-      .map(alert => alert.source = alertSource);
-    });
+  removeAlert(alertSource: AlertSource) {
+    this.alerts = this.alerts.filter(alert => alert.source.guid !== alertSource.guid);
   }
 
   updateSelectedAlertStatus(status: string) {

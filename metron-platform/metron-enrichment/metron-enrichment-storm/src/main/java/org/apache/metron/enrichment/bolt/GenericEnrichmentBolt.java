@@ -28,18 +28,18 @@ import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.storm.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.performance.PerformanceLogger;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.storm.common.utils.StormErrorUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -214,7 +214,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
                       .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
                       .withMessage("Unable to find SensorEnrichmentConfig for sourceType: " + sourceType)
                       .addRawMessage(rawMessage);
-              ErrorUtils.handleError(collector, metronError);
+              StormErrorUtils.handleError(collector, metronError);
               continue;
             }
             config.getConfiguration().putIfAbsent(STELLAR_CONTEXT_CONF, stellarContext);
@@ -239,7 +239,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
                       .withThrowable(e)
                       .withErrorFields(new HashSet() {{ add(field); }})
                       .addRawMessage(rawMessage);
-              ErrorUtils.handleError(collector, metronError);
+              StormErrorUtils.handleError(collector, metronError);
               continue;
             }
           }
@@ -268,7 +268,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
             .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
             .withThrowable(e)
             .addRawMessage(rawMessage);
-    ErrorUtils.handleError(collector, error);
+    StormErrorUtils.handleError(collector, error);
   }
 
   @Override
