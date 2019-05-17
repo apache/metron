@@ -25,7 +25,7 @@ import { SensorParserConfigReadonlyComponent } from './sensor-parser-config-read
 import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
 import { KafkaService } from '../../service/kafka.service';
 import { TopologyStatus } from '../../model/topology-status';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../../sensors/models/parser-config.model';
 import { KafkaTopic } from '../../model/kafka-topic';
 import { AuthenticationService } from '../../service/authentication.service';
 import { SensorParserConfigHistoryService } from '../../service/sensor-parser-config-history.service';
@@ -281,7 +281,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   it('should have sensorsService with parserName and grokPattern defined and kafkaService defined', async(() => {
     let sensorParserInfo = new SensorParserConfigHistory();
-    let sensorParserConfig = new SensorParserConfig();
+    let sensorParserConfig = new ParserConfigModel('TestConfigId01');
     let kafkaTopic = new KafkaTopic();
     let topologyStatus = new TopologyStatus();
 
@@ -378,7 +378,7 @@ describe('Component: SensorParserConfigReadonly', () => {
     let grokStatement = 'SQUID_DELIMITED squid grok statement';
     hdfsService.setContents(grokStatement);
     let sensorParserInfo = new SensorParserConfigHistory();
-    let sensorParserConfig = new SensorParserConfig();
+    let sensorParserConfig = new ParserConfigModel('TestConfigId01');
     sensorParserConfig.parserConfig = {};
 
     sensorParserConfig.parserConfig['grokPath'] = '/squid/grok/path';
@@ -392,7 +392,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   it('setTransformsConfigKeys/getTransformsOutput should return the keys of the transforms config  ', async(() => {
     let sensorParserInfo = new SensorParserConfigHistory();
-    let sensorParserConfig = new SensorParserConfig();
+    let sensorParserConfig = new ParserConfigModel('TestConfigId01');
     let fieldTransformer1 = new FieldTransformer();
     let fieldTransformer2 = new FieldTransformer();
 
@@ -507,7 +507,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
   let setDataForSensorOperation = function() {
     let sensorParserInfo = new SensorParserConfigHistory();
-    let sensorParserConfig = new SensorParserConfig();
+    let sensorParserConfig = new ParserConfigModel('TestConfigId01');
     let kafkaTopic = new KafkaTopic();
     let topologyStatus = new TopologyStatus();
 

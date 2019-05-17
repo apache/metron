@@ -21,9 +21,9 @@ import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { HttpUtil } from '../util/httpUtil';
 import { SensorParserConfigHistory } from '../model/sensor-parser-config-history';
-import { SensorParserConfig } from '../model/sensor-parser-config';
+import { ParserConfigModel } from '../sensors/models/parser-config.model';
 import { RestError } from '../model/rest-error';
-import {AppConfigService} from './app-config.service';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class SensorParserConfigHistoryService {
@@ -36,7 +36,7 @@ export class SensorParserConfigHistoryService {
 
   public get(name: string): Observable<RestError | SensorParserConfigHistory> {
     return this.http.get(this.url + '/' + name).pipe(
-      map((response: SensorParserConfig) => {
+      map((response: ParserConfigModel) => {
         let sensorParserConfigHistory = new SensorParserConfigHistory();
         sensorParserConfigHistory.config = response;
         return sensorParserConfigHistory;
@@ -47,9 +47,9 @@ export class SensorParserConfigHistoryService {
 
   public getAll(): Observable<SensorParserConfigHistory[] | RestError> {
     return this.http.get(this.url).pipe(
-      map((response: SensorParserConfig[]) => {
+      map((response: ParserConfigModel[]) => {
         let sensorParserConfigHistoryArray = [];
-        let sensorParserConfigs: SensorParserConfig[] = response;
+        let sensorParserConfigs: ParserConfigModel[] = response;
         for (let sensorParserConfig of sensorParserConfigs) {
           let sensorParserConfigHistory = new SensorParserConfigHistory();
           sensorParserConfigHistory.config = sensorParserConfig;
