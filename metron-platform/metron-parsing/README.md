@@ -624,6 +624,8 @@ Java parser adapters are intended for higher-velocity topologies and are not eas
 * org.apache.metron.parsers.lancope.BasicLancopeParser : Parse Lancope messages
 * org.apache.metron.parsers.syslog.Syslog5424Parser : Parse Syslog RFC 5424 messages
 * org.apache.metron.parsers.syslog.Syslog3164Parser : Parse Syslog RFC 3164 messages
+* org.apache.metron.parsers.cef.CEFParser: Parse CEF format messages
+* org.apache.metron.parsers.leef.LEEFParser: Parse LEEF format messages
 
 ### Grok Parser Adapters
 Grok parser adapters are designed primarily for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recompiled in order to make changes to them.  Example of a Grok parsers are:
