@@ -17,23 +17,21 @@
  */
 package org.apache.metron.parsers.leef;
 
-import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.apache.metron.common.Constants.Fields;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
@@ -41,10 +39,10 @@ import com.github.fge.jsonschema.main.JsonValidator;
 import com.google.common.io.Resources;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertFalse;
 
 public class LEEFParserTest {
-	private static final Charset UTF_8 = Charset.forName("utf-8");
+	private static final Charset UTF_8 = StandardCharsets.UTF_8;
 	private LEEFParser parser;
 
 	@Before
@@ -68,22 +66,22 @@ public class LEEFParserTest {
 
 		for (JSONObject obj : parse(
 				"LEEF:2.0|Lancope|StealthWatch|1.0|41|src=10.0.0.1\tdevTime=May 1 2016 09:29:11.356 -0400\tdst=2.1.2.2\tspt=1232")) {
-			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
-			Assert.assertEquals(correctTime, obj.get("timestamp"));
+			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
+			Assert.assertEquals(correctTime, obj.get(Fields.TIMESTAMP.getName()));
 		}
 		for (JSONObject obj : parse(
 				"2016-06-01T09:29:11.356-04:00 host LEEF:2.0|Lancope|StealthWatch|1.0|41|src=10.0.0.1\tdevTime=May 1 2016 09:29:11.356 -0400\tdst=2.1.2.2\tspt=1232")) {
-			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
-			Assert.assertEquals(correctTime, obj.get("timestamp"));
+			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
+			Assert.assertEquals(correctTime, obj.get(Fields.TIMESTAMP.getName()));
 		}
 		for (JSONObject obj : parse(
 				"2016-05-01T09:29:11.356-04:00 host LEEF:2.0|Lancope|StealthWatch|1.0|41|src=10.0.0.1\tdevTime=May 1 2016 09:29:11.356 -0400\tdst=2.1.2.2\tspt=1232")) {
-			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
-			Assert.assertEquals(correctTime, obj.get("timestamp"));
+			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
+			Assert.assertEquals(correctTime, obj.get(Fields.TIMESTAMP.getName()));
 		}
 		for (JSONObject obj : parse(
 				"LEEF:2.0|Lancope|StealthWatch|1.0|41|src=10.0.0.1\tdevTime=May 1 2016 09:29:11.356 -0400\tdst=2.1.2.2\tspt=1232")) {
-			Assert.assertNotNull(obj.get("timestamp"));
+			Assert.assertNotNull(obj.get(Fields.TIMESTAMP.getName()));
 		}
 
 	}
@@ -94,8 +92,8 @@ public class LEEFParserTest {
 				+ sdf.format(input.getTime()) +
 				"\tdevTimeFormat=MMM dd HH:mm:ss.SSS" +
 				"\tdst=2.1.2.2\tspt=1232")) {
-			Assert.assertEquals(expected.getTime(), new Date((long) obj.get("timestamp")));
-			Assert.assertEquals(expected.getTimeInMillis(), obj.get("timestamp"));
+			Assert.assertEquals(expected.getTime(), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
+			Assert.assertEquals(expected.getTimeInMillis(), obj.get(Fields.TIMESTAMP.getName()));
 		}
 	}
 
@@ -151,31 +149,22 @@ public class LEEFParserTest {
 		for (String inputString : lines) {
 			JSONObject parsed = parse(inputString).get(0);
 			Assert.assertNotNull(parsed);
-			Assert.assertNotNull(parsed.get("timestamp"));
-			Assert.assertTrue((long) parsed.get("timestamp") > 0);
+			Assert.assertNotNull(parsed.get(Fields.TIMESTAMP.getName()));
+			Assert.assertTrue((long) parsed.get(Fields.TIMESTAMP.getName()) > 0);
 
 			JSONParser parser = new JSONParser();
 
 			Map<?, ?> json = null;
-			try {
-				json = (Map<?, ?>) parser.parse(parsed.toJSONString());
-				Assert.assertEquals(true, validateJsonData(schema, json.toString()));
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-
-			// test against an explicit json example
-			if (!targetJson.isEmpty()) {
-
-			}
+			json = (Map<?, ?>) parser.parse(parsed.toJSONString());
+			Assert.assertEquals(true, validateJsonData(schema, json.toString()));
 		}
 	}
 
 	private void assertSimpleSample(List<JSONObject> parse) {
 		JSONObject obj = parse.get(0);
 		Assert.assertNotNull(obj);
-		Assert.assertTrue(obj.containsKey("ip_src_addr"));
-		Assert.assertEquals("192.0.2.0", obj.get("ip_src_addr"));
+		Assert.assertTrue(obj.containsKey(Fields.SRC_ADDR.getName()));
+		Assert.assertEquals("192.0.2.0", obj.get(Fields.SRC_ADDR.getName()));
 	}
 
 	@Test
@@ -196,6 +185,19 @@ public class LEEFParserTest {
 		assertSimpleSample(parse);
 	}
 
+	@Test
+	public void testLEEF_2_0_delimiterUsedIncorrectly() {
+		List<JSONObject> parse = parse("LEEF:2.0|Lancope|StealthWatch|1.0|41|^| src=192.0.2.0\tdst=172.50.123.1\tsev=5\tcat=anomaly\tsrcPort=81\tdstPort=21\tusrName=joe.black");
+		assertFalse(parse.get(0).containsKey(Fields.DST_ADDR));
+	}
+
+	@Test
+	public void testLEEFMultiLine() {
+		List<JSONObject> parse = parse("LEEF:2.0|Vendor|Product|Version|EventID| src=192.0.2.0\tdst=172.50.123.1\tsev=5\tcat=anomaly\tsrcPort=81\tdstPort=21\tusrName=line1" +
+				"\nLEEF:2.0|Vendor|Product|Version|EventID| src=192.0.2.1\tdst=172.50.123.2\tsev=6\tcat=anomaly\tsrcPort=82\tdstPort=22\tusrName=line2");
+		assertSimpleSample(parse);
+		assertEquals(2, parse.size());
+	}
 
 
 	@Test
@@ -206,7 +208,7 @@ public class LEEFParserTest {
 
 		List<JSONObject> parse = parse("LEEF:2.0|Lancope|StealthWatch|1.0|41|^| src=192.0.2.0^dst=172.50.123.1^sev=5^cat=anomaly^srcPort=81^dstPort=21^usrName=joe.black^devTime=" + customFormatter.format(customDate) + "^devTimeFormat=" + customFormat);
 		JSONObject obj = parse.get(0);
-		assertEquals(obj.get("timestamp"), customDate.getTime());
+		assertEquals(obj.get(Fields.TIMESTAMP.getName()), customDate.getTime());
 	}
 
 	@Test
@@ -218,7 +220,7 @@ public class LEEFParserTest {
 
 		List<JSONObject> parse = parse("LEEF:2.0|Lancope|StealthWatch|1.0|41|^| src=192.0.2.0^dst=172.50.123.1^sev=5^cat=anomaly^srcPort=81^dstPort=21^usrName=joe.black^devTime=" + customFormatter.format(customDate));
 		JSONObject obj = parse.get(0);
-		assertEquals(obj.get("timestamp"), expected);
+		assertEquals(obj.get(Fields.TIMESTAMP.getName()), expected);
 	}
 
 	private final static String sample = "LEEF:1.0|TestVendor|TestProduct|TestVersion|TestEventClassID|" +
@@ -244,9 +246,8 @@ public class LEEFParserTest {
 	}
 
 	private List<JSONObject> parse(String string) {
-		List<JSONObject> parse = parser.parse(string.getBytes(Charset.forName("utf-8")));
-		Assert.assertNotNull(parse);
-		return parse;
+		Optional<MessageParserResult<JSONObject>> parse = parser.parseOptionalResult(string.getBytes(UTF_8));
+		Assert.assertTrue(parse.isPresent());
+		return parse.get().getMessages();
 	}
-
 }

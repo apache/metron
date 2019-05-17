@@ -36,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class DateUtils {
 
+	// Per IBM LEEF guide at https://www.ibm.com/support/knowledgecenter/SS42VS_DSM/c_LEEF_Format_Guide_intro.html
 	public static List<SimpleDateFormat> DATE_FORMATS_LEEF = new ArrayList<SimpleDateFormat>() {
 		{
 			add(new SimpleDateFormat("MMM dd yyyy HH:mm:ss.SSS zzz"));

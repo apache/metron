@@ -151,7 +151,7 @@ public class CEFParser extends BasicParser {
 		while (matcher.find()) {
 			JSONObject obj = new JSONObject();
 			if (matcher.matches()) {
-				LOG.info("Found %d groups", matcher.groupCount());
+				LOG.debug("Found %d groups", matcher.groupCount());
 				obj.put("DeviceVendor", matcher.group("DeviceVendor"));
 				obj.put("DeviceProduct", matcher.group("DeviceProduct"));
 				obj.put("DeviceVersion", matcher.group("DeviceVersion"));
@@ -260,8 +260,6 @@ public class CEFParser extends BasicParser {
 
 	@Override
 	public void configure(Map<String, Object> config) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@SuppressWarnings("unchecked")
