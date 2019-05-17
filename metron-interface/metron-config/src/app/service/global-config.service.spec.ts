@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import { GlobalConfigService } from './global-config.service';
 import {
   HttpTestingController,
   HttpClientTestingModule
 } from '@angular/common/http/testing';
-import {AppConfigService} from './app-config.service';
-import {MockAppConfigService} from './mock.app-config.service';
+import { AppConfigService } from './app-config.service';
+import { MockAppConfigService } from './mock.app-config.service';
 
 describe('GlobalConfigService', () => {
   let mockBackend: HttpTestingController;

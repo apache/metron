@@ -17,7 +17,6 @@
  */
 
 import { TestBed } from '@angular/core/testing';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import { HdfsService } from './hdfs.service';
 import {
   HttpTestingController,
