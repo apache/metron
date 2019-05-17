@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, ViewChild, ElementRef, OnChanges, SimpleChanges, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnChanges, SimpleChanges, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import * as moment from 'moment/moment';
 import * as Pikaday from 'pikaday-time';
@@ -43,12 +43,14 @@ export class DatePickerComponent implements OnInit, OnChanges, ControlValueAcces
   @Input() minDate = '';
   @Output() dateChange = new EventEmitter<string>();
   @ViewChild('inputText') inputText: ElementRef;
+  @ViewChild('calendarIcon') calendarIcon: ElementRef;
 
   constructor(private elementRef: ElementRef) {}
 
   ngOnInit() {
     let _datePickerComponent = this;
     let pikadayConfig = {
+      trigger: this.calendarIcon.nativeElement,
       field: this.elementRef.nativeElement,
       showSeconds: true,
       use24hour: true,
@@ -131,17 +133,5 @@ export class DatePickerComponent implements OnInit, OnChanges, ControlValueAcces
     }
     this.picker.setMinDate(new Date(this.minDate));
     this.picker.setDate(moment(this.minDate).endOf('day').format('YYYY-MM-DD HH:mm:ss'));
-  }
-
-  toggleDatePicker($event) {
-    if (this.picker) {
-      if (this.picker.isVisible()) {
-        this.picker.hide();
-      } else {
-        this.picker.show();
-      }
-
-      $event.stopPropagation();
-    }
   }
 }

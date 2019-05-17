@@ -15,12 +15,14 @@
   <input
     class="form-control"
     [(ngModel)]="dateStr"
-    (click)="toggleDatePicker($event)"
     (focus)="onFocus()"
     (blur)="onBlur($event)"
     (keyup)="onKeyup($event)"
   >
   <div class="input-group-append">
-    <span class="input-group-text calendar"></span>
+    <span
+      #calendarIcon
+      class="input-group-text calendar"
+    ></span>
   </div>
 </div>
