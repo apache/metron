@@ -18,6 +18,7 @@
 package org.apache.metron.parsers.json;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.parsers.BasicParser;
@@ -25,9 +26,6 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.List;
-import java.util.Map;
 
 public class JSONMapParserTest {
 
@@ -47,7 +45,7 @@ public class JSONMapParserTest {
     List<JSONObject> output = parser.parse(happyPathJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 5);
+    Assert.assertEquals(output.get(0).size(), 4);
     JSONObject message = output.get(0);
     Assert.assertEquals("bar", message.get("foo"));
     Assert.assertEquals("blah", message.get("blah"));
@@ -82,7 +80,7 @@ public class JSONMapParserTest {
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 2);
+    Assert.assertEquals(output.get(0).size(), 1);
     JSONObject message = output.get(0);
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
@@ -105,7 +103,7 @@ public class JSONMapParserTest {
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 3);
+    Assert.assertEquals(output.get(0).size(), 2);
     JSONObject message = output.get(0);
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
@@ -118,7 +116,7 @@ public class JSONMapParserTest {
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 6);
+    Assert.assertEquals(output.get(0).size(), 5);
     JSONObject message = output.get(0);
     Assert.assertEquals(message.get("collection.blah"), 7);
     Assert.assertEquals(message.get("collection.blah2"), "foo");
@@ -133,7 +131,7 @@ public class JSONMapParserTest {
     JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG,JSONMapParser.MapStrategy.UNFOLD.name()));
     List<JSONObject> output = parser.parse(mixCollectionHandlingJSON.getBytes());
-    Assert.assertEquals(output.get(0).size(), 4);
+    Assert.assertEquals(output.get(0).size(), 3);
     JSONObject message = output.get(0);
     Assert.assertEquals(message.get("collection.key"), "value");
     Assert.assertEquals(message.get("key"),"value");

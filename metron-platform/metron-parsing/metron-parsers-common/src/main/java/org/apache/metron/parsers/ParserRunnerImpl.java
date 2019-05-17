@@ -258,6 +258,7 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
     }
     if (handleOriginalStringGlobally(parserConfigurations.getGlobalConfig())) {
       message.putIfAbsent(Fields.ORIGINAL.getName(), new String(rawMessage.getMessage()));
+      System.out.println("RAW: " + new String(rawMessage.getMessage()));
     }
     MessageFilter<JSONObject> filter = sensorToParserComponentMap.get(sensorType).getFilter();
     if (filter == null || filter.emit(message, stellarContext)) {

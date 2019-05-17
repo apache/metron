@@ -35,7 +35,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.BasicParser;
@@ -91,6 +90,7 @@ public class JSONMapParser extends BasicParser {
   public static final String WRAP_JSON = "wrapInEntityArray";
   public static final String WRAP_ENTITY_NAME = "wrapEntityName";
   public static final String DEFAULT_WRAP_ENTITY_NAME = "messages";
+  public static final String OVERRIDE_ORIGINAL_STRING = "overrideOriginalString";
 
   private static final String WRAP_START_FMT = "{ \"%s\" : [";
   private static final String WRAP_END = "]}";
@@ -100,12 +100,14 @@ public class JSONMapParser extends BasicParser {
   private String jsonpQuery = null;
   private String wrapEntityName = DEFAULT_WRAP_ENTITY_NAME;
   private boolean wrapJson = false;
+  private boolean overrideOriginalString = false; // adds original string values per sub-map
 
 
   @Override
   public void configure(Map<String, Object> config) {
     String strategyStr = (String) config.getOrDefault(MAP_STRATEGY_CONFIG, MapStrategy.DROP.name());
     mapStrategy = MapStrategy.valueOf(strategyStr);
+    overrideOriginalString = (Boolean) config.getOrDefault(OVERRIDE_ORIGINAL_STRING, false);
     if (config.containsKey(JSONP_QUERY)) {
       typeRef = new TypeRef<List<Map<String, Object>>>() { };
       jsonpQuery = (String) config.get(JSONP_QUERY);
@@ -167,29 +169,32 @@ public class JSONMapParser extends BasicParser {
   @SuppressWarnings("unchecked")
   public List<JSONObject> parse(byte[] rawMessage) {
     try {
-      String originalString = new String(rawMessage);
+      String rawString = new String(rawMessage);
       List<Map<String, Object>> messages = new ArrayList<>();
 
       // if configured, wrap the json in an entity and array
       if (wrapJson) {
-        originalString = wrapMessageJson(originalString);
+        rawString = wrapMessageJson(rawString);
       }
 
       if (!StringUtils.isEmpty(jsonpQuery)) {
-        Object parsedObject = JsonPath.parse(originalString).read(jsonpQuery, typeRef);
+        Object parsedObject = JsonPath.parse(rawString).read(jsonpQuery, typeRef);
         if (parsedObject != null) {
           messages.addAll((List<Map<String,Object>>)parsedObject);
         }
       } else {
-        messages.add(JSONUtils.INSTANCE.load(originalString, JSONUtils.MAP_SUPPLIER));
+        messages.add(JSONUtils.INSTANCE.load(rawString, JSONUtils.MAP_SUPPLIER));
       }
 
       ArrayList<JSONObject> parsedMessages = new ArrayList<>();
       for (Map<String, Object> rawMessageMap : messages) {
-        JSONObject originalJsonObject = new JSONObject(rawMessageMap);
         JSONObject ret = normalizeJson(rawMessageMap);
-        // the original string is the original for THIS sub message
-        ret.put("original_string", originalJsonObject.toJSONString());
+        if (overrideOriginalString) {
+          // override the global system default, which is to add the raw message as original_string
+          // the original string is the original for THIS sub message
+          JSONObject originalJsonObject = new JSONObject(rawMessageMap);
+          ret.put("original_string", originalJsonObject.toJSONString());
+        }
         if (!ret.containsKey("timestamp")) {
           ret.put("timestamp", System.currentTimeMillis());
         }
