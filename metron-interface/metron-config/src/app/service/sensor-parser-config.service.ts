@@ -15,20 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { SensorParserConfig } from '../model/sensor-parser-config';
+import { Observable, Subject, from, of } from 'rxjs';
+import { catchError, map, take, mergeMap, finalize, filter, reduce } from 'rxjs/operators';
+import { ParserConfigModel } from '../sensors/models/parser-config.model';
 import { HttpUtil } from '../util/httpUtil';
 import { ParseMessageRequest } from '../model/parse-message-request';
 import { RestError } from '../model/rest-error';
-import {AppConfigService} from './app-config.service';
+import { ParserGroupModel } from '../sensors/models/parser-group.model';
+import { ParserModel } from 'app/sensors/models/parser.model';
+import { ParserMetaInfoModel } from '../sensors/models/parser-meta-info.model';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class SensorParserConfigService {
-  url = this.appConfigService.getApiRoot() + '/sensor/parser/config';
-  selectedSensorParserConfig: SensorParserConfig;
 
   dataChangedSource = new Subject<string[]>();
   dataChanged$ = this.dataChangedSource.asObservable();
@@ -38,57 +39,140 @@ export class SensorParserConfigService {
     private appConfigService: AppConfigService
   ) {}
 
-  public post(
+  private getParserConfigSvcUrl(): string {
+    return this.appConfigService.getApiRoot() + '/sensor/parser/config';
+  }
+
+  private getParserGroupSvcUrl(): string {
+    return this.appConfigService.getApiRoot() + '/sensor/parser/group';
+  }
+
+  public getAllGroups(): Observable<ParserGroupModel[] | RestError> {
+    function extractParserGroups(raw) {
+      return Object.keys(raw).map((groupName) => {
+        return new ParserGroupModel({
+          ...raw[groupName]
+        })
+      });
+    }
+    return this.http.get(this.getParserGroupSvcUrl()).pipe(
+      map(extractParserGroups),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public getGroup(name: string): Observable<RestError | ParserGroupModel> {
+    return this.http.get(`${this.getParserGroupSvcUrl()}/${name}`).pipe(
+      map(group => new ParserGroupModel(group)),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public saveGroup(name: string, group: ParserGroupModel | ParserModel): Observable<RestError | ParserGroupModel> {
+    return this.http.post(`${this.getParserGroupSvcUrl()}`, group).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public deleteGroup(groupName: string): Observable<{ groupName: string, isSuccess: boolean }> {
+    return this.http.delete(`${this.getParserGroupSvcUrl()}/${groupName}`).pipe(
+      map((result) => { return { groupName, isSuccess: true } }),
+      catchError((error) => { return of({ groupName, isSuccess: false }) })
+    );
+  }
+
+  public deleteGroups(
+    groupNames: string[]
+  ): Observable<{ success: Array<string>; failure: Array<string> }> {
+    let result: { success: Array<string>; failure: Array<string> } = {
+      success: [],
+      failure: []
+    };
+    let observable = Observable.create(observer => {
+      let completed = () => {
+        if (observer) {
+          observer.next(result);
+          observer.complete();
+        }
+        this.dataChangedSource.next(groupNames);
+      };
+      from(groupNames).pipe(
+        mergeMap(this.deleteGroup.bind(this)),
+        take(groupNames.length),
+        map((deleteResult: { groupName: string, isSuccess: boolean}) => {
+          (deleteResult.isSuccess ? result.success : result.failure).push(deleteResult.groupName);
+        }),
+        finalize(completed)
+        ).subscribe();
+    });
+
+    return observable;
+  }
+
+  syncConfigs(configs: ParserMetaInfoModel[]): Observable<{}> {
+    return this.sync(configs, this.saveConfig, this.deleteConfig);
+  }
+
+  syncGroups(groups: ParserMetaInfoModel[]): Observable<{}> {
+    return this.sync(groups, this.saveGroup, this.deleteGroup);
+  }
+
+  private sync(
+    items: ParserMetaInfoModel[],
+    saveFn: Function, deleteFn: Function
+  ) {
+    return from(items).pipe(
+      filter(item => !!(item.isDeleted || item.isDirty || item.isPhantom)),
+      mergeMap((changedItem: ParserMetaInfoModel) => {
+        if (changedItem.isDeleted) {
+          return deleteFn.call(this, changedItem.config.getName());
+        } else {
+          return saveFn.call(this, changedItem.config.getName(), changedItem.config);
+        }
+      }),
+      catchError(HttpUtil.handleError),
+      reduce((acc, value) => {
+        return acc.concat(value);
+      }, [])
+    )
+  }
+
+  public getConfig(name: string): Observable<ParserConfigModel> {
+    return this.http.get(this.getParserConfigSvcUrl() + '/' + name).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public getAllConfig(): Observable<{}> {
+    return this.http.get(this.getParserConfigSvcUrl()).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public saveConfig(
     name: string,
-    sensorParserConfig: SensorParserConfig
-  ): Observable<SensorParserConfig> {
+    sensorParserConfig: ParserModel
+  ): Observable<ParserConfigModel> {
     return this.http
-      .post(this.url + '/' + name, JSON.stringify(sensorParserConfig))
+      .post(this.getParserConfigSvcUrl() + '/' + name, JSON.stringify(sensorParserConfig))
       .pipe(
         map(HttpUtil.extractData),
         catchError(HttpUtil.handleError)
       );
   }
 
-  public get(name: string): Observable<SensorParserConfig> {
-    return this.http.get(this.url + '/' + name).pipe(
-      map(HttpUtil.extractData),
-      catchError(HttpUtil.handleError)
-    );
-  }
-
-  public getAll(): Observable<{}> {
-    return this.http.get(this.url).pipe(
-      map(HttpUtil.extractData),
-      catchError(HttpUtil.handleError)
-    );
-  }
-
-  public deleteSensorParserConfig(
+  public deleteConfig(
     name: string
   ): Observable<Object | RestError> {
     return this.http
-      .delete(this.url + '/' + name)
+      .delete(this.getParserConfigSvcUrl() + '/' + name)
       .pipe(catchError(HttpUtil.handleError));
   }
 
-  public getAvailableParsers(): Observable<{}> {
-    return this.http.get(this.url + '/list/available').pipe(
-      map(HttpUtil.extractData),
-      catchError(HttpUtil.handleError)
-    );
-  }
-
-  public parseMessage(
-    parseMessageRequest: ParseMessageRequest
-  ): Observable<{}> {
-    return this.http.post(this.url + '/parseMessage', parseMessageRequest).pipe(
-      map(HttpUtil.extractData),
-      catchError(HttpUtil.handleError)
-    );
-  }
-
-  public deleteSensorParserConfigs(
+  public deleteConfigs(
     sensorNames: string[]
   ): Observable<{ success: Array<string>; failure: Array<string> }> {
     let result: { success: Array<string>; failure: Array<string> } = {
@@ -105,7 +189,7 @@ export class SensorParserConfigService {
         this.dataChangedSource.next(sensorNames);
       };
       for (let i = 0; i < sensorNames.length; i++) {
-        this.deleteSensorParserConfig(sensorNames[i]).subscribe(
+        this.deleteConfig(sensorNames[i]).subscribe(
           results => {
             result.success.push(sensorNames[i]);
             if (
@@ -129,5 +213,21 @@ export class SensorParserConfigService {
     });
 
     return observable;
+  }
+
+  public getAvailableParsers(): Observable<{}> {
+    return this.http.get(this.getParserConfigSvcUrl() + '/list/available').pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
+  }
+
+  public parseMessage(
+    parseMessageRequest: ParseMessageRequest
+  ): Observable<{}> {
+    return this.http.post(this.getParserConfigSvcUrl() + '/parseMessage', parseMessageRequest).pipe(
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.handleError)
+    );
   }
 }
