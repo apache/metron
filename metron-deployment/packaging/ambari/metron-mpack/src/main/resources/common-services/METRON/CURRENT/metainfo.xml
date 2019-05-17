@@ -477,10 +477,13 @@
               <name>metron-indexing-storm</name>
             </package>
             <package>
-              <name>metron-elasticsearch</name>
+              <name>metron-elasticsearch-storm</name>
             </package>
             <package>
-              <name>metron-solr</name>
+              <name>metron-solr-common</name>
+            </package>
+            <package>
+              <name>metron-solr-storm</name>
             </package>
             <package>
               <name>metron-pcap</name>

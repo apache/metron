@@ -29,7 +29,5 @@
     <modules>
         <module>metron-indexing-common</module>
         <module>metron-indexing-storm</module>
-        <module>metron-indexing-storm-elasticsearch</module>
-        <module>metron-indexing-storm-solr</module>
     </modules>
 </project>

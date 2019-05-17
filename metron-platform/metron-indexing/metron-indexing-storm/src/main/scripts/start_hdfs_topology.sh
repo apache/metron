@@ -18,5 +18,5 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
-TOPOLOGY_JAR=metron-elasticsearch-$METRON_VERSION-uber.jar
+TOPOLOGY_JAR=metron-elasticsearch-storm-$METRON_VERSION-uber.jar
 storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.storm.flux.Flux --remote $METRON_HOME/flux/indexing/batch/remote.yaml --filter $METRON_HOME/config/hdfs.properties

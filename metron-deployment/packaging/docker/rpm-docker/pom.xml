@@ -120,7 +120,7 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-elasticsearch/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-elasticsearch/metron-elasticsearch-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -186,7 +186,13 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-solr/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-solr/metron-solr-common/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-solr/metron-solr-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

@@ -116,7 +116,7 @@
                                     <filtering>false</filtering>
                                 </resource>
                                 <resource>
-                                    <directory>${basedir}/../../../../metron-platform/metron-elasticsearch/src/main/config</directory>
+                                    <directory>${basedir}/../../../../metron-platform/metron-elasticsearch/metron-elasticsearch-storm/src/main/config</directory>
                                     <includes>
                                         <include>elasticsearch.properties.j2</include>
                                     </includes>
@@ -130,7 +130,7 @@
                                     <filtering>false</filtering>
                                 </resource>
                                 <resource>
-                                    <directory>${basedir}/../../../../metron-platform/metron-solr/src/main/config</directory>
+                                    <directory>${basedir}/../../../../metron-platform/metron-solr/metron-solr-storm/src/main/config</directory>
                                     <includes>
                                         <include>solr.properties.j2</include>
                                     </includes>
