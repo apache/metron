@@ -97,7 +97,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     // create a document from each message
     for(BulkMessage<JSONObject> bulkWriterMessage: messages) {
-      MessageIdBasedDocument document = createDocument(bulkWriterMessage, sensorType, fieldNameConverter, configurations.isMetronId(sensorType));
+      MessageIdBasedDocument document = createDocument(bulkWriterMessage, sensorType, fieldNameConverter, configurations.isSetDocumentId(sensorType));
       documentWriter.addDocument(document, indexName);
     }
 
@@ -118,7 +118,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   private MessageIdBasedDocument createDocument(BulkMessage<JSONObject> bulkWriterMessage,
                                                 String sensorType,
                                                 FieldNameConverter fieldNameConverter,
-                                                boolean metronId) {
+                                                boolean setDocumentId) {
     // transform the message fields to the source fields of the indexed document
     JSONObject source = new JSONObject();
     JSONObject message = bulkWriterMessage.getMessage();
@@ -141,7 +141,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       LOG.warn("Missing '{}' field; timestamp will be set to system time.", TIMESTAMP.getName());
     }
     MessageIdBasedDocument messageIdBasedDocument = new MessageIdBasedDocument(source, guid, sensorType, timestamp, bulkWriterMessage.getId());
-    if (metronId) {
+    if (setDocumentId) {
       // Use the metron-generated GUID instead of letting Elasticsearch set the id
       messageIdBasedDocument.setDocumentID(guid);
     }

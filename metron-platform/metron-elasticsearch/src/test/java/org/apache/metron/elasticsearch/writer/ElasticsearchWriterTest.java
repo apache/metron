@@ -20,14 +20,12 @@ package org.apache.metron.elasticsearch.writer;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
-import org.apache.metron.indexing.dao.update.Document;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -258,8 +256,8 @@ public class ElasticsearchWriterTest {
     }
 
     @Test
-    public void shouldWriteManySuccessfullyWithMetronId() {
-        when(writerConfiguration.isMetronId("bro")).thenReturn(true);
+    public void shouldWriteManySuccessfullyWithSetDocumentId() {
+        when(writerConfiguration.isSetDocumentId("bro")).thenReturn(true);
         when(writerConfiguration.getFieldNameConverter("bro")).thenReturn("NOOP");
 
         mockStatic(ElasticsearchUtils.class);
@@ -293,7 +291,7 @@ public class ElasticsearchWriterTest {
         esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);
 
-        // documents should have guid (metronId) as documentID
+        // documents should have metron guid as documentID
         verify(docWriter, times(1)).addDocument(document1, "bro_index");
         verify(docWriter, times(1)).addDocument(document1, "bro_index");
         verify(docWriter, times(1)).addDocument(document1, "bro_index");

@@ -32,7 +32,7 @@ public class IndexingConfigurationsTest {
 
   /**
    * {
-   *  "indexing.writer.metronId" : "true"
+   *  "indexing.writer.elasticsearch.setDocumentId" : "true"
    * }
    */
   @Multiline
@@ -41,7 +41,7 @@ public class IndexingConfigurationsTest {
   /**
    * {
    *  "writer" : {
-   *    "metronId": true
+   *    "setDocumentId": true
    *  }
    * }
    */
@@ -56,25 +56,27 @@ public class IndexingConfigurationsTest {
   }
 
   @Test
-  public void shouldReturnMetronId() throws Exception {
+  public void shouldReturnDefaultSetDocumentId() throws Exception {
     // verify false by default
-    assertFalse(configurations.isMetronId("sensor", "writer"));
+    assertFalse(configurations.isSetDocumentId("sensor", "writer"));
+  }
 
-    {
-      // verify global config setting applies to any sensor
-      configurations.updateGlobalConfig(globalConfig.getBytes(StandardCharsets.UTF_8));
+  @Test
+  public void shouldReturnGlobalSetDocumentId() throws Exception {
+    // verify global config setting applies to any sensor
+    configurations.updateGlobalConfig(globalConfig.getBytes(StandardCharsets.UTF_8));
 
-      assertTrue(configurations.isMetronId("sensor", "writer"));
-      assertTrue(configurations.isMetronId("anySensor", "writer"));
-    }
+    assertTrue(configurations.isSetDocumentId("sensor", "writer"));
+    assertTrue(configurations.isSetDocumentId("anySensor", "writer"));
+  }
 
-    {
-      // verify sensor config only applies to that sensor
-      configurations.updateGlobalConfig(new HashMap<>());
-      configurations.updateSensorIndexingConfig("sensor", sensorConfig.getBytes(StandardCharsets.UTF_8));
+  @Test
+  public void shouldReturnSensorSetDocumentId() throws Exception {
+    // verify sensor config only applies to that sensor
+    configurations.updateGlobalConfig(new HashMap<>());
+    configurations.updateSensorIndexingConfig("sensor", sensorConfig.getBytes(StandardCharsets.UTF_8));
 
-      assertTrue(configurations.isMetronId("sensor", "writer"));
-      assertFalse(configurations.isMetronId("anySensor", "writer"));
-    }
+    assertTrue(configurations.isSetDocumentId("sensor", "writer"));
+    assertFalse(configurations.isSetDocumentId("anySensor", "writer"));
   }
 }

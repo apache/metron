@@ -79,7 +79,7 @@ public class IndexingWriterConfiguration implements WriterConfiguration{
   }
 
   @Override
-  public boolean isMetronId(String sensorName) {
-    return config.orElse(new IndexingConfigurations()).isMetronId(sensorName, writerName);
+  public boolean isSetDocumentId(String sensorName) {
+    return config.orElse(new IndexingConfigurations()).isSetDocumentId(sensorName, writerName);
   }
 }
