@@ -15,28 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { HttpUtil } from '../util/httpUtil';
 import { TopologyStatus } from '../model/topology-status';
 import { TopologyResponse } from '../model/topology-response';
 import { Observable, interval } from 'rxjs';
 import { map, catchError, switchMap, onErrorResumeNext } from 'rxjs/operators';
-import {AppConfigService} from './app-config.service';
+import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class StormService {
-  url = this.appConfigService.getApiRoot() + '/storm';
 
   constructor(
     private http: HttpClient,
     private appConfigService: AppConfigService
   ) {}
 
+  private getStormApiURL() {
+    return this.appConfigService.getApiRoot() + '/storm';
+  }
+
   public pollGetAll(): Observable<TopologyStatus[]> {
     return interval(8000).pipe(
       switchMap(() => {
-        return this.http.get(this.url).pipe(
+        return this.http.get(this.getStormApiURL()).pipe(
           map(HttpUtil.extractData),
           catchError(HttpUtil.handleError),
           onErrorResumeNext()
@@ -46,112 +49,112 @@ export class StormService {
   }
 
   public getAll(): Observable<TopologyStatus[]> {
-    return this.http.get(this.url).pipe(
+    return this.http.get(this.getStormApiURL()).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public getEnrichmentStatus(): Observable<TopologyStatus> {
-    return this.http.get(this.url + '/enrichment').pipe(
+    return this.http.get(this.getStormApiURL() + '/enrichment').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public activateEnrichment(): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/enrichment/activate').pipe(
+    return this.http.get(this.getStormApiURL() + '/enrichment/activate').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public deactivateEnrichment(): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/enrichment/deactivate').pipe(
+    return this.http.get(this.getStormApiURL() + '/enrichment/deactivate').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public startEnrichment(): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/enrichment/start').pipe(
+    return this.http.get(this.getStormApiURL() + '/enrichment/start').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public stopEnrichment(): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/enrichment/stop').pipe(
+    return this.http.get(this.getStormApiURL() + '/enrichment/stop').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public getIndexingStatus(): Observable<TopologyStatus> {
-    return this.http.get(this.url + '/indexing').pipe(
+    return this.http.get(this.getStormApiURL() + '/indexing').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public activateIndexing(): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/indexing/activate').pipe(
+    return this.http.get(this.getStormApiURL() + '/indexing/activate').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public deactivateIndexing(): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/indexing/deactivate').pipe(
+    return this.http.get(this.getStormApiURL() + '/indexing/deactivate').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public startIndexing(): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/indexing/start').pipe(
+    return this.http.get(this.getStormApiURL() + '/indexing/start').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public stopIndexing(): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/indexing/stop').pipe(
+    return this.http.get(this.getStormApiURL() + '/indexing/stop').pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public getStatus(name: string): Observable<TopologyStatus> {
-    return this.http.get(this.url + '/' + name).pipe(
+    return this.http.get(this.getStormApiURL() + '/' + name).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public activateParser(name: string): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/parser/activate/' + name).pipe(
+    return this.http.get(this.getStormApiURL() + '/parser/activate/' + name).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public deactivateParser(name: string): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/parser/deactivate/' + name).pipe(
+    return this.http.get(this.getStormApiURL() + '/parser/deactivate/' + name).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public startParser(name: string): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/parser/start/' + name).pipe(
+    return this.http.get(this.getStormApiURL() + '/parser/start/' + name).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
   }
 
   public stopParser(name: string): Observable<TopologyResponse> {
-    return this.http.get(this.url + '/parser/stop/' + name).pipe(
+    return this.http.get(this.getStormApiURL() + '/parser/stop/' + name).pipe(
       map(HttpUtil.extractData),
       catchError(HttpUtil.handleError)
     );
