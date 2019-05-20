@@ -132,7 +132,7 @@ public class StringFunctions {
 
   @Stellar( name="JOIN"
           , description="Joins the non-null items in the iterable as strings with the specified delimiter. Null items are dropped."
-          , params = { "iterable - iterable (e.g. List, LinkedHashSet, etc.) of items treated as strings", "delim - String delimiter"}
+          , params = { "iterable - Java iterable (e.g. List, LinkedHashSet, etc.) of items treated as strings", "delim - String delimiter"}
           , returns = "String"
           )
   public static class JoinFunction extends BaseStellarFunction {

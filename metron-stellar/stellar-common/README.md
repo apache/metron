@@ -704,7 +704,7 @@ Where:
 ### `JOIN`
   * Description: Joins the non-null items in the iterable as strings with the specified delimiter. Null items are dropped.
   * Input:
-    * iterable - iterable (e.g. List, LinkedHashSet, etc.) of items treated as strings
+    * iterable - Java iterable (e.g. List, LinkedHashSet, etc.) of items treated as strings
     * delim - String delimiter
   * Returns: String
 
