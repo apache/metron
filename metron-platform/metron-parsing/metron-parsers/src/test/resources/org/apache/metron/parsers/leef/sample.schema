@@ -1,0 +1,27 @@
+{
+  "title": "LEEF Sample Schema",
+  "type": "object",
+  "properties": {
+    "original_string": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "integer"
+    },
+    "DeviceVendor": {
+      "type": "string"
+    },
+    "DeviceProduct": {
+      "type": "string"
+    },
+    "DeviceVersion": {
+      "type": "string"
+    },
+    "DeviceEvent": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "original_string", "timestamp",
+    "DeviceVendor", "DeviceProduct", "DeviceVersion" ]
+}
