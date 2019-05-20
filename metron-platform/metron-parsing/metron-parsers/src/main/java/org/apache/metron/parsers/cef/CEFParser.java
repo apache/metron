@@ -45,7 +45,7 @@ public class CEFParser extends BasicParser {
 	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
 	private Pattern p;
-	private static final Pattern pext = Pattern.compile(EXTENSION_CAPTURE_PATTERN);
+	private static final Pattern patternExtensions = Pattern.compile(EXTENSION_CAPTURE_PATTERN);
 
 	public void init() {
 
@@ -97,7 +97,7 @@ public class CEFParser extends BasicParser {
 	}
 
 	public static void parseExtensions(String ext, JSONObject obj) {
-		Matcher m = pext.matcher(ext);
+		Matcher m = patternExtensions.matcher(ext);
 
 		int index = 0;
 		String key = null;
