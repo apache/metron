@@ -223,16 +223,6 @@ public class LEEFParserTest {
 		assertEquals(obj.get(Fields.TIMESTAMP.getName()), expected);
 	}
 
-	private final static String sample = "LEEF:1.0|TestVendor|TestProduct|TestVersion|TestEventClassID|" +
-			// TimeStamp, String and Long
-			"devTime=Feb 09 2015 00:27:43 UTC\t" +
-			// IPv4
-			"destinationTranslatedAddress=123.123.123.123\t" +
-			// Date without TZ
-			"deviceCustomDate1=Feb 06 2015 13:27:43\t" +
-			// Integer and IP Address (from v4)
-			"dpt=1234\tagt=123.123.0.124\tdlat=40.366633";
-
 	protected boolean validateJsonData(final String jsonSchema, final String jsonData) throws Exception {
 		final JsonNode d = JsonLoader.fromString(jsonData);
 		final JsonNode s = JsonLoader.fromString(jsonSchema);
