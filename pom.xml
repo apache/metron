@@ -59,7 +59,7 @@
     <repositories>
         <repository>
             <id>clojars.org</id>
-            <url>http://clojars.org/repo</url>
+            <url>https://clojars.org/repo</url>
         </repository>
         <repository>
           <id>jcenter</id>
@@ -78,7 +78,7 @@
             </snapshots>
             <id>HDPReleases</id>
             <name>HDP Releases</name>
-            <url>http://repo.hortonworks.com/content/repositories/releases/</url>
+            <url>https://repo.hortonworks.com/content/repositories/releases/</url>
             <layout>default</layout>
         </repository>
     </repositories>
