@@ -22,11 +22,11 @@ import {MetronAlerts} from './metron-alerts';
 describe('MetronAlerts', () => {
 
   beforeEach(function() {
-    MetronAlerts.SUCESS_MESSAGE_DISPALY_TIME = 500;
+    MetronAlerts.SUCCESS_MESSAGE_DISPALY_TIME = 500;
   });
 
   afterEach(function() {
-    MetronAlerts.SUCESS_MESSAGE_DISPALY_TIME = 5000;
+    MetronAlerts.SUCCESS_MESSAGE_DISPALY_TIME = 5000;
   });
 
   it('should create an instance', () => {
@@ -41,7 +41,7 @@ describe('MetronAlerts', () => {
     setTimeout(() => {
       expect($(document).find('.alert .alert-success').length).toEqual(0);
       done();
-    }, MetronAlerts.SUCESS_MESSAGE_DISPALY_TIME);
+    }, MetronAlerts.SUCCESS_MESSAGE_DISPALY_TIME);
   });
 
   it('should close success message on click of close', (done) => {
@@ -56,7 +56,7 @@ describe('MetronAlerts', () => {
     setTimeout(() => {
       expect($(document).find('.alert .alert-success').length).toEqual(0);
       done();
-    }, MetronAlerts.SUCESS_MESSAGE_DISPALY_TIME);
+    }, MetronAlerts.SUCCESS_MESSAGE_DISPALY_TIME);
 
   });
 
