@@ -18,7 +18,7 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-lg-10 px-0">
-        <div class="metron-title"> {{componentName}} ({{count}}) </div>
+        <div class="metron-title"> {{ componentName }} ({{ sensors.length }}) </div>
       </div>
       <div class="col-lg-2">
         <div class="dropdown float-right">
@@ -26,7 +26,7 @@
             ACTIONS
           </button>
           <div class="dropdown-menu dropdown-menu-right metron-bg-inverse" aria-labelledby="dropdownMenu1">
-            <span class="dropdown-item" data-action="Delete" (click)="onDeleteSensor()" [class.disabled]="selectedSensors.length == 0">Delete</span>
+            <span class="dropdown-item" data-action="Delete" (click)="onDeleteSelectedItems()" [class.disabled]="selectedSensors.length == 0">Delete</span>
             <span class="dropdown-item" data-action="Enable" (click)="onEnableSensors()" [class.disabled]="selectedSensors.length == 0">Enable</span>
             <span class="dropdown-item" data-action="Disable" (click)="onDisableSensors()" [class.disabled]="selectedSensors.length == 0">Disable</span>
             <span class="dropdown-item" data-action="Start" (click)="onStartSensors()" [class.disabled]="selectedSensors.length == 0">Start</span>
@@ -37,35 +37,74 @@
     </div>
   </div>
 
-  <table class="table config-table" metron-config-table #table (onSort)="onSort($event)">
+  <table class="table config-table" metron-config-table #table>
     <thead>
     <tr>
-      <th> <metron-config-sorter [sortBy]="'sensorName'"> Name </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'parserClassName'"> Parser </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'status'"> Status </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'latency'"> Latency </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'throughput'"> Throughput </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'modifiedByDate'"> Last Updated </metron-config-sorter> </th>
-      <th> <metron-config-sorter [sortBy]="'modifiedBy'"> Last Editor </metron-config-sorter> </th>
+      <th class="head-cell-drag-handle"></th>
+      <th class="head-cell-name">Name </th>
+      <th>Parser</th>
+      <th>Status</th>
+      <th>Latency</th>
+      <th>Throughput</th>
+      <th>Last Updated</th>
+      <th>Last Editor</th>
       <th style="width:100px"></th>
-      <th style="width:50px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="onSelectDeselectAll($event)"><label for="select-deselect-all"></label></th>
+      <th style="width:50px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="onSelectDeselectAll(sensors, $event)"><label for="select-deselect-all"></label></th>
     </tr>
     </thead>
     <tbody>
+    <tr *ngFor="let sensor of sensors"
+        (click)="onSensorRowSelect(sensor, $event)"
+        [ngClass]="{
           'active': isSelected(sensor),
           'parent': sensor.isGroup,
+          'highlighted': sensor.config.getName() === highlightedElementId && !sensor.isRunning,
           'dragged-over': sensor.config.getName() === draggedOverElementId && !sensor.isRunning && !sensor.startStopInProgress,
           'drop-not-allowed': sensor.config.getName() === draggedOverElementId && sensor.isRunning && !sensor.startStopInProgress,
           'dirty': sensor.isDirty,
           'deleted': sensor.isDeleted,
           'phantom': sensor.isPhantom
         }"
+        (dragstart)="onDragStart(sensor, $event)"
+        (dragover)="onDragOver(sensor, $event)"
+        (drop)="onDrop(sensor, $event)"
+        (dragenter)="onDragEnter(sensor, $event)"
+        (dragleave)="onDragLeave(sensor, $event)"
+      >
+      <td
+        class="drag-handle"
+        [draggable]="!sensor.isGroup"
+      >
+        <span
+          *ngIf="!sensor.isGroup"
+          class="drag-handle-icon"
+        >
+          <i class="fa fa-ellipsis-v drag-handle-part"></i>
+          <i class="fa fa-ellipsis-v drag-handle-part"></i>
+        </span>
+      </td>
+      <td class="cell-name">
+        <span *ngIf="sensor.isGroup">
+          <i class="fa fa-caret-down group-caret-down-icon"></i>
+          <i class="fa fa-th group-parent-label"></i>
+        </span>
+        <span class="indentation" *ngIf="!!hasGroup(sensor)">
+          ---
+        </span>
+        <span [title]="sensor.config.getName()">
+          {{ sensor.config.getName() }}
+        </span>
+      </td>
       <td>{{ getParserType(sensor.config) }}</td>
-      <td [ngClass]="{'warning-text': (sensor.status == 'Stopped' || sensor.status == 'Disabled')}">{{ sensor.status }}</td>
-      <td>{{ sensor.latency }}</td>
-      <td>{{ sensor.throughput }}</td>
-      <td>{{ sensor.modifiedByDate }}</td>
-      <td>{{ sensor.modifiedBy }}</td>
+      <td
+        [ngClass]="{'warning-text': ['KILLED', 'INACTIVE'].includes(sensor.status.status) || !sensor.status.status}"
+      >
+        {{ hasGroup(sensor) ? '' : sensor.status.status | sensorStatus }}
+      </td>
+      <td>{{ hasGroup(sensor) ? '' : sensor.status | latency }}</td>
+      <td>{{ hasGroup(sensor) ? '' : sensor.status | throughput }}</td>
+      <td>{{ hasGroup(sensor) ? '' : sensor.modifiedByDate }}</td>
+      <td>{{ hasGroup(sensor) ? '' : sensor.modifiedBy }}</td>
       <td class="icon-container">
         <i
           data-toggle="tooltip"
@@ -158,8 +197,25 @@
     </tbody>
   </table>
 
-    <div class="metron-add-button hexa-button" (click)="addAddSensor()">
-      <i class="fa fa-plus"></i>
-    </div>
+  <div>
+    <button
+      (click)="onApply()"
+      class="btn sensor-button save-button"
+      [disabled]="!(isDirty$ | async)"
+    >
+      APPLY
+    </button>
+    <button
+      (click)="onDiscard()"
+      class="btn sensor-button form-enable-disable-button"
+      [disabled]="!(isDirty$ | async)"
+    >
+      DISCARD ALL
+    </button>
+  </div>
+
+  <div class="metron-add-button hexa-button" (click)="addAddSensor()">
+    <i class="fa fa-plus"></i>
+  </div>
 
 </div>
