@@ -34,6 +34,13 @@
   margin-left: -1px;
   position: relative;
   border-radius: 0;
+  border-left: solid 1px #4d4d4d;
+}
+
+.input-group-btn-vertical > .btn,
+.input-group-btn-vertical > .btn:focus,
+.input-group-btn-vertical > .btn:active {
+  box-shadow: none;
 }
 
 .input-group-btn-vertical > .btn:first-child
@@ -43,8 +50,8 @@
 
 .input-group-btn-vertical > .btn:last-child
 {
-  margin-top: -1px;
   border-bottom-right-radius: 0.25em;
+  border-top: none;
 }
 
 .input-group-btn-vertical i
