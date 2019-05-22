@@ -130,7 +130,7 @@ public class ElasticsearchBulkDocumentWriter<D extends Document> implements Bulk
         // if creating a new document, set the doc ID to null to allow Elasticsearch to generate one.
         String docId = document.getDocumentID().orElse(null);
         if(LOG.isDebugEnabled() && document.getDocumentID().isPresent()) {
-            LOG.debug("Updating existing document with known doc ID; docID={}, guid={}, sensorType={}",
+            LOG.debug("Creating/Updating a document with known doc ID; docID={}, guid={}, sensorType={}",
                     docId, document.getGuid(), document.getSensorType());
         } else if(LOG.isDebugEnabled()) {
             LOG.debug("Creating a new document, doc ID not yet known; guid={}, sensorType={}",

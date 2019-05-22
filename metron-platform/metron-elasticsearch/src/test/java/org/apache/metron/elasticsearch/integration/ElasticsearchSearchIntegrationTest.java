@@ -145,7 +145,11 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     for (Object broObject: (JSONArray) new JSONParser().parse(broData)) {
       broDocuments.add(((JSONObject) broObject).toJSONString());
     }
-    es.add(BRO_INDEX, "bro", broDocuments);
+    // add documents using Metron GUID
+    es.add(BRO_INDEX, "bro", broDocuments.subList(0, 4), true);
+
+    // add a document to the same index but with an Elasticsearch id
+    es.add(BRO_INDEX, "bro", broDocuments.subList(4, 5), false);
 
     // write the test documents for Snort
     List<String> snortDocuments = new ArrayList<>();
