@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { Inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { Router, ActivatedRoute, Params } from '@angular/router';
 import { HttpClient, HttpResponse } from '@angular/common/http';
@@ -31,7 +30,7 @@ import { KafkaService } from '../../service/kafka.service';
 import { KafkaTopic } from '../../model/kafka-topic';
 import { GrokValidationService } from '../../service/grok-validation.service';
 import { MetronAlerts } from '../../shared/metron-alerts';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../../sensors/models/parser-config.model';
 import { ParseMessageRequest } from '../../model/parse-message-request';
 import { SensorParserContext } from '../../model/sensor-parser-context';
 import { AuthenticationService } from '../../service/authentication.service';
@@ -45,8 +44,9 @@ import { of } from 'rxjs';
 import { HdfsService } from '../../service/hdfs.service';
 import { RestError } from '../../model/rest-error';
 import { RiskLevelRule } from '../../model/risk-level-rule';
-import {AppConfigService} from '../../service/app-config.service';
-import {MockAppConfigService} from '../../service/mock.app-config.service';
+import { Store } from '@ngrx/store';
+import { AppConfigService } from '../../service/app-config.service';
+import { MockAppConfigService } from '../../service/mock.app-config.service';
 
 class MockRouter {
   navigateByUrl(url: string) {}
@@ -67,15 +67,15 @@ class MockActivatedRoute {
 
 class MockSensorParserConfigService extends SensorParserConfigService {
   private name: string;
-  private sensorParserConfig: SensorParserConfig;
+  private sensorParserConfig: ParserConfigModel;
   private parsedMessage: any;
-  private postedSensorParserConfig: SensorParserConfig;
+  private postedSensorParserConfig: ParserConfigModel;
   private throwError: boolean;
 
-  public post(
+  public saveConfig(
     name: string,
-    sensorParserConfig: SensorParserConfig
-  ): Observable<SensorParserConfig> {
+    sensorParserConfig: ParserConfigModel
+  ): Observable<ParserConfigModel> {
     if (this.throwError) {
       let error = new RestError();
       error.message = 'SensorParserConfig post error';
@@ -88,14 +88,14 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     });
   }
 
-  public get(name: string): Observable<SensorParserConfig> {
+  public getConfig(name: string): Observable<ParserConfigModel> {
     return Observable.create(observer => {
       observer.next(this.sensorParserConfig);
       observer.complete();
     });
   }
 
-  public getAll(): Observable<{}> {
+  public getAllConfig(): Observable<{}> {
     return Observable.create(observer => {
       let results = {};
       results[this.name] = this.sensorParserConfig;
@@ -125,7 +125,7 @@ class MockSensorParserConfigService extends SensorParserConfigService {
 
   public setSensorParserConfig(
     name: string,
-    sensorParserConfig: SensorParserConfig
+    sensorParserConfig: ParserConfigModel
   ) {
     this.name = name;
     this.sensorParserConfig = sensorParserConfig;
@@ -450,71 +450,87 @@ describe('Component: SensorParserConfig', () => {
   let activatedRoute: MockActivatedRoute;
   let metronAlerts: MetronAlerts;
   let router: MockRouter;
-
-  let squidSensorParserConfig: any = {
-    parserClassName: 'org.apache.metron.parsers.GrokParser',
-    sensorTopic: 'squid',
-    parserConfig: {
-      grokPath: '/apps/metron/patterns/squid',
-      patternLabel: 'SQUID_DELIMITED',
-      timestampField: 'timestamp'
-    },
-    fieldTransformations: [
-      {
-        input: [],
-        output: ['full_hostname', 'domain_without_subdomains', 'hostname'],
-        transformation: 'STELLAR',
-        config: {
-          full_hostname: 'URL_TO_HOST(url)',
-          domain_without_subdomains: 'DOMAIN_REMOVE_SUBDOMAINS(full_hostname)'
-        }
-      }
-    ]
-  };
-
-  let squidSensorEnrichmentConfig = {
-    enrichment: {
-      fieldMap: {
-        geo: ['ip_dst_addr'],
-        host: ['ip_dst_addr'],
-        whois: [],
-        stellar: { config: { group1: {} } }
-      },
-      fieldToTypeMap: {},
-      config: {}
-    },
-    threatIntel: {
-      threatIntel: {
-        fieldMap: { hbaseThreatIntel: ['ip_dst_addr'] },
-        fieldToTypeMap: { ip_dst_addr: ['malicious_ip'] }
-      }
-    }
-  };
-
-  let squidIndexingConfigurations = {
-    hdfs: {
-      index: 'squid',
-      batchSize: 5,
-      enabled: true
-    },
-    elasticsearch: {
-      index: 'squid',
-      batchSize: 10,
-      enabled: true
-    },
-    solr: {
-      index: 'squid',
-      batchSize: 1,
-      enabled: false
-    }
-  };
+  let squidSensorParserConfig;
+  let squidParserMetaInfo;
+  let squidSensorEnrichmentConfig;
+  let squidIndexingConfigurations;
+  let store: Store<any>;
 
   beforeEach(async(() => {
+
+    squidSensorParserConfig = new ParserConfigModel('squid', {
+      parserClassName: 'org.apache.metron.parsers.GrokParser',
+      sensorTopic: 'squid',
+      parserConfig: {
+        grokPath: '/apps/metron/patterns/squid',
+        patternLabel: 'SQUID_DELIMITED',
+        timestampField: 'timestamp'
+      },
+      fieldTransformations: [
+        {
+          input: [],
+          output: ['full_hostname', 'domain_without_subdomains', 'hostname'],
+          transformation: 'STELLAR',
+          config: {
+            full_hostname: 'URL_TO_HOST(url)',
+            domain_without_subdomains: 'DOMAIN_REMOVE_SUBDOMAINS(full_hostname)'
+          }
+        }
+      ]
+    });
+
+    squidParserMetaInfo = {
+      config: squidSensorParserConfig,
+    };
+
+    squidSensorEnrichmentConfig = {
+      enrichment: {
+        fieldMap: {
+          geo: ['ip_dst_addr'],
+          host: ['ip_dst_addr'],
+          whois: [],
+          stellar: { config: { group1: {} } }
+        },
+        fieldToTypeMap: {},
+        config: {}
+      },
+      threatIntel: {
+        threatIntel: {
+          fieldMap: { hbaseThreatIntel: ['ip_dst_addr'] },
+          fieldToTypeMap: { ip_dst_addr: ['malicious_ip'] }
+        }
+      }
+    };
+
+    squidIndexingConfigurations = {
+      hdfs: {
+        index: 'squid',
+        batchSize: 5,
+        enabled: true
+      },
+      elasticsearch: {
+        index: 'squid',
+        batchSize: 10,
+        enabled: true
+      },
+      solr: {
+        index: 'squid',
+        batchSize: 1,
+        enabled: false
+      }
+    };
+
     TestBed.configureTestingModule({
       imports: [SensorParserConfigModule],
       providers: [
         MetronAlerts,
         { provide: HttpClient },
+        { provide: Store, useValue: {
+          pipe: () => {
+            return of(squidParserMetaInfo);
+          },
+          dispatch: () => {}
+        } },
         {
           provide: SensorParserConfigService,
           useClass: MockSensorParserConfigService
@@ -552,6 +568,7 @@ describe('Component: SensorParserConfig', () => {
     activatedRoute = TestBed.get(ActivatedRoute);
     metronAlerts = TestBed.get(MetronAlerts);
     router = TestBed.get(Router);
+    store = TestBed.get(Store);
   }));
 
   afterEach(() => {
@@ -564,21 +581,17 @@ describe('Component: SensorParserConfig', () => {
 
   it('should handle ngOnInit', async(() => {
     spyOn(component, 'init');
-    spyOn(component, 'createForms');
-    spyOn(component, 'getAvailableParsers');
 
     activatedRoute.setNameForTest('squid');
 
     component.ngOnInit();
 
     expect(component.init).toHaveBeenCalledWith('squid');
-    expect(component.createForms).toHaveBeenCalled();
-    expect(component.getAvailableParsers).toHaveBeenCalled();
   }));
 
   it('should createForms', async(() => {
     component.sensorParserConfig = Object.assign(
-      new SensorParserConfig(),
+      new ParserConfigModel('TestConfigId01'),
       squidSensorParserConfig
     );
     component.createForms();
@@ -611,13 +624,10 @@ describe('Component: SensorParserConfig', () => {
     );
     component.init('new');
 
-    let expectedSensorParserConfig = new SensorParserConfig();
-    expectedSensorParserConfig.parserClassName =
-      'org.apache.metron.parsers.GrokParser';
+    let expectedSensorParserConfig = new ParserConfigModel('new');
+    expectedSensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
     expect(component.sensorParserConfig).toEqual(expectedSensorParserConfig);
-    expect(component.sensorEnrichmentConfig).toEqual(
-      new SensorEnrichmentConfig()
-    );
+    expect(component.sensorEnrichmentConfig).toEqual(new SensorEnrichmentConfig());
     expect(component.indexingConfigurations).toEqual(
       new IndexingConfigurations()
     );
@@ -625,10 +635,7 @@ describe('Component: SensorParserConfig', () => {
     expect(component.currentSensors).toEqual(['squid']);
 
     spyOn(component, 'getKafkaStatus');
-    let sensorParserConfig = Object.assign(
-      new SensorParserConfig(),
-      squidSensorParserConfig
-    );
+    let sensorParserConfig = squidSensorParserConfig.clone({ sensorTopic: 'squid' });
     sensorParserConfigService.setSensorParserConfig(
       'squid',
       sensorParserConfig
@@ -647,9 +654,7 @@ describe('Component: SensorParserConfig', () => {
     );
 
     component.init('squid');
-    expect(component.sensorParserConfig).toEqual(
-      Object.assign(new SensorParserConfig(), squidSensorParserConfig)
-    );
+    expect(component.sensorParserConfig).toEqual(squidSensorParserConfig);
     expect(component.sensorNameValid).toEqual(true);
     expect(component.getKafkaStatus).toHaveBeenCalled();
     expect(component.showAdvancedParserConfiguration).toEqual(true);
@@ -662,12 +667,16 @@ describe('Component: SensorParserConfig', () => {
       Object.assign(new IndexingConfigurations(), squidIndexingConfigurations)
     );
 
-    component.sensorParserConfig.parserConfig['grokPath'] = '/patterns/squid';
+    component.sensorParserConfig.parserConfig.grokPath = '/patterns/squid';
     hdfsService.setContents('/patterns/squid', null);
     grokValidationService.setContents(
       '/patterns/squid',
       'SQUID grok statement from classpath'
     );
+
+    store.pipe = () => {
+      return of({ config: component.sensorParserConfig });
+    }
 
     component.init('squid');
     expect(component.grokStatement).toEqual(
@@ -695,10 +704,14 @@ describe('Component: SensorParserConfig', () => {
       'Could not find grok statement in HDFS or classpath at /patterns/squid'
     );
 
-    sensorParserConfig = new SensorParserConfig();
+    sensorParserConfig = new ParserConfigModel('bro');
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfigService.setSensorParserConfig('bro', sensorParserConfig);
     component.showAdvancedParserConfiguration = false;
+
+    store.pipe = () => {
+      return of({ config: sensorParserConfig });
+    }
 
     component.init('bro');
     expect(component.showAdvancedParserConfiguration).toEqual(false);
@@ -713,6 +726,8 @@ describe('Component: SensorParserConfig', () => {
 
   it('should handle onSetKafkaTopic', async(() => {
     spyOn(component, 'getKafkaStatus');
+
+    component.init('new');
 
     component.onSetKafkaTopic();
     expect(component.getKafkaStatus).not.toHaveBeenCalled();
@@ -782,6 +797,8 @@ describe('Component: SensorParserConfig', () => {
   it('should handle onParserTypeChange', async(() => {
     spyOn(component, 'hidePane');
 
+    component.init('new');
+
     component.onParserTypeChange();
     expect(component.hidePane).not.toHaveBeenCalled();
 
@@ -816,8 +833,7 @@ describe('Component: SensorParserConfig', () => {
 
     expect(component.isConfigValid()).toEqual(true);
 
-    component.sensorParserConfig.parserClassName =
-      'org.apache.metron.parsers.GrokParser';
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
     expect(component.isConfigValid()).toEqual(false);
 
     component.grokStatement = 'grok statement';
@@ -825,6 +841,8 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should getKafkaStatus', async(() => {
+    component.init('bro');
+
     component.getKafkaStatus();
     expect(component.currentKafkaStatus).toEqual(null);
 
@@ -846,6 +864,10 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should getTransforms', async(() => {
+    component.init('bro');
+
+    component.sensorParserConfig.fieldTransformations = [];
+
     expect(component.getTransforms()).toEqual('0 Transformations Applied');
 
     component.sensorParserConfig.fieldTransformations.push(
@@ -859,6 +881,8 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should handle onSaveGrokStatement', async(() => {
+    component.init('bro');
+
     component.sensorName = 'squid';
 
     component.onSaveGrokStatement('grok statement');
@@ -881,6 +905,8 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should onSavePatternLabel', async(() => {
+    component.init('bro');
+
     component.onSavePatternLabel('PATTERN_LABEL');
     expect(component.patternLabel).toEqual('PATTERN_LABEL');
     expect(component.sensorParserConfig.parserConfig['patternLabel']).toEqual(
@@ -897,13 +923,15 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should save sensor configuration', async(() => {
+    component.init('new');
+
     let fieldTransformer = Object.assign(new FieldTransformer(), {
       input: [],
       output: ['url_host'],
       transformation: 'MTL',
       config: { url_host: 'TO_LOWER(URL_TO_HOST(url))' }
     });
-    let sensorParserConfigSave: SensorParserConfig = new SensorParserConfig();
+    let sensorParserConfigSave: ParserConfigModel = new ParserConfigModel('whatever');
     sensorParserConfigSave.sensorTopic = 'squid';
     sensorParserConfigSave.parserClassName =
       'org.apache.metron.parsers.GrokParser';
@@ -917,6 +945,7 @@ describe('Component: SensorParserConfig', () => {
     spyOn(metronAlerts, 'showErrorMessage');
 
     component.sensorParserConfig.sensorTopic = 'squid';
+    component.sensorName = 'whatever';
     component.sensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
     component.sensorParserConfig.parserConfig['grokPath'] =
@@ -982,6 +1011,8 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should getTransformationCount', async(() => {
+    component.init('new');
+
     let transforms = [
       Object.assign(new FieldTransformer(), {
         input: ['method'],
@@ -1101,16 +1132,6 @@ describe('Component: SensorParserConfig', () => {
 
     component.onShowGrokPane();
     expect(component.patternLabel).toEqual('PATTERN_LABEL');
-  }));
-
-  it('should handle onRawJsonChanged', async(() => {
-    spyOn(component.sensorFieldSchema, 'createFieldSchemaRows');
-
-    component.onRawJsonChanged();
-
-    expect(
-      component.sensorFieldSchema.createFieldSchemaRows
-    ).toHaveBeenCalled();
   }));
 
   it('should handle onAdvancedConfigFormClose', async(() => {
