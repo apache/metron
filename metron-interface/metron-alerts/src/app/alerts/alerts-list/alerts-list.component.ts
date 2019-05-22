@@ -224,7 +224,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onClear() {
     this.timeStampfilterPresent = false;
     this.queryBuilder.clearSearch();
-    this.selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
     this.search();
   }
 
