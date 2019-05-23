@@ -77,7 +77,7 @@ public class EnrichmentObjectGetTest {
 
     enrichmentObjectGet.initialize(context);
 
-    ObjectCacheConfig expectedConfig = ObjectCacheConfig.fromGlobalConfig(new HashMap<>());
+    ObjectCacheConfig expectedConfig = new ObjectCacheConfig(new HashMap<>());
 
     verify(objectCache, times(1)).initialize(expectedConfig);
     assertTrue(enrichmentObjectGet.isInitialized());
@@ -103,7 +103,7 @@ public class EnrichmentObjectGetTest {
 
     enrichmentObjectGet.initialize(context);
 
-    ObjectCacheConfig expectedConfig = new ObjectCacheConfig();
+    ObjectCacheConfig expectedConfig = new ObjectCacheConfig(new HashMap<>());
     expectedConfig.setCacheSize(1);
     expectedConfig.setCacheExpiration(2);
     expectedConfig.setTimeUnit(TimeUnit.SECONDS);

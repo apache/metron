@@ -38,11 +38,18 @@ import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_
 import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_MAX_FILE_SIZE_KEY;
 import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_SIZE_KEY;
 import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_TIME_UNIT_KEY;
+import static org.apache.metron.enrichment.stellar.EnrichmentObjectGet.ENRICHMENT_OBJECT_GET_SETTINGS;
 
 @Stellar(namespace="ENRICHMENT"
         ,name="OBJECT_GET"
         ,description="Retrieve and deserialize a serialized object from HDFS and stores it in the ObjectCache,  " +
-        "then returns the value associated with the indicator."
+        "then returns the value associated with the indicator." +
+        "The cache can be specified via three properties in the global config: " +
+        "\"" + ObjectCacheConfig.OBJECT_CACHE_SIZE_KEY + "\" (default " + ObjectCacheConfig.OBJECT_CACHE_SIZE_DEFAULT + ")," +
+        "\"" + ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_KEY + "\" (default " + ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_MIN_DEFAULT + ")," +
+        "\"" + ObjectCacheConfig.OBJECT_CACHE_TIME_UNIT_KEY+ "\" (default MINUTES)." +
+        "Cache settings that apply only to this function can also be specified in the global config by nesting the settings above under the " + ENRICHMENT_OBJECT_GET_SETTINGS + " key." +
+        "Note, if these are changed in global config, topology restart is required."
         , params = {
             "path - The path in HDFS to the serialized object" +
             "indicator - The string indicator to look up"
@@ -87,7 +94,7 @@ public class EnrichmentObjectGet implements StellarFunction {
   public void initialize(Context context) {
     Map<String, Object> config = (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG, false)
             .orElse(new HashMap<>());
-    ObjectCacheConfig objectCacheConfig = ObjectCacheConfig.fromGlobalConfig(config);
+    ObjectCacheConfig objectCacheConfig = new ObjectCacheConfig(config);
     if (config.containsKey(ENRICHMENT_OBJECT_GET_SETTINGS)) {
       Map<String, Object> enrichmentObjectGetSettings = (Map<String, Object>) config.get(ENRICHMENT_OBJECT_GET_SETTINGS);
       if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_SIZE_KEY)) {

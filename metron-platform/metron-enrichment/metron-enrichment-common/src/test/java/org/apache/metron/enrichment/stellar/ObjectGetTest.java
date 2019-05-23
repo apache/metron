@@ -71,7 +71,7 @@ public class ObjectGetTest {
     assertFalse(objectGet.isInitialized());
     objectGet.initialize(context);
 
-    ObjectCacheConfig expectedConfig = ObjectCacheConfig.fromGlobalConfig(new HashMap<>());
+    ObjectCacheConfig expectedConfig = new ObjectCacheConfig(new HashMap<>());
 
     verify(objectCache, times(1)).initialize(expectedConfig);
     assertTrue(objectGet.isInitialized());

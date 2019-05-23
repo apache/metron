@@ -42,9 +42,6 @@ public class ObjectCache {
 
   protected LoadingCache<String, Object> cache;
   private static ReadWriteLock lock = new ReentrantReadWriteLock();
-  protected LoadingCache<String, Object> getCache() {
-    return cache;
-  }
 
   public class Loader implements CacheLoader<String, Object> {
     FileSystem fs;
@@ -114,5 +111,13 @@ public class ObjectCache {
               LOG.debug("Object retrieved from path '{}' was removed with cause {}", path, removalCause);
             })
             .build(new Loader(new Configuration(), config));
+  }
+
+  public boolean isEmpty() {
+      return cache == null || cache.estimatedSize() == 0;
+  }
+
+  public boolean containsKey(String key) {
+      return cache != null && cache.asMap().containsKey(key);
   }
 }

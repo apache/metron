@@ -23,14 +23,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.utils.SerDeUtils;
+import org.apache.metron.integration.utils.TestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,9 +41,10 @@ public class ObjectCacheTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  FileSystem fs;
-  List<String> data;
-  ObjectCache cache;
+  private FileSystem fs;
+  private List<String> data;
+  private ObjectCache cache;
+  private File tempDir;
 
   @Before
   public void setup() throws IOException {
@@ -56,35 +57,37 @@ public class ObjectCacheTest {
       data.add("great");
     }
     cache = new ObjectCache();
+    tempDir = TestUtils.createTempDir(this.getClass().getName());
   }
 
   @Test
   public void test() throws Exception {
-    String filename = "target/ogt/test.ser";
-    Assert.assertTrue(cache.getCache() == null || !cache.getCache().asMap().containsKey(filename));
+    String filename = "test.ser";
+    Assert.assertTrue(cache.isEmpty() || !cache.containsKey(filename));
     assertDataIsReadCorrectly(filename);
   }
 
   public void assertDataIsReadCorrectly(String filename) throws IOException {
-    try(BufferedOutputStream bos = new BufferedOutputStream(fs.create(new Path(filename), true))) {
+    File file = new File(tempDir, filename);
+    try(BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
       IOUtils.write(SerDeUtils.toBytes(data), bos);
     }
-    cache.initialize(ObjectCacheConfig.fromGlobalConfig(new HashMap<>()));
-    List<String> readData = (List<String>) cache.get(filename);
+    cache.initialize(new ObjectCacheConfig(new HashMap<>()));
+    List<String> readData = (List<String>) cache.get(file.getAbsolutePath());
     Assert.assertEquals(readData, data);
-    Assert.assertTrue(cache.getCache().asMap().containsKey(filename));
+    Assert.assertTrue(cache.containsKey(file.getAbsolutePath()));
   }
 
   @Test
   public void testMultithreaded() throws Exception {
-    String filename = "target/ogt/testmulti.ser";
-    Assert.assertTrue(cache.getCache() == null || !cache.getCache().asMap().containsKey(filename));
+    String filename = "testmulti.ser";
+    Assert.assertTrue(cache.isEmpty() || !cache.containsKey(filename));
     Thread[] ts = new Thread[10];
     for(int i = 0;i < ts.length;++i) {
       ts[i] = new Thread(() -> {
         try {
           assertDataIsReadCorrectly(filename);
-        } catch (IOException e) {
+        } catch (Exception e) {
           throw new IllegalStateException(e.getMessage(), e);
         }
       });
@@ -97,17 +100,20 @@ public class ObjectCacheTest {
 
   @Test
   public void shouldThrowExceptionOnMaxFileSize() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("File at path 'target/ogt/test.ser' is larger than the configured max file size of 1");
+    String filename = "maxSizeException.ser";
+    File file = new File(tempDir, filename);
 
-    String filename = "target/ogt/test.ser";
-    try(BufferedOutputStream bos = new BufferedOutputStream(fs.create(new Path(filename), true))) {
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(String.format("File at path '%s' is larger than the configured max file size of 1", file.getAbsolutePath()));
+
+
+    try(BufferedOutputStream bos = new BufferedOutputStream(fs.create(new Path(file.getAbsolutePath()), true))) {
       IOUtils.write(SerDeUtils.toBytes(data), bos);
     }
-    ObjectCacheConfig objectCacheConfig = ObjectCacheConfig.fromGlobalConfig(new HashMap<>());
+    ObjectCacheConfig objectCacheConfig = new ObjectCacheConfig(new HashMap<>());
     objectCacheConfig.setMaxFileSize(1);
     cache.initialize(objectCacheConfig);
 
-    cache.get(filename);
+    cache.get(file.getAbsolutePath());
   }
 }

@@ -35,7 +35,7 @@ import java.util.Map;
 @Stellar(namespace="OBJECT"
         ,name="GET"
         ,description="Retrieve and deserialize a serialized object from HDFS.  " +
-        "The cache can be specified via two properties in the global config: " +
+        "The cache can be specified via three properties in the global config: " +
         "\"" + ObjectCacheConfig.OBJECT_CACHE_SIZE_KEY + "\" (default " + ObjectCacheConfig.OBJECT_CACHE_SIZE_DEFAULT + ")," +
         "\"" + ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_KEY + "\" (default " + ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_MIN_DEFAULT + ")," +
         "\"" + ObjectCacheConfig.OBJECT_CACHE_TIME_UNIT_KEY+ "\" (default MINUTES)." +
@@ -74,7 +74,7 @@ public class ObjectGet implements StellarFunction {
   public void initialize(Context context) {
     Map<String, Object> config = getConfig(context);
     objectCache = new ObjectCache();
-    objectCache.initialize(ObjectCacheConfig.fromGlobalConfig(config));
+    objectCache.initialize(new ObjectCacheConfig(config));
   }
 
   @Override
