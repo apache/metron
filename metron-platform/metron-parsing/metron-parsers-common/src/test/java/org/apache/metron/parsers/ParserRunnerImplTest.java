@@ -363,51 +363,6 @@ public class ParserRunnerImplTest {
     Assert.assertEquals(expectedOutput, processResult.get().getMessage());
   }
 
-  /**
-   *{
-   *  "parser.original.string.global" : false
-   *}
-   */
-  @Multiline
-  private String globalConfigOriginalString;
-
-  /**
-   * This is only testing the processMessage method
-   */
-  @Test
-  public void shouldFailValidationForOriginalStringNotAddedByParser() throws Exception {
-    parserConfigurations.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfigOriginalString, JSONUtils.MAP_SUPPLIER));
-
-    Map<String, Object> metadata = new HashMap<>();
-    metadata.put("metron.metadata.topic", "bro");
-
-    JSONObject inputMessage = new JSONObject();
-    inputMessage.put("guid", "guid");
-    RawMessage rawMessage = new RawMessage("raw_message_for_testing".getBytes(), metadata);
-
-    JSONObject expectedOutput  = new JSONObject();
-    expectedOutput.put("guid", "guid");
-    expectedOutput.put("source.type", "bro");
-    MetronError expectedMetronError = new MetronError()
-        .withErrorType(Constants.ErrorType.PARSER_INVALID)
-        .withSensorType(Collections.singleton("bro"))
-        .withMetadata(metadata)
-        .addRawMessage(inputMessage);
-
-    when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
-    // This is the important switch. Not to be confused with field validators.
-    when(broParser.validate(expectedOutput)).thenReturn(false);
-
-    parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
-      put("bro", new ParserComponent(broParser, stellarFilter));
-    }});
-
-    Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
-    Assert.assertTrue(processResult.isPresent());
-    Assert.assertTrue(processResult.get().isError());
-    Assert.assertEquals(expectedMetronError, processResult.get().getError());
-  }
-
   @Test
   public void shouldReturnMetronErrorOnInvalidMessage() {
     Map<String, Object> metadata = new HashMap<>();

@@ -279,16 +279,6 @@ the following fields:
 
 When aggregating multiple sensors, all sensors must be using the same error topic.
 
-### `parser.original.string.global`
-
-Type: Boolean
-
-Description: Enables/disables managing the original_string field being set globally for all parsers. If set to 'true', every message that has not set an original_string will have the field populated from the unmodified raw original message.
-This will also hold true for parsers that have a cardinality of 1..n generated messages from a single raw message, e.g. JsonMapParser. If set to 'false', the original_string
-**MUST** be added by the individual parser. The parsed message will fail validation otherwise. We recommend leaving this value unset or set to 'true', which is the default.
-
-Default is 'true' (recommended).
-
 ## Parser Configuration
 
 The configuration for the various parser topologies is defined by JSON

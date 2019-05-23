@@ -87,7 +87,7 @@ but a convenient index is provided here:
 | [`es.port`](../metron-elasticsearch#esport)                                                                           | Indexing      | String     | N/A                                     |
 | [`es.date.format`](../metron-elasticsearch#esdateformat)                                                              | Indexing      | String     | `es_date_format`                        |
 | [`es.client.settings`](../metron-elasticsearch#esclientsettings)                                                      | Indexing      | Object     | N/A                                     |
-| [`indexing.writer.elasticsearch.setDocumentId`](../metron-indexing#elasticsearch)                                                        | Indexing      | Boolean    | N/A                                     |
+| [`indexing.writer.elasticsearch.setDocumentId`](../metron-indexing#elasticsearch)                                     | Indexing      | Boolean    | N/A                                     |
 | [`solr.zookeeper`](../metron-solr#configuration)                                                                      | Indexing      | String     | `solr_zookeeper_url`                    |
 | [`solr.commitPerBatch`](../metron-solr#configuration)                                                                 | Indexing      | String     | N/A                                     |
 | [`solr.commit.soft`](../metron-solr#configuration)                                                                    | Indexing      | String     | N/A                                     |
@@ -97,7 +97,6 @@ but a convenient index is provided here:
 | [`solr.http.config`](../metron-solr#configuration)                                                                    | Indexing      | String     | N/A                                     |
 | [`fieldValidations`](#validation-framework)                                                                           | Parsing       | Object     | N/A                                     |
 | [`parser.error.topic`](../metron-parsing#parsererrortopic)                                                            | Parsing       | String     | `parser_error_topic`                    |
-| [`parser.original.string.global`](../metron-parsing#parseroriginalstring)                                             | Parsing       | Boolean    | N/A                                     |
 | [`stellar.function.paths`](../../metron-stellar/stellar-common#stellarfunctionpaths)                                  | Stellar       | CSV String | N/A                                     |
 | [`stellar.function.resolver.includes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes)   | Stellar       | CSV String | N/A                                     |
 | [`stellar.function.resolver.excludes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes)   | Stellar       | CSV String | N/A                                     |

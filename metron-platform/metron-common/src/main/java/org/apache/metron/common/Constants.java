@@ -43,7 +43,6 @@ public class Constants {
    * <p>This value is used only if the error topic is left undefined in a sensor's parser configuration.
    */
   public static final String PARSER_ERROR_TOPIC_GLOBALS_KEY = "parser.error.topic";
-  public static final String PARSER_ORIGINAL_STRING_GLOBAL = "parser.original.string.global";
 
   public interface Field {
     String getName();

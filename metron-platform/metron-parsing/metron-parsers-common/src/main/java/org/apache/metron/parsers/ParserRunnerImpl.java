@@ -45,7 +45,6 @@ import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -256,9 +255,7 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
     if (!message.containsKey(Constants.GUID)) {
       message.put(Constants.GUID, UUID.randomUUID().toString());
     }
-    if (handleOriginalStringGlobally(parserConfigurations.getGlobalConfig())) {
-      message.putIfAbsent(Fields.ORIGINAL.getName(), new String(rawMessage.getMessage()));
-    }
+    message.putIfAbsent(Fields.ORIGINAL.getName(), new String(rawMessage.getMessage()));
     MessageFilter<JSONObject> filter = sensorToParserComponentMap.get(sensorType).getFilter();
     if (filter == null || filter.emit(message, stellarContext)) {
       boolean isInvalid = !parser.validate(message);
@@ -285,11 +282,6 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
       }
     }
     return processResult;
-  }
-
-  private Boolean handleOriginalStringGlobally(Map<String, Object> globalConfig) {
-    return ConversionUtils
-        .convert(globalConfig.getOrDefault(Constants.PARSER_ORIGINAL_STRING_GLOBAL, true), Boolean.class);
   }
 
   /**
