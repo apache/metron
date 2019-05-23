@@ -32,6 +32,7 @@ import { GlobalConfigService } from '../../../service/global-config.service';
 import { MetaAlertService } from '../../../service/meta-alert.service';
 import { DialogService } from 'app/service/dialog.service';
 import { AppConfigService } from '../../../service/app-config.service';
+import { ContextMenuComponent } from 'app/shared/context-menu/context-menu.component';
 
 @Component({selector: 'metron-table-pagination', template: ''})
 class MetronTablePaginationComponent {
@@ -67,6 +68,7 @@ describe('TableViewComponent', () => {
         CenterEllipsesPipe,
         ColumnNameTranslatePipe,
         AlertSeverityDirective,
+        ContextMenuComponent,
         MetronTablePaginationComponent,
         TableViewComponent,
       ]

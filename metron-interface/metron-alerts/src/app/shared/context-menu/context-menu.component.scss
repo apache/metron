@@ -15,39 +15,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@import "_variables.scss";
 
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+$menu-z-index: 98888;
 
-@Injectable()
-export class AppConfigService {
+.transparent {
+  opacity: 0;
+}
 
-  private static appConfigStatic;
+.viewport-sized {
+  display: block;
+  position: fixed;
+  z-index: $menu-z-index;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: aqua;
+}
 
-  static getAppConfigStatic() {
-    return AppConfigService.appConfigStatic;
+.dropdown-menu {
+  display: block;
+  z-index: $menu-z-index + 1;
+  font-size: .9em;
+  padding: 0 0 .5rem 0;
+
+  .card-header {
+    padding: .3rem .6rem .2rem .6rem;
+    margin-bottom: .5rem;
+    background-color: $gray;
+    color: $black;
+    font-size: .8rem;
   }
 
-  constructor(private http: HttpClient) { }
-
-  loadAppConfig() {
-    return this.http.get('assets/app-config.json')
-            // APP_INITIALIZER only supports promises
-            .toPromise()
-            .then(data => {
-              AppConfigService.appConfigStatic = data;
-            });
+  .dropdown-item {
+    border: none !important;
+    cursor: pointer;
   }
 
-  getApiRoot() {
-    return AppConfigService.appConfigStatic['apiRoot'];
+  .dropdown-item:hover {
+    background-color: $abbey !important;
   }
 
-  getLoginPath() {
-    return AppConfigService.appConfigStatic['loginPath'];
-  }
-
-  getContextMenuConfigURL() {
-    return AppConfigService.appConfigStatic['contextMenuConfigURL'];
+  .dropdown-divider {
+    border-top: 1px solid #4d4d4d;
   }
 }
+
