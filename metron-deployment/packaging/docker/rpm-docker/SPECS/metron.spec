@@ -164,7 +164,6 @@ This package installs the Metron Parser Common files
 %{metron_home}/config/zookeeper/parsers/jsonMapWrappedQuery.json
 %{metron_home}/config/zookeeper/parsers/syslog3164.json
 %{metron_home}/config/zookeeper/parsers/syslog5424.json
-%{metron_home}/config/zookeeper/parsers/leef.json
 %{metron_home}/patterns/common
 %attr(0644,root,root) %{metron_home}/lib/metron-parsers-common-%{full_version}-uber.jar
 
@@ -193,6 +192,7 @@ This package installs the Metron Bundled Parser files
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
+%{metron_home}/config/zookeeper/parsers/leef.json
 %{metron_home}/patterns/asa
 %{metron_home}/patterns/fireeye
 %{metron_home}/patterns/sourcefire
