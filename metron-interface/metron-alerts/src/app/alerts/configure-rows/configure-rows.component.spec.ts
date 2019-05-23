@@ -21,6 +21,7 @@ import { Injectable } from '@angular/core';
 import { ConfigureRowsComponent } from './configure-rows.component';
 import { ConfigureTableService } from '../../service/configure-table.service';
 import { SwitchComponent } from '../../shared/switch/switch.component';
+import { ImplicitFiltersService } from '../filtering/ImplicitFiltersService';
 
 @Injectable()
 class ConfigureTableServiceStub {}
@@ -31,12 +32,13 @@ describe('ConfigureRowsComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ 
+      declarations: [
         ConfigureRowsComponent,
         SwitchComponent
-     ],
-      providers: [ 
-        { provide: ConfigureTableService, useValue: ConfigureTableServiceStub }  
+      ],
+      providers: [
+        ImplicitFiltersService,
+        { provide: ConfigureTableService, useValue: ConfigureTableServiceStub }
       ]
     })
     .compileComponents();
@@ -50,6 +52,12 @@ describe('ConfigureRowsComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  fdescribe('show/hide RESOLVE and/or DISMISSED alert entries', () => {
+    it('should hold a reference to ImplicitFiltersService', () => {
+      expect(component.implicitFiltersService).toBeDefined();
+    })
   });
 
 });

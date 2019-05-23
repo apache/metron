@@ -18,6 +18,7 @@
 import { Component, Input, HostListener, ElementRef, Output, EventEmitter } from '@angular/core';
 import {TableMetadata} from '../../model/table-metadata';
 import {ConfigureTableService} from '../../service/configure-table.service';
+import { ImplicitFiltersService } from '../filtering/ImplicitFiltersService';
 
 @Component({
   selector: 'app-configure-rows',
@@ -35,7 +36,8 @@ export class ConfigureRowsComponent  {
   @Output() configRowsChange = new EventEmitter();
 
   constructor(private elementRef: ElementRef,
-              private configureTableService: ConfigureTableService) {}
+              private configureTableService: ConfigureTableService,
+              private implicitFiltersService: ImplicitFiltersService) {}
 
   @Input()
   get size() {
