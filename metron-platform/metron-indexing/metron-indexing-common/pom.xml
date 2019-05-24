@@ -126,11 +126,6 @@
             <version>${global_mockito_version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>commons-validator</groupId>
-            <artifactId>commons-validator</artifactId>
-            <version>1.4.0</version>
-        </dependency>
 
         <!-- Test -->
 
