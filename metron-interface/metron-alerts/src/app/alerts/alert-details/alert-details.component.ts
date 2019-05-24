@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Component, OnInit, ViewChild, ElementRef} from '@angular/core';
+import {ActivatedRoute, Router, NavigationStart} from '@angular/router';
 import * as moment from 'moment/moment';
 import {Subscription} from 'rxjs';
 
@@ -29,7 +29,7 @@ import {PatchRequest} from '../../model/patch-request';
 import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
-import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
+import {CommentAddRemoveRequest} from '../../model/comment-add-remove-request';
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {GlobalConfigService} from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
@@ -77,6 +77,7 @@ export class AlertDetailsComponent implements OnInit {
   globalConfig: {} = {};
   globalConfigService: GlobalConfigService;
   configSubscription: Subscription;
+  @ViewChild('metaAlertNameInput') metaAlertNameInput: ElementRef;
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -87,6 +88,13 @@ export class AlertDetailsComponent implements OnInit {
               private dialogService: DialogService,
               globalConfigService: GlobalConfigService) {
     this.globalConfigService = globalConfigService;
+
+    router.events.subscribe(event => {
+      if (event instanceof NavigationStart && /\/alerts-list\(dialog:details\//.test(event.url)) {
+        this.alertSources = [];
+        this.alertSource = null;
+      }
+    });
   }
 
   goBack() {
@@ -102,6 +110,7 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   setAlert(alertSource) {
+    this.alertName = alertSource.name;
     this.alertSource = alertSource;
     this.alertSources = (alertSource.metron_alert && alertSource.metron_alert.length > 0) ? alertSource.metron_alert : [alertSource];
     this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
@@ -181,13 +190,17 @@ export class AlertDetailsComponent implements OnInit {
 
   toggleNameEditor() {
     if (this.alertSources.length > 1) {
-      this.alertName = '';
       this.showEditor = !this.showEditor;
     }
+    setTimeout(() => {
+      if (this.showEditor && this.metaAlertNameInput) {
+        this.metaAlertNameInput.nativeElement.focus();
+      }
+    }, 100);
   }
 
   saveName() {
-    if (this.alertName.length > 0) {
+    if (!this.isSaveNameButtonDisabled()) {
       let patchRequest = new PatchRequest();
       patchRequest.guid = this.alertId;
       patchRequest.sensorType = 'metaalert';
@@ -246,5 +259,23 @@ export class AlertDetailsComponent implements OnInit {
       }
       confirmedSubscription.unsubscribe();
     });
+  }
+
+  isSaveNameButtonDisabled() {
+    return !this.alertName || this.alertName.length === 0;
+  }
+
+  onSaveNameInputKeyPress(e: KeyboardEvent) {
+    if (e.code === 'Enter') {
+      this.saveName();
+    } else if (e.code === 'Escape') {
+      this.alertName = this.alertSource.name;
+      this.toggleNameEditor();
+    }
+  }
+
+  onSaveNameInputCancel() {
+    this.alertName = this.alertSource.name;
+    this.toggleNameEditor();
   }
 }

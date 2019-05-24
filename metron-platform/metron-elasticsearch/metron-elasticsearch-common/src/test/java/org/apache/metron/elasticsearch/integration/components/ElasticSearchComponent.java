@@ -217,10 +217,14 @@ public class ElasticSearchComponent implements InMemoryComponent {
           throws IOException, ParseException {
     List<String> d = new ArrayList<>();
     Collections.addAll(d, docs);
-    add(indexName, sensorType, d);
+    add(indexName, sensorType, d, false);
   }
 
-  public void add(String indexName, String sensorType, Iterable<String> docs)
+  public void add(String indexName, String sensorType, Iterable<String> docs) throws IOException, ParseException {
+    add(indexName, sensorType, docs, false);
+  }
+
+  public void add(String indexName, String sensorType, Iterable<String> docs, boolean setDocumentId)
           throws IOException, ParseException {
 
     // create a collection of indexable documents
@@ -228,7 +232,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
     Map<Document, Optional<String>> documents = new HashMap<>();
     for(String json: docs) {
       JSONObject message = (JSONObject) parser.parse(json);
-      documents.put(createDocument(message, sensorType), Optional.of(indexName));
+      documents.put(createDocument(message, sensorType, setDocumentId), Optional.of(indexName));
     }
 
     // write the documents
@@ -243,11 +247,15 @@ public class ElasticSearchComponent implements InMemoryComponent {
    * @return The {@link Document} that was written.
    * @throws IOException
    */
-  private static Document createDocument(JSONObject message, String docType) throws IOException {
+  private static Document createDocument(JSONObject message, String docType, boolean setDocumentId) throws IOException {
     Long timestamp = ConversionUtils.convert(message.get("timestamp"), Long.class);
     String source = message.toJSONString();
     String guid = (String) message.get("guid");
-    return new Document(source, guid, docType, timestamp);
+    Document document = new Document(source, guid, docType, timestamp);
+    if (setDocumentId) {
+      document.setDocumentID(guid);
+    }
+    return document;
   }
 
   public void createIndexWithMapping(String indexName, String mappingType, String mappingSource)

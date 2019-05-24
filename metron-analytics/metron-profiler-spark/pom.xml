@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-analytics</artifactId>
-        <version>0.7.1</version>
+        <version>0.7.2</version>
     </parent>
     <artifactId>metron-profiler-spark</artifactId>
     <url>https://metron.apache.org/</url>
@@ -142,6 +142,12 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${global_log4j_core_version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-integration-test</artifactId>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
