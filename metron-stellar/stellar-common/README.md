@@ -702,9 +702,9 @@ Where:
   * Returns: True if the string is a valid URL and false if otherwise.
 
 ### `JOIN`
-  * Description: Joins the components in the list of strings with the specified delimiter.
+  * Description: Joins the non-null items in the iterable as strings with the specified delimiter. Null items are dropped.
   * Input:
-    * list - List of strings
+    * iterable - Java iterable (e.g. List, LinkedHashSet, etc.) of items treated as strings
     * delim - String delimiter
   * Returns: String
 

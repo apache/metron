@@ -620,6 +620,8 @@ public class BasicStellarTest {
   public void testJoin() {
     String query = "JOIN( [ TO_UPPER(TRIM(foo)), 'bar' ], ',')";
     Assert.assertEquals("CASEY,bar", run(query, ImmutableMap.of("foo", "casey ")));
+    query = "JOIN( SET_INIT( [ 1, 2, 'buckle', 'my', 'shoe', 3 ] ), ',')";
+    Assert.assertEquals("1,2,buckle,my,shoe,3", run(query, new HashMap<>()));
   }
 
   @Test
