@@ -17,33 +17,46 @@
  */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { HttpUtil } from 'app/utils/httpUtil';
 import { AppConfigService } from 'app/service/app-config.service';
 
+export interface ContextMenuConfigModel {
+  isEnabled: boolean,
+  config: {}
+}
+
 @Injectable()
 export class ContextMenuService {
-  private cachedConfig$: BehaviorSubject<{}>;
+  private cachedConfig$: BehaviorSubject<ContextMenuConfigModel>;
 
-  getConfig(): Observable<{}> {
+  constructor(
+    private http: HttpClient,
+    private appConfig: AppConfigService
+    ) {}
+
+  getConfig(): Observable<ContextMenuConfigModel> {
     if (!this.cachedConfig$) {
-      this.cachedConfig$ = new BehaviorSubject({});
+      this.cachedConfig$ = new BehaviorSubject(undefined);
 
       this.http.get(this.appConfig.getContextMenuConfigURL())
       .pipe(
         map(HttpUtil.extractData),
         catchError(HttpUtil.handleError)
       ).subscribe((result) => {
-        this.cachedConfig$.next(result);
+        if (this.validate(result)) {
+          this.cachedConfig$.next(result);
+        } else {
+          console.error('Context menu configuration JSON is corrupt.');
+        }
       });
     }
 
     return this.cachedConfig$;
   }
 
-  constructor(
-    private http: HttpClient,
-    private appConfig: AppConfigService
-    ) {}
+  private validate(jsonConfig: {}) {
+    return jsonConfig.hasOwnProperty('isEnabled') && jsonConfig.hasOwnProperty('config');
+  }
 }

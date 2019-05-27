@@ -82,14 +82,40 @@ describe('ContextMenuComponent', () => {
     expect(fixture).toBeTruthy();
   });
 
-  it('should show context menu on left click', () => {
+  it('should show context menu on left click when feature enabled', () => {
+    mockBackend = TestBed.get(HttpTestingController);
+    const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
+    req.flush({
+        isEnabled: true,
+        config: {}
+      });
     directiveHostEl.click();
 
     fixture.detectChanges();
     expect(document.body.querySelector('[data-qe-id="cm-dropdown"]')).toBeTruthy();
   });
 
+  it('should NOT show context menu on left click when feature IS NOT enabled', () => {
+    mockBackend = TestBed.get(HttpTestingController);
+    const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
+    req.flush({
+        isEnabled: false,
+        config: {}
+      });
+    directiveHostEl.click();
+
+    fixture.detectChanges();
+    expect(document.body.querySelector('[data-qe-id="cm-dropdown"]')).toBeFalsy();
+  });
+
   it('should close context menu if user clicks outside of it', () => {
+    mockBackend = TestBed.get(HttpTestingController);
+    const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
+    req.flush({
+        isEnabled: true,
+        config: {}
+      });
+
     directiveHostEl.click();
     fixture.detectChanges();
 
@@ -102,6 +128,13 @@ describe('ContextMenuComponent', () => {
   });
 
   it('should render predefined menu items', () => {
+    mockBackend = TestBed.get(HttpTestingController);
+    const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
+    req.flush({
+        isEnabled: true,
+        config: {}
+      });
+
     directiveHostEl.click();
     fixture.detectChanges();
 
@@ -109,6 +142,13 @@ describe('ContextMenuComponent', () => {
   });
 
   it('should render multiple predefined menu items', () => {
+    mockBackend = TestBed.get(HttpTestingController);
+    const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
+    req.flush({
+        isEnabled: true,
+        config: {}
+      });
+
     directiveHostEl.click();
     fixture.detectChanges();
 
@@ -116,6 +156,13 @@ describe('ContextMenuComponent', () => {
   });
 
   it('predefined menu item should render label', () => {
+    mockBackend = TestBed.get(HttpTestingController);
+    const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
+    req.flush({
+        isEnabled: true,
+        config: {}
+      });
+
     directiveHostEl.click();
     fixture.detectChanges();
 
@@ -134,10 +181,13 @@ describe('ContextMenuComponent', () => {
   it('should render dymamic menu items', () => {
     mockBackend = TestBed.get(HttpTestingController);
     const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
-    req.flush({ testMenuConfigId: [
-      { label: 'dynamic test item #4532', urlPattern: '/myTestUri/{}' },
-      { label: 'dynamic test item #756', urlPattern: '/myTestUri/{}' },
-    ] });
+    req.flush({
+      isEnabled: true,
+      config: { testMenuConfigId: [
+        { label: 'dynamic test item #4532', urlPattern: '/myTestUri/{}' },
+        { label: 'dynamic test item #756', urlPattern: '/myTestUri/{}' },
+      ] }
+    });
 
     directiveHostEl.click();
     fixture.detectChanges();
@@ -154,6 +204,13 @@ describe('ContextMenuComponent', () => {
   });
 
   it('should emit the configured event if user clicks on predefined menu item', () => {
+    mockBackend = TestBed.get(HttpTestingController);
+    const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
+    req.flush({
+        isEnabled: true,
+        config: {}
+      });
+
     directiveHostEl.addEventListener('customEventOne', (event) => {
       expect(event.type).toBe('customEventOne');
     });
@@ -174,9 +231,12 @@ describe('ContextMenuComponent', () => {
 
     mockBackend = TestBed.get(HttpTestingController);
     const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
-    req.flush({ testMenuConfigId: [
-      { label: 'dynamic test item #98', urlPattern: RAW_URL },
-    ] });
+    req.flush({
+      isEnabled: true,
+      config: {
+        testMenuConfigId: [{ label: 'dynamic test item #98', urlPattern: RAW_URL }]
+      }
+    });
 
     directiveHostEl.click();
     fixture.detectChanges();
@@ -196,9 +256,12 @@ describe('ContextMenuComponent', () => {
 
     mockBackend = TestBed.get(HttpTestingController);
     const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
-    req.flush({ testMenuConfigId: [
-      { label: 'dynamic test item #98', urlPattern: RAW_URL },
-    ] });
+    req.flush({
+      isEnabled: true,
+      config: {
+        testMenuConfigId: [{ label: 'dynamic test item #98', urlPattern: RAW_URL }]
+      }
+    });
 
     directiveHostEl.click();
     fixture.detectChanges();

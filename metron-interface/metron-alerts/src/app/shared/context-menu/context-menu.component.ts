@@ -24,10 +24,10 @@ import {
   Input,
   OnInit
 } from '@angular/core';
-import { ContextMenuService } from './context-menu.service';
+import { ContextMenuService, ContextMenuConfigModel } from './context-menu.service';
 import { fromEvent, Subject, merge } from 'rxjs';
 import Popper from 'popper.js';
-import { takeUntil, map } from 'rxjs/operators';
+import { takeUntil, filter } from 'rxjs/operators';
 import { DynamicMenuItem } from './dynamic-item.model';
 
 @Component({
@@ -47,6 +47,7 @@ export class ContextMenuComponent implements OnInit, AfterContentInit, OnDestroy
 
   dynamicMenuItems: DynamicMenuItem[] = [];
 
+  isEnabled = false;
   isOpen = false;
 
   private destroyed$: Subject<boolean> = new Subject<boolean>();
@@ -68,14 +69,21 @@ export class ContextMenuComponent implements OnInit, AfterContentInit, OnDestroy
 
   private fetchContextMenuConfig() {
     this.contextMenuSvc.getConfig()
-      .pipe(map((allConfigs: {}) => allConfigs[this.ctxMenuId]))
-      .subscribe((config: { label: string, urlPattern: string }[]) => {
-        this.dynamicMenuItems = config ? config.reduce((validConfigs, configItem) => {
+      .pipe(filter(value => !!value))
+      .subscribe((contextMenuConfigJSON: ContextMenuConfigModel) => {
+        this.isEnabled = contextMenuConfigJSON.isEnabled;
+        const currentConfig = contextMenuConfigJSON.config[this.ctxMenuId];
+
+        if (!this.isEnabled || !currentConfig) {
+          return;
+        }
+
+        this.dynamicMenuItems = currentConfig.reduce((validConfigs, configItem) => {
           if (DynamicMenuItem.isConfigValid(configItem)) {
             validConfigs.push(new DynamicMenuItem(configItem));
           }
           return validConfigs;
-        }, []) : [];
+        }, []);
       });
   }
 
@@ -98,6 +106,11 @@ export class ContextMenuComponent implements OnInit, AfterContentInit, OnDestroy
 
   private toggle($event: MouseEvent) {
     $event.stopPropagation();
+
+    if (!this.isEnabled) {
+      this.host.nativeElement.dispatchEvent(new Event(this.ctxMenuItems[0].event));
+      return;
+    }
 
     if (this.isOpen) {
       if (this.popper) {

@@ -24,6 +24,7 @@ import {
 import { ContextMenuService } from './context-menu.service';
 import { AppConfigService } from 'app/service/app-config.service';
 import { Injectable } from '@angular/core';
+import { filter } from 'rxjs/operators';
 
 const FAKE_CONFIG_SVC_URL = '/test/config/menu/url';
 
@@ -69,14 +70,14 @@ describe('ContextMenuService', () => {
   });
 
   it('getConfig() should return with the result of config svc', () => {
-    contextMenuSvc.getConfig().subscribe(); // returns the default value first
+    contextMenuSvc.getConfig()
+      .pipe(filter(value => !!value)) // first emitted default value is undefined
+      .subscribe((result) => {
+        expect(result).toEqual({ menuKey: [] });
+      });
 
     const req = mockBackend.expectOne(FAKE_CONFIG_SVC_URL);
     req.flush({ menuKey: [] });
-
-    contextMenuSvc.getConfig().subscribe((result) => {
-      expect(result).toEqual({ menuKey: [] });
-    });
   })
 
   it('should cache the first response', () => {
