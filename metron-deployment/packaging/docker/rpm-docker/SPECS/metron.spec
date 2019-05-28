@@ -192,6 +192,7 @@ This package installs the Metron Bundled Parser files
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
+%{metron_home}/config/zookeeper/parsers/leef.json
 %{metron_home}/patterns/asa
 %{metron_home}/patterns/fireeye
 %{metron_home}/patterns/sourcefire
