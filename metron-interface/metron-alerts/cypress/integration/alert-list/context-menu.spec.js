@@ -59,7 +59,7 @@ context('Context Menu on Alerts', () => {
     cy.get('.ace_value').should('contain', '192.168.66.121');
   });
 
-  it('clicking on "Add to search bar" should colose the dropdown of context menu', () => {
+  it('clicking on "Add to search bar" should close the dropdown of context menu', () => {
     cy.get('[data-qe-id="row-5"] > :nth-child(6) > a').click();
     cy.get('[data-qe-id="cm-dropdown"]').should('be.visible');
     cy.contains('Add to search bar').click();
