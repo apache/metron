@@ -112,7 +112,7 @@ public class JSONMapParserQueryTest {
     Assert.assertTrue(message.get("timestamp") instanceof Number);
     Assert.assertNotNull(message.get("number"));
     Assert.assertTrue(message.get("number") instanceof Number);
-    Assert.assertThat("original_string should be handled external to the parser by default",
+    Assert.assertThat("original_string should have been handled by the parser",
         message.get(Fields.ORIGINAL.getName()), equalTo("{\"name\":\"foo1\",\"number\":1.0,\"value\":\"bar\"}"));
 
     message = output.get(1);
@@ -125,7 +125,7 @@ public class JSONMapParserQueryTest {
     Assert.assertTrue(message.get("timestamp") instanceof Number);
     Assert.assertNotNull(message.get("number"));
     Assert.assertTrue(message.get("number") instanceof Number);
-    Assert.assertThat("original_string should be handled external to the parser by default",
+    Assert.assertThat("original_string should have been handled by the parser",
         message.get(Fields.ORIGINAL.getName()), equalTo("{\"name\":\"foo2\",\"number\":2.0,\"value\":\"baz\"}"));
   }
 
