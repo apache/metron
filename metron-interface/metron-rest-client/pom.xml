@@ -39,7 +39,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-indexing</artifactId>
+            <artifactId>metron-indexing-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
