@@ -33,6 +33,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -254,6 +255,7 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
     if (!message.containsKey(Constants.GUID)) {
       message.put(Constants.GUID, UUID.randomUUID().toString());
     }
+    message.putIfAbsent(Fields.ORIGINAL.getName(), new String(rawMessage.getMessage()));
     MessageFilter<JSONObject> filter = sensorToParserComponentMap.get(sensorType).getFilter();
     if (filter == null || filter.emit(message, stellarContext)) {
       boolean isInvalid = !parser.validate(message);
