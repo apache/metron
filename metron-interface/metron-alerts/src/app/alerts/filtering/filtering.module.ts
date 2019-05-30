@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { ImplicitFiltersService } from './service/ImplicitFiltersService';
+import { ImplicitFilteringService } from './service/ImplicitFilteringService';
 import { SwitchModule } from '../../shared/switch/switch.module';
 import { ShowHideAlertEntriesComponent } from './showhide/show-hide-alert-entries.component';
 
@@ -25,7 +25,7 @@ import { ShowHideAlertEntriesComponent } from './showhide/show-hide-alert-entrie
     exports: [ ShowHideAlertEntriesComponent ],
     declarations: [ ShowHideAlertEntriesComponent ],
     providers: [
-      ImplicitFiltersService
+      ImplicitFilteringService
     ]
 })
 export class FilteringModule {}

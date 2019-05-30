@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ImplicitFiltersService } from '../service/ImplicitFiltersService';
+import { ImplicitFilteringService } from '../service/ImplicitFilteringService';
 
 @Component({
   selector: 'app-show-hide-alert-entries',
@@ -11,7 +11,7 @@ import { ImplicitFiltersService } from '../service/ImplicitFiltersService';
 })
 export class ShowHideAlertEntriesComponent {
 
-  constructor(private implicitFiltersService: ImplicitFiltersService) {}
+  constructor(private implicitFilteringService: ImplicitFilteringService) {}
 
   onVisibilityChanged(alertStatus, isExcluded) {
     console.log(alertStatus, isExcluded);
