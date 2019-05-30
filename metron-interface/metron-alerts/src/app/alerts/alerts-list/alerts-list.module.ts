@@ -31,7 +31,6 @@ import { GroupByModule } from '../../shared/group-by/group-by.module';
 import { AlertFiltersComponent } from './alert-filters/alert-filters.component';
 import { TableViewComponent } from './table-view/table-view.component';
 import { TreeViewComponent } from './tree-view/tree-view.component';
-import { FilteringModule } from '../filtering/filtering.module';
 
 @NgModule({
   imports: [
@@ -44,7 +43,6 @@ import { FilteringModule } from '../filtering/filtering.module';
     CollapseModule,
     GroupByModule,
     TimeRangeModule,
-    FilteringModule,
   ],
   exports: [ AlertsListComponent ],
   declarations: [

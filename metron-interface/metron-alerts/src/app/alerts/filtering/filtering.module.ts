@@ -17,11 +17,13 @@
  */
 import { NgModule } from '@angular/core';
 import { ImplicitFiltersService } from './ImplicitFiltersService';
+import { SwitchModule } from '../../shared/switch/switch.module';
+import { ShowHideAlertEntriesComponent } from './showhide/show-hide-alert-entries.component';
 
 @NgModule({
-    imports: [],
-    exports: [],
-    declarations: [],
+    imports: [ SwitchModule ],
+    exports: [ ShowHideAlertEntriesComponent ],
+    declarations: [ ShowHideAlertEntriesComponent ],
     providers: [
       ImplicitFiltersService
     ]

@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {ConfigureRowsComponent} from './configure-rows.component';
-import {SwitchModule} from '../../shared/switch/switch.module';
+import { SharedModule } from '../../shared/shared.module';
+import { ConfigureRowsComponent } from './configure-rows.component';
+import { FilteringModule } from '../filtering/filtering.module';
 
-@NgModule ({
-    imports: [ SharedModule, SwitchModule ],
+@NgModule({
+    imports: [ SharedModule, FilteringModule ],
     declarations: [ ConfigureRowsComponent ],
-    exports: [  ConfigureRowsComponent ]
+    exports: [ ConfigureRowsComponent ],
 })
-export class ConfigureRowsModule { }
+export class ConfigureRowsModule {}
