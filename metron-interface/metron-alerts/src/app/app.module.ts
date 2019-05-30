@@ -71,7 +71,7 @@ export function initConfig(appConfigService: AppConfigService) {
     ConfigureTableModule,
     ConfigureRowsModule,
     SaveSearchModule,
-    SavedSearchesModule
+    SavedSearchesModule,
     PcapModule
   ],
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfigService], multi: true },

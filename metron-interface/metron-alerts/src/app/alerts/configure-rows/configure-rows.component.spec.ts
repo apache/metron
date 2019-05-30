@@ -21,7 +21,7 @@ import { Injectable } from '@angular/core';
 import { ConfigureRowsComponent } from './configure-rows.component';
 import { ConfigureTableService } from '../../service/configure-table.service';
 import { SwitchComponent } from '../../shared/switch/switch.component';
-import { ImplicitFiltersService } from '../filtering/ImplicitFiltersService';
+import { ImplicitFiltersService } from '../filtering/service/ImplicitFiltersService';
 
 @Injectable()
 class ConfigureTableServiceStub {}

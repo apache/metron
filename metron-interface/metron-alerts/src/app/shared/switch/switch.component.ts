@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-switch',
@@ -24,6 +24,11 @@ import { Component, Input } from '@angular/core';
 })
 export class SwitchComponent {
 
+  @Output() onChange: EventEmitter<Event> = new EventEmitter();
   @Input() text: string;
+
+  onValueChange(event) {
+    this.onChange.emit(event.target.checked);
+  }
 
 }

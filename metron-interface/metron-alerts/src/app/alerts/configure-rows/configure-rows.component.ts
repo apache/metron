@@ -18,7 +18,7 @@
 import { Component, Input, HostListener, ElementRef, Output, EventEmitter } from '@angular/core';
 import { TableMetadata } from '../../model/table-metadata';
 import { ConfigureTableService } from '../../service/configure-table.service';
-import { ImplicitFiltersService } from '../filtering/ImplicitFiltersService';
+import { ImplicitFiltersService } from '../filtering/service/ImplicitFiltersService';
 
 @Component({
   selector: 'app-configure-rows',
