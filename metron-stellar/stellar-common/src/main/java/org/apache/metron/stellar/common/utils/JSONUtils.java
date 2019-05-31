@@ -116,6 +116,10 @@ public enum JSONUtils {
    * Transforms a bean (aka POJO) to a JSONObject.
    */
   public JSONObject toJSONObject(Object o) throws JsonProcessingException, ParseException {
-    return (JSONObject) _parser.get().parse(toJSON(o, false));
+    return toJSONObject(toJSON(o, false));
+  }
+
+  public JSONObject toJSONObject(String json) throws ParseException {
+    return (JSONObject) _parser.get().parse(json);
   }
 }
