@@ -95,11 +95,6 @@
             </exclusions>
             <scope>provided</scope>
         </dependency>
-        <!--dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava_version}</version>
-        </dependency-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
