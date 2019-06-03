@@ -100,7 +100,7 @@ public class BatchTimeoutPolicy<MESSAGE_T> implements FlushPolicy<MESSAGE_T> {
   protected long getBatchTimeout(String sensorType, WriterConfiguration configurations) {
     int batchTimeoutSecs = configurations.getBatchTimeout(sensorType);
     if (batchTimeoutSecs <= 0 || batchTimeoutSecs > maxBatchTimeout) {
-      LOG.debug("The configured batch timeout '{}' is <=0 or > the maximum allowable batch timeout '{}'. Setting the batch timeout to the maximum allowable.", batchTimeoutSecs, maxBatchTimeout);
+      LOG.debug("The configured batch timeout '{}' for sensor type '{}' is <=0 or > the maximum allowable batch timeout '{}'. Setting the batch timeout to the maximum allowable.", batchTimeoutSecs, sensorType, maxBatchTimeout);
       batchTimeoutSecs = maxBatchTimeout;
     }
     return TimeUnit.SECONDS.toMillis(batchTimeoutSecs);
