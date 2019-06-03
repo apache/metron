@@ -255,7 +255,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
               , sensorParserConfig.getRawMessageStrategyConfig()
       );
       ParserRunnerResults<JSONObject> parserRunnerResults = parserRunner.execute(sensorType, rawMessage, parserConfigurations);
-      parserRunnerResults.getErrors().forEach(error -> StormErrorUtils.handleError(collector, error));
+      parserRunnerResults.getErrors().forEach(error -> handleError(collector, error));
 
       WriterHandler writer = sensorToWriterMap.get(sensorType);
       int numWritten = 0;
@@ -326,6 +326,10 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
             .withThrowable(ex)
             .withSensorType(Collections.singleton(sensorType))
             .addRawMessage(originalMessage);
+    handleError(collector, error);
+  }
+
+  protected void handleError(OutputCollector collector, MetronError error) {
     StormErrorUtils.handleError(collector, error);
   }
 

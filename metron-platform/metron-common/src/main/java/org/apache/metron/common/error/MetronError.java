@@ -106,6 +106,10 @@ public class MetronError {
     return throwable != null ? Optional.of(throwable) : Optional.empty();
   }
 
+  public List<Object> getRawMessages() {
+    return rawMessages;
+  }
+
   /**
    * Serializes the MetronError into a JSON object.
    *
