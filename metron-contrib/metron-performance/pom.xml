@@ -77,6 +77,8 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>uber</shadedClassifierName>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>

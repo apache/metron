@@ -528,6 +528,8 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>uber</shadedClassifierName>
                     <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <filters>

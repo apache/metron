@@ -40,6 +40,12 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-storm-kafka</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>

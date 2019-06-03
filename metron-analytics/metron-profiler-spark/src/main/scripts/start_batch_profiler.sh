@@ -18,7 +18,7 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/${METRON_VERSION}
-PROFILER_JAR=${METRON_HOME}/lib/${project.artifactId}-${METRON_VERSION}.jar
+PROFILER_JAR=${METRON_HOME}/lib/${project.artifactId}-${METRON_VERSION}-uber.jar
 MAIN_CLASS=org.apache.metron.profiler.spark.cli.BatchProfilerCLI
 PROFILER_PROPS=${PROFILER_PROPS:-"${METRON_HOME}/config/batch-profiler.properties"}
 SPARK_HOME=${SPARK_HOME:-"/usr/hdp/current/spark2-client"}

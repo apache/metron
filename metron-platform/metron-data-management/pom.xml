@@ -181,10 +181,10 @@
             <artifactId>hbase-common</artifactId>
             <version>${global_hbase_version}</version>
             <exclusions>
-              <exclusion>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-common</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-common</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -237,7 +237,7 @@
             <version>2.1.14</version>
             <scope>test</scope>
         </dependency>
-      <dependency>
+        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
             <version>${global_hadoop_version}</version>
@@ -262,14 +262,14 @@
             <version>${global_hbase_version}</version>
             <scope>test</scope>
             <exclusions>
-              <exclusion>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-hdfs</artifactId>
-              </exclusion>
-              <exclusion>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-minicluster</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-hdfs</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-minicluster</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
@@ -367,17 +367,19 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                          <createDependencyReducedPom>false</createDependencyReducedPom>
-                          <filters>
-                            <filter>
-                              <artifact>*:*</artifact>
-                              <excludes>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                              </excludes>
-                            </filter>
-                          </filters>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>uber</shadedClassifierName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
@@ -387,16 +389,16 @@
                                     <pattern>org.apache.http</pattern>
                                     <shadedPattern>org.apache.metron.httpcore.dataload</shadedPattern>
                                 </relocation>
-                             </relocations>
-                             <transformers>
+                            </relocations>
+                            <transformers>
                                 <transformer
-                                  implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                                     <resources>
+                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resources>
                                         <resource>.yaml</resource>
                                         <resource>LICENSE.txt</resource>
                                         <resource>ASL2.0</resource>
                                         <resource>NOTICE.txt</resource>
-                                      </resources>
+                                    </resources>
                                 </transformer>
                                 <!-- UNCOMMENT THIS IF YOU NEED TO REGENERATE THE BEST GUESS NOTICES FILE WHICH REQUIRES PRUNING EVERY RELEASE -->
                                 <!--transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
@@ -448,8 +450,8 @@
                     </execution>
                 </executions>
             </plugin>
-          </plugins>
-          <resources>
+        </plugins>
+        <resources>
             <resource>
                 <directory>src/main/resources</directory>
             </resource>

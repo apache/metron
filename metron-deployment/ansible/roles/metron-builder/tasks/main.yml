@@ -23,11 +23,11 @@
     msg: "Unsupported distribution; no packages available for {{ ansible_distribution }}"
   when: (ansible_distribution != "Ubuntu") and (ansible_distribution != "CentOS")
 
-- include: clean.yml
-- include: build.yml
-
-- include_tasks: build-rpms.yml
-  when: ansible_distribution == "CentOS"
+#- include: clean.yml
+#- include: build.yml
+#
+#- include_tasks: build-rpms.yml
+#  when: ansible_distribution == "CentOS"
 
 - include_tasks: build-debs.yml
   when: ansible_distribution == "Ubuntu"

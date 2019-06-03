@@ -248,16 +248,18 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                          <filters>
-                            <filter>
-                              <artifact>*:*</artifact>
-                              <excludes>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                              </excludes>
-                            </filter>
-                          </filters>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>uber</shadedClassifierName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
@@ -267,13 +269,13 @@
                             <transformers>
                                 <transformer implementation="org.atteo.classindex.ClassIndexTransformer"/>
                                 <transformer
-                                  implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                                     <resources>
+                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resources>
                                         <resource>.yaml</resource>
                                         <resource>LICENSE.txt</resource>
                                         <resource>ASL2.0</resource>
                                         <resource>NOTICE.txt</resource>
-                                      </resources>
+                                    </resources>
                                 </transformer>
                                 <!-- UNCOMMENT THIS IF YOU NEED TO REGENERATE THE BEST GUESS NOTICES FILE WHICH REQUIRES PRUNING EVERY RELEASE -->
                                 <!--transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
@@ -281,7 +283,7 @@
                                     <projectName>${project.name}</projectName>
                                 </transformer-->
                                 <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass></mainClass>
@@ -297,8 +299,8 @@
                         <version>${global_classindex_version}</version>
                     </dependency>
                 </dependencies>
-             </plugin>
-             <plugin>
+            </plugin>
+            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/main/assembly/assembly.xml</descriptor>

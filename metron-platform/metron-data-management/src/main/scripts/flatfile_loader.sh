@@ -30,7 +30,7 @@ fi
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export CLASSNAME="org.apache.metron.dataloads.nonbulk.flatfile.SimpleEnrichmentFlatFileLoader"
-export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
+export DM_JAR=${project.artifactId}-$METRON_VERSION-uber.jar
 export HBASE_CONF=${HBASE_CONF:-/etc/hbase/conf}
 export HADOOP_OPTS="$HADOOP_OPTS $METRON_JVMFLAGS"
 if [ $(which hadoop) ]
