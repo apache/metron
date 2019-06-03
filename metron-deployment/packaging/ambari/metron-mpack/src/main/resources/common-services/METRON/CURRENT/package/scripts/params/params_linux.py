@@ -465,6 +465,7 @@ knox_group = config['configurations']['knox-env']['knox_group']
 metron_knox_root_path = '/gateway/metron'
 metron_rest_path = '/api/v1'
 metron_alerts_ui_login_path = '/login'
+metron_alerts_ui_context_menu_config_url = '/assets/context-menu.conf.json'
 metron_management_ui_login_path = '/login'
 metron_knox_enabled = config['configurations']['metron-security-env']['metron.knox.enabled']
 metron_knox_sso_pubkey = config['configurations']['metron-security-env']['metron.knox.sso.pubkey']
