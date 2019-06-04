@@ -28,7 +28,7 @@ If you are installing Metron using Ambari, these packages are necessary prerequi
 
 ### Quick Start
 
-1. Execute the following command from the project's root directory.
+1. Execute the following command from the project's root directory. This will build/package **all** of Metron prior to building the DEBs. See [Build Packages](#build-packages) below to only build the DEBs.
     ```
     mvn clean package -DskipTests -Pbuild-debs
     ```
