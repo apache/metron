@@ -30,7 +30,7 @@ export class DynamicMenuItem {
       if (config.hasOwnProperty(requiredField) && config[requiredField] !== '') {
         return true;
       } else {
-        console.error(`[context-menu] Service returned with a incomplete config object. Missing field: ${requiredField}`);
+        console.error(`[Context Menu] CONFIG: Entry is invalid. Missing field: ${requiredField}`);
       }
     })
   }

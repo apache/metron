@@ -21,6 +21,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { HttpUtil } from 'app/utils/httpUtil';
 import { AppConfigService } from 'app/service/app-config.service';
+import { DynamicMenuItem } from './dynamic-item.model';
 
 export interface ContextMenuConfigModel {
   isEnabled: boolean,
@@ -38,6 +39,8 @@ export class ContextMenuService {
 
   getConfig(): Observable<ContextMenuConfigModel> {
     if (!this.cachedConfig$) {
+      const defaultConfig = { isEnabled: false, config: {} };
+
       this.cachedConfig$ = new BehaviorSubject(undefined);
 
       this.http.get(this.appConfig.getContextMenuConfigURL())
@@ -48,7 +51,7 @@ export class ContextMenuService {
         if (this.validate(result)) {
           this.cachedConfig$.next(result);
         } else {
-          console.error('Context menu configuration JSON is corrupt.');
+          this.cachedConfig$.next(defaultConfig);
         }
       });
     }
@@ -56,7 +59,36 @@ export class ContextMenuService {
     return this.cachedConfig$;
   }
 
-  private validate(jsonConfig: {}) {
-    return jsonConfig.hasOwnProperty('isEnabled') && jsonConfig.hasOwnProperty('config');
+  private validate(configJson: ContextMenuConfigModel) {
+
+    if (!configJson.hasOwnProperty('isEnabled') || !configJson.hasOwnProperty('config')) {
+      console.error('[Context Menu] CONFIG: isEnabled and/or config entries are missing.')
+      return false;
+    }
+
+    if (configJson.isEnabled !== true && configJson.isEnabled !== false) {
+      console.error('[Context Menu] CONFIG: isEnabled has to be a boolean. Defaulting to false.');
+      return false;
+    }
+
+    if (typeof configJson.config !== 'object' || Array.isArray(configJson.config)) {
+      console.error('[Context Menu] CONFIG: Config entry has to be an object. Defaulting to {}.');
+      return false;
+    }
+
+    return Object.keys(configJson.config).every((key) => {
+      if (!Array.isArray(configJson.config[key])) {
+        console.error('[Context Menu] CONFIG: Each item in config object has to be an array.')
+        return false;
+      }
+
+      return configJson.config[key].every((menuItem) => {
+        if (!DynamicMenuItem.isConfigValid(menuItem)) {
+          console.error(`[Context Menu] CONFIG: Entry is invalid: ${JSON.stringify(menuItem)}`);
+          return false;
+        }
+        return true;
+      });
+    })
   }
 }

@@ -78,12 +78,7 @@ export class ContextMenuComponent implements OnInit, AfterContentInit, OnDestroy
           return;
         }
 
-        this.dynamicMenuItems = currentConfig.reduce((validConfigs, configItem) => {
-          if (DynamicMenuItem.isConfigValid(configItem)) {
-            validConfigs.push(new DynamicMenuItem(configItem));
-          }
-          return validConfigs;
-        }, []);
+        this.dynamicMenuItems = currentConfig;
       });
   }
 
