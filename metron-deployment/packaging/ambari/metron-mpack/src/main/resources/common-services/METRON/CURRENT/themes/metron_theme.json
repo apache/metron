@@ -915,6 +915,14 @@
           "subsection-name": "subsection-rest"
         },
         {
+          "config": "metron-rest-env/storm_status_cache_max_size",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/storm_status_cache_timeout_seconds",
+          "subsection-name": "subsection-rest"
+        },
+        {
           "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
         },
