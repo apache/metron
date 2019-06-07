@@ -71,4 +71,8 @@ export class Filter {
     return '(' + Utils.escapeESField(field) + ':' +  value  + ' OR ' +
         Utils.escapeESField('metron_alert.' + field) + ':' +  value + ')';
   }
+
+  equals(filter: Filter): boolean {
+    return this.field === filter.field && this.value === filter.value;
+  }
 }

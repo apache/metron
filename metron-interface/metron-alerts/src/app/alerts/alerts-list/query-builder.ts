@@ -78,7 +78,7 @@ export class QueryBuilder {
   addOrUpdateFilter(filter: Filter) {
     let existingFilterIndex = -1;
     let existingFilter = this._filters.find((tFilter, index) => {
-      if (tFilter.field === filter.field) {
+      if (filter.equals(tFilter)) {
         existingFilterIndex = index;
         return true;
       }

@@ -67,4 +67,28 @@ describe('model.Filter', () => {
     filter.getQueryString();
     expect(Utils.timeRangeToDateObj).toHaveBeenCalledWith(timeRange);
   });
+
+  describe('equal function', () => {
+    it('should return false if field not equals', () => {
+      const filterA = new Filter('testField', 'someValue', false);
+      const filterB = new Filter('otherField', 'someValue', false);
+
+      expect(filterA.equals(filterB)).toBe(false);
+    });
+
+    it('should return false if value not equals', () => {
+      const filterA = new Filter('testField', 'someValue', false);
+      const filterB = new Filter('testField', 'otherValue', false);
+
+      expect(filterA.equals(filterB)).toBe(false);
+    });
+
+    it('should return true if both field and value are equals', () => {
+      const filterA = new Filter('testField', 'someValue', false);
+      const filterB = new Filter('testField', 'someValue', false);
+
+      expect(filterA.equals(filterB)).toBe(true);
+    });
+  })
+
 });
