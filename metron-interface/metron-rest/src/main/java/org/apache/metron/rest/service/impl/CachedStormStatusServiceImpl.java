@@ -103,7 +103,7 @@ public class CachedStormStatusServiceImpl implements StormStatusService {
   public List<TopologyStatus> getAllTopologyStatus() {
     return (List<TopologyStatus>) statusCache
         .get(CacheKey.ALL_TOPOLOGY_STATUS, cacheKey -> {
-          LOG.debug("Loading new topology status for '{}'", name);
+          LOG.debug("Loading all topology status");
           return stormService.getAllTopologyStatus();
         });
   }

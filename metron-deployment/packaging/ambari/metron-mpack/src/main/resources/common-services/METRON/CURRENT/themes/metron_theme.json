@@ -1656,6 +1656,18 @@
         }
       },
       {
+        "config": "metron-rest-env/storm_status_cache_max_size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/storm_status_cache_timeout_seconds",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
         "config": "metron-pcap-env/pcap_page_size",
         "widget": {
           "type": "text-field"
