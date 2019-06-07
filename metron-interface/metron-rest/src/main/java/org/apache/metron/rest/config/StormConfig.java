@@ -52,10 +52,8 @@ public class StormConfig {
   @Bean
   public StormStatusService stormStatusService(
       @Autowired @Qualifier("StormStatusServiceImpl") StormStatusService wrappedService) {
-    long maxCacheSize = Long
-        .parseLong(environment.getProperty(MetronRestConstants.STORM_STATUS_CACHE_MAX_SIZE));
-    long maxCacheTimeoutSeconds = Long
-        .parseLong(environment.getProperty(MetronRestConstants.STORM_STATUS_CACHE_TIMEOUT_SECONDS));
+    long maxCacheSize = environment.getProperty(MetronRestConstants.STORM_STATUS_CACHE_MAX_SIZE, Long.class, 10000L);
+    long maxCacheTimeoutSeconds = environment.getProperty(MetronRestConstants.STORM_STATUS_CACHE_TIMEOUT_SECONDS, Long.class, 5L);
     return new CachedStormStatusServiceImpl(wrappedService, maxCacheSize, maxCacheTimeoutSeconds);
   }
 }
