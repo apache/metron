@@ -63,13 +63,22 @@ export class Filter {
   private createNestedQuery(field: string, value: string): string {
 
     return '(' + Utils.escapeESField(field) + ':' +  Utils.escapeESValue(value)  + ' OR ' +
-                Utils.escapeESField('metron_alert.' + field) + ':' +  Utils.escapeESValue(value) + ')';
+                Utils.escapeESField(this.addPrefix('metron_alert', field)) + ':' +  Utils.escapeESValue(value) + ')';
   }
 
   private createNestedQueryWithoutValueEscaping(field: string, value: string): string {
 
     return '(' + Utils.escapeESField(field) + ':' +  value  + ' OR ' +
-        Utils.escapeESField('metron_alert.' + field) + ':' +  value + ')';
+        Utils.escapeESField(this.addPrefix('metron_alert', field)) + ':' +  value + ')';
+  }
+
+  private addPrefix(prefix: string, field: string): string {
+    const excludeOperatorRxp = /^-/;
+    const isExcluding = excludeOperatorRxp.test(field);
+    const operatorToAdd = isExcluding ? '-' : '';
+    const clearedField = field.replace(excludeOperatorRxp, '');
+
+    return operatorToAdd + prefix + '.' + clearedField;
   }
 
   equals(filter: Filter): boolean {
