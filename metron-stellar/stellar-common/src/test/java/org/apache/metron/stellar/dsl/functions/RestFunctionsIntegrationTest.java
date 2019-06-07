@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.junit.ProxyRule;
@@ -51,6 +52,9 @@ public class RestFunctionsIntegrationTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
+  @Rule
   public MockServerRule mockServerRule = new MockServerRule(this);
 
   @Rule
@@ -64,9 +68,9 @@ public class RestFunctionsIntegrationTest {
   private String emptyPostUri;
   private Context context;
 
-  private String basicAuthPasswordPath = "./target/basicAuth.txt";
+  private File basicAuthPasswordFile;
   private String basicAuthPassword = "password";
-  private String proxyBasicAuthPasswordPath = "./target/proxyBasicAuth.txt";
+  private File proxyBasicAuthPasswordFile;
   private String proxyAuthPassword = "proxyPassword";
 
   @Before
@@ -76,8 +80,10 @@ public class RestFunctionsIntegrationTest {
             .build();
 
     // Store the passwords in the local file system
-    FileUtils.writeStringToFile(new File(basicAuthPasswordPath), basicAuthPassword, StandardCharsets.UTF_8);
-    FileUtils.writeStringToFile(new File(proxyBasicAuthPasswordPath), proxyAuthPassword, StandardCharsets.UTF_8);
+    basicAuthPasswordFile = tempDir.newFile("basicAuth.txt");
+    FileUtils.writeStringToFile(basicAuthPasswordFile, basicAuthPassword, StandardCharsets.UTF_8);
+    proxyBasicAuthPasswordFile = tempDir.newFile("proxyBasicAuth.txt");
+    FileUtils.writeStringToFile(proxyBasicAuthPasswordFile, proxyAuthPassword, StandardCharsets.UTF_8);
 
     // By default, the mock server expects a GET request with the path set to /get
     baseUri = String.format("http://localhost:%d", mockServerRule.getPort());

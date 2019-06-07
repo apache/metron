@@ -17,6 +17,7 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -35,10 +36,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,11 +62,14 @@ public class RestFunctionsTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
   private Context context;
 
-  private String basicAuthPasswordPath = "./target/basicAuth.txt";
+  private File basicAuthPasswordFile;
   private String basicAuthPassword = "password";
-  private String proxyBasicAuthPasswordPath = "./target/proxyBasicAuth.txt";
+  private File proxyBasicAuthPasswordFile;
   private String proxyAuthPassword = "proxyPassword";
 
   @Before
@@ -70,6 +77,12 @@ public class RestFunctionsTest {
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
             .build();
+
+    // Store the passwords in the local file system
+    basicAuthPasswordFile = tempDir.newFile("basicAuth.txt");
+    FileUtils.writeStringToFile(basicAuthPasswordFile, basicAuthPassword, StandardCharsets.UTF_8);
+    proxyBasicAuthPasswordFile = tempDir.newFile("proxyBasicAuth.txt");
+    FileUtils.writeStringToFile(proxyBasicAuthPasswordFile, proxyAuthPassword, StandardCharsets.UTF_8);
   }
 
   /**
@@ -193,7 +206,7 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = new RestConfig();
       restConfig.put(BASIC_AUTH_USER, "user");
-      restConfig.put(BASIC_AUTH_PASSWORD_PATH, basicAuthPasswordPath);
+      restConfig.put(BASIC_AUTH_PASSWORD_PATH, basicAuthPasswordFile.getAbsolutePath());
 
       HttpClientContext actual = RestFunctions.getHttpClientContext(restConfig, target, Optional.empty());
       HttpClientContext expected = HttpClientContext.create();
@@ -212,7 +225,7 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = new RestConfig();
       restConfig.put(PROXY_BASIC_AUTH_USER, "proxyUser");
-      restConfig.put(PROXY_BASIC_AUTH_PASSWORD_PATH, proxyBasicAuthPasswordPath);
+      restConfig.put(PROXY_BASIC_AUTH_PASSWORD_PATH, proxyBasicAuthPasswordFile.getAbsolutePath());
 
       HttpClientContext actual = RestFunctions.getHttpClientContext(restConfig, target, Optional.of(proxy));
       HttpClientContext expected = HttpClientContext.create();
@@ -231,9 +244,9 @@ public class RestFunctionsTest {
     {
       RestConfig restConfig = new RestConfig();
       restConfig.put(BASIC_AUTH_USER, "user");
-      restConfig.put(BASIC_AUTH_PASSWORD_PATH, basicAuthPasswordPath);
+      restConfig.put(BASIC_AUTH_PASSWORD_PATH, basicAuthPasswordFile.getAbsolutePath());
       restConfig.put(PROXY_BASIC_AUTH_USER, "proxyUser");
-      restConfig.put(PROXY_BASIC_AUTH_PASSWORD_PATH, proxyBasicAuthPasswordPath);
+      restConfig.put(PROXY_BASIC_AUTH_PASSWORD_PATH, proxyBasicAuthPasswordFile.getAbsolutePath());
 
       HttpClientContext actual = RestFunctions.getHttpClientContext(restConfig, target, Optional.of(proxy));
       HttpClientContext expected = HttpClientContext.create();
