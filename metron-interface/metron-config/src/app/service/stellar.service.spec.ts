@@ -18,7 +18,7 @@
 import { TestBed } from '@angular/core/testing';
 import { StellarService } from './stellar.service';
 import { SensorParserContext } from '../model/sensor-parser-context';
-import { SensorParserConfig } from '../model/sensor-parser-config';
+import { ParserConfigModel } from '../sensors/models/parser-config.model';
 import {
   HttpClientTestingModule,
   HttpTestingController
@@ -48,7 +48,7 @@ describe('StellarService', () => {
     let transformationRulesValidation = { rule1: true, rule2: false };
     let transformationValidation = new SensorParserContext();
     transformationValidation.sampleData = { data: 'data' };
-    transformationValidation.sensorParserConfig = new SensorParserConfig();
+    transformationValidation.sensorParserConfig = new ParserConfigModel('TestConfigId01');
     transformationValidation.sensorParserConfig.sensorTopic = 'test';
     let transformations = ['STELLAR', 'REMOVE'];
     let transformFunctions: StellarFunctionDescription[] = [

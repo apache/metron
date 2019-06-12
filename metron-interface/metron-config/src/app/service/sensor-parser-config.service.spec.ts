@@ -17,15 +17,18 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { SensorParserConfigService } from './sensor-parser-config.service';
-import { SensorParserConfig } from '../model/sensor-parser-config';
+import { ParserConfigModel } from '../sensors/models/parser-config.model';
 import { ParseMessageRequest } from '../model/parse-message-request';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
 import {
   HttpClientTestingModule,
-  HttpTestingController
+  HttpTestingController,
+  TestRequest
 } from '@angular/common/http/testing';
-import {AppConfigService} from './app-config.service';
-import {MockAppConfigService} from './mock.app-config.service';
+import { ParserGroupModel } from '../sensors/models/parser-group.model';
+import { ParserMetaInfoModel } from '../sensors/models/parser-meta-info.model';
+import { noop } from 'rxjs';
+import { AppConfigService } from './app-config.service';
+import { MockAppConfigService } from './mock.app-config.service';
 
 describe('SensorParserConfigService', () => {
   let mockBackend: HttpTestingController;
@@ -47,19 +50,19 @@ describe('SensorParserConfigService', () => {
     mockBackend.verify();
   });
 
-  let sensorParserConfig = new SensorParserConfig();
+  let sensorParserConfig = new ParserConfigModel('TestConfigId01');
   sensorParserConfig.sensorTopic = 'bro';
   sensorParserConfig.parserClassName = 'parserClass';
   sensorParserConfig.parserConfig = { field: 'value' };
   let availableParsers = [{ Grok: 'org.apache.metron.parsers.GrokParser' }];
   let parseMessageRequest = new ParseMessageRequest();
-  parseMessageRequest.sensorParserConfig = new SensorParserConfig();
+  parseMessageRequest.sensorParserConfig = new ParserConfigModel('TestConfigId02');
   parseMessageRequest.sensorParserConfig.sensorTopic = 'bro';
   parseMessageRequest.sampleData = 'sampleData';
   let parsedMessage = { field: 'value' };
-  let sensorParserConfig1 = new SensorParserConfig();
+  let sensorParserConfig1 = new ParserConfigModel('TestConfigId03');
   sensorParserConfig1.sensorTopic = 'bro1';
-  let sensorParserConfig2 = new SensorParserConfig();
+  let sensorParserConfig2 = new ParserConfigModel('TestConfigId04');
   sensorParserConfig2.sensorTopic = 'bro2';
 
   it('post', () => {
