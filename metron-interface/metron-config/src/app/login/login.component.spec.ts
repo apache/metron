@@ -21,7 +21,8 @@ import { LoginComponent } from './login.component';
 import { Observable } from 'rxjs';
 import { ActivatedRoute, Params } from '@angular/router';
 import { LoginModule } from './login.module';
-import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { AppConfigService } from 'app/service/app-config.service';
+import { MockAppConfigService } from 'app/service/mock.app-config.service';
 
 class MockAuthenticationService {
   public login(username: string, password: string, onError): void {
@@ -59,7 +60,7 @@ describe('LoginComponent', () => {
       providers: [
         { provide: ActivatedRoute, useClass: MockActivatedRoute },
         { provide: AuthenticationService, useClass: MockAuthenticationService },
-        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
+        { provide: AppConfigService, useValue: MockAppConfigService }
       ]
     });
     fixture = TestBed.createComponent(LoginComponent);
