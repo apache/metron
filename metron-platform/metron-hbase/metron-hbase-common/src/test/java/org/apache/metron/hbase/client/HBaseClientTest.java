@@ -60,7 +60,7 @@ import static org.mockito.Mockito.when;
  */
 public class HBaseClientTest {
 
-  private static final String tableName = "widgets";
+  private static final String tableName = "table";
 
   private static HBaseTestingUtility util;
   private static HBaseClient client;
@@ -118,7 +118,7 @@ public class HBaseClientTest {
   }
 
   /**
-   * Should be able to read/write a single Widget.
+   * Should be able to read/write a single row.
    */
   @Test
   public void testWrite() throws Exception {
@@ -142,7 +142,7 @@ public class HBaseClientTest {
   }
 
   /**
-   * Should be able to read/write multiple Widgets in a batch.
+   * Should be able to read/write multiple rows in a batch.
    */
   @Test
   public void testBatchWrite() throws Exception {
@@ -197,7 +197,7 @@ public class HBaseClientTest {
   }
 
   /**
-   * Should be able to read back widgets that were written with a TTL 30 days out.
+   * Should be able to read back rows that were written with a TTL 30 days out.
    */
   @Test
   public void testWriteWithTimeToLive() throws Exception {
@@ -225,10 +225,10 @@ public class HBaseClientTest {
   }
 
   /**
-   * Should NOT be able to read widgets that are expired due to the TTL.
+   * Should NOT be able to read rows that are expired due to the TTL.
    */
   @Test
-  public void testExpiredWidgets() throws Exception {
+  public void testExpiredRows() throws Exception {
     long timeToLive = TimeUnit.MILLISECONDS.toMillis(1);
 
     // add two mutations to the queue
@@ -242,12 +242,12 @@ public class HBaseClientTest {
     // wait for a second to ensure the TTL has expired
     Thread.sleep(TimeUnit.SECONDS.toMillis(2));
 
-    // read back both tuples
+    // read back both rows
     client.addGet(rowKey1, criteria);
     client.addGet(rowKey2, criteria);
     Result[] results = client.getAll();
 
-    // validate - the TTL should have expired all widgets
+    // validate - the TTL should have expired all rows
     assertEquals(2, results.length);
     assertTrue(results[0].isEmpty());
     assertTrue(results[1].isEmpty());
