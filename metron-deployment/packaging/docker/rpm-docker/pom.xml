@@ -21,11 +21,11 @@
     <artifactId>metron-rpm</artifactId>
     <packaging>pom</packaging>
     <name>metron-rpm</name>
-    <version>0.7.1</version>
+    <version>0.7.2</version>
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.7.1</version>
+        <version>0.7.2</version>
         <relativePath>../../..</relativePath>
     </parent>
     <description>RPM Builder for Apache Metron</description>
@@ -120,19 +120,37 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-elasticsearch/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-elasticsearch/metron-elasticsearch-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-enrichment/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-enrichment/metron-enrichment-common/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-indexing/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-enrichment/metron-enrichment-storm/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-hbase-server/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-indexing/metron-indexing-common/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-indexing/metron-indexing-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -168,7 +186,13 @@
                                     </includes>
                                 </resource>
                                 <resource>
-                                    <directory>${metron_dir}/metron-platform/metron-solr/target/</directory>
+                                    <directory>${metron_dir}/metron-platform/metron-solr/metron-solr-common/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-solr/metron-solr-storm/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

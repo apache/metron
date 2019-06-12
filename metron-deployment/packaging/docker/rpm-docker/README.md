@@ -26,7 +26,7 @@ If you are installing Metron using Ambari, these packages are necessary prerequi
 
 ### Quick Start
 
-1. Execute the following command from the project's root directory.
+1. Execute the following command from the project's root directory. This will build/package **all** of Metron prior to building the RPMs. See [Build Packages](#build-packages) below to only build the RPMs.
     ```
     mvn clean package -DskipTests -Pbuild-rpms
     ```
@@ -41,7 +41,7 @@ If you are installing Metron using Ambari, these packages are necessary prerequi
 If Metron has already been built, just the RPM packages can be built by executing the following commands.
   ```
   cd metron-deployment
-  mvn clean package -Pbuild-debs
+  mvn clean package -Pbuild-rpms
   ```
 
 ### How does this work?

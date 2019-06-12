@@ -441,6 +441,9 @@
               <name>metron-data-management</name>
             </package>
             <package>
+              <name>metron-hbase-server</name>
+            </package>
+            <package>
               <name>metron-management</name>
             </package>
             <package>
@@ -453,7 +456,10 @@
               <name>metron-parsing-storm</name>
             </package>
             <package>
-              <name>metron-enrichment</name>
+              <name>metron-enrichment-common</name>
+            </package>
+            <package>
+              <name>metron-enrichment-storm</name>
             </package>
             <package>
               <name>metron-profiler-storm</name>
@@ -465,13 +471,19 @@
               <name>metron-profiler-repl</name>
             </package>
             <package>
-              <name>metron-indexing</name>
+              <name>metron-indexing-common</name>
             </package>
             <package>
-              <name>metron-elasticsearch</name>
+              <name>metron-indexing-storm</name>
             </package>
             <package>
-              <name>metron-solr</name>
+              <name>metron-elasticsearch-storm</name>
+            </package>
+            <package>
+              <name>metron-solr-common</name>
+            </package>
+            <package>
+              <name>metron-solr-storm</name>
             </package>
             <package>
               <name>metron-pcap</name>
@@ -494,7 +506,6 @@
             <package>
               <name>metron-performance</name>
             </package>
-
           </packages>
         </osSpecific>
         <osSpecific>

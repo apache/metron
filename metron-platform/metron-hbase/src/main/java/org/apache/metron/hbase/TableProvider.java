@@ -27,6 +27,14 @@ import java.util.function.Supplier;
 
 public interface TableProvider extends Serializable {
   HTableInterface getTable(Configuration config, String tableName) throws IOException;
+
+  /**
+   * Factory method that creates TableProviders.
+   *
+   * @param impl attempt to create this type of TableProvider
+   * @param defaultSupplier provides default implementation if impl is null
+   * @return New table provider
+   */
   static TableProvider create(String impl, Supplier<TableProvider> defaultSupplier) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
     if(impl == null) {
       return defaultSupplier.get();

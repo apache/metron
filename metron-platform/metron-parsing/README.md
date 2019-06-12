@@ -15,7 +15,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+
 # Parsers
+
+## Contents
+
+* [Introduction](#introduction)
+* [Parser Error Routing](#parser-error-routing)
+* [Filtering](#filtering)
+* [Parser Architecture](#parser-architecture)
+* [Message Format](#message-format)
+* [Global Configuration](#global-configuration)
+* [Parser Configuration](#parser-configuration)
+* [Parser Adapters](#parser-adapters)
+* [Kafka Queue](#kafka-queue)
+* [JSON Path](#json-path)
 
 ## Introduction
 
@@ -27,12 +41,12 @@ There are two general types types of parsers:
 * A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
 * A general purpose parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.  As of the time of this writing, we have:
     * Grok parser: `org.apache.metron.parsers.GrokParser` with possible `parserConfig` entries of
-        * `grokPath` : The path in HDFS (or in the Jar) to the grok statement
+        * `grokPath` : The path in HDFS (or in the Jar) to the grok statement. By default attempts to load from HDFS, then falls back to the classpath, and finally throws an exception if unable to load a pattern.
         * `patternLabel` : The pattern label to use from the grok statement
         * `multiLine` : The raw data passed in should be handled as a long with multiple lines, with each line to be parsed separately. This setting's valid values are 'true' or 'false'.  The default if unset is 'false'. When set the parser will handle multiple lines with successfully processed lines emitted normally, and lines with errors sent to the error topic.
-        * `timestampField` : The field to use for timestamp
-        * `timeFields` : A list of fields to be treated as time
-        * `dateFormat` : The date format to use to parse the time fields
+        * `timestampField` : The field to use for timestamp. If your data does not have a field exactly named "timestamp" this field is required, otherwise the record will not pass validation. If the timestampField is also included in the list of timeFields, it will first be parsed using the provided dateFormat.
+        * `timeFields` : A list of fields to be treated as time.
+        * `dateFormat` : The date format to use to parse the time fields. Default is "yyyy-MM-dd HH:mm:ss.S z".
         * `timezone` : The timezone to use. `UTC` is default.
         * The Grok parser supports either 1 line to parse per incoming message, or incoming messages with multiple log lines, and will produce a json message per line
     * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of
@@ -47,11 +61,21 @@ There are two general types types of parsers:
             * `ERROR` : Throw an error when a multidimensional map is encountered
         * `jsonpQuery` : A [JSON Path](#json_path) query string. If present, the result of the JSON Path query should be a list of messages. This is useful if you have a JSON document which contains a list or array of messages embedded in it, and you do not have another means of splitting the message.
         * `wrapInEntityArray` : `"true" or "false"`. If `jsonQuery` is present and this flag is present and set to `"true"`, the incoming message will be wrapped in a JSON  entity and array.
-           for example:
-           `{"name":"value"},{"name2","value2}` will be wrapped as `{"message" : [{"name":"value"},{"name2","value2}]}`.
-           This is using the default value for `wrapEntityName` if that property is not set.
-        * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name.
+          for example:
+          `{"name":"value"},{"name2","value2"}` will be wrapped as `{"message" : [{"name":"value"},{"name2","value2"}]}`.
+          This is using the default value for `wrapEntityName` if that property is not set.
+        * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name. Only applicable if `jsonpQuery` and `wrapInEntityArray` are specified.
         * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.
+        * `overrideOriginalString` : A boolean setting that will change the way `original_string` is handled by the parser. The default value of `false` uses the global functionality that will append the unmodified original raw source message as an `original_string` field.
+          This is the recommended setting. Setting this option to `true` will use the individual substrings returned by the json query as the original_string. For example, a wrapped map such as `{"foo" : [{"name":"value"},{"name2","value2"}]}`
+          that uses the jsonpQuery, `$.foo`, will result in 2 messages returned. Using the default global `original_string` strategy, the messages returned would be:
+            * `{ "name"  : "value",  "original_string" : "{\"foo\" : [{\"name\":\"value\"},{\"name2\",\"value2\"}]}}`
+            * `{ "name2" : "value2", "original_string" : "{\"foo\" : [{\"name\":\"value\"},{\"name2\",\"value2\"}]}}`
+          Setting this value to `true` would result in messages with `original_string` set as follows:
+            * `{ "name"  : "value",  "original_string" : "{\"name\":\"value\"}}`
+            * `{ "name"  : "value",  "original_string" : "{\"name2\":\"value2\"}}`
+          One final important point to note, and word of caution about setting this property to `true`, is about how JSON PQuery handles parsing and searching the source raw message - it will **NOT** retain a pure raw sub-message. This is due to the JSON libraries under
+          the hood that normalize the JSON. The resulting generated `original_string` values may have a different property order and spacing. e.g. `{ "foo" :"bar"  , "baz":"bang"}` would end up with an `original_string` that looks more like `{ "baz" : "bang", "foo" : "bar" }`.
     * Regular Expressions Parser
         * `recordTypeRegex` : A regular expression to uniquely identify a record type.
         * `messageHeaderRegex` : A regular expression used to extract fields from a message part which is common across all the messages.
@@ -144,6 +168,19 @@ There are two general types types of parsers:
         ```
         "timestamp":"TO_EPOCH_TIMESTAMP(timestamp_str, timestamp_format, timezone_name )"
         ```
+        
+## Parser Message Routing
+
+Messages are routed to the Kafka `enrichments` topic by default.  The output topic can be changed with the `output_topic` 
+option when [Starting the Parser Topology](metron-parsing-storm/README.md#starting-the-parser-topology) or with the `outputTopic` 
+[Parser Configuration](#parser-configuration) setting.  The order of precedence from highest to lowest is as follows:
+
+1. Parser start script option
+2. Parser configuration setting
+3. Default `enrichments` topic
+
+A message can also be routed to other locations besides Kafka with the `writerClassName` [Parser Configuration](#parser-configuration) setting.
+Messages can be routed independently for each sensor type when configured with [Parser Configuration](#parser-configuration) settings.
 
 ## Parser Error Routing
 
@@ -154,10 +191,13 @@ messages or marking messages as invalid.
 
 There are two reasons a message will be marked as invalid:
 * Fail [global validation](../../metron-common#validation-framework)
-* Fail the parser's validate function (generally that means to not have a `timestamp` field or a `original_string` field.
+* Fail the parser's validate function. Generally, that means not having a `timestamp` field or an `original_string` field.
 
-Those messages which are marked as invalid are sent to the error queue
-with an indication that they are invalid in the error message.
+Those messages which are marked as invalid are sent to the error queue with an indication that they
+are invalid in the error message.  The messages will contain "error_type":"parser_invalid". Note,
+you will not see additional exceptions in the logs for this type of failure, rather the error messages
+are written directly to the configured error topic. See [Topology Errors](../../metron-common#topology-errors)
+for more.
 
 ### Parser Errors
 
@@ -166,7 +206,7 @@ parse, are sent along to the error queue with a message indicating that
 there was an error in parse along with a stacktrace.  This is to
 distinguish from the invalid messages.
 
-## Filtered
+## Filtering
 
 One can also filter a message by specifying a `filterClassName` in the
 parser config.  Filtered messages are just dropped rather than passed
@@ -261,7 +301,8 @@ The document is structured in the following way
         }
         ```
 
-* `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/`
+* `writerClassName` : The class used to write messages after they have been parsed.  Defaults to `org.apache.metron.writer.kafka.KafkaWriter`.
+* `sensorTopic` : The kafka topic to that the parser will read messages from.  If the topic is prefixed and suffixed by `/`
 then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
 * `readMetadata` : Boolean indicating whether to read metadata or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
@@ -624,6 +665,8 @@ Java parser adapters are intended for higher-velocity topologies and are not eas
 * org.apache.metron.parsers.lancope.BasicLancopeParser : Parse Lancope messages
 * org.apache.metron.parsers.syslog.Syslog5424Parser : Parse Syslog RFC 5424 messages
 * org.apache.metron.parsers.syslog.Syslog3164Parser : Parse Syslog RFC 3164 messages
+* org.apache.metron.parsers.cef.CEFParser: Parse CEF format messages
+* org.apache.metron.parsers.leef.LEEFParser: Parse LEEF format messages
 
 ### Grok Parser Adapters
 Grok parser adapters are designed primarily for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recompiled in order to make changes to them.  Example of a Grok parsers are:

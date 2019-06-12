@@ -66,7 +66,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.common.utils.RuntimeErrors;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -188,7 +188,7 @@ public class TaxiiHandler extends TimerTask {
         try {
           gTime = DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) gc).normalize();
         } catch (DatatypeConfigurationException e) {
-          ErrorUtils.RuntimeErrors.ILLEGAL_STATE.throwRuntime("Unable to set the begin time due to", e);
+          RuntimeErrors.ILLEGAL_STATE.throwRuntime("Unable to set the begin time due to", e);
         }
         gTime.setFractionalSecond(null);
         LOG.info("Begin Time: {}", gTime);

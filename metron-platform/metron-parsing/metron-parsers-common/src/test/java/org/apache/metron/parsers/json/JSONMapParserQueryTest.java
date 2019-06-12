@@ -17,11 +17,14 @@
  */
 package org.apache.metron.parsers.json;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
+import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
@@ -61,10 +64,10 @@ public class JSONMapParserQueryTest {
       put(JSONMapParser.JSONP_QUERY, "$.foo");
     }});
     List<JSONObject> output = parser.parse(JSON_LIST.getBytes());
-    Assert.assertEquals(output.size(), 2);
-    //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 5);
+    Assert.assertEquals(2, output.size());
     JSONObject message = output.get(0);
+    // account for timestamp field in the size
+    Assert.assertEquals(4, message.size());
     Assert.assertEquals("foo1", message.get("name"));
     Assert.assertEquals("bar", message.get("value"));
     Assert.assertEquals(1.0, message.get("number"));
@@ -72,8 +75,12 @@ public class JSONMapParserQueryTest {
     Assert.assertTrue(message.get("timestamp") instanceof Number);
     Assert.assertNotNull(message.get("number"));
     Assert.assertTrue(message.get("number") instanceof Number);
+    Assert.assertThat("original_string should be handled external to the parser by default",
+        message.containsKey(Fields.ORIGINAL.getName()), equalTo(false));
 
     message = output.get(1);
+    // account for timestamp field in the size
+    Assert.assertEquals(4, message.size());
     Assert.assertEquals("foo2", message.get("name"));
     Assert.assertEquals("baz", message.get("value"));
     Assert.assertEquals(2.0, message.get("number"));
@@ -81,7 +88,45 @@ public class JSONMapParserQueryTest {
     Assert.assertTrue(message.get("timestamp") instanceof Number);
     Assert.assertNotNull(message.get("number"));
     Assert.assertTrue(message.get("number") instanceof Number);
+    Assert.assertThat("original_string should be handled external to the parser by default",
+        message.containsKey(Fields.ORIGINAL.getName()), equalTo(false));
+  }
 
+  @Test
+  public void testOriginalStringHandledByParser() {
+    JSONMapParser parser = new JSONMapParser();
+    parser.configure(new HashMap<String, Object>() {{
+      put(JSONMapParser.JSONP_QUERY, "$.foo");
+      put(JSONMapParser.OVERRIDE_ORIGINAL_STRING, true);
+    }});
+    List<JSONObject> output = parser.parse(JSON_LIST.getBytes());
+    Assert.assertEquals(2, output.size());
+
+    JSONObject message = output.get(0);
+    // account for timestamp field in the size
+    Assert.assertEquals(5, message.size());
+    Assert.assertEquals("foo1", message.get("name"));
+    Assert.assertEquals("bar", message.get("value"));
+    Assert.assertEquals(1.0, message.get("number"));
+    Assert.assertNotNull(message.get("timestamp"));
+    Assert.assertTrue(message.get("timestamp") instanceof Number);
+    Assert.assertNotNull(message.get("number"));
+    Assert.assertTrue(message.get("number") instanceof Number);
+    Assert.assertThat("original_string should have been handled by the parser",
+        message.get(Fields.ORIGINAL.getName()), equalTo("{\"name\":\"foo1\",\"number\":1.0,\"value\":\"bar\"}"));
+
+    message = output.get(1);
+    // account for timestamp field in the size
+    Assert.assertEquals(5, message.size());
+    Assert.assertEquals("foo2", message.get("name"));
+    Assert.assertEquals("baz", message.get("value"));
+    Assert.assertEquals(2.0, message.get("number"));
+    Assert.assertNotNull(message.get("timestamp"));
+    Assert.assertTrue(message.get("timestamp") instanceof Number);
+    Assert.assertNotNull(message.get("number"));
+    Assert.assertTrue(message.get("number") instanceof Number);
+    Assert.assertThat("original_string should have been handled by the parser",
+        message.get(Fields.ORIGINAL.getName()), equalTo("{\"name\":\"foo2\",\"number\":2.0,\"value\":\"baz\"}"));
   }
 
   @Test(expected = IllegalStateException.class)
@@ -130,7 +175,7 @@ public class JSONMapParserQueryTest {
     Assert.assertEquals(output.size(), 2);
 
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 2);
+    Assert.assertEquals(output.get(0).size(), 1);
 
     JSONObject message = output.get(0);
     Assert.assertNotNull(message.get("timestamp"));
@@ -161,12 +206,12 @@ public class JSONMapParserQueryTest {
             JSONMapParser.JSONP_QUERY, "$.foo"));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 2);
-    Assert.assertEquals(output.get(0).size(), 3);
+    Assert.assertEquals(output.get(0).size(), 2);
     JSONObject message = output.get(0);
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
 
-    Assert.assertEquals(output.get(1).size(), 3);
+    Assert.assertEquals(output.get(1).size(), 2);
     message = output.get(1);
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
@@ -180,7 +225,7 @@ public class JSONMapParserQueryTest {
             JSONMapParser.JSONP_QUERY, "$.foo"));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes());
     Assert.assertEquals(output.size(), 2);
-    Assert.assertEquals(output.get(0).size(), 6);
+    Assert.assertEquals(output.get(0).size(), 5);
     JSONObject message = output.get(0);
     Assert.assertEquals(message.get("collection.blah"), 7);
     Assert.assertEquals(message.get("collection.blah2"), "foo");
@@ -189,7 +234,7 @@ public class JSONMapParserQueryTest {
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
 
-    Assert.assertEquals(output.get(1).size(), 6);
+    Assert.assertEquals(output.get(1).size(), 5);
     message = output.get(1);
     Assert.assertEquals(message.get("collection.blah"), 8);
     Assert.assertEquals(message.get("collection.blah2"), "bar");

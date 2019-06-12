@@ -17,33 +17,32 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.rest.MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY;
+import static org.apache.metron.rest.MetronRestConstants.METRON_ESCALATION_TIMESTAMP_FIELD;
+import static org.apache.metron.rest.MetronRestConstants.METRON_ESCALATION_USER_FIELD;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.metron.common.system.Clock;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.hbase.client.UserSettingsClient;
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertsUIUserSettings;
-import org.apache.metron.rest.security.SecurityUtils;
-import org.apache.metron.rest.service.AlertsUIService;
-import org.apache.metron.rest.service.KafkaService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.apache.metron.rest.MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY;
-import static org.apache.metron.rest.MetronRestConstants.METRON_ESCALATION_TIMESTAMP_FIELD;
-import static org.apache.metron.rest.MetronRestConstants.METRON_ESCALATION_USER_FIELD;
+import org.apache.metron.common.system.Clock;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.AlertsUIUserSettings;
+import org.apache.metron.rest.security.SecurityUtils;
+import org.apache.metron.rest.service.AlertsUIService;
+import org.apache.metron.rest.service.KafkaService;
+import org.apache.metron.rest.user.UserSettingsClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 
 /**
  * The default service layer implementation of {@link AlertsUIService}.

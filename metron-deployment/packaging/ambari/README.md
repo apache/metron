@@ -61,7 +61,7 @@ The layout of `/common-services/METRON/CURRENT` is
 * `kerberos.json`
   * Defines the keytabs and other Kerberos configuration to be used when Kerberizing a cluster
 * `metainfo.xml`
-  * Defines the METRON service, along with required packages, services, etc.
+  * Defines the METRON service, along with required packages, services, etc. If you need to have the MPack install a new package (e.g. RPM, DEB), add it here.
 * `service_advisor.py`
   * Handles component layout and validation, along with handling some configurations for other services or that needs configs from other services.
 

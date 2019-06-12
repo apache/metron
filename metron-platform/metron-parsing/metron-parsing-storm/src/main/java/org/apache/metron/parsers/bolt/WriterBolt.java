@@ -21,11 +21,11 @@ package org.apache.metron.parsers.bolt;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.message.MessageGetters;
-import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
+import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.storm.common.utils.StormErrorUtils;
 import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -94,7 +94,7 @@ public class WriterBolt extends BaseRichBolt {
               .withThrowable(e)
               .withSensorType(Collections.singleton(sensorType))
               .addRawMessage(message);
-      ErrorUtils.handleError(collector, error);
+      StormErrorUtils.handleError(collector, error);
       collector.ack(tuple);
     }
   }

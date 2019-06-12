@@ -33,6 +33,12 @@ Metron's parsers can be run in Storm topologies, complete with their own set of 
 * `spoutConfig` : A map representing a custom spout config (this is a map). If there are multiple sensors, the configs will be merged with the last specified taking precedence. This can be overridden on the command line.
 * `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
 
+**Note on dynamic vs static configuration**
+
+Field transformations configuration (see [Parser Configuration](../metron-parsing#parser-configuration)) is loaded dynamically from Zookeeper, so any updates pushed to Zookeeper will automatically be reflected in the parser without restarting it.
+`parserConfig` (see [Parser Configuration](../metron-parsing#parser-configuration)) is provided one time at topology startup via a parser's configure() method. Any changes to the static parser config will require a restart. Storm-specific
+configuration settings, such as those above, are also static and require a topology restart.
+
 # Starting the Parser Topology
 
 Starting a particular parser topology on a running Metron deployment is
@@ -121,7 +127,7 @@ you could create a file called `custom_config.json` containing
 and pass `--extra_topology_options custom_config.json` to `start_parser_topology.sh`.
 
 ## Parser Topology
-The enrichment topology as started by the `$METRON_HOME/bin/start_parser_topology.sh` 
+The parser topology as started by the `$METRON_HOME/bin/start_parser_topology.sh`
 script uses a default of one executor per bolt.  In a real production system, this should 
 be customized by modifying the arguments sent to this utility.
 * Topology Wide
