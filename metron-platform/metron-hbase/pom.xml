@@ -42,6 +42,5 @@
     </licenses>
     <modules>
         <module>metron-hbase-common</module>
-        <module>metron-hbase-storm</module>
     </modules>
 </project>
