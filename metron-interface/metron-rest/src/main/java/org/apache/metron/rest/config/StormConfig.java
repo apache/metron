@@ -17,18 +17,21 @@
  */
 package org.apache.metron.rest.config;
 
+import static org.apache.metron.rest.MetronRestConstants.DOCKER_PROFILE;
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
+import java.util.Arrays;
+import org.apache.metron.rest.MetronRestConstants;
+import org.apache.metron.rest.service.StormStatusService;
+import org.apache.metron.rest.service.impl.CachedStormStatusServiceImpl;
 import org.apache.metron.rest.service.impl.DockerStormCLIWrapper;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
-
-import java.util.Arrays;
-
-import static org.apache.metron.rest.MetronRestConstants.DOCKER_PROFILE;
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 @Configuration
 @Profile("!" + TEST_PROFILE)
@@ -44,5 +47,13 @@ public class StormConfig {
     } else {
       return new StormCLIWrapper();
     }
+  }
+
+  @Bean
+  public StormStatusService stormStatusService(
+      @Autowired @Qualifier("StormStatusServiceImpl") StormStatusService wrappedService) {
+    long maxCacheSize = environment.getProperty(MetronRestConstants.STORM_STATUS_CACHE_MAX_SIZE, Long.class, 10000L);
+    long maxCacheTimeoutSeconds = environment.getProperty(MetronRestConstants.STORM_STATUS_CACHE_TIMEOUT_SECONDS, Long.class, 5L);
+    return new CachedStormStatusServiceImpl(wrappedService, maxCacheSize, maxCacheTimeoutSeconds);
   }
 }
