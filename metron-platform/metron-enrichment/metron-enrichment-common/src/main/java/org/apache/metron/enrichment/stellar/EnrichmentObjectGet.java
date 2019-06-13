@@ -20,7 +20,6 @@ package org.apache.metron.enrichment.stellar;
 
 import org.apache.metron.enrichment.cache.ObjectCache;
 import org.apache.metron.enrichment.cache.ObjectCacheConfig;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -32,12 +31,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_KEY;
-import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_MAX_FILE_SIZE_KEY;
-import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_SIZE_KEY;
-import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_TIME_UNIT_KEY;
 import static org.apache.metron.enrichment.stellar.EnrichmentObjectGet.ENRICHMENT_OBJECT_GET_SETTINGS;
 
 @Stellar(namespace="ENRICHMENT"
@@ -94,22 +88,8 @@ public class EnrichmentObjectGet implements StellarFunction {
   public void initialize(Context context) {
     Map<String, Object> config = (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG, false)
             .orElse(new HashMap<>());
-    ObjectCacheConfig objectCacheConfig = new ObjectCacheConfig(config);
-    if (config.containsKey(ENRICHMENT_OBJECT_GET_SETTINGS)) {
-      Map<String, Object> enrichmentObjectGetSettings = (Map<String, Object>) config.get(ENRICHMENT_OBJECT_GET_SETTINGS);
-      if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_SIZE_KEY)) {
-        objectCacheConfig.setCacheSize(ConversionUtils.convert(enrichmentObjectGetSettings.get(OBJECT_CACHE_SIZE_KEY), Long.class));
-      }
-      if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_EXPIRATION_KEY)) {
-        objectCacheConfig.setCacheExpiration(ConversionUtils.convert(enrichmentObjectGetSettings.get(OBJECT_CACHE_EXPIRATION_KEY), Long.class));
-      }
-      if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_TIME_UNIT_KEY)) {
-        objectCacheConfig.setTimeUnit(TimeUnit.valueOf((String) enrichmentObjectGetSettings.get(OBJECT_CACHE_TIME_UNIT_KEY)));
-      }
-      if (enrichmentObjectGetSettings.containsKey(OBJECT_CACHE_MAX_FILE_SIZE_KEY)) {
-        objectCacheConfig.setMaxFileSize(ConversionUtils.convert(enrichmentObjectGetSettings.get(OBJECT_CACHE_MAX_FILE_SIZE_KEY), Long.class));
-      }
-    }
+    Map<String, Object> enrichmentGetConfig = (Map<String, Object>) config.getOrDefault(ENRICHMENT_OBJECT_GET_SETTINGS, new HashMap<>());
+    ObjectCacheConfig objectCacheConfig = new ObjectCacheConfig(enrichmentGetConfig);
     objectCache = new ObjectCache();
     objectCache.initialize(objectCacheConfig);
   }
