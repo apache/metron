@@ -23,5 +23,6 @@ enum PatchOperation {
   REPLACE,
   REMOVE,
   COPY,
-  MOVE;
+  MOVE,
+  TEST;
 }

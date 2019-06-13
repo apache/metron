@@ -18,25 +18,17 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.apache.metron.indexing.dao.update.PatchOperation.ADD;
-import static org.apache.metron.indexing.dao.update.PatchOperation.REPLACE;
-import static org.apache.metron.indexing.dao.update.PatchOperation.REMOVE;
-import static org.apache.metron.indexing.dao.update.PatchOperation.COPY;
-import static org.apache.metron.indexing.dao.update.PatchOperation.MOVE;
+import static org.apache.metron.indexing.dao.update.PatchOperation.*;
 
 public enum PatchUtils {
   INSTANCE;
 
-  private static final String OP = "op";
-  private static final String VALUE = "value";
-  private static final String PATH = "path";
-  private static final String FROM = "from";
+  public static final String OP = "op";
+  public static final String VALUE = "value";
+  public static final String PATH = "path";
+  public static final String FROM = "from";
   private static final String PATH_SEPARATOR = "/";
 
   public Map<String, Object> applyPatch(List<Map<String, Object>> patches, Map<String, Object> source) {
@@ -44,7 +36,14 @@ public enum PatchUtils {
     for(Map<String, Object> patch: patches) {
 
       // parse patch request parameters
-      PatchOperation operation = PatchOperation.valueOf(((String) patch.get(OP)).toUpperCase());
+      String operation = (String) patch.get(OP);
+      PatchOperation patchOperation;
+      try {
+        patchOperation = PatchOperation.valueOf(operation.toUpperCase());
+      } catch(IllegalArgumentException e) {
+        throw new UnsupportedOperationException(String.format("The %s operation is not supported", operation));
+      }
+
       Object value = patch.get(VALUE);
       String path = (String) patch.get(PATH);
 
@@ -54,28 +53,32 @@ public enum PatchUtils {
       Map<String, Object> nestedObject = getNestedObject(fieldNames, patchedObject);
 
       // apply the patch operation
-      if (ADD.equals(operation) || REPLACE.equals(operation)) {
+      if (ADD.equals(patchOperation) || REPLACE.equals(patchOperation)) {
         nestedObject.put(nestedFieldName, value);
-      } else if (REMOVE.equals(operation)) {
+      } else if (REMOVE.equals(patchOperation)) {
         nestedObject.remove(nestedFieldName);
-      } else if (COPY.equals(operation) || MOVE.equals(operation)) {
+      } else if (COPY.equals(patchOperation) || MOVE.equals(patchOperation)) {
 
         // locate the nested object to copy/move the value from
         String from = (String) patch.get(FROM);
         List<String> fromFieldNames = getFieldNames(from);
-        String fromNestedFieldName = fromFieldNames.get(fromFieldNames.size() -1 );
+        String fromNestedFieldName = fromFieldNames.get(fromFieldNames.size() - 1);
         Map<String, Object> fromNestedObject = getNestedObject(fromFieldNames, patchedObject);
 
         // copy the value
         Object copyValue = fromNestedObject.get(fromNestedFieldName);
         nestedObject.put(nestedFieldName, copyValue);
-        if (MOVE.equals(operation)) {
+        if (MOVE.equals(patchOperation)) {
 
           // remove the from value in case of a move
           nestedObject.remove(fromNestedFieldName);
         }
-      } else {
-        throw new UnsupportedOperationException(String.format("The %s operation is not supported", operation));
+      } else if (TEST.equals(patchOperation)) {
+
+        Object testValue = nestedObject.get(nestedFieldName);
+        if (!Objects.equals(value, testValue)) {
+          throw new PatchException(String.format("TEST operation failed: supplied value [%s] != target value [%s]", value, testValue));
+        }
       }
     }
     return patchedObject;
@@ -92,7 +95,7 @@ public enum PatchUtils {
     for(int i = 0; i < fieldNames.size() - 1; i++) {
       Object object = nestedObject.get(fieldNames.get(i));
       if (object == null || !(object instanceof Map)) {
-        throw new IllegalArgumentException(String.format("Invalid child object path: /%s", String.join(PATH_SEPARATOR, fieldNames)));
+        throw new IllegalArgumentException(String.format("Invalid path: /%s", String.join(PATH_SEPARATOR, fieldNames)));
       } else {
         nestedObject = (Map<String, Object>) object;
       }
