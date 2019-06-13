@@ -152,8 +152,7 @@ export class QueryBuilder {
     this.searchRequest.sort = [sortField];
   }
 
-  private updateFilters(tQuery: string, updateNameTransform = false) {
-    let query = tQuery;
+  private updateFilters(query: string, updateNameTransform = false) {
     this.removeDisplayedFilters();
 
     if (query && query !== '' && query !== '*') {
