@@ -31,7 +31,7 @@ language: java
 jdk:
   - oraclejdk8
 before_install:
-  - curl --retry 10 -O https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
+  - wget -nc -q https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
@@ -58,3 +58,4 @@ cache:
   - metron-interface/metron-config/node_modules
   - $HOME/.m2
   - $HOME/.npm
+  - apache-maven-3.3.9-bin.zip
