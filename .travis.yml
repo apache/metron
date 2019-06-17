@@ -59,3 +59,4 @@ cache:
   - $HOME/.m2
   - $HOME/.npm
   - $M2_HOME
+
