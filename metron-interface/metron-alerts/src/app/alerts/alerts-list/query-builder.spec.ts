@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { QueryBuilder } from "./query-builder";
+import { QueryBuilder } from './query-builder';
 
-describe('query-builder', () => {
+fdescribe('query-builder', () => {
 
   it('should be able to handle multiple filters', () => {
     const queryBuilder = new QueryBuilder();
@@ -45,7 +45,27 @@ describe('query-builder', () => {
     queryBuilder.setSearch('alert_status:(RESOLVE OR DISMISS)');
 
     expect(queryBuilder.searchRequest.query).toBe(
-      '(alert_status:\\(RESOLVE\\ OR\\ DISMISS\\) OR metron_alert.alert_status:\\(RESOLVE\\ OR\\ DISMISS\\))'
+      '(alert_status:(RESOLVE OR DISMISS) OR metron_alert.alert_status:(RESOLVE OR DISMISS))'
+      );
+  });
+
+  it('should trim whitespace', () => {
+    const queryBuilder = new QueryBuilder();
+
+    queryBuilder.setSearch(' alert_status:(RESOLVE OR DISMISS) ');
+
+    expect(queryBuilder.searchRequest.query).toBe(
+      '(alert_status:(RESOLVE OR DISMISS) OR metron_alert.alert_status:(RESOLVE OR DISMISS))'
+      );
+  });
+
+  it('should remove wildcard', () => {
+    const queryBuilder = new QueryBuilder();
+
+    queryBuilder.setSearch('* -alert_status:(RESOLVE OR DISMISS)');
+
+    expect(queryBuilder.searchRequest.query).toBe(
+      '(-alert_status:(RESOLVE OR DISMISS) OR -metron_alert.alert_status:(RESOLVE OR DISMISS))'
       );
   });
 

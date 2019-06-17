@@ -158,17 +158,18 @@ export class QueryBuilder {
     if (query && query !== '' && query !== '*') {
       let terms = query.split(' AND ');
       for (let term of terms) {
-        let separatorPos = term.lastIndexOf(':');
-        let field = term.substring(0, separatorPos).replace('\\', '');
+        let [field, value] = term.split(':');
+        field = field.replace(/\*/, '').trim();
         field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
-        let value = term.substring(separatorPos + 1, term.length);
+        value = value.trim();
+
         this.addOrUpdateFilter(new Filter(field, value));
       }
     }
   }
 
   private removeDisplayedFilters() {
-    for (let i = this._filters.length-1; i >= 0; i--) {
+    for (let i = this._filters.length - 1; i >= 0; i--) {
       if (this._filters[i].display) {
         this._filters.splice(i, 1);
       }
