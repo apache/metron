@@ -32,57 +32,70 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Stellar(namespace="OBJECT"
-        ,name="GET"
-        ,description="Retrieve and deserialize a serialized object from HDFS.  " +
+import static org.apache.metron.enrichment.stellar.EnrichmentObjectGet.ENRICHMENT_OBJECT_GET_SETTINGS;
+
+@Stellar(namespace="ENRICHMENT"
+        ,name="OBJECT_GET"
+        ,description="Retrieve and deserialize a serialized object from HDFS and stores it in the ObjectCache,  " +
+        "then returns the value associated with the indicator." +
         "The cache can be specified via three properties in the global config: " +
         "\"" + ObjectCacheConfig.OBJECT_CACHE_SIZE_KEY + "\" (default " + ObjectCacheConfig.OBJECT_CACHE_SIZE_DEFAULT + ")," +
         "\"" + ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_KEY + "\" (default " + ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_MIN_DEFAULT + ")," +
         "\"" + ObjectCacheConfig.OBJECT_CACHE_TIME_UNIT_KEY+ "\" (default MINUTES)." +
+        "Cache settings that apply only to this function can also be specified in the global config by nesting the settings above under the " + ENRICHMENT_OBJECT_GET_SETTINGS + " key." +
         "Note, if these are changed in global config, topology restart is required."
         , params = {
-            "path - The path in HDFS to the serialized object"
+            "path - The path in HDFS to the serialized object" +
+            "indicator - The string indicator to look up"
           }
-        , returns="The deserialized object."
+        , returns="Value associated with the indicator."
 )
-public class ObjectGet implements StellarFunction {
+public class EnrichmentObjectGet implements StellarFunction {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public final static String ENRICHMENT_OBJECT_GET_SETTINGS = "enrichment.object.get.settings";
 
   private ObjectCache objectCache;
 
   @Override
   public Object apply(List<Object> args, Context context) throws ParseException {
+    if(args.size() != 2) {
+      throw new IllegalArgumentException("All parameters are mandatory, submit 'hdfs path', 'indicator'");
+    }
     if(!isInitialized()) {
       return null;
     }
-    if(args.size() < 1) {
+
+    String path = (String) args.get(0);
+    String indicator = (String) args.get(1);
+    if(path == null || indicator == null) {
       return null;
     }
-    Object o = args.get(0);
-    if(o == null) {
-      return null;
+
+    Object value;
+    try {
+      Map cachedMap = (Map) objectCache.get(path);
+      LOG.debug("Looking up value from object at path '{}' using indicator {}", path, indicator);
+      value = cachedMap.get(indicator);
+    } catch(ClassCastException e) {
+      throw new ClassCastException(String.format("The object stored in HDFS at '%s' must be serialized in JSON format.", path));
     }
-    if(o instanceof String) {
-      return objectCache.get((String) o);
-    }
-    else {
-      throw new IllegalStateException("Unable to retrieve " + o + " as it is not a path");
-    }
+
+    return value;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void initialize(Context context) {
-    Map<String, Object> config = getConfig(context);
+    Map<String, Object> config = (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG, false)
+            .orElse(new HashMap<>());
+    Map<String, Object> enrichmentGetConfig = (Map<String, Object>) config.getOrDefault(ENRICHMENT_OBJECT_GET_SETTINGS, new HashMap<>());
+    ObjectCacheConfig objectCacheConfig = new ObjectCacheConfig(enrichmentGetConfig);
     objectCache = new ObjectCache();
-    objectCache.initialize(new ObjectCacheConfig(config));
+    objectCache.initialize(objectCacheConfig);
   }
 
   @Override
   public boolean isInitialized() {
     return objectCache != null && objectCache.isInitialized();
   }
-
-  protected Map<String, Object> getConfig(Context context) {
-      return (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG, false).orElse(new HashMap<>());
-    }
 }
