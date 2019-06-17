@@ -35,11 +35,13 @@ export class SensorParserConfig {
   errorWriterNumTasks: number;
   spoutConfig: {};
   stormConfig: {};
+  timestampField: string;
 
   constructor() {
     this.parserConfig = {};
     this.fieldTransformations = [];
     this.spoutConfig = {};
     this.stormConfig = {};
+    this.timestampField = 'timestamp';
   }
 }

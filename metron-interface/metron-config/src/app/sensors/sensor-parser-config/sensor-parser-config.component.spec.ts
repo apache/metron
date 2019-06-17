@@ -583,7 +583,7 @@ describe('Component: SensorParserConfig', () => {
     );
     component.createForms();
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(16);
+    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(17);
     expect(
       Object.keys(component.transformsValidationForm.controls).length
     ).toEqual(2);
@@ -1118,4 +1118,21 @@ describe('Component: SensorParserConfig', () => {
 
     expect(component.showAdvancedParserConfiguration).toEqual(false);
   }));
+
+  it('should be timestamp by default', () => {
+    expect(component.sensorParserConfig.timestampField).toEqual('timestamp');
+  });
+
+  it('should be invalid if timestamp field is empty', () => {
+    component.sensorNameValid = true;
+    component.kafkaTopicValid = true;
+    component.parserClassValid = true;
+    component.grokStatement = 'grokStatement';
+    component.sensorParserConfig = new SensorParserConfig();
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser'
+    component.sensorParserConfig.timestampField = '';
+    expect(component.isConfigValid()).toEqual(false);
+    component.sensorParserConfig.timestampField = 'timestamp';
+    expect(component.isConfigValid()).toEqual(true);
+  });
 });
