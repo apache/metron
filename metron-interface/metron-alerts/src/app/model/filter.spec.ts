@@ -51,8 +51,8 @@ describe('model.Filter', () => {
 
   it('getQueryString for time range filter for display', () => {
     const filter = new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]', true);
-    expect(filter.getQueryString()).toBe('(timestamp:\\[1552863600000\\ TO\\ 1552950000000\\] OR ' +
-      'metron_alert.timestamp:\\[1552863600000\\ TO\\ 1552950000000\\])');
+    expect(filter.getQueryString()).toBe('(timestamp:[1552863600000 TO 1552950000000] OR ' +
+      'metron_alert.timestamp:[1552863600000 TO 1552950000000])');
   });
 
   /**

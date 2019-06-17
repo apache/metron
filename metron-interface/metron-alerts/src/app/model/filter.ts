@@ -44,16 +44,16 @@ export class Filter {
   getQueryString(): string {
     if (this.field === 'guid') {
       let valueWithQuote = '\"' + this.value + '\"';
-      return this.createNestedQueryWithoutValueEscaping(this.field, valueWithQuote);
+      return this.createNestedQuery(this.field, valueWithQuote);
     }
 
     if (this.field === TIMESTAMP_FIELD_NAME && !this.display) {
       this.dateFilterValue = Utils.timeRangeToDateObj(this.value);
       if (this.dateFilterValue !== null && this.dateFilterValue.toDate !== null) {
-        return this.createNestedQueryWithoutValueEscaping(this.field,
+        return this.createNestedQuery(this.field,
             '[' + this.dateFilterValue.fromDate + ' TO ' + this.dateFilterValue.toDate + ']');
       } else {
-        return this.createNestedQueryWithoutValueEscaping(this.field,  this.value);
+        return this.createNestedQuery(this.field,  this.value);
       }
     }
 
@@ -61,15 +61,7 @@ export class Filter {
   }
 
   private createNestedQuery(field: string, value: string): string {
-
-    return '(' + Utils.escapeESField(field) + ':' +  Utils.escapeESValue(value)  + ' OR ' +
-                Utils.escapeESField(this.addPrefix('metron_alert', field)) + ':' +  Utils.escapeESValue(value) + ')';
-  }
-
-  private createNestedQueryWithoutValueEscaping(field: string, value: string): string {
-
-    return '(' + Utils.escapeESField(field) + ':' +  value  + ' OR ' +
-        Utils.escapeESField(this.addPrefix('metron_alert', field)) + ':' +  value + ')';
+    return '(' + field + ':' +  value  + ' OR ' + this.addPrefix('metron_alert', field) + ':' + value + ')';
   }
 
   private addPrefix(prefix: string, field: string): string {
