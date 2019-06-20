@@ -77,6 +77,15 @@ export class QueryBuilder {
 
   addOrUpdateFilter(filter: Filter) {
     let existingFilterIndex = -1;
+
+    // only one timerange filter applicable
+    if (filter.field === TIMESTAMP_FIELD_NAME) {
+      this.removeFilter(filter.field);
+      this._filters.push(filter);
+      this.onSearchChange();
+      return;
+    }
+
     let existingFilter = this._filters.find((tFilter, index) => {
       if (filter.equals(tFilter)) {
         existingFilterIndex = index;
@@ -158,14 +167,19 @@ export class QueryBuilder {
     if (query && query !== '' && query !== '*') {
       let terms = query.split(' AND ');
       for (let term of terms) {
-        let [field, value] = term.split(':');
-        field = field.replace(/\*/, '').trim();
+        let [field, value] = this.splitTerm(term);
+        field = field.replace(/\*/, '').replace(/\:/, '\\:').trim();
         field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
         value = value.trim();
 
         this.addOrUpdateFilter(new Filter(field, value));
       }
     }
+  }
+
+  private splitTerm(term): string[] {
+    const lastIdxOfSeparator = term.lastIndexOf(':');
+    return [ term.substring(0, lastIdxOfSeparator), term.substring(lastIdxOfSeparator + 1) ];
   }
 
   private removeDisplayedFilters() {

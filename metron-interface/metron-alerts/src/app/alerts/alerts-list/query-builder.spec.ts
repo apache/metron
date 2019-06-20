@@ -16,8 +16,12 @@
  * limitations under the License.
  */
 import { QueryBuilder } from './query-builder';
+import { Filter } from 'app/model/filter';
+import { TIMESTAMP_FIELD_NAME } from '../../utils/constants';
+import { Utils } from 'app/utils/utils';
 
-fdescribe('query-builder', () => {
+
+describe('query-builder', () => {
 
   it('should be able to handle multiple filters', () => {
     const queryBuilder = new QueryBuilder();
@@ -67,6 +71,23 @@ fdescribe('query-builder', () => {
     expect(queryBuilder.searchRequest.query).toBe(
       '(-alert_status:(RESOLVE OR DISMISS) OR -metron_alert.alert_status:(RESOLVE OR DISMISS))'
       );
+  });
+
+  it('should allow only one timerange filter', () => {
+    const queryBuilder = new QueryBuilder();
+
+    queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]'));
+    queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863700000 TO 1552960000000]'));
+
+    expect(queryBuilder.generateSelect()).toBe('(timestamp:[1552863700000 TO 1552960000000] OR metron_alert.timestamp:[1552863700000 TO 1552960000000])');
+  });
+
+  it('should escape : chars in ElasticSearch field names', () => {
+    const queryBuilder = new QueryBuilder();
+
+    queryBuilder.setSearch('source:type:bro');
+
+    expect(queryBuilder.searchRequest.query).toBe('(source\\:type:bro OR metron_alert.source\\:type:bro)');
   });
 
 });
