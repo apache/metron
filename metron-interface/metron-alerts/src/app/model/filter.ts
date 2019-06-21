@@ -15,17 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Utils} from '../utils/utils';
-import {TIMESTAMP_FIELD_NAME} from '../utils/constants';
-import {DateFilterValue} from './date-filter-value';
+import { Utils } from '../utils/utils';
+import { TIMESTAMP_FIELD_NAME, GIUD_FIELD_NAME } from '../utils/constants';
+import { DateFilterValue } from './date-filter-value';
 
 export class Filter {
-  field: string;
   value: string;
   display: boolean;
   dateFilterValue: DateFilterValue;
 
-  isExcluding = false;
+  private readonly excludeOperatorRxp = /^-/;
+  private readonly excludeOperator = '-';
+  private isExcluding = false;
+
+  private clearedField: string;
+
+  get field(): string {
+    return this.operatorToAdd() + this.clearedField;
+  }
 
   static fromJSON(objs: Filter[]): Filter[] {
     let filters = [];
@@ -37,41 +44,56 @@ export class Filter {
     return filters;
   }
 
+  toJSON() {
+    return { field: this.field, value: this.value, display: this.display };
+  }
+
   constructor(field: string, value: string, display = true) {
-    this.field = field;
+    const { clearedField, isExcluding } = this.parseFieldString(field);
+
     this.value = value;
     this.display = display;
 
-    const excludeOperatorRxp = /^-/;
-    this.isExcluding = excludeOperatorRxp.test(field);
-    this.field = field.replace(excludeOperatorRxp, '');
+    this.clearedField = clearedField;
+    this.isExcluding = isExcluding;
+  }
+
+  private parseFieldString(field: string): { clearedField: string, isExcluding: boolean } {
+    const isExcluding = this.excludeOperatorRxp.test(field);
+    const clearedField = field.replace(this.excludeOperatorRxp, '');
+
+    return { clearedField, isExcluding };
   }
 
   getQueryString(): string {
-    if (this.field === 'guid') {
+    if (this.clearedField === GIUD_FIELD_NAME) {
       let valueWithQuote = '\"' + this.value + '\"';
-      return this.createNestedQuery(this.field, valueWithQuote);
+      return this.createNestedQuery(this.clearedField, valueWithQuote);
     }
 
-    if (this.field === TIMESTAMP_FIELD_NAME && !this.display) {
+    if (this.clearedField === TIMESTAMP_FIELD_NAME && !this.display) {
       this.dateFilterValue = Utils.timeRangeToDateObj(this.value);
       if (this.dateFilterValue !== null && this.dateFilterValue.toDate !== null) {
-        return this.createNestedQuery(this.field,
+        return this.createNestedQuery(this.clearedField,
             '[' + this.dateFilterValue.fromDate + ' TO ' + this.dateFilterValue.toDate + ']');
       } else {
-        return this.createNestedQuery(this.field,  this.value);
+        return this.createNestedQuery(this.clearedField,  this.value);
       }
     }
 
-    return this.createNestedQuery(this.field, this.value);
+    return this.createNestedQuery(this.clearedField, this.value);
   }
 
   private createNestedQuery(field: string, value: string): string {
-    const operatorToAdd = this.isExcluding ? '-' : '';
-    return operatorToAdd + '(' + field + ':' +  value  + ' OR ' + this.addPrefix('metron_alert', field) + ':' + value + ')';
+    return this.operatorToAdd() + '(' + field + ':' +  value  + ' OR ' +
+      this.addElasticSearchPrefix('metron_alert', field) + ':' + value + ')';
   }
 
-  private addPrefix(prefix: string, field: string): string {
+  private operatorToAdd() {
+    return this.isExcluding ? this.excludeOperator : '';
+  }
+
+  private addElasticSearchPrefix(prefix: string, field: string): string {
     return prefix + '.' + field;
   }
 

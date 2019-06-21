@@ -95,4 +95,14 @@ describe('model.Filter', () => {
     const filter = new Filter('-testField', 'someValue', false);
     expect(filter.getQueryString()).toBe('-(testField:someValue OR metron_alert.testField:someValue)');
   });
+
+  it('toJSON should return with a JSON representation of a Filter', () => {
+    const filter = new Filter('testField', 'someValue', false);
+    expect(filter.toJSON()).toEqual({ field: 'testField', value: 'someValue', display: false });
+  });
+
+  it('toJSON should return with a JSON representation of a Filter, including exclude operator in field value', () => {
+    const filter = new Filter('-testField', 'someValue', false);
+    expect(filter.toJSON()).toEqual({ field: '-testField', value: 'someValue', display: false });
+  });
 });
