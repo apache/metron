@@ -99,7 +99,8 @@ describe('query-builder', () => {
     queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]'));
     queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863700000 TO 1552960000000]'));
 
-    expect(queryBuilder.generateSelect()).toBe('(timestamp:[1552863700000 TO 1552960000000] OR metron_alert.timestamp:[1552863700000 TO 1552960000000])');
+    expect(queryBuilder.generateSelect()).toBe('(timestamp:[1552863700000 TO 1552960000000] OR ' +
+      'metron_alert.timestamp:[1552863700000 TO 1552960000000])');
   });
 
   it('should escape : chars in ElasticSearch field names', () => {
@@ -108,6 +109,15 @@ describe('query-builder', () => {
     queryBuilder.setSearch('source:type:bro');
 
     expect(queryBuilder.searchRequest.query).toBe('(source\\:type:bro OR metron_alert.source\\:type:bro)');
+  });
+
+  it('should escape ALL : chars in ElasticSearch field names', () => {
+    const queryBuilder = new QueryBuilder();
+
+    queryBuilder.setSearch('enrichments:geo:ip_dst_addr:country:US');
+
+    expect(queryBuilder.searchRequest.query).toBe('(enrichments\\:geo\\:ip_dst_addr\\:country:US ' +
+      'OR metron_alert.enrichments\\:geo\\:ip_dst_addr\\:country:US)');
   });
 
   it('should not multiply escaping in field name', () => {

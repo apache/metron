@@ -94,7 +94,7 @@ export class Filter {
   }
 
   private escapingESSpearators(field: string): string {
-    return field.replace(/\:/, '\\:');
+    return field.replace(/\:/g, '\\:');
   }
 
   private operatorToAdd() {
