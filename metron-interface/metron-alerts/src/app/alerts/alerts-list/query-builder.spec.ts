@@ -73,6 +73,16 @@ describe('query-builder', () => {
       );
   });
 
+  it('should properly parse excluding filters event with wildcard and whitespaces', () => {
+    const queryBuilder = new QueryBuilder();
+
+    queryBuilder.setSearch('* -alert_status:(RESOLVE OR DISMISS)');
+
+    expect(queryBuilder.searchRequest.query).toBe(
+      '-(alert_status:(RESOLVE OR DISMISS) OR metron_alert.alert_status:(RESOLVE OR DISMISS))'
+      );
+  });
+
   it('should remove wildcard from an excluding filter', () => {
     const queryBuilder = new QueryBuilder();
 
@@ -95,6 +105,16 @@ describe('query-builder', () => {
   it('should escape : chars in ElasticSearch field names', () => {
     const queryBuilder = new QueryBuilder();
 
+    queryBuilder.setSearch('source:type:bro');
+
+    expect(queryBuilder.searchRequest.query).toBe('(source\\:type:bro OR metron_alert.source\\:type:bro)');
+  });
+
+  it('should not multiply escaping in field name', () => {
+    const queryBuilder = new QueryBuilder();
+
+    queryBuilder.setSearch('source:type:bro');
+    queryBuilder.setSearch('source:type:bro');
     queryBuilder.setSearch('source:type:bro');
 
     expect(queryBuilder.searchRequest.query).toBe('(source\\:type:bro OR metron_alert.source\\:type:bro)');

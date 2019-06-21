@@ -168,7 +168,6 @@ export class QueryBuilder {
       let terms = query.split(' AND ');
       for (let term of terms) {
         let [field, value] = this.splitTerm(term);
-        field = field.replace(/\*/, '').replace(/\:/, '\\:').trim();
         field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
         value = value.trim();
 

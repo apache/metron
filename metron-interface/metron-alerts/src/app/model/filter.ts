@@ -49,7 +49,7 @@ export class Filter {
   }
 
   constructor(field: string, value: string, display = true) {
-    const { clearedField, isExcluding } = this.parseFieldString(field);
+    const { clearedField, isExcluding } = this.parseAndClearField(field);
 
     this.value = value;
     this.display = display;
@@ -58,9 +58,11 @@ export class Filter {
     this.isExcluding = isExcluding;
   }
 
-  private parseFieldString(field: string): { clearedField: string, isExcluding: boolean } {
-    const isExcluding = this.excludeOperatorRxp.test(field);
-    const clearedField = field.replace(this.excludeOperatorRxp, '');
+  private parseAndClearField(field: string): { clearedField: string, isExcluding: boolean } {
+    field = field.replace(/\*/, ''); // removing wildcard caracter
+    field = field.trim(); // removing whitespaces
+    const isExcluding = this.excludeOperatorRxp.test(field); // looking for excluding operator
+    const clearedField = field.replace(this.excludeOperatorRxp, ''); // removing exlude operator
 
     return { clearedField, isExcluding };
   }
@@ -85,8 +87,14 @@ export class Filter {
   }
 
   private createNestedQuery(field: string, value: string): string {
+    field = this.escapingESSpearators(field);
+
     return this.operatorToAdd() + '(' + field + ':' +  value  + ' OR ' +
       this.addElasticSearchPrefix('metron_alert', field) + ':' + value + ')';
+  }
+
+  private escapingESSpearators(field: string): string {
+    return field.replace(/\:/, '\\:');
   }
 
   private operatorToAdd() {
