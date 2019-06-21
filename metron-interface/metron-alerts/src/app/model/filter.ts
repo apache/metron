@@ -25,6 +25,8 @@ export class Filter {
   display: boolean;
   dateFilterValue: DateFilterValue;
 
+  isExcluding = false;
+
   static fromJSON(objs: Filter[]): Filter[] {
     let filters = [];
     if (objs) {
@@ -39,6 +41,10 @@ export class Filter {
     this.field = field;
     this.value = value;
     this.display = display;
+
+    const excludeOperatorRxp = /^-/;
+    this.isExcluding = excludeOperatorRxp.test(field);
+    this.field = field.replace(excludeOperatorRxp, '');
   }
 
   getQueryString(): string {
@@ -61,16 +67,12 @@ export class Filter {
   }
 
   private createNestedQuery(field: string, value: string): string {
-    return '(' + field + ':' +  value  + ' OR ' + this.addPrefix('metron_alert', field) + ':' + value + ')';
+    const operatorToAdd = this.isExcluding ? '-' : '';
+    return operatorToAdd + '(' + field + ':' +  value  + ' OR ' + this.addPrefix('metron_alert', field) + ':' + value + ')';
   }
 
   private addPrefix(prefix: string, field: string): string {
-    const excludeOperatorRxp = /^-/;
-    const isExcluding = excludeOperatorRxp.test(field);
-    const operatorToAdd = isExcluding ? '-' : '';
-    const clearedField = field.replace(excludeOperatorRxp, '');
-
-    return operatorToAdd + prefix + '.' + clearedField;
+    return prefix + '.' + field;
   }
 
   equals(filter: Filter): boolean {

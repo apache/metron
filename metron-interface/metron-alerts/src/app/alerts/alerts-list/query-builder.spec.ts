@@ -39,7 +39,7 @@ describe('query-builder', () => {
     queryBuilder.setSearch('-alert_status:RESOLVE AND -alert_status:DISMISS');
 
     expect(queryBuilder.searchRequest.query).toBe(
-      '(-alert_status:RESOLVE OR -metron_alert.alert_status:RESOLVE) AND (-alert_status:DISMISS OR -metron_alert.alert_status:DISMISS)'
+      '-(alert_status:RESOLVE OR metron_alert.alert_status:RESOLVE) AND -(alert_status:DISMISS OR metron_alert.alert_status:DISMISS)'
       );
   });
 
@@ -66,10 +66,20 @@ describe('query-builder', () => {
   it('should remove wildcard', () => {
     const queryBuilder = new QueryBuilder();
 
+    queryBuilder.setSearch('* alert_status:(RESOLVE OR DISMISS)');
+
+    expect(queryBuilder.searchRequest.query).toBe(
+      '(alert_status:(RESOLVE OR DISMISS) OR metron_alert.alert_status:(RESOLVE OR DISMISS))'
+      );
+  });
+
+  it('should remove wildcard from an excluding filter', () => {
+    const queryBuilder = new QueryBuilder();
+
     queryBuilder.setSearch('* -alert_status:(RESOLVE OR DISMISS)');
 
     expect(queryBuilder.searchRequest.query).toBe(
-      '(-alert_status:(RESOLVE OR DISMISS) OR -metron_alert.alert_status:(RESOLVE OR DISMISS))'
+      '-(alert_status:(RESOLVE OR DISMISS) OR metron_alert.alert_status:(RESOLVE OR DISMISS))'
       );
   });
 

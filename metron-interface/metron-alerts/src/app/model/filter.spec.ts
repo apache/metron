@@ -93,6 +93,6 @@ describe('model.Filter', () => {
 
   it('excluding filtering', () => {
     const filter = new Filter('-testField', 'someValue', false);
-    expect(filter.getQueryString()).toBe('(-testField:someValue OR -metron_alert.testField:someValue)');
+    expect(filter.getQueryString()).toBe('-(testField:someValue OR metron_alert.testField:someValue)');
   });
 });
