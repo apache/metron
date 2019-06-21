@@ -26,17 +26,19 @@ export const ALERTS_SAVED_SEARCH = 'metron-alerts-saved-search';
 export const ALERTS_TABLE_METADATA = 'metron-alerts-table-metadata';
 export const ALERTS_COLUMN_NAMES = 'metron-alerts-column-names';
 
-export let TIMESTAMP_FIELD_NAME = 'timestamp';
-export let ALL_TIME = 'all-time';
+export const TIMESTAMP_FIELD_NAME = 'timestamp';
+export const GIUD_FIELD_NAME = 'guid';
 
-export let DEFAULT_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH:mm:ss';
-export let CUSTOMM_DATE_RANGE_LABEL = 'Date Range';
+export const ALL_TIME = 'all-time';
 
-export let TREE_SUB_GROUP_SIZE = 5;
-export let INDEXES =  environment.indices ? environment.indices.split(',') : [];
-export let POLLING_DEFAULT_STATE = !environment.defaultPollingState;
+export const DEFAULT_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+export const CUSTOMM_DATE_RANGE_LABEL = 'Date Range';
 
-export let MAX_ALERTS_IN_META_ALERTS = 350;
+export const TREE_SUB_GROUP_SIZE = 5;
+export const INDEXES =  environment.indices ? environment.indices.split(',') : [];
+export const POLLING_DEFAULT_STATE = !environment.defaultPollingState;
+
+export const MAX_ALERTS_IN_META_ALERTS = 350;
 
 export const DEFAULT_END_TIME = new Date();
 export const DEFAULT_START_TIME = new Date().setDate(DEFAULT_END_TIME.getDate() - 5);
