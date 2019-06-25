@@ -135,7 +135,7 @@
                   "subsections": [
                     {
                       "name": "subsection-enrichment-unified",
-                      "display-name": "Unified Topology",
+                      "display-name": "Topology",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
