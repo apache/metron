@@ -19,22 +19,20 @@
 package org.apache.metron.stellar.dsl.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.stellar.common.utils.JSONUtils;
-import org.apache.metron.stellar.dsl.BaseStellarFunction;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.JSONUtils;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
 
 public class StringFunctions {
 
@@ -133,15 +131,15 @@ public class StringFunctions {
   }
 
   @Stellar( name="JOIN"
-          , description="Joins the components in the list of strings with the specified delimiter."
-          , params = { "list - List of strings", "delim - String delimiter"}
+          , description="Joins the non-null items in the iterable as strings with the specified delimiter. Null items are dropped."
+          , params = { "iterable - Java iterable (e.g. List, LinkedHashSet, etc.) of items treated as strings", "delim - String delimiter"}
           , returns = "String"
           )
   public static class JoinFunction extends BaseStellarFunction {
     @Override
     @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
-      List<Object> arg1 = (List<Object>) args.get(0);
+      Iterable<Object> arg1 = (Iterable<Object>) args.get(0);
       String delim = (String) args.get(1);
       return Joiner.on(delim).join(Iterables.filter(arg1, x -> x != null));
     }

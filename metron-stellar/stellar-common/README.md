@@ -702,9 +702,9 @@ Where:
   * Returns: True if the string is a valid URL and false if otherwise.
 
 ### `JOIN`
-  * Description: Joins the components in the list of strings with the specified delimiter.
+  * Description: Joins the non-null items in the iterable as strings with the specified delimiter. Null items are dropped.
   * Input:
-    * list - List of strings
+    * iterable - Java iterable (e.g. List, LinkedHashSet, etc.) of items treated as strings
     * delim - String delimiter
   * Returns: String
 
@@ -1534,7 +1534,7 @@ operating system.
 
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.7.1-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.7.2-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1544,7 +1544,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.7.1-uber.jar
+    └── stellar-common-0.7.2-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:

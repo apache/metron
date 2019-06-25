@@ -21,9 +21,16 @@ import java.util.Arrays;
 
 public class TopologySummary {
 
-    private TopologyStatus[] topologies;
+  private TopologyStatus[] topologies;
 
-    public TopologyStatus[] getTopologies() {
+  public TopologySummary() {
+  }
+
+  public TopologySummary(TopologyStatus[] topologies) {
+    this.topologies = topologies;
+  }
+
+  public TopologyStatus[] getTopologies() {
         if (topologies == null) {
             return new TopologyStatus[0];
         }

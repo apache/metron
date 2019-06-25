@@ -34,6 +34,7 @@ $dialog-4x-width: 1340px;
   z-index: 9;
 
   background: $edit-child-background;
+  border-left: 1px solid $edit-background-border;
 
   .close-button
   {

@@ -22,6 +22,7 @@ limitations under the License.
 - [Cypress Tests](#cypress-tests)
 - [Mpack Integration](#mpack-integration)
 - [Installing on an existing Cluster](#installing-on-an-existing-cluster)
+- [Click Through Navigation feature](#click-through-navigation-feature)
 
 ## Caveats
 ### Local Storage
@@ -210,3 +211,6 @@ From the dashboard, you'll be able to run tests separately and reach additional 
 
 If you like to learn more about Cypress based tests please visit [Cypress.io](http://cypress.io).
 You can find more information about debuggin in this [section of the official documentation](https://docs.cypress.io/guides/guides/debugging.html#Using-debugger).
+
+## Click Through Navigation feature
+Click Through Navigation is a feature helps users to integrate Metron Alerts UI with other services. You can find more on this on the following [page](./src/app/shared/context-menu/README.md).
