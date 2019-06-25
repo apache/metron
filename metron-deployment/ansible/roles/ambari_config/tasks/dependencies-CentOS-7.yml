@@ -26,6 +26,7 @@
 #     version: 2.22.0
 
 - name: Install Ambari dependencies
+  yum: name={{item}}
   with_items:
       - python-urllib3
       - python-requests
