@@ -19,6 +19,11 @@ limitations under the License.
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
+## 0.7.1 to 0.7.2
+
+### [METRON-2164: Remove the Split-Join Enrichment Topology](https://issues.apache.org/jira/browse/METRON-2164)
+The Split-Join Enrichment topology has been deprecated since November 2018. Metron has defaulted to using the Unified Enrichment topology since that time. All users of the Split-Join Enrichment topology should migrate to the Unified Enrichment topology. Both topologies provide equivalent functionality.
+
 ## 0.7.0 to 0.7.1
 
 ### [METRON-2100: Update developer documentation for full dev management UI parser aggregation feature gap](https://issues.apache.org/jira/browse/METRON-2100)
