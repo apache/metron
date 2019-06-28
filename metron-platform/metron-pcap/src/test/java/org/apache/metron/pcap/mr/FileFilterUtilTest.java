@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.hadoop.fs.Path;
-import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.utils.FileFilterUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -108,43 +107,51 @@ public class FileFilterUtilTest {
 
   @Test
   public void test_getPaths_leftEdge() throws Exception {
+    final long firstFileTSNanos = 1461589332993573000L;
+    final long secondFileTSNanos = 1561589332993573000L;
     final List<Path> inputFiles = new ArrayList<Path>() {{
-      add(new Path("/apps/metron/pcap/pcap_pcap_1461589332993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
-      add(new Path("/apps/metron/pcap/pcap_pcap_1561589332993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+      add(new Path("/apps/metron/pcap/pcap_pcap_" + firstFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+      add(new Path("/apps/metron/pcap/pcap_pcap_" + secondFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
     }};
-    Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(0, TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis()), inputFiles);
+    Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(0, secondFileTSNanos - 1L, inputFiles);
     Assert.assertEquals(1, Iterables.size(paths));
   }
 
   @Test
   public void test_getPaths_rightEdge() throws Exception {
+    final long firstFileTSNanos = 1461589332993573000L;
+    final long secondFileTSNanos = 1461589333993573000L;
+    final long thirdFileTSNanos = 1461589334993573000L;
     {
       final List<Path> inputFiles = new ArrayList<Path>() {{
-        add(new Path("/apps/metron/pcap/pcap0_pcap_1461589332993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
-        add(new Path("/apps/metron/pcap/pcap1_pcap_1461589333993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+        add(new Path("/apps/metron/pcap/pcap0_pcap_" + firstFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+        add(new Path("/apps/metron/pcap/pcap1_pcap_" + secondFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
       }};
-      Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(1461589333993573000L - 1L, 1461589333993573000L + 1L, inputFiles);
+      Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(secondFileTSNanos - 1L, secondFileTSNanos + 1L, inputFiles);
       Assert.assertEquals(2, Iterables.size(paths));
     }
     {
       final List<Path> inputFiles = new ArrayList<Path>() {{
-        add(new Path("/apps/metron/pcap/pcap0_pcap_1461589332993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
-        add(new Path("/apps/metron/pcap/pcap1_pcap_1461589333993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
-        add(new Path("/apps/metron/pcap/pcap1_pcap_1461589334993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+        add(new Path("/apps/metron/pcap/pcap0_pcap_" + firstFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+        add(new Path("/apps/metron/pcap/pcap1_pcap_" + secondFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+        add(new Path("/apps/metron/pcap/pcap1_pcap_" + thirdFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
       }};
-      Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(1461589334993573000L - 1L, 1461589334993573000L + 1L, inputFiles);
+      Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(thirdFileTSNanos - 1L, thirdFileTSNanos + 1L, inputFiles);
       Assert.assertEquals(2, Iterables.size(paths));
     }
   }
 
   @Test
   public void test_getPaths_bothEdges() throws Exception {
+    final long firstFileTSNanos = 1461589332993573000L;
+    final long secondFileTSNanos = 1461589333993573000L;
+    final long thirdFileTSNanos = 1461589334993573000L;
     final List<Path> inputFiles = new ArrayList<Path>() {{
-      add(new Path("/apps/metron/pcap/pcap_pcap_1461589332993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
-      add(new Path("/apps/metron/pcap/pcap_pcap_1461589333993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
-      add(new Path("/apps/metron/pcap/pcap1_pcap_1461589334993573000_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+      add(new Path("/apps/metron/pcap/pcap_pcap_" + firstFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+      add(new Path("/apps/metron/pcap/pcap_pcap_" + secondFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
+      add(new Path("/apps/metron/pcap/pcap1_pcap_" + thirdFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
     }};
-    Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(0, TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis()), inputFiles);
+    Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(0, thirdFileTSNanos + 1L, inputFiles);
     Assert.assertEquals(3, Iterables.size(paths));
   }
 }
