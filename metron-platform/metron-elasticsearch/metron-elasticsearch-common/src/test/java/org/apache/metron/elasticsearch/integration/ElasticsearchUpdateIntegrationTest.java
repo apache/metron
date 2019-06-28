@@ -19,9 +19,15 @@ package org.apache.metron.elasticsearch.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Iterables;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.nio.entity.NStringEntity;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.elasticsearch.client.ElasticsearchClient;
+import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
@@ -29,17 +35,21 @@ import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.integration.UnableToStartException;
+import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.client.Response;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -55,10 +65,26 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   private static final String TABLE_NAME = "modifications";
   private static final String CF = "p";
   private static MockHTable table;
-  private static IndexDao hbaseDao;
   private static IndexDao elasticsearchDao;
   private static AccessConfig accessConfig;
   private static Map<String, Object> globalConfig;
+
+  /**
+   * {
+   *   "template": "test*",
+   *   "mappings": {
+   *     "test_doc": {
+   *       "properties": {
+   *         "guid": {
+   *           "type": "keyword"
+   *         }
+   *       }
+   *     }
+   *   }
+   * }
+   */
+  @Multiline
+  private static String indexTemplate;
 
   @Override
   protected String getIndexName() {
@@ -90,15 +116,16 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
             .withAccessConfig(accessConfig)
             .build();
     es.start();
+
+    installIndexTemplate();
   }
 
   @Before
   public void setup() {
-    hbaseDao = new HBaseDao();
-    elasticsearchDao = new ElasticsearchDao();
-    MultiIndexDao dao = new MultiIndexDao(hbaseDao, elasticsearchDao);
-    dao.init(accessConfig);
-    setDao(dao);
+    elasticsearchDao = new ElasticsearchDao()
+            .withRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
+    elasticsearchDao.init(accessConfig);
+    setDao(elasticsearchDao);
   }
 
   @After
@@ -136,5 +163,21 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   @Override
   protected MockHTable getMockHTable() {
     return table;
+  }
+
+  /**
+   * Install the index template to ensure that "guid" is of type "keyword". The
+   * {@link org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao} cannot find
+   * documents if the type is not "keyword".
+   *
+   * See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/query-dsl-term-query.html
+   */
+  private static void installIndexTemplate() throws IOException {
+    HttpEntity broEntity = new NStringEntity(indexTemplate, ContentType.APPLICATION_JSON);
+    ElasticsearchClient client = ElasticsearchClientFactory.create(globalConfig);
+    Response response = client
+            .getLowLevelClient()
+            .performRequest("PUT", "/_template/test_template", Collections.emptyMap(), broEntity);
+    Assert.assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.equalTo(200));
   }
 }
