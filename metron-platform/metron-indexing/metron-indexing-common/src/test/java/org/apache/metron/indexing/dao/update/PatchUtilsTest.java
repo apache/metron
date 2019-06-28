@@ -92,6 +92,29 @@ public class PatchUtilsTest {
   }
 
   @Test
+  public void copyOperationShouldCopyNestedValue() {
+    List<Map<String, Object>> patches = new ArrayList<>();
+    patches.add(new HashMap<String, Object>() {{
+      put(PatchUtils.OP, PatchOperation.COPY.name());
+      put(PatchUtils.FROM, "/nested/from");
+      put(PatchUtils.PATH, "/nested/path");
+    }});
+
+    Map<String, Object> expected = new HashMap<String, Object>() {{
+      put("nested", new HashMap<String, Object>() {{
+        put("from", "value");
+        put("path", "value");
+      }});
+    }};
+
+    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+      put("nested", new HashMap<String, Object>() {{
+        put("from", "value");
+      }});
+    }}));
+  }
+
+  @Test
   public void moveOperationShouldMoveValue() {
     List<Map<String, Object>> patches = new ArrayList<>();
     patches.add(new HashMap<String, Object>() {{
