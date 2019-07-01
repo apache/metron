@@ -90,7 +90,7 @@ export class Filter {
     field = this.escapingESSpearators(field);
 
     return this.operatorToAdd() + '(' + field + ':' +  value  + ' OR ' +
-      this.addElasticSearchPrefix('metron_alert', field) + ':' + value + ')';
+      this.addMetaAlertPrefix('metron_alert', field) + ':' + value + ')';
   }
 
   private escapingESSpearators(field: string): string {
@@ -101,7 +101,7 @@ export class Filter {
     return this.isExcluding ? this.excludeOperator : '';
   }
 
-  private addElasticSearchPrefix(prefix: string, field: string): string {
+  private addMetaAlertPrefix(prefix: string, field: string): string {
     return prefix + '.' + field;
   }
 
