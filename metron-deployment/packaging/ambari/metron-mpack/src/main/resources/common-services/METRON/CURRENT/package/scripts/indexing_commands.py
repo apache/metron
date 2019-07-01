@@ -205,9 +205,9 @@ class IndexingCommands:
         Logger.info("Installing Solr schemas")
         if self.__params.security_enabled:
             metron_security.kinit(self.__params.kinit_path_local,
-                                  self.__params.solr_keytab_path,
-                                  self.__params.solr_principal_name,
-                                  self.__params.solr_user)
+                                  self.__params.metron_keytab_path,
+                                  self.__params.metron_principal_name,
+                                  execute_user=self.__params.metron_user)
 
         try:
             commands = IndexingCommands(params)
@@ -221,7 +221,7 @@ class IndexingCommands:
 
                 Execute(
                 cmd.format(params.metron_home, collection_name),
-                user=self.__params.solr_user)
+                user=self.__params.metron_user)
             return True
 
         except Exception as e:
@@ -236,9 +236,9 @@ class IndexingCommands:
         Logger.info("Deleting Solr schemas")
         if self.__params.security_enabled:
             metron_security.kinit(self.__params.kinit_path_local,
-                                  self.__params.solr_keytab_path,
-                                  self.__params.solr_principal_name,
-                                  self.__params.solr_user)
+                                  self.__params.metron_keytab_path,
+                                  self.__params.metron_principal_name,
+                                  execute_user=self.__params.metron_user)
 
         commands = IndexingCommands(params)
         for collection_name in commands.get_solr_schemas():
@@ -251,7 +251,7 @@ class IndexingCommands:
 
             Execute(
                 cmd.format(params.metron_home, collection_name),
-                user=self.__params.solr_user)
+                user=self.__params.metron_user)
 
     def start_batch_indexing_topology(self, env):
         Logger.info('Starting ' + self.__batch_indexing_topology)
