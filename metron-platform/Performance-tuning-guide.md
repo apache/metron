@@ -188,15 +188,14 @@ See more detail on starting parsers [here](https://github.com/apache/metron/blob
 
 **Enrichment**
 
-__Note__ These recommendations are based on the deprecated split-join enrichment topology. See [Enrichment Performance](metron-enrichment/Performance.md) for tuning recommendations for the new default unified enrichment topology.
+See [Enrichment Performance](metron-enrichment/Performance.md) for tuning recommendations for the enrichment topology.
 
 This is a mapping of the various performance tuning properties for enrichments and how they are materialized.
 
-Flux file found here - $METRON_HOME/flux/enrichment/remote-splitjoin.yaml
+Flux file found here - $METRON_HOME/flux/enrichment/remote.yaml
 
 _Note 1:_ Changes to Flux file properties that are managed by Ambari will render Ambari unable to further manage the property.
 
-_Note 2:_ Many of these settings will be irrelevant in the alternate non-split-join topology
 
 | Category                    | Ambari Property Name                       | enrichment.properties property                         | Flux Property                                          | Flux Section Location               | Storm Property Name             | Notes                                  |
 |-----------------------------|--------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|-------------------------------------|---------------------------------|----------------------------------------|
@@ -209,11 +208,6 @@ _Note 2:_ Many of these settings will be irrelevant in the alternate non-split-j
 |                             | n/a                                        | n/a                                                    | setPollTimeoutMs                                       | line 230, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
 |                             | n/a                                        | n/a                                                    | setMaxUncommittedOffsets                               | line 230, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
 |                             | n/a                                        | n/a                                                    | setOffsetCommitPeriodMs                                | line 230, id: kafkaConfig           | n/a                             | Kafka consumer client property         |
-| Enrichment splitter         | enrichment_split_parallelism               | enrichment.split.parallelism                           | parallelism                                            | line 253, id: enrichmentSplitBolt   | n/a                             |                                        |
-| Enrichment joiner           | enrichment_join_parallelism                | enrichment.join.parallelism                            | parallelism                                            | line 316, id: enrichmentJoinBolt    | n/a                             |                                        |
-| Threat intel splitter       | threat_intel_split_parallelism             | threat.intel.split.parallelism                         | parallelism                                            | line 338, id: threatIntelSplitBolt  | n/a                             |                                        |
-| Threat intel joiner         | threat_intel_join_parallelism              | threat.intel.join.parallelism                          | parallelism                                            | line 376, id: threatIntelJoinBolt   | n/a                             |                                        |
-| Output bolt                 | kafka_writer_parallelism                   | kafka.writer.parallelism                               | parallelism                                            | line 397, id: outputBolt            | n/a                             |                                        |
 
 When adding Kafka spout properties, there are 3 ways you'll do this.
 

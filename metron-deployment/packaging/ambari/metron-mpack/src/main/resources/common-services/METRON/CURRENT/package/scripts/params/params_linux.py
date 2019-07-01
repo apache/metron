@@ -345,18 +345,6 @@ enrichment_topology_worker_childopts += config['configurations']['metron-enrichm
 enrichment_topology_max_spout_pending = config['configurations']['metron-enrichment-env']['enrichment_topology_max_spout_pending']
 enrichment_topology = config['configurations']['metron-enrichment-env']['enrichment_topology']
 
-# Enrichment - Split Join topology
-enrichment_join_cache_size = config['configurations']['metron-enrichment-env']['enrichment_join_cache_size']
-threatintel_join_cache_size = config['configurations']['metron-enrichment-env']['threatintel_join_cache_size']
-enrichment_kafka_spout_parallelism = config['configurations']['metron-enrichment-env']['enrichment_kafka_spout_parallelism']
-enrichment_split_parallelism = config['configurations']['metron-enrichment-env']['enrichment_split_parallelism']
-enrichment_stellar_parallelism = config['configurations']['metron-enrichment-env']['enrichment_stellar_parallelism']
-enrichment_join_parallelism = config['configurations']['metron-enrichment-env']['enrichment_join_parallelism']
-threat_intel_split_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_split_parallelism']
-threat_intel_stellar_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_stellar_parallelism']
-threat_intel_join_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_join_parallelism']
-kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['kafka_writer_parallelism']
-
 # Enrichment - Unified topology
 unified_kafka_spout_parallelism = config['configurations']['metron-enrichment-env']['unified_kafka_spout_parallelism']
 unified_enrichment_parallelism = config['configurations']['metron-enrichment-env']['unified_enrichment_parallelism']
