@@ -17,7 +17,6 @@
  */
 package org.apache.metron.indexing.dao.update;
 
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
 
 import java.io.IOException;
@@ -95,7 +94,7 @@ public interface UpdateDao {
       }
     }
 
-    Map<String, Object> patchedSource = JSONUtils.INSTANCE.applyPatch(request.getPatch(), originalSource);
+    Map<String, Object> patchedSource = PatchUtils.INSTANCE.applyPatch(request.getPatch(), originalSource);
     return new Document(patchedSource, guid, sensorType, timestamp, documentID);
   }
 }
