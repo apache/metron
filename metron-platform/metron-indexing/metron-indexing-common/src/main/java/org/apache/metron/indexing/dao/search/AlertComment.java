@@ -41,8 +41,13 @@ public class AlertComment {
     this.timestamp = timestamp;
   }
 
-  public AlertComment(String json) throws ParseException {
-    JSONObject parsed = (JSONObject) parser.parse(json);
+  public AlertComment(String json) {
+    JSONObject parsed;
+    try {
+      parsed = (JSONObject) parser.parse(json);
+    } catch(ParseException e) {
+      throw new IllegalArgumentException(String.format("Failed to parse; json=%s", json), e);
+    }
     this.comment = (String) parsed.get(COMMENT_FIELD);
     this.username = (String) parsed.get(COMMENT_USERNAME_FIELD);
     this.timestamp = (long) parsed.get(COMMENT_TIMESTAMP_FIELD);

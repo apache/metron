@@ -46,17 +46,18 @@ public class SolrRetrieveLatestDao implements RetrieveLatestDao {
 
   private transient SolrClient client;
   private AccessConfig config;
+  private SolrDocumentBuilder documentBuilder;
 
   public SolrRetrieveLatestDao(SolrClient client, AccessConfig config) {
     this.client = client;
     this.config = config;
+    this.documentBuilder = new SolrDocumentBuilder();
   }
 
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
     try {
-      Optional<String> index = SolrUtilities
-          .getIndex(config.getIndexSupplier(), sensorType, Optional.empty());
+      Optional<String> index = SolrUtilities.getIndex(config.getIndexSupplier(), sensorType, Optional.empty());
       if (!index.isPresent()) {
         LOG.debug("Unable to find index for sensorType {}", sensorType);
         return null;
@@ -67,7 +68,8 @@ public class SolrRetrieveLatestDao implements RetrieveLatestDao {
         LOG.debug("Unable to find document for sensorType {} and guid {}", sensorType, guid);
         return null;
       }
-      return SolrUtilities.toDocument(solrDocument);
+      return documentBuilder.toDocument(solrDocument);
+
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
@@ -90,10 +92,13 @@ public class SolrRetrieveLatestDao implements RetrieveLatestDao {
     try {
       List<Document> documents = new ArrayList<>();
       for (String collection : collectionIdMap.keySet()) {
-        SolrDocumentList solrDocumentList = client.getById(collectionIdMap.get(collection),
-            new SolrQuery().set("collection", collection));
-        documents.addAll(
-            solrDocumentList.stream().map(SolrUtilities::toDocument).collect(Collectors.toList()));
+        Collection<String> ids = collectionIdMap.get(collection);
+        SolrDocumentList solrDocuments = client.getById(ids, new SolrQuery().set("collection", collection));
+
+        for(SolrDocument solrDocument: solrDocuments) {
+          Document doc = documentBuilder.toDocument(solrDocument);
+          documents.add(doc);
+        }
       }
       return documents;
     } catch (SolrServerException e) {

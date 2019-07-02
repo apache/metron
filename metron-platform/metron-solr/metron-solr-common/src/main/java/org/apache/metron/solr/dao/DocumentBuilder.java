@@ -15,34 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.solr.dao;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.HashMap;
-import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.solr.common.SolrDocument;
-import org.junit.Test;
 
-public class SolrUtilitiesTest {
+/**
+ * Responsible for building and deconstructing a {@link Document}
+ * from an intermediate form.
+ */
+public interface DocumentBuilder<T> {
 
-  @Test
-  public void toDocumentShouldProperlyReturnDocument() throws Exception {
-    SolrDocument solrDocument = new SolrDocument();
-    solrDocument.addField(SolrDao.VERSION_FIELD, 1.0);
-    solrDocument.addField(Constants.GUID, "guid");
-    solrDocument.addField(Constants.SENSOR_TYPE, "bro");
-    solrDocument.addField("field", "value");
+  /**
+   * Builds a {@link Document} from the source document.
+   *
+   * @param sourceDocument The source document.
+   * @return A {@link Document}.
+   */
+  Document toDocument(T sourceDocument);
 
-    Document expectedDocument = new Document(new HashMap<String, Object>() {{
-      put("field", "value");
-      put(Constants.GUID, "guid");
-      put(Constants.SENSOR_TYPE, "bro");
-    }}, "guid", "bro", 0L);
-
-    Document actualDocument = SolrUtilities.toDocument(solrDocument);
-    assertEquals(expectedDocument, actualDocument);
-  }
+  /**
+   * Deconstructs a {@link Document} into the alternate intermediate form.
+   *
+   * @param document The document to deconstruct.
+   * @return The alternate, intermediate document form.
+   */
+  T fromDocument(Document document);
 }

@@ -18,6 +18,7 @@
 package org.apache.metron.indexing.dao.update;
 
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
+import org.apache.metron.indexing.dao.search.AlertComment;
 
 import java.io.IOException;
 import java.util.Map;
@@ -52,9 +53,51 @@ public interface UpdateDao {
 
   Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException;
 
-  Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException;
+  /**
+   * Add a comment to an alert.
+   *
+   * @param request The request to add a comment.
+   * @param alert The document representing the alert.
+   * @return The updated alert document.
+   * @throws IOException
+   */
+  default Document addCommentToAlert(CommentAddRemoveRequest request, Document alert) throws IOException {
+    if (alert == null || alert.getDocument() == null) {
+      throw new IOException(format("Unable to add comment. Document with guid %s cannot be found.", request.getGuid()));
+    }
 
-  Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest) throws IOException;
+    AlertComment toAdd = new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp());
+    Document updatedDocument = new Document(alert);
+    updatedDocument.addComment(toAdd);
+
+    // persist the changes
+    return update(updatedDocument, Optional.empty());
+  }
+
+  /**
+   * Remove a comment from an alert.
+   *
+   * @param request The request to remove a comment.
+   * @param alert The document representing the alert.
+   * @return The updated alert document.
+   * @throws IOException
+   */
+  default Document removeCommentFromAlert(CommentAddRemoveRequest request, Document alert) throws IOException {
+    if (alert == null || alert.getDocument() == null) {
+      throw new IOException(format("Unable to remove comment. Document with guid %s cannot be found.", request.getGuid()));
+    }
+
+    // remove the comment from the existing comments
+    AlertComment toRemove = new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp());
+    Document updatedDocument = new Document(alert);
+    boolean wasRemoved = updatedDocument.removeComment(toRemove);
+    if(!wasRemoved) {
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.", request.getGuid()));
+    }
+
+    // persist the changes
+    return update(updatedDocument, Optional.empty());
+  }
 
   /**
    * Update a document in an index given a JSON Patch (see RFC 6902 at

@@ -17,24 +17,6 @@
  */
 package org.apache.metron.solr.dao;
 
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
-import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.spy;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
@@ -57,6 +39,25 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.spy;
 
 /**
  * This class contains tests specific to the SolrUpdateDao implementation.  It also returns the SolrUpdateDao
@@ -113,7 +114,6 @@ public class SolrUpdateDaoTest extends UpdateDaoTest {
     solrUpdateDao.update(document, Optional.empty());
 
     verify(client).add(eq("bro"), argThat(new SolrInputDocumentMatcher(solrInputDocument)));
-
   }
 
   @Test
@@ -149,13 +149,14 @@ public class SolrUpdateDaoTest extends UpdateDaoTest {
     SolrInputDocument broSolrInputDocument1 = new SolrInputDocument();
     broSolrInputDocument1.addField("broField1", "value");
     broSolrInputDocument1.addField("guid", "broGuid1");
+
     SolrInputDocument broSolrInputDocument2 = new SolrInputDocument();
     broSolrInputDocument2.addField("broField2", "value");
     broSolrInputDocument2.addField("guid", "broGuid2");
 
     solrUpdateDao.batchUpdate(updates);
-
-    verify(client).add(eq("bro"), argThat(new SolrInputDocumentListMatcher(Arrays.asList(broSolrInputDocument1, broSolrInputDocument2))));
+    verify(client).add(eq("bro"), argThat(new SolrInputDocumentMatcher(broSolrInputDocument1)));
+    verify(client).add(eq("bro"), argThat(new SolrInputDocumentMatcher(broSolrInputDocument2)));
   }
 
   @Test
@@ -182,30 +183,8 @@ public class SolrUpdateDaoTest extends UpdateDaoTest {
     snortSolrInputDocument2.addField("guid", "snortGuid2");
 
     solrUpdateDao.batchUpdate(updates);
-
-    verify(client).add(eq("snort"), argThat(new SolrInputDocumentListMatcher(Arrays.asList(snortSolrInputDocument1, snortSolrInputDocument2))));
-  }
-
-  @Test
-  public void testConvertCommentsToRaw() {
-    List<Map<String, Object>> commentList = new ArrayList<>();
-    Map<String, Object> comments = new HashMap<>();
-    comments.put("comment", "test comment");
-    comments.put("username", "test username");
-    comments.put("timestamp", 1526424323279L);
-    commentList.add(comments);
-
-    Map<String, Object> document = new HashMap<>();
-    document.put("testField", "testValue");
-    document.put(COMMENTS_FIELD, commentList);
-    solrUpdateDao.convertCommentsToRaw(document);
-
-    @SuppressWarnings("unchecked")
-    List<String> actualComments = (List<String>) document.get(COMMENTS_FIELD);
-    String expectedComment = "{\"comment\":\"test comment\",\"username\":\"test username\",\"timestamp\":1526424323279}";
-    assertEquals(expectedComment, actualComments.get(0));
-    assertEquals(1, actualComments.size());
-    assertEquals("testValue", document.get("testField"));
+    verify(client).add(eq("snort"), argThat(new SolrInputDocumentMatcher(snortSolrInputDocument1)));
+    verify(client).add(eq("snort"), argThat(new SolrInputDocumentMatcher(snortSolrInputDocument2)));
   }
 
   @Test
