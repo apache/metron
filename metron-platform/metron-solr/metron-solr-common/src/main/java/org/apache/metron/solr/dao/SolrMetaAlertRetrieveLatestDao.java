@@ -18,10 +18,6 @@
 
 package org.apache.metron.solr.dao;
 
-import static org.apache.metron.solr.dao.SolrMetaAlertDao.METAALERTS_COLLECTION;
-
-import java.io.IOException;
-import java.util.List;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
@@ -33,15 +29,21 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 
-public class SolrMetaAlertRetrieveLatestDao implements
-    MetaAlertRetrieveLatestDao {
+import java.io.IOException;
+import java.util.List;
+
+import static org.apache.metron.solr.dao.SolrMetaAlertDao.METAALERTS_COLLECTION;
+
+public class SolrMetaAlertRetrieveLatestDao implements MetaAlertRetrieveLatestDao {
 
   private SolrDao solrDao;
   private SolrClient solrClient;
+  private SolrDocumentBuilder documentBuilder;
 
   public SolrMetaAlertRetrieveLatestDao(SolrClient client, SolrDao solrDao) {
     this.solrClient = client;
     this.solrDao = solrDao;
+    this.documentBuilder = new SolrDocumentBuilder();
   }
 
   @Override
@@ -59,8 +61,8 @@ public class SolrMetaAlertRetrieveLatestDao implements
         // GUID is unique, so it's definitely the first result
         if (response.getResults().size() == 1) {
           SolrDocument result = response.getResults().get(0);
+          return documentBuilder.toDocument(result);
 
-          return SolrUtilities.toDocument(result);
         } else {
           return null;
         }

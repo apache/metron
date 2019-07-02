@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -84,10 +86,12 @@ public class SolrSearchDaoTest {
   private AccessConfig accessConfig;
   private SolrSearchDao solrSearchDao;
   private SolrRetrieveLatestDao solrRetrieveLatestDao;
+  private SolrDocumentBuilder documentBuilder;
 
   @SuppressWarnings("unchecked")
   @Before
   public void setUp() throws Exception {
+    documentBuilder = new SolrDocumentBuilder();
     client = mock(SolrClient.class);
     accessConfig = mock(AccessConfig.class);
     when(accessConfig.getIndexSupplier()).thenReturn(sensorType -> sensorType);
@@ -219,11 +223,11 @@ public class SolrSearchDaoTest {
 
   @Test
   public void getLatestShouldProperlyReturnDocument() throws Exception {
-    SolrDocument solrDocument = mock(SolrDocument.class);
+    SolrDocument solrDocument = createSolrDocument("bro", 123456789L);
 
     solrSearchDao = spy(new SolrSearchDao(client, accessConfig));
     when(client.getById("collection", "guid")).thenReturn(solrDocument);
-    Document document = SolrUtilities.toDocument(solrDocument);
+    Document document = documentBuilder.toDocument(solrDocument);
 
     assertEquals(document, solrRetrieveLatestDao.getLatest("guid", "collection"));
 
@@ -237,14 +241,14 @@ public class SolrSearchDaoTest {
     GetRequest broRequest2 = new GetRequest("bro-2", "bro");
     GetRequest snortRequest1 = new GetRequest("snort-1", "snort");
     GetRequest snortRequest2 = new GetRequest("snort-2", "snort");
-    SolrDocument broSolrDoc1 = mock(SolrDocument.class);
-    SolrDocument broSolrDoc2 = mock(SolrDocument.class);
-    SolrDocument snortSolrDoc1 = mock(SolrDocument.class);
-    SolrDocument snortSolrDoc2 = mock(SolrDocument.class);
-    Document broDoc1 = SolrUtilities.toDocument(broSolrDoc1);
-    Document broDoc2 = SolrUtilities.toDocument(broSolrDoc2);
-    Document snortDoc1 = SolrUtilities.toDocument(snortSolrDoc1);
-    Document snortDoc2 = SolrUtilities.toDocument(snortSolrDoc2);
+    SolrDocument broSolrDoc1 = createSolrDocument("bro", 12345L);
+    SolrDocument broSolrDoc2 = createSolrDocument("bro", 34567L);
+    SolrDocument snortSolrDoc1 = createSolrDocument("snort", 12345L);
+    SolrDocument snortSolrDoc2 = createSolrDocument("snort", 67890L);
+    Document broDoc1 = documentBuilder.toDocument(broSolrDoc1);
+    Document broDoc2 = documentBuilder.toDocument(broSolrDoc2);
+    Document snortDoc1 = documentBuilder.toDocument(snortSolrDoc1);
+    Document snortDoc2 = documentBuilder.toDocument(snortSolrDoc2);
 
     solrSearchDao = spy(new SolrSearchDao(client, accessConfig));
     SolrDocumentList broList = new SolrDocumentList();
@@ -510,5 +514,13 @@ public class SolrSearchDaoTest {
     assertNull(level2GroupResults.get(1).getGroupResults());
   }
 
-
+  private SolrDocument createSolrDocument(String sensorType, Long timestamp) {
+    SolrDocument solrDocument = new SolrDocument();
+    solrDocument.addField(SolrDao.VERSION_FIELD, 1.0);
+    solrDocument.addField(Constants.GUID, UUID.randomUUID().toString());
+    solrDocument.addField(Constants.SENSOR_TYPE, sensorType);
+    solrDocument.addField(Constants.Fields.TIMESTAMP.getName(), timestamp);
+    solrDocument.addField("ip_src_addr", "192.168.1.1");
+    return solrDocument;
+  }
 }

@@ -19,15 +19,21 @@
 package org.apache.metron.indexing.dao.update;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.apache.metron.common.Constants.Fields.TIMESTAMP;
 import static org.apache.metron.common.Constants.GUID;
 import static org.apache.metron.common.Constants.SENSOR_TYPE;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.search.AlertComment;
 
 public class Document {
 
@@ -162,6 +168,57 @@ public class Document {
     }
 
     throw new IllegalStateException(String.format("Missing '%s' field", SENSOR_TYPE));
+  }
+
+  public void addComment(AlertComment comment) {
+    List<AlertComment> comments = getComments();
+    comments.add(comment);
+    saveComments(comments);
+  }
+
+  public boolean removeComment(AlertComment comment) {
+    List<AlertComment> comments = getComments();
+    boolean wasRemoved = comments.remove(comment);
+    saveComments(comments);
+    return wasRemoved;
+  }
+
+  private void saveComments(List<AlertComment> comments) {
+    // need to persist comments as JSON
+    List<String> commentsAsJson = comments
+            .stream()
+            .map(AlertComment::asJson)
+            .collect(Collectors.toList());
+
+    if(commentsAsJson.size() > 0) {
+      // overwrite the comments field
+      document.put(COMMENTS_FIELD, commentsAsJson);
+
+    } else {
+      // there are no longer and comments
+      document.remove(COMMENTS_FIELD);
+    }
+  }
+
+  public List<AlertComment> getComments() {
+    List<AlertComment> alertComments = new ArrayList<>();
+
+    List<Object> comments = (List<Object>) document.getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    for (Object commentObj: new ArrayList<>(comments)) {
+      AlertComment comment;
+      if(commentObj instanceof Map) {
+        comment = new AlertComment((Map<String, Object>) commentObj);
+
+      } else if(commentObj instanceof  String) {
+        comment = new AlertComment((String) commentObj);
+
+      } else {
+        throw new IllegalStateException("Unexpected comment; got " + commentObj);
+      }
+      alertComments.add(comment);
+    }
+
+    return alertComments;
   }
 
   @Override
