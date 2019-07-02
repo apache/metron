@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.Nullable;
-import kafka.consumer.ConsumerIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -162,12 +161,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         KafkaUtil.send(producer, pcapEntries, KAFKA_TOPIC, 2);
         System.out.println("Sent pcap data: " + pcapEntries.size());
         {
-          int numMessages = 0;
-          ConsumerIterator<?, ?> it = kafkaComponent.getStreamIterator(KAFKA_TOPIC);
-          for (int i = 0; i < pcapEntries.size(); ++i, it.next()) {
-            numMessages++;
-          }
-          Assert.assertEquals(pcapEntries.size(), numMessages);
+          List<byte[]> messages = kafkaComponent.readMessages(KAFKA_TOPIC);
+          Assert.assertEquals(pcapEntries.size(), messages.size());
           System.out.println("Wrote " + pcapEntries.size() + " to kafka");
         }
       }

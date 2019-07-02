@@ -20,8 +20,8 @@ package org.apache.metron.rest.service.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -32,24 +32,27 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
+
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import kafka.admin.AdminOperationException;
-import kafka.admin.AdminUtils$;
-import kafka.admin.RackAwareMode;
-import kafka.utils.ZkUtils;
+
+import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.InvalidReplicationFactorException;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
 import org.apache.metron.rest.service.KafkaService;
@@ -57,26 +60,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.kafka.core.ConsumerFactory;
 
-
-@SuppressWarnings("unchecked")
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.management.*") // resolve classloader conflict
-@PrepareForTest({AdminUtils$.class})
 public class KafkaServiceImplTest {
   @Rule
   public final ExpectedException exception = ExpectedException.none();
 
-  private ZkUtils zkUtils;
   private KafkaConsumer<String, String> kafkaConsumer;
   private KafkaProducer<String, String> kafkaProducer;
   private ConsumerFactory<String, String> kafkaConsumerFactory;
-  private AdminUtils$ adminUtils;
+  private AdminClient adminClient;
 
   private KafkaService kafkaService;
 
@@ -91,15 +84,14 @@ public class KafkaServiceImplTest {
   @SuppressWarnings("unchecked")
   @Before
   public void setUp() throws Exception {
-    zkUtils = mock(ZkUtils.class);
     kafkaConsumerFactory = mock(ConsumerFactory.class);
     kafkaConsumer = mock(KafkaConsumer.class);
     kafkaProducer = mock(KafkaProducer.class);
-    adminUtils = mock(AdminUtils$.class);
+    adminClient = mock(AdminClient.class);
 
     when(kafkaConsumerFactory.createConsumer()).thenReturn(kafkaConsumer);
 
-    kafkaService = new KafkaServiceImpl(zkUtils, kafkaConsumerFactory, kafkaProducer, adminUtils);
+    kafkaService = new KafkaServiceImpl(kafkaConsumerFactory, kafkaProducer, adminClient);
   }
 
   @Test
@@ -112,10 +104,9 @@ public class KafkaServiceImplTest {
 
     assertEquals(Sets.newHashSet(), listedTopics);
 
-    verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
-    verifyNoMoreInteractions(kafkaConsumer, zkUtils, adminUtils);
+    verifyNoMoreInteractions(kafkaConsumer, adminClient);
   }
 
   @Test
@@ -128,10 +119,9 @@ public class KafkaServiceImplTest {
 
     assertEquals(Sets.newHashSet(), listedTopics);
 
-    verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
-    verifyNoMoreInteractions(kafkaConsumer, zkUtils);
+    verifyNoMoreInteractions(kafkaConsumer);
   }
 
   @Test
@@ -147,10 +137,9 @@ public class KafkaServiceImplTest {
 
     assertEquals(Sets.newHashSet("topic1", "topic2", "topic3"), listedTopics);
 
-    verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
-    verifyNoMoreInteractions(kafkaConsumer, zkUtils);
+    verifyNoMoreInteractions(kafkaConsumer);
   }
 
   @Test
@@ -167,10 +156,9 @@ public class KafkaServiceImplTest {
 
     assertEquals(Sets.newHashSet("topic1", "topic2", "topic3"), listedTopics);
 
-    verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
-    verifyNoMoreInteractions(kafkaConsumer, zkUtils);
+    verifyNoMoreInteractions(kafkaConsumer);
   }
 
   @Test
@@ -179,10 +167,9 @@ public class KafkaServiceImplTest {
 
     assertFalse(kafkaService.deleteTopic("non_existent_topic"));
 
-    verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
-    verifyNoMoreInteractions(kafkaConsumer, zkUtils);
+    verifyNoMoreInteractions(kafkaConsumer);
   }
 
   @Test
@@ -196,7 +183,7 @@ public class KafkaServiceImplTest {
 
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
-    verify(adminUtils).deleteTopic(zkUtils, "non_existent_topic");
+    verify(adminClient).deleteTopics(Collections.singletonList("non_existent_topic"));
     verifyNoMoreInteractions(kafkaConsumer);
   }
 
@@ -248,29 +235,21 @@ public class KafkaServiceImplTest {
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer, times(0)).partitionsFor("t");
     verify(kafkaConsumer).close();
-    verifyZeroInteractions(zkUtils);
     verifyNoMoreInteractions(kafkaConsumer);
   }
 
   @Test
   public void createTopicShouldFailIfReplicationFactorIsGreaterThanAvailableBrokers() throws Exception {
     exception.expect(RestException.class);
-    doThrow(AdminOperationException.class).when(adminUtils).createTopic(eq(zkUtils), eq("t"), eq(1), eq(2), eq(new Properties()), eq(RackAwareMode.Disabled$.MODULE$));
+    when(adminClient.createTopics(any(Collection.class))).thenThrow(InvalidReplicationFactorException.class);
     kafkaService.createTopic(VALID_KAFKA_TOPIC);
 
   }
 
   @Test
-  public void whenAdminUtilsThrowsAdminOperationExceptionCreateTopicShouldProperlyWrapExceptionInRestException() throws Exception {
+  public void whenAdminClientThrowsKafkaExceptionCreateTopicShouldProperlyWrapExceptionInRestException() throws Exception {
     exception.expect(RestException.class);
-
-    final Map<String, List<PartitionInfo>> topics = new HashMap<>();
-    topics.put("1", new ArrayList<>());
-
-    when(kafkaConsumer.listTopics()).thenReturn(topics);
-
-    doThrow(AdminOperationException.class).when(adminUtils).createTopic(eq(zkUtils), eq("t"), eq(1), eq(2), eq(new Properties()), eq(RackAwareMode.Disabled$.MODULE$));
-
+    when(adminClient.createTopics(any(Collection.class))).thenThrow(KafkaException.class);
     kafkaService.createTopic(VALID_KAFKA_TOPIC);
   }
 
@@ -291,18 +270,18 @@ public class KafkaServiceImplTest {
     when(kafkaConsumer.partitionsFor(eq(topicName))).thenReturn(partitionInfo);
     when(kafkaConsumer.assignment()).thenReturn(topicPartitionsSet);
     when(kafkaConsumer.position(topicPartition)).thenReturn(1L);
-    when(kafkaConsumer.poll(100)).thenReturn(records);
+    when(kafkaConsumer.poll(Duration.ofMillis(100))).thenReturn(records);
 
     assertEquals("message", kafkaService.getSampleMessage(topicName));
 
     verify(kafkaConsumer).assign(eq(topicPartitions));
     verify(kafkaConsumer).assignment();
-    verify(kafkaConsumer).poll(100);
+    verify(kafkaConsumer).poll(Duration.ofMillis(100));
     verify(kafkaConsumer).unsubscribe();
     verify(kafkaConsumer, times(2)).position(topicPartition);
     verify(kafkaConsumer).seek(topicPartition, 0);
 
-    verifyZeroInteractions(zkUtils, adminUtils);
+    verifyZeroInteractions(adminClient);
   }
 
   @Test
