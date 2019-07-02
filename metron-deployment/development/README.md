@@ -61,3 +61,12 @@ To setup this up, start full dev.
 
 Now, when you go to Swagger or the UIs, you should be able to give a user and password.
 "admin" will have the roles ROLE_ADMIN and ROLE_USER, which can be verified via the "/whoami/roles" endpoint in Swagger. Similarly, there is a user "sam" that only has ROLE_USER. A third user, "tom" has neither role.
+
+## Common Problems
+
+### Mac Mojave - Operation Not Permitted Error
+
+`tee: /etc/exports: Operation not permitted on macOS 10.14 Mojave with nfs exports`
+
+If you have the Mojave OS or newer, you may run into this issue when running `vagrant up`. In order to correct this you will need to grant permissions to your relevant terminal application.
+Navigate to `System Preferences -> Security & Privacy -> Privacy` and add your terminal application to "Full Disk Access". See [https://github.com/hashicorp/vagrant/issues/10234](https://github.com/hashicorp/vagrant/issues/10234) for more details.
