@@ -17,8 +17,6 @@
  */
 package org.apache.metron.rest.config;
 
-import kafka.utils.ZKStringSerializer$;
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -54,12 +52,5 @@ public class ZookeeperConfig {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(sleepTime, maxRetries);
     CuratorFramework ret = CuratorFrameworkFactory.newClient(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY), retryPolicy);
     return ret;
-  }
-
-  @Bean(destroyMethod="close")
-  public ZkClient zkClient(Environment environment) {
-    int sessionTimeout = Integer.parseInt(environment.getProperty(MetronRestConstants.ZK_CLIENT_SESSION_TIMEOUT));
-    int connectionTimeout = Integer.parseInt(environment.getProperty(MetronRestConstants.ZK_CLIENT_CONNECTION_TIMEOUT));
-    return new ZkClient(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY), sessionTimeout, connectionTimeout, ZKStringSerializer$.MODULE$);
   }
 }

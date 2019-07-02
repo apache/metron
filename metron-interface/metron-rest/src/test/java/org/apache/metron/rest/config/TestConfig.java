@@ -17,7 +17,18 @@
  */
 package org.apache.metron.rest.config;
 
-import kafka.admin.AdminUtils$;
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
@@ -30,6 +41,8 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
@@ -205,8 +218,10 @@ public class TestConfig {
   }
 
   @Bean
-  public AdminUtils$ adminUtils() {
-    return AdminUtils$.MODULE$;
+  public AdminClient adminUtils(KafkaComponent kafkaWithZKComponent) {
+    Map<String, Object> adminConfig = new HashMap<>();
+    adminConfig.put("bootstrap.servers", kafkaWithZKComponent.getBrokerList());
+    return KafkaAdminClient.create(adminConfig);
   }
 
   @Bean(destroyMethod = "close")
