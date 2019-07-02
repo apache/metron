@@ -183,41 +183,44 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
   @Test
   @SuppressWarnings("unchecked")
   public void testRemoveComments() throws Exception {
+    final String guid = "remove-comment-guid";
     Map<String, Object> fields = new HashMap<>();
-    fields.put("guid", "add_comment");
+    fields.put("guid", guid);
     fields.put("source.type", SENSOR_NAME);
 
-    Document document = new Document(fields, "add_comment", SENSOR_NAME, 1526401584951L);
+    Document document = new Document(fields, guid, SENSOR_NAME, 1526401584951L);
     hbaseDao.update(document, Optional.of(SENSOR_NAME));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    findUpdatedDoc(document.getDocument(), guid, SENSOR_NAME);
 
-    addAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
-    // Ensure we have the first comment
-    ArrayList<AlertComment> comments = new ArrayList<>();
-    comments.add(new AlertComment("New Comment", "test_user", 1526401584951L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    // add a comment
+    AlertComment comment1 = new AlertComment("New Comment", "test_user", 1526401584951L);
+    addAlertComment(guid, comment1.getComment(), comment1.getUsername(), comment1.getTimestamp());
 
-    addAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
-    // Ensure we have the second comment
-    comments.add(new AlertComment("New Comment 2", "test_user_2", 1526401584952L));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    // ensure the comment was added
+    document.addComment(comment1);
+    findUpdatedDoc(document.getDocument(), guid, SENSOR_NAME);
 
-    removeAlertComment("add_comment", "New Comment 2", "test_user_2", 1526401584952L);
-    // Ensure we only have the first comments
-    comments = new ArrayList<>();
-    comments.add(new AlertComment(commentOne));
-    document.getDocument().put(COMMENTS_FIELD, comments.stream().map(AlertComment::asMap).collect(
-        Collectors.toList()));
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    // add another comment
+    AlertComment comment2 = new AlertComment("New Comment 2", "test_user_2", 1526401584952L);
+    addAlertComment(guid, comment2.getComment(), comment2.getUsername(), comment2.getTimestamp());
 
-    removeAlertComment("add_comment", "New Comment", "test_user", 1526401584951L);
-    // Ensure we have no comments
-    document.getDocument().remove(COMMENTS_FIELD);
-    findUpdatedDoc(document.getDocument(), "add_comment", SENSOR_NAME);
+    // ensure the comment was added
+    document.addComment(comment2);
+    findUpdatedDoc(document.getDocument(), guid, SENSOR_NAME);
+
+    // remove the first comment
+    removeAlertComment(guid, comment1.getComment(), comment1.getUsername(), comment1.getTimestamp());
+
+    // ensure the comment was removed
+    document.removeComment(comment1);
+    findUpdatedDoc(document.getDocument(), guid, SENSOR_NAME);
+
+    // remove the second comment
+    removeAlertComment(guid, comment2.getComment(), comment2.getUsername(), comment2.getTimestamp());
+
+    // ensure the comment was removed
+    document.removeComment(comment2);
+    findUpdatedDoc(document.getDocument(), guid, SENSOR_NAME);
   }
 
   @Override

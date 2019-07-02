@@ -18,14 +18,11 @@
 package org.apache.metron.solr.dao;
 
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.beans.DocumentObjectBinder;
-import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
@@ -42,8 +39,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.lang.String.format;
 
 /**
  * An {@link UpdateDao} for Solr.
@@ -119,42 +114,9 @@ public class SolrUpdateDao implements UpdateDao {
   }
 
   @Override
-  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    if (latest == null || latest.getDocument() == null) {
-      throw new IOException(format("Unable to add comment. Document with guid %s cannot be found.", request.getGuid()));
-    }
-
-    AlertComment toAdd = new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp());
-    Document updatedDocument = new Document(latest);
-    updatedDocument.addComment(toAdd);
-
-    // persist the changes
-    return update(updatedDocument, Optional.empty());
-  }
-
-  @Override
   public Document removeCommentFromAlert(CommentAddRemoveRequest request) throws IOException {
     Document latest = retrieveLatestDao.getLatest(request.getGuid(), request.getSensorType());
     return removeCommentFromAlert(request, latest);
-  }
-
-  @Override
-  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
-      throws IOException {
-    if (latest == null || latest.getDocument() == null) {
-      throw new IOException(format("Unable to remove comment. Document with guid %s cannot be found.", request.getGuid()));
-    }
-
-    // remove the comment from the existing comments
-    AlertComment toRemove = new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp());
-    Document updatedDocument = new Document(latest);
-    boolean wasRemoved = updatedDocument.removeComment(toRemove);
-    if(!wasRemoved) {
-      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.", request.getGuid()));
-    }
-
-    // persist the changes
-    return update(updatedDocument, Optional.empty());
   }
 
   /**

@@ -189,29 +189,25 @@ public class Document {
             .stream()
             .map(AlertComment::asJson)
             .collect(Collectors.toList());
-
     if(commentsAsJson.size() > 0) {
       // overwrite the comments field
       document.put(COMMENTS_FIELD, commentsAsJson);
 
     } else {
-      // there are no longer and comments
+      // there are no longer any comments
       document.remove(COMMENTS_FIELD);
     }
   }
 
   public List<AlertComment> getComments() {
     List<AlertComment> alertComments = new ArrayList<>();
-
     List<Object> comments = (List<Object>) document.getOrDefault(COMMENTS_FIELD, new ArrayList<>());
     for (Object commentObj: new ArrayList<>(comments)) {
       AlertComment comment;
       if(commentObj instanceof Map) {
         comment = new AlertComment((Map<String, Object>) commentObj);
-
       } else if(commentObj instanceof  String) {
         comment = new AlertComment((String) commentObj);
-
       } else {
         throw new IllegalStateException("Unexpected comment; got " + commentObj);
       }

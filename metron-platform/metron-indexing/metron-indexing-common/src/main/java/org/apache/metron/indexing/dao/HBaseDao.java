@@ -18,6 +18,24 @@
 
 package org.apache.metron.indexing.dao;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.utils.KeyUtil;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
+import org.apache.metron.indexing.dao.update.Document;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -28,25 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.common.utils.KeyUtil;
-import org.apache.metron.indexing.dao.search.AlertComment;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.search.GroupRequest;
-import org.apache.metron.indexing.dao.search.GroupResponse;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
-import org.apache.metron.indexing.dao.update.Document;
 
 /**
  * The HBaseDao is an index dao which only supports the following actions:
@@ -202,39 +201,21 @@ public class HBaseDao implements IndexDao {
   }
 
   private Document getDocumentFromResult(Result result) throws IOException {
-    NavigableMap<byte[], byte[]> columns = result.getFamilyMap( cf);
+    NavigableMap<byte[], byte[]> columns = result.getFamilyMap(cf);
     if(columns == null || columns.size() == 0) {
       return null;
     }
+
+    Document document = null;
     Map.Entry<byte[], byte[]> entry= columns.lastEntry();
     Long ts = Bytes.toLong(entry.getKey());
-    if(entry.getValue()!= null) {
-      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()),
-          JSONUtils.MAP_SUPPLIER);
+    if(entry.getValue() != null) {
+      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()), JSONUtils.MAP_SUPPLIER);
+      Key k = Key.fromBytes(result.getRow());
+      document = new Document(json, k.getGuid(), k.getSensorType(), ts);
+    }
 
-      // Make sure comments are in the proper format
-      @SuppressWarnings("unchecked")
-      List<Map<String, Object>> commentsMap = (List<Map<String, Object>>) json.get(COMMENTS_FIELD);
-      try {
-        if (commentsMap != null) {
-          List<AlertComment> comments = new ArrayList<>();
-          for (Map<String, Object> commentMap : commentsMap) {
-            comments.add(new AlertComment(commentMap));
-          }
-          if (comments.size() > 0) {
-            json.put(COMMENTS_FIELD,
-                comments.stream().map(AlertComment::asMap).collect(Collectors.toList()));
-          }
-        }
-        Key k = Key.fromBytes(result.getRow());
-        return new Document(json, k.getGuid(), k.getSensorType(), ts);
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to convert row key to a document", e);
-      }
-    }
-    else {
-      return null;
-    }
+    return document;
   }
 
   @Override
@@ -289,71 +270,9 @@ public class HBaseDao implements IndexDao {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
-    if (latest == null || latest.getDocument() == null) {
-      throw new IOException(String.format("Unable to add comment. Document with guid %s cannot be found.",
-              request.getGuid()));
-    }
-
-    List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
-        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
-    List<Map<String, Object>> originalComments = new ArrayList<>(comments);
-
-    // Convert all comments back to raw JSON before updating.
-    List<Map<String, Object>> commentsMap = new ArrayList<>();
-    for (Map<String, Object> comment : originalComments) {
-      commentsMap.add(new AlertComment(comment).asMap());
-    }
-    commentsMap.add(new AlertComment(
-        request.getComment(),
-        request.getUsername(),
-        request.getTimestamp())
-        .asMap());
-
-    Document newVersion = new Document(latest);
-    newVersion.getDocument().put(COMMENTS_FIELD, commentsMap);
-    return update(newVersion, Optional.empty());
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
   public Document removeCommentFromAlert(CommentAddRemoveRequest request)
       throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
     return removeCommentFromAlert(request, latest);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
-      throws IOException {
-    if (latest == null || latest.getDocument() == null) {
-      throw new IOException(String.format("Unable to remove comment. Document with guid %s cannot be found.",
-              request.getGuid()));
-    }
-    List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument().get(COMMENTS_FIELD);
-    // Can't remove anything if there's nothing there
-    if (commentMap == null) {
-      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.",
-              request.getGuid()));
-    }
-    List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
-    List<AlertComment> comments = new ArrayList<>();
-    for (Map<String, Object> commentStr : originalComments) {
-      comments.add(new AlertComment(commentStr));
-    }
-
-    comments.remove(new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
-    Document newVersion = new Document(latest);
-    if (comments.size() > 0) {
-      List<Map<String, Object>> commentsAsMap = comments.stream().map(AlertComment::asMap)
-          .collect(Collectors.toList());
-      newVersion.getDocument().put(COMMENTS_FIELD, commentsAsMap);
-      update(newVersion, Optional.empty());
-    } else {
-      newVersion.getDocument().remove(COMMENTS_FIELD);
-    }
-
-    return update(newVersion, Optional.empty());
   }
 }
