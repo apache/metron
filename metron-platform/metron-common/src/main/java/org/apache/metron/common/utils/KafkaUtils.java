@@ -26,7 +26,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.kafka.common.protocol.SecurityProtocol;
+import org.apache.kafka.common.security.auth.SecurityProtocol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,15 +108,15 @@ public enum KafkaUtils {
    */
   public String normalizeProtocol(String protocol) {
     if(protocol.equalsIgnoreCase("PLAINTEXTSASL") || protocol.equalsIgnoreCase("SASL_PLAINTEXT")) {
-      if(SecurityProtocol.getNames().contains("PLAINTEXTSASL")) {
+      if(SecurityProtocol.names().contains("PLAINTEXTSASL")) {
         return "PLAINTEXTSASL";
       }
-      else if(SecurityProtocol.getNames().contains("SASL_PLAINTEXT")) {
+      else if(SecurityProtocol.names().contains("SASL_PLAINTEXT")) {
         return "SASL_PLAINTEXT";
       }
       else {
         throw new IllegalStateException("Unable to find the appropriate SASL protocol, " +
-                "viable options are: " + Joiner.on(",").join(SecurityProtocol.getNames()));
+                "viable options are: " + Joiner.on(",").join(SecurityProtocol.names()));
       }
     }
     else {

@@ -115,7 +115,7 @@
         <global_guava_version>17.0</global_guava_version>
         <global_hbase_guava_version>12.0</global_hbase_guava_version>
         <global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
-        <global_slf4j_version>1.7.7</global_slf4j_version>
+        <global_slf4j_version>1.7.25</global_slf4j_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_java_version>1.8</global_java_version>
         <global_solr_version>6.6.2</global_solr_version>
@@ -141,6 +141,17 @@
     </properties>
 
     <profiles>
+        <profile>
+            <id>HDP-3.1.0.0</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <hdp_version>3.1.0.0</hdp_version>
+                <global_storm_version>1.2.1</global_storm_version>
+                <global_kafka_version>2.0.0</global_kafka_version>
+            </properties>
+        </profile>
         <profile>
             <id>HDP-2.5.0.0</id>
             <properties>
