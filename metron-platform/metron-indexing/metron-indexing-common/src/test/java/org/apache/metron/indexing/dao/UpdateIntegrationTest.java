@@ -273,6 +273,8 @@ public abstract class UpdateIntegrationTest {
       throws InterruptedException, IOException, OriginalNotFoundException {
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
       Document found = getDao().getLatest(guid, sensorType);
+
+//      if (found != null && guid.equals(found.getGuid())) {
       if (found != null && expected.equals(found.getDocument())) {
         return found;
       }

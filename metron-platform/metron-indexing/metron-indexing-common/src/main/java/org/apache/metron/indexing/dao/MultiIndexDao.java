@@ -256,6 +256,13 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
+  public void close() throws IOException {
+    for(IndexDao dao : indices) {
+      dao.close();
+    }
+  }
+
+  @Override
   public Document getLatest(final String guid, String sensorType) throws IOException {
     List<DocumentContainer> output = indices
             .parallelStream()

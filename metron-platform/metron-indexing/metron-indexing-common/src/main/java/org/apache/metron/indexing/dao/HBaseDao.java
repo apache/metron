@@ -18,14 +18,19 @@
 
 package org.apache.metron.indexing.dao;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.common.utils.KeyUtil;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -46,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The HBaseDao is an index dao which only supports the following actions:
@@ -59,11 +65,12 @@ import java.util.Optional;
  *
  */
 public class HBaseDao implements IndexDao {
-  public static String HBASE_TABLE = "update.hbase.table";
-  public static String HBASE_CF = "update.hbase.cf";
-  private HTableInterface tableInterface;
-  private byte[] cf;
-  private AccessConfig config;
+  public static final String HBASE_TABLE = "update.hbase.table";
+  public static final String HBASE_CF = "update.hbase.cf";
+  private Table table;
+  private byte[] columnFamily;
+  private AccessConfig accessConfig;
+  private Connection connection;
 
   /**
    * Implements the HBaseDao row key and exposes convenience methods for serializing/deserializing the row key.
@@ -72,6 +79,7 @@ public class HBaseDao implements IndexDao {
   public static class Key {
     private String guid;
     private String sensorType;
+
     public Key(String guid, String sensorType) {
       this.guid = guid;
       this.sensorType = sensorType;
@@ -131,7 +139,6 @@ public class HBaseDao implements IndexDao {
   }
 
   public HBaseDao() {
-
   }
 
   @Override
@@ -145,40 +152,72 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public synchronized void init(AccessConfig config) {
-    if(this.tableInterface == null) {
-      this.config = config;
-      Map<String, Object> globalConfig = config.getGlobalConfigSupplier().get();
-      if(globalConfig == null) {
-        throw new IllegalStateException("Cannot find the global config.");
-      }
-      String table = (String)globalConfig.get(HBASE_TABLE);
-      String cf = (String) config.getGlobalConfigSupplier().get().get(HBASE_CF);
-      if(table == null || cf == null) {
-        throw new IllegalStateException("You must configure " + HBASE_TABLE + " and " + HBASE_CF + " in the global config.");
-      }
+  public synchronized void init(AccessConfig accessConfig) {
+    if(table == null) {
+      this.accessConfig = accessConfig;
+      Map<String, Object> globals = getGlobals(accessConfig);
+      String tableName = getTableName(globals);
+      columnFamily = Bytes.toBytes(getColumnFamily(globals));
+
       try {
-        tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), table);
-        this.cf = cf.getBytes();
+        HBaseConnectionFactory connectionFactory = accessConfig.getHbaseConnectionFactory();
+        Configuration conf = accessConfig.getHbaseConfiguration();
+        connection = connectionFactory.createConnection(conf);
+        table = connection.getTable(TableName.valueOf(tableName));
+
       } catch (IOException e) {
         throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
       }
     }
   }
 
-  public HTableInterface getTableInterface() {
-    if(tableInterface == null) {
-      init(config);
+  @Override
+  public void close() throws IOException {
+    if(table != null) {
+      table.close();
     }
-    return tableInterface;
+    if(connection != null) {
+      connection.close();
+    }
+  }
+
+  public Table getTable() {
+    if(table == null) {
+      init(accessConfig);
+    }
+    return table;
+  }
+
+  private Map<String, Object> getGlobals(AccessConfig accessConfig) {
+    Map<String, Object> globalConfig = accessConfig.getGlobalConfigSupplier().get();
+    if(globalConfig == null) {
+      throw new IllegalStateException("Cannot find the global config.");
+    }
+    return globalConfig;
+  }
+
+  private static String getTableName(Map<String, Object> globalConfig) {
+    String table = (String) globalConfig.get(HBASE_TABLE);
+    if(table == null) {
+      throw new IllegalStateException("You must configure " + HBASE_TABLE + "in the global config.");
+    }
+    return table;
+  }
+
+  private static String getColumnFamily(Map<String, Object> globalConfig) {
+    String cf = (String) globalConfig.get(HBASE_CF);
+    if(cf == null) {
+      throw new IllegalStateException("You must configure " + HBASE_CF + " in the global config.");
+    }
+    return cf;
   }
 
   @Override
   public synchronized Document getLatest(String guid, String sensorType) throws IOException {
     Key k = new Key(guid, sensorType);
     Get get = new Get(Key.toBytes(k));
-    get.addFamily(cf);
-    Result result = getTableInterface().get(get);
+    get.addFamily(columnFamily);
+    Result result = getTable().get(get);
     return getDocumentFromResult(result);
   }
 
@@ -189,7 +228,7 @@ public class HBaseDao implements IndexDao {
     for (GetRequest getRequest: getRequests) {
       gets.add(buildGet(getRequest));
     }
-    Result[] results = getTableInterface().get(gets);
+    Result[] results = getTable().get(gets);
     List<Document> allLatest = new ArrayList<>();
     for (Result result: results) {
       Document d = getDocumentFromResult(result);
@@ -201,27 +240,45 @@ public class HBaseDao implements IndexDao {
   }
 
   private Document getDocumentFromResult(Result result) throws IOException {
-    NavigableMap<byte[], byte[]> columns = result.getFamilyMap(cf);
+    NavigableMap<byte[], byte[]> columns = result.getFamilyMap(columnFamily);
     if(columns == null || columns.size() == 0) {
       return null;
     }
-
-    Document document = null;
     Map.Entry<byte[], byte[]> entry= columns.lastEntry();
     Long ts = Bytes.toLong(entry.getKey());
-    if(entry.getValue() != null) {
-      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()), JSONUtils.MAP_SUPPLIER);
-      Key k = Key.fromBytes(result.getRow());
-      document = new Document(json, k.getGuid(), k.getSensorType(), ts);
-    }
+    if(entry.getValue()!= null) {
+      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()),
+          JSONUtils.MAP_SUPPLIER);
 
-    return document;
+      // Make sure comments are in the proper format
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> commentsMap = (List<Map<String, Object>>) json.get(COMMENTS_FIELD);
+      try {
+        if (commentsMap != null) {
+          List<AlertComment> comments = new ArrayList<>();
+          for (Map<String, Object> commentMap : commentsMap) {
+            comments.add(new AlertComment(commentMap));
+          }
+          if (comments.size() > 0) {
+            json.put(COMMENTS_FIELD,
+                comments.stream().map(AlertComment::asMap).collect(Collectors.toList()));
+          }
+        }
+        Key k = Key.fromBytes(result.getRow());
+        return new Document(json, k.getGuid(), k.getSensorType(), ts);
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to convert row key to a document", e);
+      }
+    }
+    else {
+      return null;
+    }
   }
 
   @Override
   public synchronized Document update(Document update, Optional<String> index) throws IOException {
     Put put = buildPut(update);
-    getTableInterface().put(put);
+    getTable().put(put);
     return update;
   }
 
@@ -234,14 +291,14 @@ public class HBaseDao implements IndexDao {
       Put put = buildPut(update);
       puts.add(put);
     }
-    getTableInterface().put(puts);
+    getTable().put(puts);
     return updates;
   }
 
   protected Get buildGet(GetRequest getRequest) throws IOException {
     Key k = new Key(getRequest.getGuid(), getRequest.getSensorType());
     Get get = new Get(Key.toBytes(k));
-    get.addFamily(cf);
+    get.addFamily(columnFamily);
     return get;
   }
 
@@ -251,7 +308,7 @@ public class HBaseDao implements IndexDao {
     long ts = update.getTimestamp() == null || update.getTimestamp() == 0 ? System.currentTimeMillis() : update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);
     byte[] doc = JSONUtils.INSTANCE.toJSONPretty(update.getDocument());
-    put.addColumn(cf, columnQualifier, doc);
+    put.addColumn(columnFamily, columnQualifier, doc);
     return put;
   }
 
@@ -270,9 +327,71 @@ public class HBaseDao implements IndexDao {
 
   @Override
   @SuppressWarnings("unchecked")
+  public Document addCommentToAlert(CommentAddRemoveRequest request, Document latest) throws IOException {
+    if (latest == null || latest.getDocument() == null) {
+      throw new IOException(String.format("Unable to add comment. Document with guid %s cannot be found.",
+              request.getGuid()));
+    }
+
+    List<Map<String, Object>> comments = (List<Map<String, Object>>) latest.getDocument()
+        .getOrDefault(COMMENTS_FIELD, new ArrayList<>());
+    List<Map<String, Object>> originalComments = new ArrayList<>(comments);
+
+    // Convert all comments back to raw JSON before updating.
+    List<Map<String, Object>> commentsMap = new ArrayList<>();
+    for (Map<String, Object> comment : originalComments) {
+      commentsMap.add(new AlertComment(comment).asMap());
+    }
+    commentsMap.add(new AlertComment(
+        request.getComment(),
+        request.getUsername(),
+        request.getTimestamp())
+        .asMap());
+
+    Document newVersion = new Document(latest);
+    newVersion.getDocument().put(COMMENTS_FIELD, commentsMap);
+    return update(newVersion, Optional.empty());
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
   public Document removeCommentFromAlert(CommentAddRemoveRequest request)
       throws IOException {
     Document latest = getLatest(request.getGuid(), request.getSensorType());
     return removeCommentFromAlert(request, latest);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Document removeCommentFromAlert(CommentAddRemoveRequest request, Document latest)
+      throws IOException {
+    if (latest == null || latest.getDocument() == null) {
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s cannot be found.",
+              request.getGuid()));
+    }
+    List<Map<String, Object>> commentMap = (List<Map<String, Object>>) latest.getDocument().get(COMMENTS_FIELD);
+    // Can't remove anything if there's nothing there
+    if (commentMap == null) {
+      throw new IOException(String.format("Unable to remove comment. Document with guid %s has no comments.",
+              request.getGuid()));
+    }
+    List<Map<String, Object>> originalComments = new ArrayList<>(commentMap);
+    List<AlertComment> comments = new ArrayList<>();
+    for (Map<String, Object> commentStr : originalComments) {
+      comments.add(new AlertComment(commentStr));
+    }
+
+    comments.remove(new AlertComment(request.getComment(), request.getUsername(), request.getTimestamp()));
+    Document newVersion = new Document(latest);
+    if (comments.size() > 0) {
+      List<Map<String, Object>> commentsAsMap = comments.stream().map(AlertComment::asMap)
+          .collect(Collectors.toList());
+      newVersion.getDocument().put(COMMENTS_FIELD, commentsAsMap);
+      update(newVersion, Optional.empty());
+    } else {
+      newVersion.getDocument().remove(COMMENTS_FIELD);
+    }
+
+    return update(newVersion, Optional.empty());
   }
 }
