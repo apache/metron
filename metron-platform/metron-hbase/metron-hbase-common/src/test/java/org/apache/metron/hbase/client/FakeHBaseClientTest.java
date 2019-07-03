@@ -17,33 +17,17 @@
  *  limitations under the License.
  *
  */
+package org.apache.metron.hbase.client;
 
-package org.apache.metron.hbase.client.integration;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.HBaseProjectionCriteria;
-import org.apache.metron.hbase.client.FakeHBaseClient;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
-import org.apache.metron.hbase.client.HBaseTableClient;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -53,10 +37,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 /**
- * An integration test for the {@link HBaseTableClient}.
+ * Tests the {@link FakeHBaseClient} class.
  */
-public class HBaseTableClientIntegrationTest {
-  private static final String tableName = "widgets";
+public class FakeHBaseClientTest {
   private static final String columnFamily = "W";
   private static final byte[] columnFamilyB = Bytes.toBytes(columnFamily);
   private static final String columnQualifier = "column";
@@ -65,48 +48,13 @@ public class HBaseTableClientIntegrationTest {
   private static final byte[] rowKey1 = Bytes.toBytes(rowKey1String);
   private static final String rowKey2String = "row-key-2";
   private static final byte[] rowKey2 = Bytes.toBytes(rowKey2String);
-  private static HBaseTestingUtility util;
-  private static Table table;
-  private HBaseTableClient client;
 
-  @BeforeClass
-  public static void startHBase() throws Exception {
-    Configuration config = HBaseConfiguration.create();
-    config.set("hbase.master.hostname", "localhost");
-    config.set("hbase.regionserver.hostname", "localhost");
-
-    util = new HBaseTestingUtility(config);
-    util.startMiniCluster();
-
-    // create the table
-    table = util.createTable(TableName.valueOf(tableName), columnFamily);
-    util.waitTableEnabled(table.getName());
-  }
-
-  @AfterClass
-  public static void stopHBase() throws Exception {
-    util.deleteTable(table.getName());
-    util.shutdownMiniCluster();
-    util.cleanupTestDir();
-  }
+  private FakeHBaseClient client;
 
   @Before
-  public void setup() throws IOException {
-    client = new HBaseTableClient(new HBaseConnectionFactory(), util.getConfiguration(), tableName);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    // delete all records in the table
-    List<Delete> deletions = new ArrayList<>();
-    for(Result r : table.getScanner(new Scan())) {
-      deletions.add(new Delete(r.getRow()));
-    }
-    table.delete(deletions);
-
-    if(client != null) {
-      client.close();
-    }
+  public void setup() {
+    client = new FakeHBaseClient();
+    client.deleteAll();
   }
 
   @Test
@@ -163,7 +111,40 @@ public class HBaseTableClientIntegrationTest {
       Assert.assertTrue(result.isEmpty());
     }
   }
-  
+
+  /**
+   * Unfortunately, the {@link Result} returned by the {@link FakeHBaseClient} is a mock and needs
+   * to respond like an actual {@link Result}.  This test ensures that {@link Result#getFamilyMap(byte[])}
+   * works correctly.
+   */
+  @Test
+  public void testResultFamilyMap() {
+    // write some values
+    ColumnList columns = new ColumnList()
+            .addColumn(columnFamily, "col1", "value1")
+            .addColumn(columnFamily, "col2", "value2");
+    client.addMutation(rowKey1, columns, Durability.SKIP_WAL);
+    client.mutate();
+
+    // read back the value
+    HBaseProjectionCriteria criteria = new HBaseProjectionCriteria()
+            .addColumnFamily(columnFamily);
+    client.addGet(rowKey1, criteria);
+    Result[] results = client.getAll();
+
+    // validate
+    assertEquals(1, results.length);
+    Result result = results[0];
+
+    // the first column
+    String value1 = Bytes.toString(result.getFamilyMap(columnFamilyB).get(Bytes.toBytes("col1")));
+    assertEquals("value1", value1);
+
+    // the second column
+    String value2 = Bytes.toString(result.getFamilyMap(columnFamilyB).get(Bytes.toBytes("col2")));
+    assertEquals("value2", value2);
+  }
+
   @Test
   public void testScan() throws Exception {
     // write some values

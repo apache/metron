@@ -32,7 +32,6 @@ public class TableConfig implements Serializable {
     private String connectorImpl;
 
     public TableConfig() {
-
     }
 
     public TableConfig(String tableName) {
@@ -85,6 +84,7 @@ public class TableConfig implements Serializable {
     public void setBatch(boolean batch) {
         this.batch = batch;
     }
+
     /**
      * @param writeBufferSize
      *          Overrides the client-side write buffer size.
@@ -107,12 +107,11 @@ public class TableConfig implements Serializable {
     public long getWriteBufferSize() {
         return writeBufferSize;
     }
+
     /**
      * @return A Set of configured column families
      */
     public Set<String> getColumnFamilies() {
         return this.columnFamilies.keySet();
     }
-
-
 }
