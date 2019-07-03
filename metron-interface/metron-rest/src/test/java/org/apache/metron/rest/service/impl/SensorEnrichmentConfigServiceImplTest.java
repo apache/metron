@@ -211,22 +211,6 @@ public class SensorEnrichmentConfigServiceImplTest {
     verify(setDataBuilder).forPath(eq(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro"), eq(broJson.getBytes()));
   }
 
-//  @Test
-//  public void getAvailableEnrichmentsShouldReturnEnrichmentsSorted() throws Exception {
-//    when(hBaseClient.readRecords()).thenReturn(new ArrayList<String>() {{
-//      add("geo");
-//      add("whois");
-//      add("host");
-//      add("a-new-one");
-//    }});
-//    assertEquals(new ArrayList<String>() {{
-//      add("a-new-one");
-//      add("geo");
-//      add("host");
-//      add("whois");
-//    }}, sensorEnrichmentConfigService.getAvailableEnrichments());
-//  }
-
   @Test
   public void getAvailableThreatTriageAggregatorsShouldReturnAggregators() throws Exception {
     assertEquals(new ArrayList<String>() {{

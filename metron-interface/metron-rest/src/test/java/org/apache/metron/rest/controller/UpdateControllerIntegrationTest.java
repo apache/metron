@@ -160,10 +160,6 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.project").doesNotExist())
             .andExpect(jsonPath("$.timestamp").value(2));
 
-//    // nothing is recorded in HBase
-//    MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE);
-//    Assert.assertEquals(0,table.size());
-
     // patch the document
     this.mockMvc.perform(patchRequest)
             .andExpect(status().isOk());
@@ -176,16 +172,6 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.guid").value(guid))
             .andExpect(jsonPath("$.project").value("metron"))
             .andExpect(jsonPath("$.timestamp").value(2));
-
-//    // the change should be recorded in HBase
-//    Assert.assertEquals(1,table.size());
-//    {
-//        //ensure hbase is up to date
-//        Get g = new Get(new HBaseDao.Key(guid,"bro").toBytes());
-//        Result r = table.get(g);
-//        NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
-//        Assert.assertEquals(1, columns.size());
-//    }
   }
 
   @Test
