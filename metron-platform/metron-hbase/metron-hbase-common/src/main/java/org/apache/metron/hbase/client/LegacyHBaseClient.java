@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A client that interacts with HBase.
  */
-public class HBaseClient implements Closeable {
+public class LegacyHBaseClient implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -66,7 +66,7 @@ public class HBaseClient implements Closeable {
    */
   private HTableInterface table;
 
-  public HBaseClient(TableProvider provider, final Configuration configuration, final String tableName) {
+  public LegacyHBaseClient(TableProvider provider, final Configuration configuration, final String tableName) {
     this.mutations = new ArrayList<>();
     this.gets = new ArrayList<>();
     try {

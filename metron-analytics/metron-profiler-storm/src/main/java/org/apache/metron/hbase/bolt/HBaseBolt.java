@@ -31,7 +31,7 @@ import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
-import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.LegacyHBaseClient;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -90,7 +90,7 @@ public class HBaseBolt extends BaseRichBolt {
 
   private BatchHelper batchHelper;
   protected OutputCollector collector;
-  protected transient HBaseClient hbaseClient;
+  protected transient LegacyHBaseClient hbaseClient;
 
   public HBaseBolt(String tableName, HBaseMapper mapper) {
     this.tableName = tableName;
@@ -122,7 +122,7 @@ public class HBaseBolt extends BaseRichBolt {
     return this;
   }
 
-  public void setClient(HBaseClient hbaseClient) {
+  public void setClient(LegacyHBaseClient hbaseClient) {
     this.hbaseClient = hbaseClient;
   }
 
@@ -147,7 +147,7 @@ public class HBaseBolt extends BaseRichBolt {
       provider = this.tableProvider;
     }
 
-    hbaseClient = new HBaseClient(provider, HBaseConfiguration.create(), tableName);
+    hbaseClient = new LegacyHBaseClient(provider, HBaseConfiguration.create(), tableName);
   }
 
   @Override

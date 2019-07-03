@@ -26,7 +26,7 @@ import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.ColumnList;
-import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.LegacyHBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
@@ -47,13 +47,13 @@ public class ProfileWriter {
 
   private RowKeyBuilder rowKeyBuilder;
   private ColumnBuilder columnBuilder;
-  private HBaseClient hbaseClient;
+  private LegacyHBaseClient hbaseClient;
   private HBaseProfilerClient client;
 
   public ProfileWriter(RowKeyBuilder rowKeyBuilder, ColumnBuilder columnBuilder, HTableInterface table, long periodDurationMillis) {
     this.rowKeyBuilder = rowKeyBuilder;
     this.columnBuilder = columnBuilder;
-    this.hbaseClient = new HBaseClient((c, t) -> table, table.getConfiguration(), table.getName().getNameAsString());
+    this.hbaseClient = new LegacyHBaseClient((c, t) -> table, table.getConfiguration(), table.getName().getNameAsString());
     this.client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDurationMillis);
   }
 
