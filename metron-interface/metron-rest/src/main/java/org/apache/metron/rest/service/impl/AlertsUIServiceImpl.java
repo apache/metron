@@ -126,7 +126,7 @@ public class AlertsUIServiceImpl implements AlertsUIService {
   }
 
   @Override
-  public void saveAlertsUIUserSettings(AlertsUIUserSettings alertsUIUserSettings) throws RestException{
+  public void saveAlertsUIUserSettings(AlertsUIUserSettings alertsUIUserSettings) throws RestException {
     String user = SecurityUtils.getCurrentUser();
     try {
       userSettingsClient.save(user, ALERT_USER_SETTING_TYPE, _mapper.get().writeValueAsString(alertsUIUserSettings));
@@ -136,12 +136,15 @@ public class AlertsUIServiceImpl implements AlertsUIService {
   }
 
   @Override
-  public boolean deleteAlertsUIUserSettings(String user) {
-    boolean success = true;
+  public boolean deleteAlertsUIUserSettings(String user) throws RestException {
+    boolean success = false;
     try {
-      userSettingsClient.delete(user, ALERT_USER_SETTING_TYPE);
+      if(userSettingsClient.findOne(user, ALERT_USER_SETTING_TYPE).isPresent()) {
+        userSettingsClient.delete(user, ALERT_USER_SETTING_TYPE);
+        success = true;
+      }
     } catch (IOException e) {
-      success = false;
+      throw new RestException(e);
     }
     return success;
   }

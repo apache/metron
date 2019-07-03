@@ -30,8 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DaoControllerTest {
-  public static final String TABLE = "updates";
-  public static final String CF = "t";
+
   public void loadTestData(Map<String, String> indicesToDataMap) throws ParseException {
     Map<String, List<String>> backingStore = new HashMap<>();
     for(Map.Entry<String, String> indices : indicesToDataMap.entrySet())

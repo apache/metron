@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.hbase.client.FakeHBaseClient;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
@@ -141,6 +142,9 @@ public class AlertsUIControllerIntegrationTest {
       alertsUIService.deleteAlertsUIUserSettings(user);
     }
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
+
+    // ensure the fake hbase client is reset before each test
+    new FakeHBaseClient().deleteAll();
   }
 
   @Test

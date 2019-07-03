@@ -68,7 +68,6 @@ public class MetronRestConstants {
   public static final String SEARCH_MAX_GROUPS = "search.max.groups";
   public static final String SEARCH_FACET_FIELDS_SPRING_PROPERTY = "search.facet.fields";
   public static final String INDEX_DAO_IMPL = "index.dao.impl";
-  public static final String INDEX_HBASE_TABLE_PROVIDER_IMPL = "index.hbase.provider";
   public static final String INDEX_WRITER_NAME = "index.writer.name";
 
   public static final String META_DAO_IMPL = "meta.dao.impl";
