@@ -79,17 +79,19 @@ No optional parameter has a default.
 | HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020)
 
 ### Optional - With Defaults
-| Environment Variable                  | Description                                                                          | Required | Default
-| ------------------------------------- | ------------------------------------------------------------------------------------ | -------- | -------
-| METRON_LOG_DIR                        | Directory where the log file is written                                              | Optional | /var/log/metron/
-| METRON_PID_FILE                       | File where the pid is written                                                        | Optional | /var/run/metron/
-| METRON_REST_PORT                      | REST application port                                                                | Optional | 8082
-| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                                              | Optional | H2 is bundled
-| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                                     | Optional | ./patterns/temp
-| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements                                | Optional | /apps/metron/patterns
-| SECURITY_ENABLED                      | Enables Kerberos support                                                             | Optional | false
-| METRON_USER_ROLE                      | Name of the role at the authentication provider that provides user access to Metron. | Optional | USER
-| METRON_ADMIN_ROLE                     | Name of the role at the authentication provider that provides administrative access to Metron.| Optional | ADMIN
+| Environment Variable                  | Description                                                                                                                           | Required | Default
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------
+| METRON_LOG_DIR                        | Directory where the log file is written                                                                                               | Optional | /var/log/metron/
+| METRON_PID_FILE                       | File where the pid is written                                                                                                         | Optional | /var/run/metron/
+| METRON_REST_PORT                      | REST application port                                                                                                                 | Optional | 8082
+| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                                                                                               | Optional | H2 is bundled
+| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                                                                                      | Optional | ./patterns/temp
+| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements                                                                                 | Optional | /apps/metron/patterns
+| SECURITY_ENABLED                      | Enables Kerberos support                                                                                                              | Optional | false
+| METRON_USER_ROLE                      | Name of the role at the authentication provider that provides user access to Metron.                                                  | Optional | USER
+| METRON_ADMIN_ROLE                     | Name of the role at the authentication provider that provides administrative access to Metron.                                        | Optional | ADMIN
+| STORM_STATUS_CACHE_MAX_SIZE           | The maximum size for the cache that fronts calls to the Storm API for topology status.                                                | Optional | 10000
+| STORM_STATUS_CACHE_TIMEOUT_SECONDS    | Duration in seconds for cache entries to timeout. Note that the higher the value, the more stale the returned value will be.          | Optional | 5
 
 ### Optional - Blank Defaults
 | Environment Variable                  | Description                                                       | Required

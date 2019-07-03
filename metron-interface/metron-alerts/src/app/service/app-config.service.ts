@@ -24,6 +24,10 @@ export class AppConfigService {
 
   private static appConfigStatic;
 
+  static getAppConfigStatic() {
+    return AppConfigService.appConfigStatic;
+  }
+
   constructor(private http: HttpClient) { }
 
   loadAppConfig() {
@@ -36,14 +40,23 @@ export class AppConfigService {
   }
 
   getApiRoot() {
-    return AppConfigService.appConfigStatic['apiRoot'];
+    if (AppConfigService.appConfigStatic['apiRoot'] === undefined) {
+      console.error('[AppConfigService] apiRoot entry is missing from /assets/app-config.json');
+    }
+    return AppConfigService.appConfigStatic['apiRoot']
   }
 
   getLoginPath() {
+    if (AppConfigService.appConfigStatic['loginPath'] === undefined) {
+      console.error('[AppConfigService] loginPath entry is missing from /assets/app-config.json');
+    }
     return AppConfigService.appConfigStatic['loginPath'];
   }
 
-  static getAppConfigStatic() {
-    return AppConfigService.appConfigStatic;
+  getContextMenuConfigURL() {
+    if (AppConfigService.appConfigStatic['contextMenuConfigURL'] === undefined) {
+      console.error('[AppConfigService] contextMenuConfigURL entry is missing from /assets/app-config.json');
+    }
+    return AppConfigService.appConfigStatic['contextMenuConfigURL'];
   }
 }

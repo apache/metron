@@ -43,7 +43,7 @@ to split across multiple bolts).
 
 There are two parameters which you might want to tune in this topology.
 Both of them are topology configuration adjustable in the flux file
-`$METRON_HOME/config/flux/enrichment/remote-unified.yaml`:
+`$METRON_HOME/config/flux/enrichment/remote.yaml`:
 * `metron.threadpool.size` : The size of the threadpool.  This can take a number or a multiple of the number of cores (e.g. `5C` to 5 times the number of cores).  The default is `2C`.
 * `metron.threadpool.type` : The type of threadpool. (note: descriptions taken from [here](https://zeroturnaround.com/rebellabs/fixedthreadpool-cachedthreadpool-or-forkjoinpool-picking-correct-java-executors-for-background-tasks/)).
    * `FIXED` is a fixed threadpool of size `n`. `n` threads will process tasks at the time, when the pool is saturated, new tasks will get added to a queue without a limit on size. Good for CPU intensive tasks.  This is the default.
@@ -53,19 +53,6 @@ In order to configure the parallelism for the enrichment bolt and threat
 intel bolt, the configurations will be taken from the respective join bolt
 parallelism.  When proper ambari support for this is added, we will add
 its own property.
-
-### Split-Join Enrichment Topology
-
-The now-deprecated split/join topology is also available and performs enrichments in parallel.
-This poses some issues in terms of ease of tuning and reasoning about performance.
-
-![Architecture](enrichment_arch.png)
-
-#### Using It
-
-In order to use the older, deprecated topology, you will need to
-* Edit `$METRON_HOME/bin/start_enrichment_topology.sh` and adjust it to use `remote-splitjoin.yaml` instead of `remote-unified.yaml`
-* Restart the enrichment topology.
 
 ## Enrichment Configuration
 

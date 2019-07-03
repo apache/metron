@@ -65,7 +65,7 @@
             "display-name": "Enrichment",
             "layout": {
               "tab-columns": "1",
-              "tab-rows": "5",
+              "tab-rows": "4",
               "sections": [
                 {
                   "name": "section-enrichment-adapters",
@@ -135,26 +135,7 @@
                   "subsections": [
                     {
                       "name": "subsection-enrichment-unified",
-                      "display-name": "Unified Topology",
-                      "row-index": "0",
-                      "column-index": "0",
-                      "row-span": "1",
-                      "column-span": "1"
-                    }
-                  ]
-                },
-                {
-                  "name": "section-enrichment-splitjoin",
-                  "row-index": "4",
-                  "column-index": "0",
-                  "row-span": "1",
-                  "column-span": "1",
-                  "section-columns": "1",
-                  "section-rows": "1",
-                  "subsections": [
-                    {
-                      "name": "subsection-enrichment-splitjoin",
-                      "display-name": "Split Join Topology",
+                      "display-name": "Topology",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -611,46 +592,6 @@
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-enrichment-env/enrichment_join_cache_size",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/threatintel_join_cache_size",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/enrichment_kafka_spout_parallelism",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/enrichment_split_parallelism",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/enrichment_stellar_parallelism",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/enrichment_join_parallelism",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/threat_intel_split_parallelism",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/threat_intel_stellar_parallelism",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/threat_intel_join_parallelism",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
-          "config": "metron-enrichment-env/kafka_writer_parallelism",
-          "subsection-name": "subsection-enrichment-splitjoin"
-        },
-        {
           "config": "metron-enrichment-env/unified_kafka_spout_parallelism",
           "subsection-name": "subsection-enrichment-unified"
         },
@@ -912,6 +853,14 @@
         },
         {
           "config": "metron-rest-env/threat_triage_score_field",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/storm_status_cache_max_size",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/storm_status_cache_timeout_seconds",
           "subsection-name": "subsection-rest"
         },
         {
@@ -1643,6 +1592,18 @@
       },
       {
         "config": "metron-rest-env/metron_escalation_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/storm_status_cache_max_size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/storm_status_cache_timeout_seconds",
         "widget": {
           "type": "text-field"
         }

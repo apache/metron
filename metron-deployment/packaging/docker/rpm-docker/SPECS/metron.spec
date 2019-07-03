@@ -388,10 +388,8 @@ This package installs the Metron Enrichment Storm files
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/enrichment
 %{metron_home}/bin/start_enrichment_topology.sh
-%{metron_home}/config/enrichment-splitjoin.properties
-%{metron_home}/config/enrichment-unified.properties
-%{metron_home}/flux/enrichment/remote-splitjoin.yaml
-%{metron_home}/flux/enrichment/remote-unified.yaml
+%{metron_home}/config/enrichment.properties
+%{metron_home}/flux/enrichment/remote.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -657,6 +655,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/*.ttf
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/images/*
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/app-config.json
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/context-menu.conf.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

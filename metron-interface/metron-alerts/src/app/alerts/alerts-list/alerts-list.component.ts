@@ -1,5 +1,3 @@
-
-import {forkJoin as observableForkJoin} from 'rxjs';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,6 +15,7 @@ import {forkJoin as observableForkJoin} from 'rxjs';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {forkJoin as observableForkJoin} from 'rxjs';
 import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Subscription} from 'rxjs';

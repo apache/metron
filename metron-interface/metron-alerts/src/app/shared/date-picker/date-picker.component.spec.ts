@@ -20,6 +20,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DatePickerComponent } from './date-picker.component';
 import { FormsModule } from '@angular/forms';
+import { By } from '@angular/platform-browser';
 
 describe('DatePickerComponent', () => {
   let component: DatePickerComponent;
@@ -43,5 +44,43 @@ describe('DatePickerComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should set the date on blur', () => {
+    const input = fixture.debugElement.query(By.css('input')).nativeElement;
+    input.value = '2019-04-30';
+    expect(component.dateStr).toBe('now');
+    input.dispatchEvent(new Event('blur'));
+    expect(component.dateStr).toBe('2019-04-30');
+  });
+
+  it('should not set the date on blur if value is invalid', () => {
+    const input = fixture.debugElement.query(By.css('input')).nativeElement;
+    input.value = 'invalid date';
+    expect(component.dateStr).toBe('now');
+    input.dispatchEvent(new Event('blur'));
+    expect(component.dateStr).toBe('now');
+  });
+
+  it('should set the date on enter', () => {
+    const input = fixture.debugElement.query(By.css('input')).nativeElement;
+    input.value = '2019-04-30';
+    expect(component.dateStr).toBe('now');
+    const e = new KeyboardEvent('keyup', {
+      code: 'Enter',
+    });
+    input.dispatchEvent(e);
+    expect(component.dateStr).toBe('2019-04-30');
+  });
+
+  it('should not set the date on enter if value is invalid', () => {
+    const input = fixture.debugElement.query(By.css('input')).nativeElement;
+    input.value = 'invalid date';
+    expect(component.dateStr).toBe('now');
+    const e = new KeyboardEvent('keyup', {
+      code: 'Enter',
+    });
+    input.dispatchEvent(e);
+    expect(component.dateStr).toBe('now');
   });
 });

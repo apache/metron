@@ -282,8 +282,7 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public Iterable<Document> getAllLatest(
-      List<GetRequest> getRequests) throws IOException {
+  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
     Iterable<Document> ret = null;
     List<DocumentIterableContainer> output =
         indices.parallelStream().map(dao -> {

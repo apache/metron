@@ -37,6 +37,8 @@ import { DialogService } from '../../../service/dialog.service';
 import { ConfirmationType } from 'app/model/confirmation-type';
 import {HttpErrorResponse} from "@angular/common/http";
 
+import { merge } from '../../../shared/context-menu/context-menu.util'
+
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
 }
@@ -54,6 +56,8 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   metronAlertDisplayState = MetronAlertDisplayState;
   globalConfig: {} = {};
   configSubscription: Subscription;
+
+  merge: Function = merge;
 
   @Input() alerts: Alert[] = [];
   @Input() queryBuilder: QueryBuilder;
@@ -108,10 +112,9 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   hasScore(alertSource) {
-    if(alertSource[this.threatScoreFieldName()]) {
+    if (alertSource[this.threatScoreFieldName()]) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
