@@ -43,6 +43,14 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.typeQuery;
 
+/**
+ * A {@link RetrieveLatestDao} that retrieves documents from Elasticsearch.
+ *
+ * The index being searched must have a field "guid" of type "keyword",
+ * otherwise no documents can be found by "guid".
+ *
+ * See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/query-dsl-term-query.html
+ */
 public class ElasticsearchRetrieveLatestDao implements RetrieveLatestDao {
 
   private ElasticsearchClient client;
