@@ -40,12 +40,16 @@ public class HBaseProjectionCriteria implements Serializable {
 
   public static class ColumnMetaData implements Serializable {
 
-    private byte[]  columnFamily;
+    private byte[] columnFamily;
     private byte[] qualifier;
 
     public ColumnMetaData(String columnFamily, String qualifier) {
-      this.columnFamily = columnFamily.getBytes();
-      this.qualifier = qualifier.getBytes();
+      this(columnFamily.getBytes(), qualifier.getBytes());
+    }
+
+    public ColumnMetaData(byte[] columnFamily, byte[] qualifier) {
+      this.columnFamily = columnFamily;
+      this.qualifier = qualifier;
     }
 
     public byte[] getColumnFamily() {
