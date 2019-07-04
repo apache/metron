@@ -52,7 +52,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
   /**
    * Maps a function name to the metadata necessary to execute the Stellar function.
    */
-  private Supplier<Map<String, StellarFunctionInfo>> functions;
+  protected Supplier<Map<String, StellarFunctionInfo>> functions;
 
   /**
    * The Stellar execution context that can be used to inform the function resolution process.
@@ -145,6 +145,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
    */
   @Override
   public StellarFunction apply(String functionName) {
+    LOG.debug("Resolving function; functionName={}", functionName);
     StellarFunctionInfo info = functions.get().get(functionName);
     if(info == null) {
       throw new IllegalStateException(format("Unknown function: `%s`", functionName));
@@ -156,7 +157,6 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
    * Performs the core process of function resolution.
    */
   protected Map<String, StellarFunctionInfo> resolveFunctions() {
-
     // maps a function name to its definition
     Map<String, StellarFunctionInfo> functions = new HashMap<>();
 
@@ -241,5 +241,27 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
       LOG.error("Unable to load {} because {}", clazz.getName(), e.getMessage(), e);
       return null;
     }
+  }
+
+  /**
+   * Attempts to resolve a function defined within the provided {@link StellarFunction}
+   * instance.
+   *
+   * <p>This can be useful for instrumenting a Stellar function before it is tested.
+   *
+   * @param function The Stellar function to resolve.
+   */
+  @Override
+  public BaseFunctionResolver withInstance(StellarFunction function) {
+    // perform function resolution on the instance that was passed in
+    StellarFunctionInfo functionInfo = resolveFunction(function.getClass());
+    functionInfo.setFunction(function);
+
+    // add the function to the set of resolvable functions
+    Map<String, StellarFunctionInfo> currentFunctions = this.functions.get();
+    currentFunctions.put(functionInfo.getName(), functionInfo);
+
+    this.functions = Suppliers.memoize(() -> currentFunctions);
+    return this;
   }
 }
