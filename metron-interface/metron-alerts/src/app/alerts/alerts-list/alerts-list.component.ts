@@ -227,8 +227,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.search();
   }
 
-  onSearch($event) {
-    this.queryBuilder.setSearch($event);
+  onSearch(query: string) {
+    this.queryBuilder.setSearch(query);
     this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
     this.search();
     return false;
