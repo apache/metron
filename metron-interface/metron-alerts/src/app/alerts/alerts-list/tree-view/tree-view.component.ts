@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import {Subscription, Observable} from 'rxjs';
 
 import {TableViewComponent} from '../table-view/table-view.component';
@@ -33,13 +33,15 @@ import {MetaAlertCreateRequest} from '../../../model/meta-alert-create-request';
 import {MetaAlertService} from '../../../service/meta-alert.service';
 import {INDEXES, MAX_ALERTS_IN_META_ALERTS} from '../../../utils/constants';
 import {UpdateService} from '../../../service/update.service';
-import {PatchRequest} from '../../../model/patch-request';
 import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { ConfirmationType } from 'app/model/confirmation-type';
-import {AlertSource} from "../../../model/alert-source";
+import { AlertSource } from '../../../model/alert-source';
+import { QueryBuilder } from '../query-builder';
+import { GroupRequest } from 'app/model/group-request';
+import { Group } from 'app/model/group';
 
 @Component({
   selector: 'app-tree-view',
@@ -50,13 +52,17 @@ import {AlertSource} from "../../../model/alert-source";
 export class TreeViewComponent extends TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() globalConfig: {} = {};
+  @Input() query = '';
+  @Input() groups: string[] = [];
+
+  @Output() onMetaAlertCreated = new EventEmitter<boolean>();
+
   groupByFields: string[] = [];
   topGroups: TreeGroupData[] = [];
   groupResponse: GroupResponse = new GroupResponse();
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
   configSubscription: Subscription;
-  dialogService: DialogService;
 
   constructor(searchService: SearchService,
               updateService: UpdateService,
@@ -88,7 +94,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   createQuery(selectedGroup: TreeGroupData) {
-    let searchQuery = this.queryBuilder.generateSelect();
+    let searchQuery = this.query;
     let groupQery = Object.keys(selectedGroup.groupQueryMap).map(key => {
       return key.replace(/:/g, '\\:') +
           ':' +
@@ -123,10 +129,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   getGroups() {
-    let groupRequest = this.getGroupRequest();
-    groupRequest.query = this.queryBuilder.generateSelect();
-
-    this.searchService.groups(groupRequest).subscribe(groupResponse => {
+    this.searchService.groups(this.getGroupRequest()).subscribe(groupResponse => {
       this.updateGroupData(groupResponse);
     });
   }
@@ -164,7 +167,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   initTopGroups() {
-    let groupByFields =  this.getGroupRequest().groups.map(group => group.field);
+    let groupByFields =  this.groups;
     let currentTopGroupKeys = this.groupResponse.groupResults.map(groupResult => groupResult.key);
     let previousTopGroupKeys = this.topGroups.map(group => group.key);
 
@@ -361,7 +364,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   canCreateMetaAlert(count: number) {
     if (count > MAX_ALERTS_IN_META_ALERTS) {
-      let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
+      let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS + ' alerts within it';
       this.dialogService.launchDialog(errorMessage, DialogType.Error);
       return false;
     }
@@ -374,7 +377,6 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   getAllAlertsForSlectedGroup(group: TreeGroupData): Observable<SearchResponse> {
-    let dashRowKey = Object.keys(group.groupQueryMap);
     let searchRequest = new SearchRequest();
     searchRequest.fields = ['guid', this.globalConfig['source.type.field']];
     searchRequest.from = 0;
@@ -390,36 +392,23 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
       if (this.canCreateMetaAlert(searchResponse.total)) {
         let metaAlert = new MetaAlertCreateRequest();
         metaAlert.alerts = this.createGetRequestArray(searchResponse);
-        metaAlert.groups = this.getGroupRequest().groups.map(grp => grp.field);
+        metaAlert.groups = this.groups;
 
         this.metaAlertService.create(metaAlert).subscribe(() => {
-          setTimeout(() => this.onRefreshData.emit(true), 1000);
+          setTimeout(() => this.onMetaAlertCreated.emit(true), 1000);
           console.log('Meta alert created successfully');
         });
       }
     });
   }
 
-  hasScore(alertSource) {
-    if(alertSource[this.threatScoreFieldName()]) {
-      return true;
-    }
-    else {
-      return false;
-    }
+  getGroupRequest(): GroupRequest {
+    const req = new GroupRequest();
+    req.groups = this.groups.map(groupName => new Group(groupName));
+    req.query = this.query;
+    req.scoreField = this.threatScoreFieldName();
+    return req;
   }
-
-  getScore(alertSource) {
-    return alertSource[this.threatScoreFieldName()];
-  }
-
-  threatScoreFieldName() {
-    return this.globalConfig['threat.triage.score.field'];
-  }
-
-  getGroupRequest() {
-    return this.queryBuilder.groupRequest(this.threatScoreFieldName());
-    }
 
   createMetaAlert($event, group: TreeGroupData, index: number) {
     if (this.canCreateMetaAlert(group.total)) {

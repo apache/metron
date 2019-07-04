@@ -20,7 +20,7 @@ import { Injectable } from '@angular/core';
 
 import { ConfigureRowsComponent } from './configure-rows.component';
 import { ConfigureTableService } from '../../service/configure-table.service';
-import { ShowHideAlertEntriesComponent } from '../filtering/showhide/show-hide-alert-entries.component';
+import { ShowHideAlertEntriesComponent } from '../alerts-list/show-hide/show-hide-alert-entries.component';
 import { SwitchComponent } from 'app/shared/switch/switch.component';
 
 @Injectable()

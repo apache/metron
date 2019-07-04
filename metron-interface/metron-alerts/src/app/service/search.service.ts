@@ -29,7 +29,6 @@ import {GroupResult} from '../model/group-result';
 import { RestError } from '../model/rest-error';
 import {INDEXES} from '../utils/constants';
 import {ColumnMetadata} from '../model/column-metadata';
-import {QueryBuilder} from '../alerts/alerts-list/query-builder';
 import { AppConfigService } from './app-config.service';
 
 @Injectable()
@@ -80,11 +79,11 @@ export class SearchService {
     catchError(HttpUtil.handleError));
   }
 
-  public pollSearch(queryBuilder: QueryBuilder): Observable<SearchResponse> {
+  public pollSearch(searchRequest: SearchRequest): Observable<SearchResponse> {
     return this.ngZone.runOutsideAngular(() => {
       return this.ngZone.run(() => {
         return observableInterval(this.interval * 1000).pipe(switchMap(() => {
-          return this.search(queryBuilder.searchRequest);
+          return this.search(searchRequest);
         }));
       });
     });

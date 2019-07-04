@@ -1,7 +1,6 @@
 import { ShowHideAlertEntriesComponent } from "./show-hide-alert-entries.component";
 import { ComponentFixture, async, TestBed } from "@angular/core/testing";
 import { SwitchComponent } from "app/shared/switch/switch.component";
-import { ImplicitFilteringService } from "../service/ImplicitFilteringService";
 
 describe('show/hide RESOLVE and/or DISMISSED alert entries', () => {
 
@@ -14,9 +13,7 @@ describe('show/hide RESOLVE and/or DISMISSED alert entries', () => {
         ShowHideAlertEntriesComponent,
         SwitchComponent
       ],
-      providers: [
-        ImplicitFilteringService,
-      ]
+      providers: []
     })
     .compileComponents();
   }));

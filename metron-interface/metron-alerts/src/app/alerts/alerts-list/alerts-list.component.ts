@@ -37,7 +37,7 @@ import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {Filter} from '../../model/filter';
 import { TIMESTAMP_FIELD_NAME, ALL_TIME, POLLING_DEFAULT_STATE } from '../../utils/constants';
-import {TableViewComponent} from './table-view/table-view.component';
+import {TableViewComponent, PageChangedEvent, SortChangedEvent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
 import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
@@ -46,7 +46,7 @@ import { GlobalConfigService } from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
-import {AlertSource} from "../../model/alert-source";
+import { AlertSource } from '../../model/alert-source';
 
 @Component({
   selector: 'app-alerts-list',
@@ -127,7 +127,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
       let queryBuilder = new QueryBuilder();
-      queryBuilder.setGroupby(this.getGroupRequest().groups.map(group => group.field));
+      queryBuilder.setGroupby(this.groups);
       queryBuilder.searchRequest = savedSearch.searchRequest;
       queryBuilder.filters = savedSearch.filters;
       this.queryBuilder = queryBuilder;
@@ -238,8 +238,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.onAddFilter(new Filter($event.name, $event.key));
   }
 
-  onRefreshData($event) {
-    this.search($event);
+  onSortChanged(event: SortChangedEvent) {
+    this.queryBuilder.setSort(event.sortBy, event.sortOrder);
+    this.search(true);
+  }
+
+  onPageChanged(event: PageChangedEvent) {
+    this.queryBuilder.setFromAndSize(event.from, event.size);
+    this.search(false);
   }
 
   onSelectedAlertsChange(selectedAlerts) {
@@ -392,12 +398,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.tryStartPolling();
   }
 
-  getGroupRequest() {
-    return this.queryBuilder.groupRequest(this.globalConfig['threat.triage.score.field']);
-  }
-
   setSearchRequestSize() {
-    if (this.getGroupRequest().groups.length === 0) {
+    if (this.groups.length === 0) {
       this.queryBuilder.searchRequest.from = this.pagination.from;
       if (this.tableMetaData.size) {
         this.pagination.size = this.tableMetaData.size;
@@ -484,7 +486,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   tryStartPolling() {
     if (!this.isRefreshPaused) {
       this.tryStopPolling();
-      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder).subscribe(results => {
+      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
         this.setData(results);
       });
     }

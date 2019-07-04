@@ -18,11 +18,12 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../../shared/shared.module';
 import { ConfigureRowsComponent } from './configure-rows.component';
-import { FilteringModule } from '../filtering/filtering.module';
+import { ShowHideAlertEntriesComponent } from './show-hide/show-hide-alert-entries.component';
+import { SwitchModule } from 'app/shared/switch/switch.module';
 
 @NgModule({
-    imports: [ SharedModule, FilteringModule ],
-    declarations: [ ConfigureRowsComponent ],
+    imports: [ SharedModule, SwitchModule ],
+    declarations: [ ConfigureRowsComponent, ShowHideAlertEntriesComponent ],
     exports: [ ConfigureRowsComponent ],
 })
 export class ConfigureRowsModule {}

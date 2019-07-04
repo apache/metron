@@ -22,7 +22,9 @@ import {SortField} from '../../model/sort-field';
 import {TIMESTAMP_FIELD_NAME} from '../../utils/constants';
 import {GroupRequest} from '../../model/group-request';
 import {Group} from '../../model/group';
+import { Injectable } from '@angular/core';
 
+@Injectable()
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
   private _groupRequest = new GroupRequest();
@@ -48,6 +50,9 @@ export class QueryBuilder {
     return this._filters;
   }
 
+  get groups(): Group[] {
+    return this._groupRequest.groups;
+  }
 
   get searchRequest(): SearchRequest {
     this._searchRequest.query = this.generateSelect();
