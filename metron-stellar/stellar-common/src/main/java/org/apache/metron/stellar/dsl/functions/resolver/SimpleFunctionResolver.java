@@ -18,12 +18,16 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
-import java.lang.invoke.MethodHandles;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.base.Suppliers;
 import org.apache.metron.stellar.dsl.StellarFunction;
+import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.invoke.MethodHandles;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A simple Stellar function resolver that resolves functions from specific
@@ -49,7 +53,8 @@ public class SimpleFunctionResolver extends BaseFunctionResolver {
   }
 
   /**
-   * Will attempt to resolve any Stellar functions defined within the specified class.
+   * Attempts to resolve any functions defined within a specific class.
+   *
    * @param clazz The class which may contain a Stellar function.
    */
   public SimpleFunctionResolver withClass(Class<? extends StellarFunction> clazz) {
