@@ -68,6 +68,10 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
+      public void close() throws IOException {
+      }
+
+      @Override
       public Document getLatest(String guid, String sensorType) {
         return null;
       }
