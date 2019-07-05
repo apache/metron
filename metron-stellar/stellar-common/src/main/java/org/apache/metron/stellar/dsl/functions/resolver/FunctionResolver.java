@@ -17,15 +17,13 @@
  */
 package org.apache.metron.stellar.dsl.functions.resolver;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Map;
-import java.util.function.Function;
-
-import com.google.common.base.Suppliers;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.function.Function;
 
 /**
  * Responsible for function resolution in Stellar.
@@ -49,10 +47,10 @@ public interface FunctionResolver extends Function<String, StellarFunction>, Clo
   void initialize(Context context);
 
   /**
-   * TODO do we really want this here?
-   *
    * Attempts to resolve a function defined within the provided {@link StellarFunction}
    * instance.
+   *
+   * <p>This can be useful for instrumenting a Stellar function before it is tested.
    *
    * @param function The Stellar function to resolve.
    */

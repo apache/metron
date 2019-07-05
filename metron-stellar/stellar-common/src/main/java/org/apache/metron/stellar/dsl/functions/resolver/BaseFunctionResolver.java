@@ -243,14 +243,6 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
     }
   }
 
-  /**
-   * Attempts to resolve a function defined within the provided {@link StellarFunction}
-   * instance.
-   *
-   * <p>This can be useful for instrumenting a Stellar function before it is tested.
-   *
-   * @param function The Stellar function to resolve.
-   */
   @Override
   public BaseFunctionResolver withInstance(StellarFunction function) {
     // perform function resolution on the instance that was passed in

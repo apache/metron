@@ -21,12 +21,13 @@ package org.apache.metron.profiler.spark.function;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
+import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.HBaseClientFactory;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.client.HBaseTableClient;
+import org.apache.metron.hbase.client.HBaseTableClientFactory;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
@@ -39,16 +40,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_CLIENT_FACTORY;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_COLUMN_FAMILY;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_CONNECTION_FACTORY;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_SALT_DIVISOR;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_NAME;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_PROVIDER;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_WRITE_DURABILITY;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION_UNITS;
@@ -60,7 +61,15 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private TableProvider tableProvider;
+  /**
+   * Establishes connections to HBase.
+   */
+  private HBaseConnectionFactory connectionFactory;
+
+  /**
+   * Creates the {@link HBaseTableClient} when it is needed.
+   */
+  private HBaseClientFactory hBaseClientFactory;
 
   /**
    * The name of the HBase table to write to.
@@ -83,9 +92,6 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
   private ColumnBuilder columnBuilder;
 
   public HBaseWriterFunction(Properties properties) {
-    tableName = HBASE_TABLE_NAME.get(properties, String.class);
-    durability = HBASE_WRITE_DURABILITY.get(properties, Durability.class);
-
     // row key builder
     int saltDivisor = HBASE_SALT_DIVISOR.get(properties, Integer.class);
     int periodDuration = PERIOD_DURATION.get(properties, Integer.class);
@@ -96,9 +102,17 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
     String columnFamily = HBASE_COLUMN_FAMILY.get(properties, String.class);
     columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
 
-    // hbase table provider
-    String providerImpl = HBASE_TABLE_PROVIDER.get(properties, String.class);
-    tableProvider = createTableProvider(providerImpl);
+    // hbase
+    tableName = HBASE_TABLE_NAME.get(properties, String.class);
+    durability = HBASE_WRITE_DURABILITY.get(properties, Durability.class);
+
+    // connection factory
+    String factoryImpl = HBASE_CONNECTION_FACTORY.get(properties, String.class);
+    connectionFactory = createConnectionFactory(factoryImpl);
+
+    // client creator
+    String creatorImpl = HBASE_CLIENT_FACTORY.get(properties, String.class);
+    hBaseClientFactory = HBaseClientFactory.byName(creatorImpl, () -> new HBaseTableClientFactory());
   }
 
   /**
@@ -117,8 +131,7 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
     if(measurements.size() > 0) {
 
       // open an HBase connection
-      Configuration config = HBaseConfiguration.create();
-      try (LegacyHBaseClient client = new LegacyHBaseClient(tableProvider, config, tableName)) {
+      try (HBaseClient client = hBaseClientFactory.create(connectionFactory, HBaseConfiguration.create(), tableName)) {
 
         for (ProfileMeasurementAdapter adapter : measurements) {
           ProfileMeasurement m = adapter.toProfileMeasurement();
@@ -137,35 +150,38 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
   }
 
   /**
-   * Set the {@link TableProvider} using the class name of the provider.
-   * @param providerImpl The name of the class.
-   * @return
+   * Creates an {@link HBaseConnectionFactory} based on a class name.
+   * @param factoryImpl The class name of an {@link HBaseConnectionFactory} implementation.
    */
-  public HBaseWriterFunction withTableProviderImpl(String providerImpl) {
-    this.tableProvider = createTableProvider(providerImpl);
-    return this;
-  }
-
-  /**
-   * Creates a TableProvider based on a class name.
-   * @param providerImpl The class name of a TableProvider
-   */
-  private static TableProvider createTableProvider(String providerImpl) {
-    LOG.trace("Creating table provider; className={}", providerImpl);
+  private static HBaseConnectionFactory createConnectionFactory(String factoryImpl) {
+    LOG.trace("Creating table provider; className={}", factoryImpl);
 
     // if class name not defined, use a reasonable default
-    if(StringUtils.isEmpty(providerImpl) || providerImpl.charAt(0) == '$') {
-      return new HTableProvider();
+    if(StringUtils.isEmpty(factoryImpl) || factoryImpl.charAt(0) == '$') {
+      return new HBaseConnectionFactory();
     }
 
     // instantiate the table provider
-    try {
-      Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(providerImpl);
-      return clazz.getConstructor().newInstance();
+    return HBaseConnectionFactory.byName(factoryImpl);
+  }
 
-    } catch (InstantiationException | IllegalAccessException | IllegalStateException |
-            InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
-      throw new IllegalStateException("Unable to instantiate connector", e);
-    }
+  protected HBaseWriterFunction withConnectionFactory(HBaseConnectionFactory connectionFactory) {
+    this.connectionFactory = connectionFactory;
+    return this;
+  }
+
+  protected HBaseWriterFunction withClientFactory(HBaseClientFactory clientFactory) {
+    this.hBaseClientFactory = clientFactory;
+    return this;
+  }
+
+  protected HBaseWriterFunction withRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {
+    this.rowKeyBuilder = rowKeyBuilder;
+    return this;
+  }
+
+  protected HBaseWriterFunction withColumnBuilder(ColumnBuilder columnBuilder) {
+    this.columnBuilder = columnBuilder;
+    return this;
   }
 }

@@ -20,19 +20,13 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.client.ProfileWriter;
-import org.apache.metron.profiler.hbase.ColumnBuilder;
-import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
-import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.apache.metron.profiler.client.ProfilerClient;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,180 +35,176 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.ENTITY_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.GROUPS_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_END_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_START_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.PROFILE_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.VALUE_KEY;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
- * Tests the VerboseProfile class.
+ * Tests the 'PROFILE_VERBOSE' function in the {@link VerboseProfile} class.
  */
 public class VerboseProfileTest {
-  private static final long periodDuration = 15;
-  private static final TimeUnit periodUnits = TimeUnit.MINUTES;
-  private static final int saltDivisor = 1000;
-  private static final String tableName = "profiler";
-  private static final String columnFamily = "P";
+
   private StellarStatefulExecutor executor;
-  private Map<String, Object> state;
-  private ProfileWriter profileWriter;
-
-  private <T> T run(String expression, Class<T> clazz) {
-    return executor.execute(expression, state, clazz);
-  }
-
+  private FunctionResolver functionResolver;
   private Map<String, Object> globals;
+  private VerboseProfile function;
+  private ProfilerClient profilerClient;
+  private List<Map<String, Object>> results;
+  private ProfileMeasurement expected;
+
+  private List run(String expression) {
+    return executor.execute(expression, new HashMap<>(), List.class);
+  }
 
   @Before
   public void setup() {
-    state = new HashMap<>();
-    final HTableInterface table = MockHBaseTableProvider.addToCache(tableName, columnFamily);
+    // the mock profiler client used to feed profile measurement values to the function
+    profilerClient = mock(ProfilerClient.class);
 
-    // used to write values to be read during testing
-    long periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
-    RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
-    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodDurationMillis);
+    // the VERBOSE_PROFILE function that will be tested
+    function = new VerboseProfile();
+    function.withProfilerClientFactory(globals -> profilerClient);
 
     // global properties
-    globals = new HashMap<String, Object>() {{
-      put(PROFILER_HBASE_TABLE.getKey(), tableName);
-      put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
-      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
-      put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration));
-      put(PROFILER_PERIOD_UNITS.getKey(), periodUnits.toString());
-      put(PROFILER_SALT_DIVISOR.getKey(), Integer.toString(saltDivisor));
-    }};
+    globals = new HashMap<>();
+    Context context = new Context.Builder()
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> globals)
+            .build();
 
     // create the stellar execution environment
-    executor = new DefaultStellarStatefulExecutor(
-            new SimpleFunctionResolver()
-                    .withClass(VerboseProfile.class)
-                    .withClass(FixedLookback.class),
-            new Context.Builder()
-                    .with(Context.Capabilities.GLOBAL_CONFIG, () -> globals)
-                    .build());
+    functionResolver = new SimpleFunctionResolver()
+            .withClass(FixedLookback.class)
+            .withInstance(function);
+    executor = new DefaultStellarStatefulExecutor(functionResolver, context);
+
+    // create a profile measurement used in the tests
+    expected = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(System.currentTimeMillis(), 5, TimeUnit.MINUTES)
+            .withProfileValue(1231121);
   }
 
   @Test
-  public void shouldReturnMeasurementsWhenNotGrouped() {
-    final int periodsPerHour = 4;
-    final int expectedValue = 2302;
-    final int hours = 2;
-    final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
-    final List<Object> group = Collections.emptyList();
+  public void shouldRenderVerboseView() {
+    // only one profile measurement exists
+    when(profilerClient.fetch(
+            eq(Object.class),
+            eq(expected.getProfileName()),
+            eq(expected.getEntity()),
+            eq(expected.getGroups()),
+            any(),
+            any())).thenReturn(Arrays.asList(expected));
 
-    // setup - write some measurements to be read later
-    final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, count, group, val -> expectedValue);
+    // expect the one measurement to be returned
+    results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))");
+    assertEquals(1, results.size());
+    Map<String, Object> actual = results.get(0);
 
-    // expect to see all values over the past 4 hours
-    List<Map<String, Object>> results;
-    results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))", List.class);
-    Assert.assertEquals(count, results.size());
-    for(Map<String, Object> actual: results) {
-      Assert.assertEquals("profile1", actual.get(PROFILE_KEY));
-      Assert.assertEquals("entity1", actual.get(ENTITY_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_START_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_END_KEY));
-      Assert.assertNotNull(actual.get(GROUPS_KEY));
-      Assert.assertEquals(expectedValue, actual.get(VALUE_KEY));
-    }
+    // the measurement should be rendered as a map containing detailed information about the profile measurement
+    assertEquals(expected.getProfileName(),                 actual.get("profile"));
+    assertEquals(expected.getEntity(),                      actual.get("entity"));
+    assertEquals(expected.getPeriod().getPeriod(),          actual.get("period"));
+    assertEquals(expected.getPeriod().getStartTimeMillis(), actual.get("period.start"));
+    assertEquals(expected.getPeriod().getEndTimeMillis(),   actual.get("period.end"));
+    assertEquals(expected.getProfileValue(),                actual.get("value"));
+    assertEquals(expected.getGroups(),                      actual.get("groups"));
   }
 
   @Test
-  public void shouldReturnMeasurementsWhenGrouped() {
-    final int periodsPerHour = 4;
-    final int expectedValue = 2302;
-    final int hours = 2;
-    final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
-    final List<Object> group = Arrays.asList("weekends");
+  public void shouldRenderVerboseViewWithGroup() {
+    // the profile measurement is part of a group
+    expected.withGroups(Arrays.asList("group1"));
 
-    // setup - write some measurements to be read later
-    final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, count, group, val -> expectedValue);
+    // only one profile measurement exists
+    when(profilerClient.fetch(
+            eq(Object.class),
+            eq(expected.getProfileName()),
+            eq(expected.getEntity()),
+            eq(expected.getGroups()),
+            any(),
+            any())).thenReturn(Arrays.asList(expected));
 
-    // create a variable that contains the groups to use
-    state.put("groups", group);
+    // expect the one measurement to be returned
+    results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['group1'])");
+    assertEquals(1, results.size());
+    Map<String, Object> actual = results.get(0);
 
-    // expect to see all values over the past 4 hours for the group
-    List<Map<String, Object>> results;
-    results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), groups)", List.class);
-    Assert.assertEquals(count, results.size());
-    for(Map<String, Object> actual: results) {
-      Assert.assertEquals("profile1", actual.get(PROFILE_KEY));
-      Assert.assertEquals("entity1", actual.get(ENTITY_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_START_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_END_KEY));
-      Assert.assertNotNull(actual.get(GROUPS_KEY));
-      Assert.assertEquals(expectedValue, actual.get(VALUE_KEY));
-    }
+    // the measurement should be rendered as a map containing detailed information about the profile measurement
+    assertEquals(expected.getProfileName(),                 actual.get("profile"));
+    assertEquals(expected.getEntity(),                      actual.get("entity"));
+    assertEquals(expected.getPeriod().getPeriod(),          actual.get("period"));
+    assertEquals(expected.getPeriod().getStartTimeMillis(), actual.get("period.start"));
+    assertEquals(expected.getPeriod().getEndTimeMillis(),   actual.get("period.end"));
+    assertEquals(expected.getProfileValue(),                actual.get("value"));
+    assertEquals(expected.getGroups(),                      actual.get("groups"));
+  }
+
+  @Test
+  public void shouldRenderVerboseViewWithDifferentGroup() {
+    // the profile measurement is part of a group
+    expected.withGroups(Arrays.asList("group1"));
+
+    // only one profile measurement exists
+    when(profilerClient.fetch(
+            eq(Object.class),
+            eq(expected.getProfileName()),
+            eq(expected.getEntity()),
+            eq(expected.getGroups()),
+            any(),
+            any())).thenReturn(Arrays.asList(expected));
+
+    // the profile measurement is not part of 'group999'
+    results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['group999'])");
+    assertEquals(0, results.size());
   }
 
   @Test
   public void shouldReturnNothingWhenNoMeasurementsExist() {
-    final int expectedValue = 2302;
-    final int hours = 2;
-    final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
-    final List<Object> group = Collections.emptyList();
+    // no measurements exist
+    when(profilerClient.fetch(
+            eq(Object.class),
+            any(),
+            any(),
+            any(),
+            any(),
+            any())).thenReturn(Collections.emptyList());
 
-    // setup - write a single value from 2 hours ago
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, 1, group, val -> expectedValue);
-
-    // expect to get NO measurements over the past 4 seconds
-    List<Map<String, Object>> result;
-    result = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'SECONDS'))", List.class);
-    Assert.assertEquals(0, result.size());
+    // no measurements exist
+    results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))");
+    assertEquals(0, results.size());
   }
 
   @Test
-  public void shouldReturnDefaultValueWhenNoMeasurementsExist() {
+  public void shouldReturnDefaultValue() {
     // set a default value
-    String defaultVal = "this is the default value";
-    globals.put("profiler.default.value", defaultVal);
+    globals.put("profiler.default.value", expected);
 
-    // no profiles exist
-    String expr = "PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
-    List<Map<String, Object>> results = run(expr, List.class);
+    // the underlying profile client needs to be setup to return the default
+    when(profilerClient.fetch(
+            eq(Object.class),
+            eq(expected.getProfileName()),
+            eq(expected.getEntity()),
+            eq(expected.getGroups()),
+            any(),
+            eq(Optional.of(expected)))).thenReturn(Arrays.asList(expected));
 
-    // expect to get the default value instead of no results
-    Assert.assertTrue(results.size() == 16 || results.size() == 17);
-    for(Map<String, Object> actual: results) {
-      Assert.assertEquals("profile1", actual.get(PROFILE_KEY));
-      Assert.assertEquals("entity1", actual.get(ENTITY_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_START_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_END_KEY));
-      Assert.assertNotNull(actual.get(GROUPS_KEY));
+    results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))");
+    assertEquals(1, results.size());
+    Map<String, Object> actual = results.get(0);
 
-      // expect the default value
-      Assert.assertEquals(defaultVal, actual.get(VALUE_KEY));
-    }
-
+    // no measurements exist, but we expect the default value to be returned
+    assertEquals(expected.getProfileName(),                 actual.get("profile"));
+    assertEquals(expected.getEntity(),                      actual.get("entity"));
+    assertEquals(expected.getPeriod().getPeriod(),          actual.get("period"));
+    assertEquals(expected.getPeriod().getStartTimeMillis(), actual.get("period.start"));
+    assertEquals(expected.getPeriod().getEndTimeMillis(),   actual.get("period.end"));
+    assertEquals(expected.getProfileValue(),                actual.get("value"));
+    assertEquals(expected.getGroups(),                      actual.get("groups"));
   }
 }
