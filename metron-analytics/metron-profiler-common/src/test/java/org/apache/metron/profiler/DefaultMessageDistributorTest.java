@@ -21,7 +21,6 @@
 package org.apache.metron.profiler;
 
 import com.github.benmanes.caffeine.cache.Ticker;
-import com.google.common.util.concurrent.MoreExecutors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -33,7 +32,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.HOURS;

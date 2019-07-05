@@ -20,11 +20,11 @@
 
 package org.apache.metron.profiler.client;
 
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.utils.SerDeUtils;
+import org.apache.metron.hbase.HBaseProjectionCriteria;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
@@ -44,7 +44,7 @@ public class HBaseProfilerClient implements ProfilerClient {
   /**
    * Used to access the profile data stored in HBase.
    */
-  private HTableInterface table;
+  private HBaseClient hbaseClient;
 
   /**
    * Generates the row keys necessary to scan HBase.
@@ -52,19 +52,22 @@ public class HBaseProfilerClient implements ProfilerClient {
   private RowKeyBuilder rowKeyBuilder;
 
   /**
-   * Knows how profiles are organized in HBase.
+   * Knows how profiles are organized by columns in HBase.
    */
   private ColumnBuilder columnBuilder;
 
+  /**
+   * The period duration in milliseconds for the profiles that will be read by this client.
+   */
   private long periodDurationMillis;
 
-  public HBaseProfilerClient(HTableInterface table,
+  public HBaseProfilerClient(HBaseClient hbaseClient,
                              RowKeyBuilder rowKeyBuilder,
                              ColumnBuilder columnBuilder,
                              long periodDurationMillis) {
-    setTable(table);
-    setRowKeyBuilder(rowKeyBuilder);
-    setColumnBuilder(columnBuilder);
+    this.rowKeyBuilder = rowKeyBuilder;
+    this.columnBuilder = columnBuilder;
+    this.hbaseClient = hbaseClient;
     this.periodDurationMillis = periodDurationMillis;
   }
 
@@ -82,7 +85,13 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @return A list of values.
    */
   @Override
-  public <T> List<ProfileMeasurement> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, long start, long end, Optional<T> defaultValue) {
+  public <T> List<ProfileMeasurement> fetch(Class<T> clazz,
+                                            String profile,
+                                            String entity,
+                                            List<Object> groups,
+                                            long start,
+                                            long end,
+                                            Optional<T> defaultValue) {
     List<ProfilePeriod> periods = ProfilePeriod.visitPeriods(
             start,
             end,
@@ -92,6 +101,8 @@ public class HBaseProfilerClient implements ProfilerClient {
             period -> period);
     return fetch(clazz, profile, entity, groups, periods, defaultValue);
   }
+
+
 
   /**
    * Fetch the values stored in a profile based on a set of timestamps.
@@ -105,7 +116,12 @@ public class HBaseProfilerClient implements ProfilerClient {
    * @return A list of values.
    */
   @Override
-  public <T> List<ProfileMeasurement> fetch(Class<T> clazz, String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods, Optional<T> defaultValue) {
+  public <T> List<ProfileMeasurement> fetch(Class<T> clazz,
+                                            String profile,
+                                            String entity,
+                                            List<Object> groups,
+                                            Iterable<ProfilePeriod> periods,
+                                            Optional<T> defaultValue) {
     // create a list of profile measurements that need fetched
     List<ProfileMeasurement> toFetch = new ArrayList<>();
     for(ProfilePeriod period: periods) {
@@ -120,59 +136,76 @@ public class HBaseProfilerClient implements ProfilerClient {
     return doFetch(toFetch, clazz, defaultValue);
   }
 
-  private <T> List<ProfileMeasurement> doFetch(List<ProfileMeasurement> measurements, Class<T> clazz, Optional<T> defaultValue) {
+  @Override
+  public void close() throws IOException {
+    if(hbaseClient != null) {
+      hbaseClient.close();
+    }
+  }
+
+  private <T> List<ProfileMeasurement> doFetch(List<ProfileMeasurement> measurements,
+                                               Class<T> clazz,
+                                               Optional<T> defaultValue) {
     List<ProfileMeasurement> values = new ArrayList<>();
 
-    // build the gets for HBase
+    // define which columns need fetched
     byte[] columnFamily = Bytes.toBytes(columnBuilder.getColumnFamily());
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
-    List<Get> gets = new ArrayList<>();
+    HBaseProjectionCriteria.ColumnMetaData column = new HBaseProjectionCriteria.ColumnMetaData(columnFamily, columnQualifier);
+    HBaseProjectionCriteria criteria = new HBaseProjectionCriteria().addColumn(column);
+
     for(ProfileMeasurement measurement: measurements) {
       byte[] rowKey = rowKeyBuilder.rowKey(measurement);
-      Get get = new Get(rowKey).addColumn(columnFamily, columnQualifier);
-      gets.add(get);
+      hbaseClient.addGet(rowKey, criteria);
     }
 
     // query HBase
-    try {
-      Result[] results = table.get(gets);
-      for(int i = 0; i < results.length; ++i) {
-        Result result = results[i];
-        ProfileMeasurement measurement = measurements.get(i);
+    Result[] results = hbaseClient.getAll();
+    for(int i = 0; i < results.length; ++i) {
+      Result result = results[i];
+      ProfileMeasurement measurement = measurements.get(i);
 
-        boolean exists = result.containsColumn(columnFamily, columnQualifier);
-        if(exists) {
-          // value found
-          byte[] value = result.getValue(columnFamily, columnQualifier);
-          measurement.withProfileValue(SerDeUtils.fromBytes(value, clazz));
-          values.add(measurement);
+      boolean exists = result.containsColumn(columnFamily, columnQualifier);
+      if(exists) {
+        // value found
+        byte[] value = result.getValue(columnFamily, columnQualifier);
+        measurement.withProfileValue(SerDeUtils.fromBytes(value, clazz));
+        values.add(measurement);
 
-        } else if(defaultValue.isPresent()) {
-          // no value found, use default value provided
-          measurement.withProfileValue(defaultValue.get());
-          values.add(measurement);
+      } else if(defaultValue.isPresent()) {
+        // no value found, use default value provided
+        measurement.withProfileValue(defaultValue.get());
+        values.add(measurement);
 
-        } else {
-          // no value found and no default provided. nothing to do
-        }
+      } else {
+        // no value found and no default provided. nothing to do
       }
-    } catch(IOException e) {
-      throw new RuntimeException(e);
     }
 
     return values;
   }
 
-
-  public void setTable(HTableInterface table) {
-    this.table = table;
+  protected HBaseClient getHbaseClient() {
+    return hbaseClient;
   }
 
-  public void setRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {
+  protected RowKeyBuilder getRowKeyBuilder() {
+    return rowKeyBuilder;
+  }
+
+  protected void setRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {
     this.rowKeyBuilder = rowKeyBuilder;
   }
 
-  public void setColumnBuilder(ColumnBuilder columnBuilder) {
+  protected ColumnBuilder getColumnBuilder() {
+    return columnBuilder;
+  }
+
+  protected void setColumnBuilder(ColumnBuilder columnBuilder) {
     this.columnBuilder = columnBuilder;
+  }
+
+  protected long getPeriodDurationMillis() {
+    return periodDurationMillis;
   }
 }
