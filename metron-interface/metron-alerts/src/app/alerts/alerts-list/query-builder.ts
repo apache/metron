@@ -85,7 +85,7 @@ export class QueryBuilder {
 
     // only one timerange filter applicable
     if (filter.field === TIMESTAMP_FIELD_NAME) {
-      this.removeFilter(filter.field);
+      this.removeFilter(this.filters.find(fItem => fItem.field === TIMESTAMP_FIELD_NAME));
       this._filters.push(filter);
       this.onSearchChange();
       return;
@@ -141,10 +141,8 @@ export class QueryBuilder {
     this._displayQuery = this.generateSelectForDisplay();
   }
 
-  removeFilter(field: string) {
-    let filter = this._filters.find(tFilter => tFilter.field === field);
+  removeFilter(filter: Filter) {
     this._filters.splice(this._filters.indexOf(filter), 1);
-
     this.onSearchChange();
   }
 

@@ -20,10 +20,12 @@ import { SharedModule } from '../../shared/shared.module';
 import { ConfigureRowsComponent } from './configure-rows.component';
 import { ShowHideAlertEntriesComponent } from './show-hide/show-hide-alert-entries.component';
 import { SwitchModule } from 'app/shared/switch/switch.module';
+import { QueryBuilder } from '../alerts-list/query-builder';
 
 @NgModule({
     imports: [ SharedModule, SwitchModule ],
     declarations: [ ConfigureRowsComponent, ShowHideAlertEntriesComponent ],
     exports: [ ConfigureRowsComponent ],
+    providers: [ QueryBuilder ],
 })
 export class ConfigureRowsModule {}

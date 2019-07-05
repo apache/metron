@@ -90,6 +90,7 @@ export class ConfigureRowsComponent  {
     this.configRowsChange.emit();
     this.saveSettings();
   }
+
   onRefreshIntervalChange($event, parentElement) {
     parentElement.querySelector('.is-active').classList.remove('is-active');
     $event.target.classList.add('is-active');
