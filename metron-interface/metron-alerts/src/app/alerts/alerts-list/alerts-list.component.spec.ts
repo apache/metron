@@ -30,6 +30,7 @@ import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { Observable } from 'rxjs';
 import { Filter } from 'app/model/filter';
+import { QueryBuilder } from './query-builder';
 
 describe('AlertsListComponent', () => {
 
@@ -68,6 +69,9 @@ describe('AlertsListComponent', () => {
           get: () => new Observable(),
         } } },
         { provide: DialogService, useClass: () => { return {} } },
+        { provide: QueryBuilder, useClass: () => { return {
+          addOrUpdateFilter: () => {}
+        } } },
       ]
     })
     .compileComponents();
