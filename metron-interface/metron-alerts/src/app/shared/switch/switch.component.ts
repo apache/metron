@@ -26,6 +26,7 @@ export class SwitchComponent {
 
   @Output() onChange: EventEmitter<Event> = new EventEmitter();
   @Input() text: string;
+  @Input() selected = false;
 
   onValueChange(event) {
     this.onChange.emit(event.target.checked);
