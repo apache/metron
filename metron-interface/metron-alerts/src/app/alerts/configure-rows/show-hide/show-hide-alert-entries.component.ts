@@ -5,9 +5,9 @@ import { Filter } from 'app/model/filter';
 @Component({
   selector: 'app-show-hide-alert-entries',
   template: `
-    <app-switch [text]="'HIDE Resolved Alerts'" [selected]="hideResolved"
+    <app-switch [text]="'HIDE Resolved Alerts'" data-qe-id="hideResolvedAlertsToggle" [selected]="hideResolved"
       (onChange)="onVisibilityChanged('RESOLVE', $event)"> </app-switch>
-    <app-switch [text]="'HIDE Dismissed Alerts'" [selected]="hideDismissed"
+    <app-switch [text]="'HIDE Dismissed Alerts'" data-qe-id="hideDismissedAlertsToggle" [selected]="hideDismissed"
       (onChange)="onVisibilityChanged('DISMISS', $event)"> </app-switch>
   `,
   styles: ['']
@@ -18,8 +18,8 @@ export class ShowHideAlertEntriesComponent implements OnInit {
   private readonly RESOLVE = 'RESOLVE';
   private readonly DISMISS = 'DISMISS';
 
-  private readonly HIDE_RESOLVE_STORAGE_KEY = 'hideResolvedAlertItems';
-  private readonly HIDE_DISMISS_STORAGE_KEY = 'hideDismissAlertItems';
+  public readonly HIDE_RESOLVE_STORAGE_KEY = 'hideResolvedAlertItems';
+  public readonly HIDE_DISMISS_STORAGE_KEY = 'hideDismissAlertItems';
 
   private readonly resolveFilter = new Filter(this.FIELD, this.RESOLVE, false);
   private readonly dismissFilter = new Filter(this.FIELD, this.DISMISS, false);
@@ -30,11 +30,11 @@ export class ShowHideAlertEntriesComponent implements OnInit {
   constructor(private queryBuilder: QueryBuilder) {}
 
   ngOnInit() {
-    this.hideDismissed = localStorage.getItem(this.HIDE_DISMISS_STORAGE_KEY) === 'true';
-    this.onVisibilityChanged(this.DISMISS, this.hideDismissed);
-
     this.hideResolved = localStorage.getItem(this.HIDE_RESOLVE_STORAGE_KEY) === 'true';
     this.onVisibilityChanged(this.RESOLVE, this.hideResolved);
+
+    this.hideDismissed = localStorage.getItem(this.HIDE_DISMISS_STORAGE_KEY) === 'true';
+    this.onVisibilityChanged(this.DISMISS, this.hideDismissed);
   }
 
   onVisibilityChanged(alertStatus, isHide) {
