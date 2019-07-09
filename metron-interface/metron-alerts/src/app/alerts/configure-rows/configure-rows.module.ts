@@ -21,11 +21,16 @@ import { ConfigureRowsComponent } from './configure-rows.component';
 import { ShowHideAlertEntriesComponent } from './show-hide/show-hide-alert-entries.component';
 import { SwitchModule } from 'app/shared/switch/switch.module';
 import { QueryBuilder } from '../alerts-list/query-builder';
+import { ShowHideService } from './show-hide/show-hide.service';
 
 @NgModule({
     imports: [ SharedModule, SwitchModule ],
     declarations: [ ConfigureRowsComponent, ShowHideAlertEntriesComponent ],
     exports: [ ConfigureRowsComponent ],
-    providers: [ QueryBuilder ],
+    providers: [ QueryBuilder, ShowHideService ],
 })
-export class ConfigureRowsModule {}
+export class ConfigureRowsModule {
+
+    constructor(private showHideService: ShowHideService) {}
+
+}
