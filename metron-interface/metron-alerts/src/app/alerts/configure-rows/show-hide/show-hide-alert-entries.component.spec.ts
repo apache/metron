@@ -1,4 +1,4 @@
-import { ShowHideAlertEntriesComponent } from './show-hide-alert-entries.component';
+import { ShowHideAlertEntriesComponent, ShowHideChanged } from './show-hide-alert-entries.component';
 import { ComponentFixture, async, TestBed, getTestBed } from '@angular/core/testing';
 import { SwitchComponent } from 'app/shared/switch/switch.component';
 import { QueryBuilder } from 'app/alerts/alerts-list/query-builder';
@@ -11,7 +11,7 @@ class QueryBuilderMock {
   removeFilter = () => {};
 }
 
-fdescribe('ShowHideAlertEntriesComponent', () => {
+describe('ShowHideAlertEntriesComponent', () => {
 
   let component: ShowHideAlertEntriesComponent;
   let fixture: ComponentFixture<ShowHideAlertEntriesComponent>;
@@ -34,11 +34,12 @@ fdescribe('ShowHideAlertEntriesComponent', () => {
     queryBuilderMock = getTestBed().get(QueryBuilder);
     fixture = TestBed.createComponent(ShowHideAlertEntriesComponent);
     component = fixture.componentInstance;
+
+    spyOn(localStorage, 'getItem').and.returnValues('true', 'false');
+    spyOn(localStorage, 'setItem');
   });
 
   it('should get persisted state from localStorage onNgInit', () => {
-    spyOn(localStorage, 'getItem')
-
     fixture.detectChanges();
 
     expect(localStorage.getItem).toHaveBeenCalledWith(component.HIDE_RESOLVE_STORAGE_KEY);
@@ -46,7 +47,6 @@ fdescribe('ShowHideAlertEntriesComponent', () => {
   });
 
   it('should set initial filter state onNgInit', () => {
-    spyOn(localStorage, 'getItem').and.returnValues('true', 'false');
     spyOn(component, 'onVisibilityChanged');
 
     fixture.detectChanges();
@@ -58,16 +58,12 @@ fdescribe('ShowHideAlertEntriesComponent', () => {
   });
 
   it('should save state to localStorage on change for RESOLVE', () => {
-    spyOn(localStorage, 'setItem');
-
     component.onVisibilityChanged('RESOLVE', true);
 
     expect(localStorage.setItem).toHaveBeenCalledWith(component.HIDE_RESOLVE_STORAGE_KEY, true);
   });
 
   it('should save state to localStorage on change for DISMISS', () => {
-    spyOn(localStorage, 'setItem');
-
     component.onVisibilityChanged('DISMISS', true);
 
     expect(localStorage.setItem).toHaveBeenCalledWith(component.HIDE_DISMISS_STORAGE_KEY, true);
@@ -80,12 +76,13 @@ fdescribe('ShowHideAlertEntriesComponent', () => {
     fixture.debugElement.query(By.css('[data-qe-id="hideResolvedAlertsToggle"] input')).nativeElement.click();
     fixture.detectChanges();
 
-    expect(component.onVisibilityChanged).toHaveBeenCalledWith('RESOLVE', true);
+    // it set true by localStorage.getItem, so after first click is false
+    expect(component.onVisibilityChanged).toHaveBeenCalledWith('RESOLVE', false);
 
     fixture.debugElement.query(By.css('[data-qe-id="hideResolvedAlertsToggle"] input')).nativeElement.click();
     fixture.detectChanges();
 
-    expect(component.onVisibilityChanged).toHaveBeenCalledWith('RESOLVE', false);
+    expect(component.onVisibilityChanged).toHaveBeenCalledWith('RESOLVE', true);
   });
 
   it('should listen to change event on hide dismissed toggle', () => {
@@ -138,5 +135,32 @@ fdescribe('ShowHideAlertEntriesComponent', () => {
     expect(queryBuilderMock.removeFilter).toHaveBeenCalledWith(new Filter('-alert_status', 'DISMISS', false));
     expect(queryBuilderMock.addOrUpdateFilter).not.toHaveBeenCalled();
   });
+
+  it('should trigger changed event on any toggle changes', () => {
+    spyOn(component.changed, 'emit');
+    fixture.detectChanges();
+
+    fixture.debugElement.query(By.css('[data-qe-id="hideDismissedAlertsToggle"] input')).nativeElement.click();
+    fixture.detectChanges();
+
+    // onVisibilityChanged called two times from ngInit therefore we start with argsFor(2)
+    expect((component.changed.emit as Spy).calls.argsFor(2)[0]).toEqual(new ShowHideChanged('DISMISS', true));
+
+    fixture.debugElement.query(By.css('[data-qe-id="hideResolvedAlertsToggle"] input')).nativeElement.click();
+    fixture.detectChanges();
+
+    // it set true by localStorage.getItem, so after first click is false
+    expect((component.changed.emit as Spy).calls.argsFor(3)[0]).toEqual(new ShowHideChanged('RESOLVE', false));
+
+    fixture.debugElement.query(By.css('[data-qe-id="hideDismissedAlertsToggle"] input')).nativeElement.click();
+    fixture.detectChanges();
+
+    expect((component.changed.emit as Spy).calls.argsFor(4)[0]).toEqual(new ShowHideChanged('DISMISS', false));
+
+    fixture.debugElement.query(By.css('[data-qe-id="hideResolvedAlertsToggle"] input')).nativeElement.click();
+    fixture.detectChanges();
+
+    expect((component.changed.emit as Spy).calls.argsFor(5)[0]).toEqual(new ShowHideChanged('RESOLVE', true));
+  })
 
 });

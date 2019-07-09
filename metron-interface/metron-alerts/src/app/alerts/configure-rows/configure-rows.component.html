@@ -38,7 +38,7 @@
       </div>
 
       <label> HIDE ALERT ENTRIES </label>
-      <app-show-hide-alert-entries></app-show-hide-alert-entries>
+      <app-show-hide-alert-entries (changed)="configRowsChange.emit($event)" ></app-show-hide-alert-entries>
       </form>
   </div>
 </div>

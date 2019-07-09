@@ -83,9 +83,11 @@ export class QueryBuilder {
   addOrUpdateFilter(filter: Filter) {
     let existingFilterIndex = -1;
 
-    // only one timerange filter applicable
     if (filter.field === TIMESTAMP_FIELD_NAME) {
-      this.removeFilter(this.filters.find(fItem => fItem.field === TIMESTAMP_FIELD_NAME));
+      const existingTimeRangeFilter = this.filters.find(fItem => fItem.field === TIMESTAMP_FIELD_NAME);
+      if (existingTimeRangeFilter) {
+        this.removeFilter(existingTimeRangeFilter);
+      }
       this._filters.push(filter);
       this.onSearchChange();
       return;
@@ -142,8 +144,11 @@ export class QueryBuilder {
   }
 
   removeFilter(filter: Filter) {
-    this._filters.splice(this._filters.indexOf(filter), 1);
-    this.onSearchChange();
+    const filterIndex = this._filters.indexOf(filter);
+    if (filterIndex >= 0) {
+      this._filters.splice(filterIndex, 1);
+      this.onSearchChange();
+    }
   }
 
   setFields(fieldNames: string[]) {

@@ -1,6 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { QueryBuilder } from 'app/alerts/alerts-list/query-builder';
 import { Filter } from 'app/model/filter';
+
+export class ShowHideChanged {
+  value: string;
+  isHide: boolean;
+
+  constructor(value: string, isHide: boolean) {
+    this.value = value;
+    this.isHide = isHide;
+  }
+}
 
 @Component({
   selector: 'app-show-hide-alert-entries',
@@ -26,6 +36,8 @@ export class ShowHideAlertEntriesComponent implements OnInit {
 
   hideResolved = false;
   hideDismissed = false;
+
+  @Output() changed = new EventEmitter<ShowHideChanged>();
 
   constructor(private queryBuilder: QueryBuilder) {}
 
@@ -59,6 +71,7 @@ export class ShowHideAlertEntriesComponent implements OnInit {
         break;
     }
 
+    this.changed.emit(new ShowHideChanged(alertStatus, isHide));
   }
 
 }

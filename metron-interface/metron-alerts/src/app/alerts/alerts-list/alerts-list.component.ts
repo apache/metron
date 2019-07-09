@@ -93,7 +93,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private metaAlertsService: MetaAlertService,
               private globalConfigService: GlobalConfigService,
               private dialogService: DialogService,
-              private queryBuilder: QueryBuilder) {
+              public queryBuilder: QueryBuilder) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
