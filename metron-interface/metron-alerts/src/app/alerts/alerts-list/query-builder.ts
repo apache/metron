@@ -50,10 +50,6 @@ export class QueryBuilder {
     return this._filters;
   }
 
-  get groups(): Group[] {
-    return this._groupRequest.groups;
-  }
-
   get searchRequest(): SearchRequest {
     this._searchRequest.query = this.generateSelect();
     return this._searchRequest;
