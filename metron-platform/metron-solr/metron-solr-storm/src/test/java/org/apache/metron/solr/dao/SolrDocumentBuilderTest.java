@@ -18,6 +18,8 @@
 package org.apache.metron.solr.dao;
 
 import org.apache.metron.common.Constants;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.common.SolrDocument;
 import org.junit.Before;
@@ -27,7 +29,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Tests the {@link SolrDocumentBuilder}.
@@ -42,24 +47,13 @@ public class SolrDocumentBuilderTest {
   }
 
   @Test
-  public void shouldCreateSolrDocument() {
-    Document document = document();
-    SolrDocument solrDocument = builder.fromDocument(document);
-
-    assertFalse(solrDocument.hasChildDocuments());
-    assertFalse(solrDocument.isEmpty());
-    assertEquals("192.168.1.12", solrDocument.get("ip_src_addr"));
-    assertEquals("192.168.1.24", solrDocument.get("ip_dst_addr"));
-    assertEquals("123456789", solrDocument.get("timestamp"));
-  }
-
-  @Test
-  public void shouldCreateDocumentFromSolr() {
+  public void shouldCreateDocument() {
     final String expectedGUID = UUID.randomUUID().toString();
     final String expectedIP = "192.168.1.12";
-    SolrDocument solrDocument = createSolrDocument(expectedGUID, expectedIP);
+    SolrDocument original = createSolrDocument(expectedGUID, expectedIP);
 
-    Document actual = builder.toDocument(solrDocument);
+    // 'deserialize' a document retrieved from Solr; SolrDocument -> Document
+    Document actual = builder.toDocument(original);
     assertEquals(expectedGUID, actual.getGuid());
     assertEquals(expectedGUID, actual.getDocument().get(Constants.GUID));
     assertEquals("bro", actual.getSensorType());
@@ -67,6 +61,38 @@ public class SolrDocumentBuilderTest {
     assertEquals(123456789L, (long) actual.getTimestamp());
     assertEquals(123456789L, actual.getDocument().get(Constants.Fields.TIMESTAMP.getName()));
     assertEquals(expectedIP, actual.getDocument().get("ip_src_addr"));
+  }
+
+  @Test
+  public void shouldCreateSolrDocument() {
+    Document original = createDocument();
+
+    // 'serialize' a document so that it can be written to Solr; Document -> SolrDocument
+    SolrDocument solrDocument = builder.fromDocument(original);
+
+    // validate the Solr document
+    assertFalse(solrDocument.hasChildDocuments());
+    assertFalse(solrDocument.isEmpty());
+    assertEquals("192.168.1.12", solrDocument.get("ip_src_addr"));
+    assertEquals("192.168.1.24", solrDocument.get("ip_dst_addr"));
+    assertEquals(original.getTimestamp(), solrDocument.get("timestamp"));
+
+    // 'deserialize' the SolrDocument should result in the original; SolrDocument -> Document
+    assertEquals(original, builder.toDocument(solrDocument));
+  }
+
+  @Test
+  public void shouldHandleComments() {
+    Document expected = createDocument();
+    expected.addComment(new AlertComment("This is a comment.", "johndoe", 12345678));
+    expected.addComment(new AlertComment("This is also a comment.", "johndoe", 23456789));
+
+    SolrDocument solrDocument = builder.fromDocument(expected);
+    assertNotNull(solrDocument.get(IndexDao.COMMENTS_FIELD));
+
+    Document actual = builder.toDocument(solrDocument);
+    assertEquals(expected.getComments(), actual.getComments());
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -96,7 +122,6 @@ public class SolrDocumentBuilderTest {
 
   private SolrDocument createSolrDocument(String guid, String ipAddress) {
     SolrDocument solrDocument = new SolrDocument();
-    solrDocument.addField(SolrDao.VERSION_FIELD, 1.0);
     solrDocument.addField(Constants.GUID, guid);
     solrDocument.addField(Constants.SENSOR_TYPE, "bro");
     solrDocument.addField(Constants.Fields.TIMESTAMP.getName(), 123456789L);
@@ -104,15 +129,14 @@ public class SolrDocumentBuilderTest {
     return solrDocument;
   }
 
-  private Document document() {
-    return new Document(fields(), UUID.randomUUID().toString(), "bro", System.currentTimeMillis());
-  }
-
-  private Map<String, Object> fields() {
-    return new HashMap<String, Object>() {{
-      put("ip_src_addr", "192.168.1.12");
-      put("ip_dst_addr", "192.168.1.24");
-      put("timestamp", "123456789");
+  private Document createDocument() {
+    Map<String, Object> fields = new HashMap<String, Object>() {{
+      put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.12");
+      put(Constants.Fields.DST_ADDR.getName(), "192.168.1.24");
+      put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
+      put(Constants.Fields.GUID.getName(), UUID.randomUUID().toString());
+      put(Constants.Fields.SENSOR_TYPE.getName(), "bro");
     }};
+    return Document.fromJSON(fields);
   }
 }

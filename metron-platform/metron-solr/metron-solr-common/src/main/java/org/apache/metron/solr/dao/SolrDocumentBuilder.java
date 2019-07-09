@@ -68,8 +68,21 @@ public class SolrDocumentBuilder implements DocumentBuilder<SolrDocument>, Seria
 
     String guid = (String) solrDocument.getFieldValue(Constants.GUID);
     String sensorType = (String) solrDocument.getFieldValue(Constants.SENSOR_TYPE);
-    Long timestamp = (Long) solrDocument.getFieldValue(Constants.Fields.TIMESTAMP.getName());
-    return new Document(fields, guid, sensorType, timestamp);
+    return new Document(fields, guid, sensorType, getTimestamp(solrDocument));
+  }
+
+  private Long getTimestamp(SolrDocument solrDocument) {
+    Long timestamp;
+    Object fieldValue = solrDocument.getFieldValue(Constants.Fields.TIMESTAMP.getName());
+    if(fieldValue instanceof Long) {
+      timestamp = (Long) fieldValue;
+    } else if(fieldValue instanceof String) {
+      timestamp = Long.valueOf((String) fieldValue);
+    } else {
+      throw new IllegalStateException(String.format("Unexpected value; expected String or Long; field=%s, type=%s",
+              Constants.Fields.TIMESTAMP.getName(), fieldValue.getClass().getName()));
+    }
+    return timestamp;
   }
 
   public static SolrInputDocument toSolrInputDocument(SolrDocument in) {
