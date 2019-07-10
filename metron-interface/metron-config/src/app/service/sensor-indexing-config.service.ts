@@ -64,6 +64,6 @@ export class SensorIndexingConfigService {
   ) {
     return this.http
       .delete<{}>(this.url + '/' + name)
-      .pipe<HttpResponse<{}>>(catchError(HttpUtil.handleError));
+      .pipe(catchError(HttpUtil.handleError));
   }
 }
