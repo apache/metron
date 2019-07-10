@@ -17,13 +17,17 @@
  */
 package org.apache.metron.solr.dao;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +38,7 @@ import java.util.Objects;
  * Responsible for building a {@link Document} from a {@link SolrDocument}.
  */
 public class SolrDocumentBuilder implements DocumentBuilder<SolrDocument>, Serializable {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
   public SolrDocument fromDocument(Document document) {
@@ -72,15 +77,14 @@ public class SolrDocumentBuilder implements DocumentBuilder<SolrDocument>, Seria
   }
 
   private Long getTimestamp(SolrDocument solrDocument) {
-    Long timestamp;
+    Long timestamp = null;
     Object fieldValue = solrDocument.getFieldValue(Constants.Fields.TIMESTAMP.getName());
     if(fieldValue instanceof Long) {
       timestamp = (Long) fieldValue;
     } else if(fieldValue instanceof String) {
       timestamp = Long.valueOf((String) fieldValue);
     } else {
-      throw new IllegalStateException(String.format("Unexpected value; expected String or Long; field=%s, type=%s",
-              Constants.Fields.TIMESTAMP.getName(), fieldValue.getClass().getName()));
+      LOG.error("Expected timestamp as String or Long, but got %s", ClassUtils.getSimpleName(fieldValue, "null"));
     }
     return timestamp;
   }
