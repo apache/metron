@@ -18,6 +18,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^7.2.15",
     "@angular/common": "^7.2.15",
     "@angular/compiler": "^7.2.15",
     "@angular/core": "^7.2.15",
@@ -36,6 +37,7 @@
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
     "moment": "^2.22.2",
+    "ng-zorro-antd": "^7.5.1",
     "ng2-dragula": "^1.5.0",
     "pikaday-time": "^1.6.1",
     "popper.js": "^1.14.7",

@@ -27,6 +27,40 @@ import { environment } from 'environments/environment';
 export class AppComponent implements OnInit {
   loggedIn = false;
   noTransition = false;
+  isCollapsed = false;
+  hostname = window.location.hostname;
+  centralNavLinks = [
+    {
+      linkName: 'Alerts',
+      iconClass: 'warning',
+      subLinks: [
+        {
+          linkName: 'Overview',
+          routerLink: '/alerts-list'
+        },
+        {
+          linkName: 'PCAP',
+          routerLink: '/pcap'
+        }
+      ]
+    },
+    {
+      linkName: 'Management',
+      iconClass: 'tool',
+      subLinks: [
+        {
+          linkName: 'Sensors',
+          routerLink: ':4200/sensors',
+          externalLink: true
+        },
+        {
+          linkName: 'General Settings',
+          routerLink: ':4200/general-settings',
+          externalLink: true
+        }
+      ]
+    }
+  ]
 
   constructor(private authService: AuthenticationService) {
     this.authService.onLoginEvent.subscribe(result => {
