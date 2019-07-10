@@ -1,25 +1,60 @@
 <!--
   Licensed to the Apache Software
-	Foundation (ASF) under one or more contributor license agreements. See the
-	NOTICE file distributed with this work for additional information regarding
-	copyright ownership. The ASF licenses this file to You under the Apache License,
-	Version 2.0 (the "License"); you may not use this file except in compliance
-	with the License. You may obtain a copy of the License at
+  Foundation (ASF) under one or more contributor license agreements. See the
+  NOTICE file distributed with this work for additional information regarding
+  copyright ownership. The ASF licenses this file to You under the Apache License,
+  Version 2.0 (the "License"); you may not use this file except in compliance
+  with the License. You may obtain a copy of the License at
 
   http://www.apache.org/licenses/LICENSE-2.0
 
   Unless required by applicable law or agreed to in writing, software distributed
-	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
-	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+  OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="container-fluid header" *ngIf="loggedIn">
-  <metron-config-navbar></metron-config-navbar>
-</div>
-<div [ngClass]="{'container-fluid body-fill px-0': loggedIn, 'fill': !loggedIn}">
-  <div [ngClass]="{'card-group ': loggedIn}" class="fill">
-    <div  *ngIf="loggedIn" class="fill navigation" ><metron-config-vertical-navbar></metron-config-vertical-navbar></div>
-    <div [ngClass]="{'fill content px-0 ' : loggedIn , 'fill': !loggedIn}"><router-outlet></router-outlet></div>
-  </div>
-</div>
-<router-outlet name="dialog" ></router-outlet>
+<nz-layout>
+  <nz-sider nzCollapsible [(nzCollapsed)]="isCollapsed" nzWidth="200px">
+    <div class="logo" style="height: 50px;">
+        <img class="icon logo-symbol h-100" src="assets/images/logo-symbol.png" alt="">
+        <img class="icon logo-name h-100" src="assets/images/logo-name.png" alt="">
+    </div>
+    <nav>
+      <ul nz-menu nzMode="inline" [nzInlineCollapsed]="isCollapsed" nzTheme="dark">
+        <li nz-submenu nzOpen *ngFor="let link of centralNavLinks; let i = index" routerLinkActive="ant-menu-item-selected">
+          <span title><i nz-icon [nzType]="link.iconClass"></i><span class="nav-text">{{ link.linkName }}</span></span>
+          <ng-container *ngIf="link.subLinks">
+            <ul>
+              <li *ngFor="let subLink of link.subLinks"
+              nz-menu-item
+              routerLinkActive="ant-menu-item-selected">
+                <a *ngIf="!subLink.externalLink"
+                [routerLink]="subLink.routerLink"
+                routerLinkActive="active">
+                {{ subLink.linkName }}
+                </a>
+                <a *ngIf="subLink.externalLink"
+                href="http://{{hostname}}{{subLink.routerLink}}">
+                {{ subLink.linkName }}
+                </a>
+              </li>
+            </ul>
+          </ng-container>
+        </li>
+      </ul>
+    </nav>
+  </nz-sider>
+  <nz-layout>
+    <nz-content>
+      <div class="header" *ngIf="loggedIn">
+        <metron-config-navbar></metron-config-navbar>
+      </div>
+      <div [ngClass]="{'container-fluid body-fill px-0': loggedIn, 'fill': !loggedIn}">
+        <div [ngClass]="{'card-group ': loggedIn}" class="fill">
+          <div [ngClass]="{'fill content px-0 ' : loggedIn , 'fill': !loggedIn}"><router-outlet></router-outlet></div>
+        </div>
+      </div>
+      <router-outlet name="dialog" ></router-outlet>
+    </nz-content>
+  </nz-layout>
+</nz-layout>

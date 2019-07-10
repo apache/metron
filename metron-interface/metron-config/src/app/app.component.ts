@@ -28,6 +28,40 @@ import {AuthenticationService} from './service/authentication.service';
 export class AppComponent {
 
   loggedIn = false;
+  isCollapsed = false;
+  hostname = window.location.hostname;
+  centralNavLinks = [
+    {
+      linkName: 'Alerts',
+      iconClass: 'warning',
+      subLinks: [
+        {
+          linkName: 'Overview',
+          routerLink: ':4201/alerts-list',
+          externalLink: true
+        },
+        {
+          linkName: 'PCAP',
+          routerLink: ':4201/pcap',
+          externalLink: true
+        }
+      ]
+    },
+    {
+      linkName: 'Management',
+      iconClass: 'tool',
+      subLinks: [
+        {
+          linkName: 'Sensors',
+          routerLink: '/sensors',
+        },
+        {
+          linkName: 'General Settings',
+          routerLink: '/general-settings'
+        }
+      ]
+    }
+  ];
 
   constructor(private authService: AuthenticationService) {
     this.authService.onLoginEvent.subscribe(result => {

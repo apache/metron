@@ -33,3 +33,26 @@
   border: none;
   flex: 1;
 }
+
+.ant-layout-sider { background-color: #2E2E2E; }
+.ant-menu { background-color: transparent; }
+.logo {
+  background-color: #3C3C3C;
+  display: flex;
+  justify-content: center;
+  padding: .25rem;
+}
+
+ .logo-name {
+  transition: opacity .3s cubic-bezier(.645,.045,.355,1),width .3s cubic-bezier(.645,.045,.355,1);
+  .ant-layout-sider-collapsed & {
+    display: inline-block;
+    max-width: 0;
+    opacity: 0;
+  }
+}
+
+ .logo-symbol {
+  padding-left: .5rem;
+  padding-right: .5rem;
+}
