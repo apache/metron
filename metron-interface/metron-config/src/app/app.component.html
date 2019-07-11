@@ -14,7 +14,7 @@
   the specific language governing permissions and limitations under the License.
   -->
 <nz-layout>
-  <nz-sider nzCollapsible [(nzCollapsed)]="isCollapsed" nzWidth="200px">
+  <nz-sider *ngIf="loggedIn" nzCollapsible [(nzCollapsed)]="isCollapsed" nzWidth="200px">
     <div class="logo" style="height: 50px;">
         <img class="icon logo-symbol h-100" src="assets/images/logo-symbol.png" alt="">
         <img class="icon logo-name h-100" src="assets/images/logo-name.png" alt="">
