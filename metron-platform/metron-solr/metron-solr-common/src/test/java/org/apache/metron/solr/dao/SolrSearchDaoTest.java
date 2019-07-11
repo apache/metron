@@ -24,12 +24,13 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,6 +58,7 @@ import org.apache.metron.solr.matcher.SolrQueryMatcher;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
 import org.apache.solr.client.solrj.response.PivotField;
@@ -74,7 +76,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CollectionAdminRequest.class})
+@PrepareForTest({CollectionAdminRequest.class, CollectionAdminRequest.ListAliases.class, SolrSearchDao.class})
 public class SolrSearchDaoTest {
 
   @Rule
@@ -95,6 +97,7 @@ public class SolrSearchDaoTest {
     solrRetrieveLatestDao = new SolrRetrieveLatestDao(client, accessConfig);
     mockStatic(CollectionAdminRequest.class);
     when(CollectionAdminRequest.listCollections(client)).thenReturn(Arrays.asList("bro", "snort"));
+    mockStatic(CollectionAdminRequest.ListAliases.class);
   }
 
   @Test
@@ -510,5 +513,16 @@ public class SolrSearchDaoTest {
     assertNull(level2GroupResults.get(1).getGroupResults());
   }
 
+  @Test
+  public void getCollectionsShouldReturnCollectionsAndAliases() throws Exception {
+    CollectionAdminRequest.ListAliases listAliases = mock(CollectionAdminRequest.ListAliases.class);
+    CollectionAdminResponse collectionAdminResponse = mock(CollectionAdminResponse.class);
+    whenNew(CollectionAdminRequest.ListAliases.class).withNoArguments().thenReturn(listAliases);
+    when(listAliases.process(client)).thenReturn(collectionAdminResponse);
+    when(collectionAdminResponse.getAliases()).thenReturn(new HashMap<String, String>() {{
+      put("yafAlias", "yaf");
+    }});
 
+    assertEquals("bro,snort,yafAlias", solrSearchDao.getCollections(Arrays.asList("bro", "snort", "yafAlias")));
+  }
 }

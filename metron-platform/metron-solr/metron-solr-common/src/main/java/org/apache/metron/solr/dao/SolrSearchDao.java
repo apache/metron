@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.PivotField;
@@ -167,9 +169,13 @@ public class SolrSearchDao implements SearchDao {
     return query;
   }
 
-  private String getCollections(List<String> indices) throws IOException, SolrServerException {
+  protected String getCollections(List<String> indices) throws IOException, SolrServerException {
     List<String> existingCollections = CollectionAdminRequest.listCollections(client);
-    return indices.stream().filter(existingCollections::contains).collect(Collectors.joining(","));
+    CollectionAdminResponse response = new CollectionAdminRequest.ListAliases().process(client);
+    Collection<String> existingAliases = response.getAliases().keySet();
+    return indices.stream()
+            .filter(index -> existingCollections.contains(index) || existingAliases.contains(index))
+            .collect(Collectors.joining(","));
   }
 
   private SolrQuery.ORDER getSolrSortOrder(
