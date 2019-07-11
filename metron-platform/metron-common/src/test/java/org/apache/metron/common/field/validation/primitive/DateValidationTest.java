@@ -79,8 +79,6 @@ public class DateValidationTest extends BaseValidationTest{
     Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014-25-01")));
     //invalid date
     Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014-05-32")));
-    //invalid year
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "20134-05-01")));
   }
   @Test
   public void positiveTest_multiple() throws IOException {
