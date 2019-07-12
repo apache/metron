@@ -84,17 +84,20 @@ describe('Component: SensorRuleEditorComponent', () => {
         component.riskLevelRule =  {name: 'rule1', rule: 'initial rule', score: '1', comment: ''};
         component.ngOnInit();
         component.onSave();
+        fixture.detectChanges();
         let rule1 = Object.assign(new RiskLevelRule(), {name: 'rule1', rule: 'initial rule', score: '1', comment: ''});
         expect(savedRule).toEqual(rule1);
 
         component.riskLevelRule = {name: 'rule2', rule: 'new rule', score: '2', comment: ''};
         component.ngOnInit();
         component.onSave();
+        fixture.detectChanges();
         let rule2 = Object.assign(new RiskLevelRule(), {name: 'rule2', rule: 'new rule', score: '2', comment: ''});
         expect(savedRule).toEqual(rule2);
 
         expect(numCancelled).toEqual(0);
         component.onCancel();
+        fixture.detectChanges();
         expect(numCancelled).toEqual(1);
     }));
 
