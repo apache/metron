@@ -98,6 +98,13 @@ public class SolrSearchDaoTest {
     mockStatic(CollectionAdminRequest.class);
     when(CollectionAdminRequest.listCollections(client)).thenReturn(Arrays.asList("bro", "snort"));
     mockStatic(CollectionAdminRequest.ListAliases.class);
+    CollectionAdminRequest.ListAliases listAliases = mock(CollectionAdminRequest.ListAliases.class);
+    CollectionAdminResponse collectionAdminResponse = mock(CollectionAdminResponse.class);
+    whenNew(CollectionAdminRequest.ListAliases.class).withNoArguments().thenReturn(listAliases);
+    when(listAliases.process(client)).thenReturn(collectionAdminResponse);
+    when(collectionAdminResponse.getAliases()).thenReturn(new HashMap<String, String>() {{
+      put("yafAlias", "yaf");
+    }});
   }
 
   @Test
@@ -515,14 +522,6 @@ public class SolrSearchDaoTest {
 
   @Test
   public void getCollectionsShouldReturnCollectionsAndAliases() throws Exception {
-    CollectionAdminRequest.ListAliases listAliases = mock(CollectionAdminRequest.ListAliases.class);
-    CollectionAdminResponse collectionAdminResponse = mock(CollectionAdminResponse.class);
-    whenNew(CollectionAdminRequest.ListAliases.class).withNoArguments().thenReturn(listAliases);
-    when(listAliases.process(client)).thenReturn(collectionAdminResponse);
-    when(collectionAdminResponse.getAliases()).thenReturn(new HashMap<String, String>() {{
-      put("yafAlias", "yaf");
-    }});
-
     assertEquals("bro,snort,yafAlias", solrSearchDao.getCollections(Arrays.asList("bro", "snort", "yafAlias")));
   }
 }
