@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SensorParserConfig} from './sensor-parser-config';
+import { ParserConfigModel } from '../sensors/models/parser-config.model';
 export class SensorParserInfo {
   createdBy: string;
   modifiedBy: string;
   createdDate: string;
   modifiedByDate: string;
-  config: SensorParserConfig;
+  config: ParserConfigModel;
 }
