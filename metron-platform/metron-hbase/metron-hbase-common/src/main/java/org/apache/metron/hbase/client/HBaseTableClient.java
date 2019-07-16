@@ -68,12 +68,21 @@ public class HBaseTableClient implements HBaseClient {
   }
 
   @Override
-  public void close() throws IOException {
-    if(table != null) {
-      table.close();
+  public void close() {
+    try {
+      if(table != null) {
+        table.close();
+      }
+    } catch(IOException e) {
+      LOG.error("Error while closing HBase table", e);
     }
-    if(connection != null) {
-      connection.close();
+
+    try {
+      if(connection != null) {
+        connection.close();
+      }
+    } catch(IOException e) {
+      LOG.error("Error while closing HBase connection",e);
     }
   }
 
