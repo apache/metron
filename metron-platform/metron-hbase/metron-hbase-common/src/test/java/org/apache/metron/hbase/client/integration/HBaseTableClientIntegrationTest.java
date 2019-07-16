@@ -32,7 +32,6 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.HBaseProjectionCriteria;
-import org.apache.metron.hbase.client.FakeHBaseClient;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.apache.metron.hbase.client.HBaseTableClient;
 import org.junit.After;
@@ -162,39 +161,6 @@ public class HBaseTableClientIntegrationTest {
     for(Result result : results) {
       Assert.assertTrue(result.isEmpty());
     }
-  }
-
-  /**
-   * Unfortunately, the {@link Result} returned by the {@link FakeHBaseClient} is a mock and needs
-   * to respond like an actual {@link Result}.  This test ensures that {@link Result#getFamilyMap(byte[])}
-   * works correctly.
-   */
-  @Test
-  public void testResultFamilyMap() {
-    // write some values
-    ColumnList columns = new ColumnList()
-            .addColumn(columnFamily, "col1", "value1")
-            .addColumn(columnFamily, "col2", "value2");
-    client.addMutation(rowKey1, columns, Durability.SKIP_WAL);
-    client.mutate();
-
-    // read back the value
-    HBaseProjectionCriteria criteria = new HBaseProjectionCriteria()
-            .addColumnFamily(columnFamily);
-    client.addGet(rowKey1, criteria);
-    Result[] results = client.getAll();
-
-    // validate
-    assertEquals(1, results.length);
-    Result result = results[0];
-
-    // the first column
-    String value1 = Bytes.toString(result.getFamilyMap(columnFamilyB).get(Bytes.toBytes("col1")));
-    assertEquals("value1", value1);
-
-    // the second column
-    String value2 = Bytes.toString(result.getFamilyMap(columnFamilyB).get(Bytes.toBytes("col2")));
-    assertEquals("value2", value2);
   }
 
   @Test
