@@ -160,11 +160,6 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     return es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
   }
 
-  @Override
-  protected MockHTable getMockHTable() {
-    return table;
-  }
-
   /**
    * Install the index template to ensure that "guid" is of type "keyword". The
    * {@link org.apache.metron.elasticsearch.dao.ElasticsearchRetrieveLatestDao} cannot find
