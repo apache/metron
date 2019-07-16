@@ -20,12 +20,8 @@
 
 package org.apache.metron.hbase;
 
-import org.apache.hadoop.hbase.util.Bytes;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Represents a list of HBase columns.
@@ -80,30 +76,6 @@ public class ColumnList {
     public long getTs() {
       return ts;
     }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof Column)) return false;
-      Column column = (Column) o;
-      return ts == column.ts &&
-              Arrays.equals(value, column.value);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = Objects.hash(ts);
-      result = 31 * result + Arrays.hashCode(value);
-      return result;
-    }
-
-    @Override
-    public String toString() {
-      return "Column{" +
-              "value=" + Arrays.toString(value) +
-              ", ts=" + ts +
-              '}';
-    }
   }
 
   public static class Counter extends AbstractColumn {
@@ -115,26 +87,6 @@ public class ColumnList {
 
     public long getIncrement() {
       return incr;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof Counter)) return false;
-      Counter counter = (Counter) o;
-      return incr == counter.incr;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(incr);
-    }
-
-    @Override
-    public String toString() {
-      return "Counter{" +
-              "incr=" + incr +
-              '}';
     }
   }
 
@@ -171,35 +123,12 @@ public class ColumnList {
     return this;
   }
 
-  public ColumnList addColumn(byte[] family, byte[] qualifier){
-    addColumn(new Column(family, qualifier, -1, null));
-    return this;
-  }
-
-  public ColumnList addColumn(String family, String qualifier){
-    addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier));
-    return this;
-  }
-
-  public ColumnList addColumn(String family, String qualifier, byte[] value){
-    return addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier), value);
-  }
-
-  public ColumnList addColumn(String family, String qualifier, String value){
-    return addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier), Bytes.toBytes(value));
-  }
-
   /**
    * Add a standard HBase column given an instance of a class that implements
    * the <code>IColumn</code> interface.
    */
   public ColumnList addColumn(IColumn column){
     return this.addColumn(column.family(), column.qualifier(), column.timestamp(), column.value());
-  }
-
-  public ColumnList addColumn(Column column){
-    columns().add(column);
-    return this;
   }
 
   /**
@@ -223,14 +152,14 @@ public class ColumnList {
    * Query to determine if we have column definitions.
    */
   public boolean hasColumns(){
-    return columns != null && columns.size() > 0;
+    return this.columns != null;
   }
 
   /**
    * Query to determine if we have counter definitions.
    */
   public boolean hasCounters(){
-    return this.counters != null && counters.size() > 0;
+    return this.counters != null;
   }
 
   /**
@@ -245,27 +174,5 @@ public class ColumnList {
    */
   public List<Counter> getCounters(){
     return this.counters;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof ColumnList)) return false;
-    ColumnList that = (ColumnList) o;
-    return Objects.equals(columns, that.columns) &&
-            Objects.equals(counters, that.counters);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(columns, counters);
-  }
-
-  @Override
-  public String toString() {
-    return "ColumnList{" +
-            "columns=" + columns +
-            ", counters=" + counters +
-            '}';
   }
 }
