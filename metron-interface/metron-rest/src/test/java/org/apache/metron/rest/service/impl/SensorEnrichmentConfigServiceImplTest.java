@@ -42,8 +42,7 @@ import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
-import org.apache.metron.hbase.client.HBaseTableClient;
-import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.LegacyHBaseClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.apache.zookeeper.KeeperException;
@@ -83,14 +82,14 @@ public class SensorEnrichmentConfigServiceImplTest {
   public static String broJson;
 
   ConfigurationsCache cache;
-  private HBaseClient hBaseClient;
+  private LegacyHBaseClient hBaseClient;
 
   @Before
   public void setUp() throws Exception {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
     cache = mock(ConfigurationsCache.class);
-    hBaseClient = mock(HBaseTableClient.class);
+    hBaseClient = mock(LegacyHBaseClient.class);
     sensorEnrichmentConfigService = new SensorEnrichmentConfigServiceImpl(objectMapper, curatorFramework, cache, hBaseClient);
   }
 
@@ -209,6 +208,22 @@ public class SensorEnrichmentConfigServiceImplTest {
 
     assertEquals(sensorEnrichmentConfig, sensorEnrichmentConfigService.save("bro", sensorEnrichmentConfig));
     verify(setDataBuilder).forPath(eq(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro"), eq(broJson.getBytes()));
+  }
+
+  @Test
+  public void getAvailableEnrichmentsShouldReturnEnrichmentsSorted() throws Exception {
+    when(hBaseClient.readRecords()).thenReturn(new ArrayList<String>() {{
+      add("geo");
+      add("whois");
+      add("host");
+      add("a-new-one");
+    }});
+    assertEquals(new ArrayList<String>() {{
+      add("a-new-one");
+      add("geo");
+      add("host");
+      add("whois");
+    }}, sensorEnrichmentConfigService.getAvailableEnrichments());
   }
 
   @Test
