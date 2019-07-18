@@ -18,8 +18,10 @@
 package org.apache.metron.rest.config;
 
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.hbase.client.HBaseClientFactory;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.client.HBaseTableClient;
 import org.apache.metron.hbase.client.HBaseTableClientFactory;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
@@ -42,15 +44,6 @@ public class HBaseConfig {
   @Autowired
   private GlobalConfigService globalConfigService;
 
-  @Autowired
-  private HBaseConnectionFactory hBaseConnectionFactory;
-
-  @Autowired
-  private org.apache.hadoop.conf.Configuration hBaseConfiguration;
-
-  @Autowired
-  private HBaseClientFactory hBaseClientFactory;
-
   private Supplier<Map<String, Object>> globals = () -> {
     try {
       return globalConfigService.get();
@@ -60,14 +53,8 @@ public class HBaseConfig {
   };
 
   @Autowired
-  public HBaseConfig(GlobalConfigService globalConfigService,
-                     HBaseConnectionFactory hBaseConnectionFactory,
-                     org.apache.hadoop.conf.Configuration hBaseConfiguration,
-                     HBaseClientFactory hBaseClientFactory) {
+  public HBaseConfig(GlobalConfigService globalConfigService) {
     this.globalConfigService = globalConfigService;
-    this.hBaseConnectionFactory = hBaseConnectionFactory;
-    this.hBaseConfiguration = hBaseConfiguration;
-    this.hBaseClientFactory = hBaseClientFactory;
   }
 
   @Bean
@@ -86,7 +73,10 @@ public class HBaseConfig {
   }
 
   @Bean(destroyMethod = "close")
-  public UserSettingsClient userSettingsClient() {
+  public UserSettingsClient userSettingsClient(GlobalConfigService globalConfigService,
+                                               HBaseClientFactory hBaseClientFactory,
+                                               HBaseConnectionFactory hBaseConnectionFactory,
+                                               org.apache.hadoop.conf.Configuration hBaseConfiguration) {
     UserSettingsClient userSettingsClient = new HBaseUserSettingsClient(
             globals,
             hBaseClientFactory,

@@ -50,21 +50,13 @@ public class IndexConfig {
   private Environment environment;
 
   @Autowired
-  private HBaseConnectionFactory hBaseConnectionFactory;
-
-  @Autowired
-  private org.apache.hadoop.conf.Configuration hBaseConfiguration;
-
-  @Autowired
-  private AccessConfig accessConfig;
-
-  @Autowired
   public IndexConfig(Environment environment) {
     this.environment = environment;
   }
 
   @Bean
-  public AccessConfig accessConfig() {
+  public AccessConfig accessConfig(HBaseConnectionFactory hBaseConnectionFactory,
+                                   org.apache.hadoop.conf.Configuration hBaseConfiguration) {
     int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, 1000);
     int searchMaxGroups = environment.getProperty(MetronRestConstants.SEARCH_MAX_GROUPS, Integer.class, 1000);
 
@@ -86,7 +78,7 @@ public class IndexConfig {
   }
 
   @Bean(destroyMethod = "close")
-  public IndexDao indexDao() {
+  public IndexDao indexDao(AccessConfig accessConfig) {
     try {
       String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
       if (indexDaoImpl == null) {

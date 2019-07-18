@@ -67,7 +67,7 @@ public class HBaseConfigTest {
     hBaseConfiguration = mock(HBaseConfiguration.class);
     hBaseClientCreator = mock(FakeHBaseClientFactory.class);
     globalConfigService = mock(GlobalConfigService.class);
-    hBaseConfig = new HBaseConfig(globalConfigService, hBaseConnectionFactory, hBaseConfiguration, hBaseClientCreator);
+    hBaseConfig = new HBaseConfig(globalConfigService);
     mockStatic(HBaseConfiguration.class);
     when(HBaseConfiguration.create()).thenReturn(configuration);
   }
@@ -89,7 +89,11 @@ public class HBaseConfigTest {
     when(connection.getTable(eq(TableName.valueOf(expectedTable))))
             .thenReturn(table);
 
-    UserSettingsClient client = hBaseConfig.userSettingsClient();
+    UserSettingsClient client = hBaseConfig.userSettingsClient(
+            globalConfigService,
+            hBaseClientCreator,
+            hBaseConnectionFactory,
+            hBaseConfiguration);
     Assert.assertNotNull(client);
   }
 }
