@@ -261,29 +261,5 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
 
     sensorEnrichmentConfigService.delete("broTest");
   }
-
-  @Test
-  public void shouldListAvailableEnrichments() throws Exception {
-    // the enrichments are retrieved by simply scanning row keys on an index table
-    FakeHBaseClient hBaseClient = new FakeHBaseClient();
-    hBaseClient.addMutation(Bytes.toBytes("blacklist"), new ColumnList().addColumn("fam1", "col1"));
-    hBaseClient.addMutation(Bytes.toBytes("geo"), new ColumnList().addColumn("fam1", "col1"));
-    hBaseClient.addMutation(Bytes.toBytes("whitelist"), new ColumnList().addColumn("fam1", "col1"));
-    hBaseClient.mutate();
-
-    // list the available enrichments
-    MockHttpServletRequestBuilder request = get(sensorEnrichmentConfigUrl + "/list/available/enrichments")
-            .with(httpBasic(user, password));
-
-    MvcResult result = mockMvc.perform(request).andReturn();
-    String content = result.getResponse().getContentAsString();
-    System.out.println("content = " + content);
-
-    mockMvc.perform(request)
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.length()").value("3"))
-            .andExpect(jsonPath("$.*").value(IsCollectionContaining.hasItems("blacklist", "geo", "whitelist")));
-  }
 }
 
