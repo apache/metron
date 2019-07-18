@@ -34,12 +34,6 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-solr-common</artifactId>
             <version>${project.parent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.hbase</groupId>
-                    <artifactId>hbase-client</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
