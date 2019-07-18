@@ -59,13 +59,11 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
   transient SolrSearchDao solrSearchDao;
   transient SolrClient solrClient;
   private MetaAlertConfig config;
-  private SolrDocumentBuilder documentBuilder;
 
   public SolrMetaAlertSearchDao(SolrClient solrClient, SolrSearchDao solrSearchDao, MetaAlertConfig config) {
     this.solrClient = solrClient;
     this.solrSearchDao = solrSearchDao;
     this.config = config;
-    this.documentBuilder = new SolrDocumentBuilder();
   }
 
   @Override
@@ -183,7 +181,7 @@ public class SolrMetaAlertSearchDao implements MetaAlertSearchDao {
               .getById(METAALERTS_COLLECTION, metaalertGuids, solrParams);
           Map<String, Document> guidToDocuments = new HashMap<>();
           for (SolrDocument doc : solrDocumentList) {
-            Document document = documentBuilder.toDocument(doc);
+            Document document = SolrUtilities.toDocument(doc);
             guidToDocuments.put(document.getGuid(), document);
           }
 

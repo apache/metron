@@ -32,7 +32,6 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.HBaseProjectionCriteria;
-import org.apache.metron.hbase.client.FakeHBaseClient;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.apache.metron.hbase.client.HBaseTableClient;
 import org.junit.After;
@@ -163,7 +162,7 @@ public class HBaseTableClientIntegrationTest {
       Assert.assertTrue(result.isEmpty());
     }
   }
-  
+
   @Test
   public void testScan() throws Exception {
     // write some values

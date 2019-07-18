@@ -25,7 +25,6 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.solr.dao.SolrDocumentBuilder;
 import org.apache.metron.solr.dao.SolrUtilities;
 import org.apache.metron.solr.writer.MetronSolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -87,7 +86,6 @@ public class SolrComponent implements InMemoryComponent {
   private Map<String, String> collections;
   private MiniSolrCloudCluster miniSolrCloudCluster;
   private Function<SolrComponent, Void> postStartCallback;
-  private SolrDocumentBuilder documentBuilder;
 
   private SolrComponent(int port, String solrXmlPath, Map<String, String> collections,
       Function<SolrComponent, Void> postStartCallback) {
@@ -95,7 +93,6 @@ public class SolrComponent implements InMemoryComponent {
     this.solrXmlPath = solrXmlPath;
     this.collections = collections;
     this.postStartCallback = postStartCallback;
-    this.documentBuilder = new SolrDocumentBuilder();
   }
 
   @Override
@@ -186,7 +183,7 @@ public class SolrComponent implements InMemoryComponent {
       QueryResponse response = solr.query(parameters);
       for (SolrDocument solrDocument : response.getResults()) {
         // Use the utils to make sure we get child docs.
-        docs.add(documentBuilder.toDocument(solrDocument).getDocument());
+        docs.add(SolrUtilities.toDocument(solrDocument).getDocument());
       }
     } catch (SolrServerException | IOException e) {
       e.printStackTrace();

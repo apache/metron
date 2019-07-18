@@ -17,12 +17,26 @@
  */
 package org.apache.metron.solr.integration;
 
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.util.IndexingCacheUtil;
@@ -37,15 +51,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.Assert.assertEquals;
-
 public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   @Rule
   public final ExpectedException exception = ExpectedException.none();
@@ -54,6 +59,8 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
   private static final String TABLE_NAME = "modifications";
   private static final String CF = "p";
+  private static MockHTable table;
+  private static IndexDao hbaseDao;
 
   @BeforeClass
   public static void setupBeforeClass() throws Exception {
@@ -66,21 +73,28 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     solrComponent.addCollection(SENSOR_NAME, "./src/test/resources/config/test/conf");
     solrComponent.addCollection("error", "./src/main/config/schema/error");
 
+    Configuration config = HBaseConfiguration.create();
+    MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
+    MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
+    table = (MockHTable) tableProvider.getTable(config, TABLE_NAME);
+
+    hbaseDao = new HBaseDao();
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setTableProvider(tableProvider);
     Map<String, Object> globalConfig = createGlobalConfig();
     globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
     globalConfig.put(HBaseDao.HBASE_CF, CF);
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+    accessConfig.setIndexSupplier(s -> s);
 
-    CuratorFramework client = ConfigurationsUtils.getClient(solrComponent.getZookeeperUrl());
+    CuratorFramework client = ConfigurationsUtils
+        .getClient(solrComponent.getZookeeperUrl());
     client.start();
     ZKConfigurationsCache cache = new ZKConfigurationsCache(client);
     cache.start();
-
-    AccessConfig accessConfig = new AccessConfig();
-    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
-    accessConfig.setIndexSupplier(s -> s);
     accessConfig.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache, "solr"));
 
-    SolrDao dao = new SolrDao();
+    MultiIndexDao dao = new MultiIndexDao(hbaseDao, new SolrDao());
     dao.init(accessConfig);
     setDao(dao);
   }
@@ -88,6 +102,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   @After
   public void reset() {
     solrComponent.reset();
+    table.clear();
   }
 
   @AfterClass
@@ -99,6 +114,11 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   @Override
   protected String getIndexName() {
     return SENSOR_NAME;
+  }
+
+  @Override
+  protected MockHTable getMockHTable() {
+    return table;
   }
 
   private static Map<String, Object> createGlobalConfig() {
@@ -166,7 +186,6 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
     exception.expect(IOException.class);
     exception.expectMessage("Document contains at least one immense term in field=\"error_hash\"");
-
     getDao().update(errorDoc, Optional.of("error"));
   }
 }
