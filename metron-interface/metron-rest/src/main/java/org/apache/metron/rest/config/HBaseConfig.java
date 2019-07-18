@@ -25,7 +25,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.LegacyHBaseClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.user.UserSettingsClient;
@@ -60,7 +60,7 @@ public class HBaseConfig {
     }
 
     @Bean()
-    public HBaseClient hBaseClient() {
+    public LegacyHBaseClient hBaseClient() {
       Map<String, Object> restConfig = null;
       try {
         restConfig = globalConfigService.get();
@@ -75,7 +75,7 @@ public class HBaseConfig {
       } catch (ClassNotFoundException | InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
         throw new IllegalStateException("Unable to create table provider", e);
       }
-      return new HBaseClient(provider, HBaseConfiguration.create(),
+      return new LegacyHBaseClient(provider, HBaseConfiguration.create(),
           (String) restConfig.get(EnrichmentConfigurations.TABLE_NAME));
     }
 

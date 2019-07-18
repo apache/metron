@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.LegacyHBaseClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class HBaseCacheWriter implements CacheWriter<String, String> {
   @Override
   public void write(@Nonnull String key, @Nonnull String value) {
     LOG.debug("Calling hbase cache writer with key='{}', value='{}'", key, value);
-    try (HBaseClient hbClient = new HBaseClient(this.tableProvider, this.config, this.tableName)) {
+    try (LegacyHBaseClient hbClient = new LegacyHBaseClient(this.tableProvider, this.config, this.tableName)) {
       LOG.debug("rowKey={}, columnFamily={}, columnQualifier={}, value={}", key, columnFamily,
           columnQualifier, value);
       hbClient.put(key, columnFamily, columnQualifier, value);
