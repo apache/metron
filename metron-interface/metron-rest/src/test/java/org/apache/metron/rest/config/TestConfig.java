@@ -83,7 +83,7 @@ public class TestConfig {
   private org.apache.hadoop.conf.Configuration hBaseConfiguration;
 
   @Autowired
-  private HBaseClientFactory hBaseClientCreator;
+  private HBaseClientFactory hBaseClientFactory;
 
   @Bean
   public Properties zkProperties() {
@@ -208,7 +208,7 @@ public class TestConfig {
 
     UserSettingsClient userSettingsClient = new HBaseUserSettingsClient(
             () -> globals,
-            hBaseClientCreator,
+            hBaseClientFactory,
             hBaseConnectionFactory,
             hBaseConfiguration);
     userSettingsClient.init();
@@ -226,7 +226,7 @@ public class TestConfig {
   }
 
   @Bean
-  HBaseClientFactory hBaseClientCreator() {
+  HBaseClientFactory hBaseClientFactory() {
     return new FakeHBaseClientFactory();
   }
 

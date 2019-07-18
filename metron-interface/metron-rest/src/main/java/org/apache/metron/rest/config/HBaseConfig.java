@@ -49,7 +49,7 @@ public class HBaseConfig {
   private org.apache.hadoop.conf.Configuration hBaseConfiguration;
 
   @Autowired
-  private HBaseClientFactory hBaseClientCreator;
+  private HBaseClientFactory hBaseClientFactory;
 
   private Supplier<Map<String, Object>> globals = () -> {
     try {
@@ -63,11 +63,11 @@ public class HBaseConfig {
   public HBaseConfig(GlobalConfigService globalConfigService,
                      HBaseConnectionFactory hBaseConnectionFactory,
                      org.apache.hadoop.conf.Configuration hBaseConfiguration,
-                     HBaseClientFactory hBaseClientCreator) {
+                     HBaseClientFactory hBaseClientFactory) {
     this.globalConfigService = globalConfigService;
     this.hBaseConnectionFactory = hBaseConnectionFactory;
     this.hBaseConfiguration = hBaseConfiguration;
-    this.hBaseClientCreator = hBaseClientCreator;
+    this.hBaseClientFactory = hBaseClientFactory;
   }
 
   @Bean
@@ -81,7 +81,7 @@ public class HBaseConfig {
   }
 
   @Bean
-  HBaseClientFactory hBaseClientCreator() {
+  HBaseClientFactory hBaseClientFactory() {
     return new HBaseTableClientFactory();
   }
 
@@ -89,7 +89,7 @@ public class HBaseConfig {
   public UserSettingsClient userSettingsClient() {
     UserSettingsClient userSettingsClient = new HBaseUserSettingsClient(
             globals,
-            hBaseClientCreator,
+            hBaseClientFactory,
             hBaseConnectionFactory,
             hBaseConfiguration);
     userSettingsClient.init();

@@ -45,21 +45,22 @@ public class HBaseUserSettingsClient implements UserSettingsClient {
   public static final String USER_SETTINGS_HBASE_TABLE = "user.settings.hbase.table";
   public static final String USER_SETTINGS_HBASE_CF = "user.settings.hbase.cf";
   public static final String USER_SETTINGS_MAX_SCAN = "user.settings.max.scan";
+  private static final int DEFAULT_MAX_SCAN = 100_000;
 
   private String columnFamily;
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private HBaseConnectionFactory hBaseConnectionFactory;
   private Configuration hBaseConfiguration;
-  private HBaseClientFactory hBaseClientCreator;
+  private HBaseClientFactory hBaseClientFactory;
   private HBaseClient hBaseClient;
   private int maxScanCount;
 
   public HBaseUserSettingsClient(Supplier<Map<String, Object>> globalConfigSupplier,
-                                 HBaseClientFactory hBaseClientCreator,
+                                 HBaseClientFactory hBaseClientFactory,
                                  HBaseConnectionFactory hBaseConnectionFactory,
                                  Configuration hBaseConfiguration) {
     this.globalConfigSupplier = globalConfigSupplier;
-    this.hBaseClientCreator = hBaseClientCreator;
+    this.hBaseClientFactory = hBaseClientFactory;
     this.hBaseConnectionFactory = hBaseConnectionFactory;
     this.hBaseConfiguration = hBaseConfiguration;
   }
@@ -70,7 +71,7 @@ public class HBaseUserSettingsClient implements UserSettingsClient {
       Map<String, Object> globals = getGlobals();
       columnFamily = getColumnFamily(globals);
       maxScanCount = getMaxScanCount(globals);
-      hBaseClient = hBaseClientCreator.create(hBaseConnectionFactory, hBaseConfiguration,  getTableName(globals));
+      hBaseClient = hBaseClientFactory.create(hBaseConnectionFactory, hBaseConfiguration,  getTableName(globals));
     }
   }
 
@@ -207,7 +208,7 @@ public class HBaseUserSettingsClient implements UserSettingsClient {
   }
 
   private static int getMaxScanCount(Map<String, Object> globals) {
-    Integer maxScanCount = 100_000;
+    Integer maxScanCount = DEFAULT_MAX_SCAN;
     if(globals.containsKey(USER_SETTINGS_MAX_SCAN)) {
       String value = (String) globals.get(USER_SETTINGS_MAX_SCAN);
       maxScanCount = Integer.valueOf(value);
