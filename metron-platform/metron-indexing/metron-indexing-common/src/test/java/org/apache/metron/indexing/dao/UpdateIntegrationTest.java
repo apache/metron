@@ -303,14 +303,14 @@ public abstract class UpdateIntegrationTest {
   }
 
   /**
-   * Reformats the format of stored comments.
+   * Normalizes the format of stored comments.
    *
    * <p>Comments are serialized differently when stored in Elasticsearch and Solr.  Comments
    * are stored as maps in Elasticsearch and JSON strings in Solr.  This reformats all comments
    * as maps, so they look the same when validation occurs in the integration tests.
-   * @param fields
+   * @param fields The fields of a document that may contain comments.
    */
-  protected static void reformatComments(Map<String, Object> fields) {
+  protected static void normalizeCommentsAsMap(Map<String, Object> fields) {
     @SuppressWarnings("unchecked")
     List<Object> commentValues = (List<Object>) fields.get(COMMENTS_FIELD);
     if (commentValues != null) {
@@ -338,7 +338,7 @@ public abstract class UpdateIntegrationTest {
   protected Document findUpdatedDoc(Map<String, Object> expected, String guid, String sensorType)
       throws InterruptedException, IOException, OriginalNotFoundException {
     // comments are stored differently in Solr and Elasticsearch
-    reformatComments(expected);
+    normalizeCommentsAsMap(expected);
 
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
       Document found = getDao().getLatest(guid, sensorType);

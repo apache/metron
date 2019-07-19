@@ -518,7 +518,7 @@ public class SolrSearchDaoTest {
     solrDocument.addField(Constants.GUID, UUID.randomUUID().toString());
     solrDocument.addField(Constants.SENSOR_TYPE, sensorType);
     solrDocument.addField(Constants.Fields.TIMESTAMP.getName(), timestamp);
-    solrDocument.addField("ip_src_addr", "192.168.1.1");
+    solrDocument.addField(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
     return solrDocument;
   }
 }
