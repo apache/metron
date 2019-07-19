@@ -494,7 +494,7 @@ org.sonatype.sisu:sisu-inject-bean:jar:2.2.2:compile
 org.sonatype.sisu:sisu-inject-plexus:jar:2.2.2:compile
 com.zaxxer:HikariCP:jar:2.7.8:compile,ASLv2,https://github.com/brettwooldridge/HikariCP
 org.hibernate.validator:hibernate-validator:jar:6.0.9.Final:compile,ASLv2,https://github.com/hibernate/hibernate-validator
-com.github.palindromicity:simple-syslog:jar:0.0.1:compile,ASLv2,https://github.com/palindromicity/simple-syslog
+com.github.palindromicity:simple-syslog:jar:0.0.3:compile,ASLv2,https://github.com/palindromicity/simple-syslog
 org.elasticsearch.client:elasticsearch-rest-high-level-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.elasticsearch.plugin:aggs-matrix-stats-client:jar:5.6.14:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.fusesource.jansi:jansi:jar:1.16:compile,ASLv2,https://github.com/fusesource/jansi/blob/master/license.txt
