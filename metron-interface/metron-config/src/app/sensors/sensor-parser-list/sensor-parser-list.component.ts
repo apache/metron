@@ -316,6 +316,9 @@ export class SensorParserListComponent implements OnInit {
         this.onDisableSensor(sensor, null);
       }
     }
+
+  isSelected(sensor: ParserMetaInfoModel) {
+    return this.selectedSensors.includes(sensor.config.getName());
   }
 
   onDisableSensor(sensor: SensorParserConfigHistory, event) {
@@ -330,17 +333,36 @@ export class SensorParserListComponent implements OnInit {
         this.toggleStartStopInProgress(sensor);
       });
 
-    if (event !== null) {
-      event.stopPropagation();
-    }
+  isStoppable(sensor: ParserMetaInfoModel) {
+    return sensor.status.status && sensor.status.status !== 'KILLED'
+      && !sensor.startStopInProgress
+      && this.isRootElement(sensor)
+      && !this.isDeletedOrPhantom(sensor);
   }
 
-  onEnableSensors() {
-    for (let sensor of this.selectedSensors) {
-      if (sensor['status'] === 'Disabled') {
-        this.onEnableSensor(sensor, null);
-      }
-    }
+  isStartable(sensor: ParserMetaInfoModel) {
+    return (!sensor.status.status || sensor.status.status === 'KILLED')
+      && !sensor.startStopInProgress
+      && this.isRootElement(sensor)
+      && !this.isDeletedOrPhantom(sensor);
+  }
+
+  isEnableable(sensor: ParserMetaInfoModel) {
+    return sensor.status.status === 'INACTIVE'
+      && !sensor.startStopInProgress
+      && this.isRootElement(sensor)
+      && !this.isDeletedOrPhantom(sensor);
+  }
+
+  isDisableable(sensor: ParserMetaInfoModel) {
+    return sensor.status.status === 'ACTIVE'
+      && !sensor.startStopInProgress
+      && this.isRootElement(sensor)
+      && !this.isDeletedOrPhantom(sensor);
+  }
+
+  isDeletedOrPhantom(sensor: ParserMetaInfoModel) {
+    return !!sensor.isDeleted || !!sensor.isPhantom;
   }
 
   onEnableSensor(sensor: SensorParserConfigHistory, event) {
