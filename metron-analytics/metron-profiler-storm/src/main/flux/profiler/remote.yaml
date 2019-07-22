@@ -185,7 +185,7 @@ bolts:
             - name: "withClientFactory"
               args: [ref: "hbaseClientFactory"]
             - name: "withConnectionFactory"
-              args: ["${hbase.provider.impl}"]
+              args: ["${profiler.hbase.connection.factory}"]
             - name: "withBatchSize"
               args: [${profiler.hbase.batch}]
             - name: "withFlushIntervalSecs"

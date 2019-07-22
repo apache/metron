@@ -428,7 +428,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.hbase.column.family", columnFamily);
       setProperty("profiler.hbase.batch", "10");
       setProperty("profiler.hbase.flush.interval.seconds", "1");
-      setProperty("hbase.provider.impl", FakeHBaseConnectionFactory.class.getName());
+      setProperty("profiler.hbase.connection.factory", FakeHBaseConnectionFactory.class.getName());
       setProperty("profiler.hbase.client.factory", FakeHBaseClientFactory.class.getName());
 
       // profile settings
