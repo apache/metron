@@ -139,6 +139,9 @@
     <profiles>
         <profile>
             <id>HDP-3.1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <hdp_version>3.1.0.0</hdp_version>
                 <global_hbase_version>2.0.2</global_hbase_version>
@@ -147,9 +150,6 @@
         </profile>
         <profile>
             <id>HDP-2.6</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <hdp_version>2.6.5.0</hdp_version>
                 <global_hbase_version>1.1.1</global_hbase_version>

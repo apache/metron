@@ -94,9 +94,6 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   @BeforeClass
   public static void setupBeforeClass() throws UnableToStartException, IOException {
     Configuration config = HBaseConfiguration.create();
-    MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
-    MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
-    table = (MockHTable) tableProvider.getTable(config, TABLE_NAME);
 
     globalConfig = new HashMap<>();
     globalConfig.put("es.clustername", "metron");

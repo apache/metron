@@ -19,8 +19,12 @@
 package org.apache.metron.hbase.helper;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
@@ -31,18 +35,37 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.client.MockHBaseConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HelperDao {
 
-  public static void insertRecord(Table table, EnrichmentKey key, String cf, String value)
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  public static void insertRecord(Table table, Configuration conf, EnrichmentKey key, String cf, String value)
       throws IOException {
-    Put put = createPut(key, cf, value);
-    table.put(put);
+
+    EnrichmentValue enrichmentValue = new EnrichmentValue(JSONUtils.INSTANCE.load(value, JSONUtils.MAP_SUPPLIER));
+//
+//    String tableName = table.getName().getNameAsString();
+//    EnrichmentConverter converter = new EnrichmentConverter(tableName, new HBaseConnectionFactory(), conf);
+//    converter.put(cf, key, enrichmentValue);
+
+//    // TODO should the Table be passed-in like this?
+    try {
+      Put put = createPut(key, conf, table.getName().getNameAsString(), cf, value);
+      table.put(put);
+    } catch(Exception e) {
+      LOG.error("Unable to insert record", e);
+    }
   }
 
-  private static Put createPut(EnrichmentKey rowKey, String cf, String value) throws IOException {
-    return new EnrichmentConverter().toPut(cf, rowKey,
-        new EnrichmentValue(JSONUtils.INSTANCE.load(value, JSONUtils.MAP_SUPPLIER)));
+  private static Put createPut(EnrichmentKey rowKey, Configuration conf, String tableName, String cf, String value) throws IOException {
+    EnrichmentValue enrichmentValue = new EnrichmentValue(JSONUtils.INSTANCE.load(value, JSONUtils.MAP_SUPPLIER));
+    return new EnrichmentConverter()
+            .toPut(cf, rowKey, enrichmentValue);
   }
 
   public static List<String> readRecords(Table table) throws Exception {

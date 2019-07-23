@@ -17,9 +17,9 @@
  */
 package org.apache.metron.enrichment.adapters.threatintel;
 
-import org.apache.metron.enrichment.utils.EnrichmentUtils;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
+import org.apache.metron.enrichment.lookup.EnrichmentLookups;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
 import java.io.Serializable;
 
@@ -32,7 +32,8 @@ public class ThreatIntelConfig implements Serializable {
   private String trackerHBaseTable;
   private String trackerHBaseCF;
   private long millisecondsBetweenPersists = 2*MS_IN_HOUR;
-  private TableProvider provider = new HTableProvider();
+  private HBaseConnectionFactory connectionFactory = new HBaseConnectionFactory();
+  private EnrichmentLookupFactory enrichmentLookupCreator = EnrichmentLookups.HBASE;
 
   public String getHBaseTable() {
     return hBaseTable;
@@ -62,12 +63,16 @@ public class ThreatIntelConfig implements Serializable {
     return hBaseCF;
   }
 
-  public TableProvider getProvider() {
-    return provider;
+  public HBaseConnectionFactory getConnectionFactory() {
+    return connectionFactory;
   }
 
-  public ThreatIntelConfig withProviderImpl(String connectorImpl) {
-    provider = EnrichmentUtils.getTableProvider(connectorImpl, new HTableProvider());
+  public EnrichmentLookupFactory getEnrichmentLookupCreator() {
+    return enrichmentLookupCreator;
+  }
+
+  public ThreatIntelConfig withConnectionFactoryImpl(String connectorImpl) {
+    connectionFactory = HBaseConnectionFactory.byName(connectorImpl);
     return this;
   }
 
@@ -102,6 +107,16 @@ public class ThreatIntelConfig implements Serializable {
 
   public ThreatIntelConfig withMillisecondsBetweenPersists(long millisecondsBetweenPersists) {
     this.millisecondsBetweenPersists = millisecondsBetweenPersists;
+    return this;
+  }
+
+  public ThreatIntelConfig withEnrichmentLookupCreator(EnrichmentLookupFactory enrichmentLookupCreator) {
+    this.enrichmentLookupCreator = enrichmentLookupCreator;
+    return this;
+  }
+
+  public ThreatIntelConfig withEnrichmentLookupCreator(String creatorImpl) {
+    this.enrichmentLookupCreator = EnrichmentLookupFactory.byName(creatorImpl);
     return this;
   }
 }

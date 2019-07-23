@@ -17,25 +17,25 @@
  */
 package org.apache.metron.enrichment.adapters.threatintel;
 
-import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
+
+import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
-import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
-import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -44,6 +44,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
 
   public ThreatIntelAdapter() {
   }
+
   public ThreatIntelAdapter(ThreatIntelConfig config) {
     withConfig(config);
   }
@@ -53,84 +54,75 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     return this;
   }
 
-  @Override
-  public void logAccess(CacheKey value) {
-    List<String> enrichmentTypes = value.getConfig().getThreatIntel().getFieldToTypeMap().get(value.getField());
-    if(enrichmentTypes != null) {
-      for(String enrichmentType : enrichmentTypes) {
-        lookup.getAccessTracker().logAccess(new EnrichmentKey(enrichmentType, value.coerceValue(String.class)));
-      }
-    }
+  public ThreatIntelAdapter withLookup(EnrichmentLookup lookup) {
+    this.lookup = lookup;
+    return this;
   }
 
+  @Override
+  public void logAccess(CacheKey value) {
+  }
 
   @Override
   public JSONObject enrich(CacheKey value) {
     if(!isInitialized()) {
       initializeAdapter(null);
     }
+
     JSONObject enriched = new JSONObject();
-    List<String> enrichmentTypes = value.getConfig()
-                                        .getThreatIntel().getFieldToTypeMap()
-                                        .get(EnrichmentUtils.toTopLevelField(value.getField()));
-    if(isInitialized() && enrichmentTypes != null) {
-      int i = 0;
-      try {
-        for (Boolean isThreat :
-                lookup.exists(Iterables.transform(enrichmentTypes
-                                                 , new EnrichmentUtils.TypeToKey(value.coerceValue(String.class)
-                                                                                , lookup.getTable()
-                                                                                , value.getConfig().getThreatIntel()
-                                                                                )
-                                                 )
-                             , false
-                             )
-            )
-        {
-          String enrichmentType = enrichmentTypes.get(i++);
-          if (isThreat) {
-            enriched.put(enrichmentType, "alert");
-            LOG.trace("Theat Intel Enriched value => {}", enriched);
-          }
+    List<String> enrichmentTypes = getEnrichmentTypes(value);
+    if(!isInitialized()) {
+      LOG.error("Not initialized, cannot enrich.");
+
+    } else if(isEmpty(enrichmentTypes)) {
+      LOG.debug("No enrichments configured for field={}", value.getField());
+
+    } else if(value.getValue() == null) {
+      LOG.debug("Enrichment indicator value is unknown, cannot enrich.");
+
+    } else {
+      enriched = doEnrich(value, enrichmentTypes);
+    }
+
+    return enriched;
+  }
+
+  private JSONObject doEnrich(CacheKey value, List<String> enrichmentTypes) {
+    JSONObject enriched = new JSONObject();
+    Iterable<EnrichmentKey> enrichmentKeys = toEnrichmentKeys(value, value.getConfig().getThreatIntel());
+    int i = 0;
+    try {
+      for (Boolean isThreat : lookup.exists(enrichmentKeys)) {
+        String enrichmentType = enrichmentTypes.get(i++);
+        if (isThreat) {
+          enriched.put(enrichmentType, "alert");
+          LOG.trace("Theat Intel Enriched value => {}", enriched);
         }
       }
-      catch(IOException e) {
-        LOG.error("Unable to retrieve value: {}", e.getMessage(), e);
-        initializeAdapter(null);
-        throw new RuntimeException("Theat Intel Unable to retrieve value", e);
-      }
+    } catch(IOException e) {
+      String msg = String.format("Unable to lookup enrichments in Threat Intel; error=%s", e.getMessage());
+      LOG.error(msg, e);
+      initializeAdapter(null);
+      throw new RuntimeException(msg, e);
     }
-    LOG.trace("Threat Intel Enrichment Success: {}", enriched);
     return enriched;
   }
 
   public boolean isInitialized() {
-    return lookup != null && lookup.getTable() != null;
+    return lookup != null && lookup.isInitialized();
   }
 
   @Override
   public boolean initializeAdapter(Map<String, Object> configuration) {
-    PersistentAccessTracker accessTracker;
-    String hbaseTable = config.getHBaseTable();
-    int expectedInsertions = config.getExpectedInsertions();
-    double falsePositives = config.getFalsePositiveRate();
-    String trackerHBaseTable = config.getTrackerHBaseTable();
-    String trackerHBaseCF = config.getTrackerHBaseCF();
-    long millisecondsBetweenPersist = config.getMillisecondsBetweenPersists();
-    BloomAccessTracker bat = new BloomAccessTracker(hbaseTable, expectedInsertions, falsePositives);
-    Configuration hbaseConfig = HBaseConfiguration.create();
-    try {
-      accessTracker = new PersistentAccessTracker( hbaseTable
-              , UUID.randomUUID().toString()
-              , config.getProvider().getTable(hbaseConfig, trackerHBaseTable)
-              , trackerHBaseCF
-              , bat
-              , millisecondsBetweenPersist
-      );
-      lookup = new EnrichmentLookup(config.getProvider().getTable(hbaseConfig, hbaseTable), config.getHBaseCF(), accessTracker);
-    } catch (IOException e) {
-      LOG.error("Unable to initialize ThreatIntelAdapter", e);
-      return false;
+    if(lookup == null) {
+      try {
+        EnrichmentLookupFactory creator = config.getEnrichmentLookupCreator();
+        lookup = creator.create(config.getConnectionFactory(), config.getHBaseTable(), config.getHBaseCF(), null);
+
+      } catch (IOException e) {
+        LOG.error("Unable to initialize adapter", e);
+        return false;
+      }
     }
 
     return true;
@@ -138,6 +130,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
 
   @Override
   public void updateAdapter(Map<String, Object> config) {
+    // nothing to do
   }
 
   @Override
@@ -152,5 +145,24 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   @Override
   public String getOutputPrefix(CacheKey value) {
     return value.getField();
+  }
+
+  private Iterable<EnrichmentKey> toEnrichmentKeys(CacheKey cacheKey, EnrichmentConfig config) {
+    List<EnrichmentKey> keys = new ArrayList<>();
+    String indicator = cacheKey.coerceValue(String.class);
+    List<String> enrichmentTypes = getEnrichmentTypes(cacheKey);
+    for(String enrichmentType: enrichmentTypes) {
+      keys.add(new EnrichmentKey(enrichmentType, indicator));
+    }
+
+    LOG.debug("Looking for {} threat enrichment(s); indicator={}", keys.size(), indicator);
+    return keys;
+  }
+
+  private List<String> getEnrichmentTypes(CacheKey value) {
+    EnrichmentConfig config = value.getConfig().getThreatIntel();
+    return config
+            .getFieldToTypeMap()
+            .get(EnrichmentUtils.toTopLevelField(value.getField()));
   }
 }

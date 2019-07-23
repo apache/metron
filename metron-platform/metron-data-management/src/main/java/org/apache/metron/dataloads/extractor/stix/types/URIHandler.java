@@ -20,7 +20,7 @@ package org.apache.metron.dataloads.extractor.stix.types;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.mitre.cybox.common_2.AnyURIObjectPropertyType;
 import org.mitre.cybox.objects.URIObjectType;
 
@@ -36,15 +36,15 @@ public class URIHandler extends AbstractObjectTypeHandler<URIObjectType> {
   }
 
   @Override
-  public Iterable<LookupKV> extract(URIObjectType type, Map<String, Object> config) throws IOException {
-    List<LookupKV> ret = new ArrayList<>();
+  public Iterable<EnrichmentResult> extract(URIObjectType type, Map<String, Object> config) throws IOException {
+    List<EnrichmentResult> ret = new ArrayList<>();
     if(type != null) {
       AnyURIObjectPropertyType val = type.getValue();
       if(val != null) {
         Object v = val.getValue();
         if(v != null) {
           final String indicatorType = getType();
-          LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, v.toString())
+          EnrichmentResult results = new EnrichmentResult(new EnrichmentKey(indicatorType, v.toString())
                   , new EnrichmentValue(
                   new HashMap<String, Object>() {{
                     put("source-type", "STIX");

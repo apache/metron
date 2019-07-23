@@ -39,7 +39,7 @@ public class NoopAccessTracker implements AccessTracker {
   }
 
   @Override
-  public String getName() {
+  public String getTableName() {
     return "noop";
   }
 

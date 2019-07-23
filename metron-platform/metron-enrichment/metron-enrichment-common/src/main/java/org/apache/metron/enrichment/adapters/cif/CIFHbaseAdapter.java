@@ -18,31 +18,33 @@
 
 package org.apache.metron.enrichment.adapters.cif;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HConnection;
-import org.apache.hadoop.hbase.client.HConnectionManager;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
+
 @SuppressWarnings("unchecked")
 public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private static final long serialVersionUID = 1L;
 	private String _tableName;
-	private HTableInterface table;
+	private Table table;
 	private String _quorum;
 	private String _port;
 
@@ -70,7 +72,6 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 
 	@SuppressWarnings({ "rawtypes", "deprecation" })
 	protected Map getCIFObject(String key) {
-
 		LOGGER.debug("=======Pinging HBase For: {}", key);
 
 		Get get = new Get(key.getBytes());
@@ -79,13 +80,11 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 
 		try {
 			rs = table.get(get);
-
-			for (KeyValue kv : rs.raw())
-				output.put(new String(kv.getQualifier()), "Y");
-
+			for (Cell cell: rs.rawCells()) {
+				output.put(new String(cell.getQualifierArray()), "Y");
+			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("Unexpected exception", e);
 		}
 		return output;
 	}
@@ -102,8 +101,8 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 		try {
 			LOGGER.debug("=======Connecting to HBASE===========");
 			LOGGER.debug("=======ZOOKEEPER = {}", conf.get("hbase.zookeeper.quorum"));
-			HConnection connection = HConnectionManager.createConnection(conf);
-			table = connection.getTable(_tableName);
+			Connection connection = ConnectionFactory.createConnection(conf);
+			table = connection.getTable(TableName.valueOf(_tableName));
 			return true;
 		} catch (IOException e) {
 			LOGGER.debug("=======Unable to Connect to HBASE===========");

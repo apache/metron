@@ -18,163 +18,183 @@
 package org.apache.metron.enrichment.adapters.simplehbase;
 
 
-import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
-import org.apache.metron.enrichment.converter.EnrichmentHelper;
-import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
-import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
-import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.enrichment.lookup.InMemoryEnrichmentLookup;
+import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class SimpleHBaseAdapterTest {
-
-  private String cf = "cf";
-  private String cf1 = "cf1";
-  private String atTableName = "tracker";
-  private final String hbaseTableName = "enrichments";
-  private EnrichmentLookup lookup;
-  private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
-  private static final String CF1_CLASSIFICATION_TYPE = "cf1";
-  private static final Map<String, Object> CF1_ENRICHMENT = new HashMap<String, Object>() {{
-    put("key", "value");
-  }};
-  private static final Map<String, Object> PLAYFUL_ENRICHMENT = new HashMap<String, Object>() {{
-    put("orientation", "north");
-  }};
+  private static final String WHITELIST_ENRICHMENT = "whitelist";
+  private static final String BLACKLIST_ENRICHMENT = "blacklist";
 
   /**
-    {
-    "playful_classification.orientation":"north"
-    }
+   * {
+   *    "whitelist.reason": "known_host"
+   * }
    */
   @Multiline
   private String expectedMessageString;
 
   /**
-    {
-      "enrichment": {
-        "fieldMap": {
-           "hbaseEnrichment" : [ "ip_dst_addr" ]
-        },
-      "fieldToTypeMap": {
-        "ip_dst_addr" : [ "playful_classification", "cf1" ]
-        }
-      }
-   }
+   * {
+   *   "enrichment": {
+   *     "fieldMap": {
+   *       "hbaseEnrichment": [ "ip_dst_addr" ]
+   *     },
+   *     "fieldToTypeMap": {
+   *       "ip_dst_addr": [ "whitelist", "blacklist" ]
+   *     }
+   *   }
+   * }
    */
   @Multiline
-  private String sourceConfigStr;
+  private String enrichmentJson;
+
   /**
-    {
-      "enrichment": {
-        "fieldMap": {
-           "hbaseEnrichment" : [ "ip_dst_addr" ]
-        },
-      "fieldToTypeMap": {
-        "ip_dst_addr" : [ "playful_classification", "cf1" ]
-        },
-      "config" : {
-          "typeToColumnFamily" : {
-                        "cf1" : "cf1"
-                                 }
-                }
-      }
-   }
+   * {
+   *   "enrichment": {
+   *     "fieldMap": {
+   *       "hbaseEnrichment": [ "ip_dst_addr" ]
+   *     },
+   *     "fieldToTypeMap": {
+   *       "ip_dst_addr": [ "whitelist", "blacklist" ]
+   *     },
+   *     "config": {
+   *       "typeToColumnFamily": {
+   *         "blacklist": "cf1"
+   *       }
+   *     }
+   *   }
+   * }
    */
   @Multiline
-  private String sourceConfigWithCFStr;
-  private JSONObject expectedMessage;
+  private String enrichmentJsonWithColumnFamily;
+
+  private SensorEnrichmentConfig enrichmentConfig;
+  private SensorEnrichmentConfig enrichmentConfigWithColumnFamily;
+  private SimpleHBaseAdapter adapter;
+  private InMemoryEnrichmentLookup lookup;
 
   @Before
   public void setup() throws Exception {
-    final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(atTableName, cf);
-    final MockHTable hbaseTable = (MockHTable) MockHBaseTableProvider.addToCache(hbaseTableName, cf);
-    EnrichmentHelper.INSTANCE.load(hbaseTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
-      add(new LookupKV<>(new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3")
-                      , new EnrichmentValue(PLAYFUL_ENRICHMENT)
-              )
-      );
-    }});
-    EnrichmentHelper.INSTANCE.load(hbaseTable, cf1, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
-      add(new LookupKV<>(new EnrichmentKey(CF1_CLASSIFICATION_TYPE, "10.0.2.4")
-                      , new EnrichmentValue(CF1_ENRICHMENT)
-              )
-      );
-    }});
-    BloomAccessTracker bat = new BloomAccessTracker(hbaseTableName, 100, 0.03);
-    PersistentAccessTracker pat = new PersistentAccessTracker(hbaseTableName, "0", trackerTable, cf, bat, 0L);
-    lookup = new EnrichmentLookup(hbaseTable, cf, pat);
-    JSONParser jsonParser = new JSONParser();
-    expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
+    // deserialize the enrichment configuration
+    enrichmentConfig = JSONUtils.INSTANCE.load(enrichmentJson, SensorEnrichmentConfig.class);
+    enrichmentConfigWithColumnFamily = JSONUtils.INSTANCE.load(enrichmentJsonWithColumnFamily, SensorEnrichmentConfig.class);
+
+    // the enrichments are retrieved from memory, rather than HBase for these tests
+    lookup = new InMemoryEnrichmentLookup();
+
+    // create a 'whitelist' enrichment where the indicator is the IP address
+    lookup.withEnrichment(
+            new EnrichmentKey(WHITELIST_ENRICHMENT, "10.0.2.3"),
+            new EnrichmentValue()
+                    .withValue("hit", "true")
+                    .withValue("reason", "known-host")
+                    .withValue("source", "internal-asset-db")
+    );
+
+    // create a 'blacklist' enrichment where the indicator is the IP address
+    lookup.withEnrichment(
+            new EnrichmentKey(BLACKLIST_ENRICHMENT, "10.0.2.4"),
+            new EnrichmentValue()
+                    .withValue("hit", "true")
+                    .withValue("reason", "known-phisher")
+                    .withValue("source", "phish-tank-ip")
+    );
+
+    // initialize the adapter under test
+    adapter = new SimpleHBaseAdapter()
+            .withLookup(lookup);
+    adapter.initializeAdapter(new HashMap<>());
   }
 
   @Test
-  public void testEnrich() throws Exception {
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
-    sha.lookup = lookup;
-    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
-    JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
-    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(expectedMessage, actualMessage);
+  public void testWhitelistHit() {
+    JSONObject actual = adapter.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", enrichmentConfig));
+
+    // expect a hit on the whitelist
+    JSONObject expected = new JSONObject();
+    expected.put("whitelist.hit", "true");
+    expected.put("whitelist.reason", "known-host");
+    expected.put("whitelist.source", "internal-asset-db");
+    Assert.assertEquals(expected, actual);
   }
 
   @Test
-  public void testEnrichNonStringValue() throws Exception {
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
-    sha.lookup = lookup;
-    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
-    JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
-    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", 10L, broSc));
-    Assert.assertEquals(actualMessage,new JSONObject());
+  public void testBlacklistHit() {
+    JSONObject actual = adapter.enrich(new CacheKey("ip_dst_addr", "10.0.2.4", enrichmentConfig));
+
+    // expect a hit on the whitelist
+    JSONObject expected = new JSONObject();
+    expected.put("blacklist.hit", "true");
+    expected.put("blacklist.reason", "known-phisher");
+    expected.put("blacklist.source", "phish-tank-ip");
+    Assert.assertEquals(expected, actual);
   }
 
   @Test
-  public void testMultiColumnFamilies() throws Exception {
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
-    sha.lookup = lookup;
-    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigWithCFStr, SensorEnrichmentConfig.class);
-    JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
-    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.4", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(new JSONObject(ImmutableMap.of("cf1.key", "value")), actualMessage);
+  public void testMiss() {
+    JSONObject actual = adapter.enrich(new CacheKey("ip_dst_addr", "4.4.4.4", enrichmentConfig));
+
+    // not a known IP in either the whitelist or the blacklist
+    JSONObject expected = new JSONObject();
+    Assert.assertEquals(expected, actual);
   }
 
   @Test
-  public void testMultiColumnFamiliesWrongCF() throws Exception {
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
-    sha.lookup = lookup;
-    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
-    JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
-    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.4", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(new JSONObject(new HashMap<String, Object>()), actualMessage);
+  public void testMissWithNonStringValue() {
+    JSONObject actual = adapter.enrich(new CacheKey("ip_dst_addr", 10L, enrichmentConfig));
+
+    // not a known IP in either the whitelist or the blacklist
+    JSONObject expected = new JSONObject();
+    Assert.assertEquals(expected, actual);
   }
+
+  @Test
+  public void testNoEnrichmentDefined() {
+    JSONObject actual = adapter.enrich(new CacheKey("username", "ada_lovelace", enrichmentConfig));
+
+    // no enrichment defined for the field 'username'
+    JSONObject expected = new JSONObject();
+    Assert.assertEquals(expected, actual);
+  }
+
   @Test(expected = Exception.class)
   public void testInitializeAdapter() {
+    // create a configuration that will NOT try to reach out to an actual HBase cluster
     SimpleHBaseConfig config = new SimpleHBaseConfig();
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter(config);
+    config.withConnectionFactoryImpl(FakeHBaseConnectionFactory.class.getName());
+
+    SimpleHBaseAdapter sha = new SimpleHBaseAdapter()
+            .withConfig(config);
     sha.initializeAdapter(null);
+  }
+
+  @Test
+  public void testCleanup() throws IOException {
+    EnrichmentLookup mockLookup = mock(EnrichmentLookup.class);
+    new SimpleHBaseAdapter()
+            .withLookup(mockLookup)
+            .cleanup();
+
+    // the adapter should close the EnrichmentLookup that it is using to free any resources
+    verify(mockLookup, times(1)).close();
   }
 
 }

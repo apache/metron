@@ -22,7 +22,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandler;
 import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandlers;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.mitre.cybox.common_2.*;
 import org.mitre.cybox.cybox_2.ObjectType;
 import org.mitre.cybox.cybox_2.Observable;
@@ -44,9 +44,9 @@ public class StixExtractor implements Extractor {
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     Map<String, Object> config;
     @Override
-    public Iterable<LookupKV> extract(String line) throws IOException {
+    public Iterable<EnrichmentResult> extract(String line) throws IOException {
         STIXPackage stixPackage = STIXPackage.fromXMLString(line.replaceAll("\"Equal\"", "\"Equals\""));
-        List<LookupKV> ret = new ArrayList<>();
+        List<EnrichmentResult> ret = new ArrayList<>();
         for(Observable o : getObservables(stixPackage)) {
             ObjectType obj = o.getObject();
             if(obj != null) {
@@ -59,8 +59,8 @@ public class StixExtractor implements Extractor {
                                     , handler.getTypeClass().getCanonicalName()
                                     , props.toXMLString());
                         }
-                        Iterable<LookupKV> extractions = handler.extract(props, config);
-                        for(LookupKV extraction : extractions) {
+                        Iterable<EnrichmentResult> extractions = handler.extract(props, config);
+                        for(EnrichmentResult extraction : extractions) {
                             ret.add(extraction);
                         }
                     }
@@ -139,7 +139,7 @@ public class StixExtractor implements Extractor {
 
         String line = FileUtils.readFileToString(file);
         StixExtractor extractor = new StixExtractor();
-        for(LookupKV results : extractor.extract(line)) {
+        for(EnrichmentResult results : extractor.extract(line)) {
             System.out.println(results);
         }
 

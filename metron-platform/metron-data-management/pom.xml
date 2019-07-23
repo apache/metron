@@ -111,6 +111,13 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
+            <artifactId>metron-enrichment-common</artifactId>
+            <version>${project.parent.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
@@ -176,34 +183,45 @@
             </exclusions>
             <scope>provided</scope>
         </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.hbase</groupId>-->
+            <!--<artifactId>hbase-common</artifactId>-->
+            <!--<version>${global_hbase_version}</version>-->
+            <!--<exclusions>-->
+              <!--<exclusion>-->
+                <!--<groupId>org.apache.hadoop</groupId>-->
+                <!--<artifactId>hadoop-common</artifactId>-->
+              <!--</exclusion>-->
+            <!--</exclusions>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.hbase</groupId>-->
+            <!--<artifactId>hbase-server</artifactId>-->
+            <!--<version>${global_hbase_version}</version>-->
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.apache.hadoop</groupId>-->
+                    <!--<artifactId>hadoop-auth</artifactId>-->
+                <!--</exclusion>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.apache.hadoop</groupId>-->
+                    <!--<artifactId>hadoop-client</artifactId>-->
+                <!--</exclusion>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.apache.hadoop</groupId>-->
+                    <!--<artifactId>hadoop-hdfs</artifactId>-->
+                <!--</exclusion>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.apache.hadoop</groupId>-->
+                    <!--<artifactId>hadoop-common</artifactId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-common</artifactId>
+            <artifactId>hbase-mapreduce</artifactId>
             <version>${global_hbase_version}</version>
             <exclusions>
-              <exclusion>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-common</artifactId>
-              </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
-            <version>${global_hbase_version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-auth</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-client</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-hdfs</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>org.apache.hadoop</groupId>
                     <artifactId>hadoop-common</artifactId>

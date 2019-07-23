@@ -22,8 +22,7 @@ import org.json.simple.JSONObject;
 
 import java.util.Map;
 
-public interface EnrichmentAdapter<T>
-{
+public interface EnrichmentAdapter<T> {
 	void logAccess(T value);
 	JSONObject enrich(T value);
 	boolean initializeAdapter(Map<String, Object> config);

@@ -35,6 +35,7 @@ import org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentUpdateConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;

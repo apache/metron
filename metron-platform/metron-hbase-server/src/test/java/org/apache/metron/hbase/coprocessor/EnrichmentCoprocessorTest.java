@@ -18,150 +18,92 @@
 
 package org.apache.metron.hbase.coprocessor;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.CoprocessorEnvironment;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.github.benmanes.caffeine.cache.CacheWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.coprocessor.ObserverContext;
-import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.hbase.TableProvider;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
+/**
+ * Tests the {@link EnrichmentCoprocessor}.
+ */
 public class EnrichmentCoprocessorTest {
 
-  @Mock
-  private CacheWriter<String, String> cacheWriter;
-  @Mock
-  private RegionCoprocessorEnvironment copEnv;
-  @Mock
-  private ObserverContext<RegionCoprocessorEnvironment> observerContext;
-  private EnrichmentCoprocessor cop;
-  @Mock
-  private GlobalConfigService globalConfigService;
+  private EnrichmentCoprocessor enrichmentCoprocessor;
+  private CoprocessorEnvironment environment;
   private Configuration config;
-  private static boolean instantiatedCustomTableProvider;
+  private Map<String, Object> globalConfig;
 
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
-    cop = new EnrichmentCoprocessor(cacheWriter, globalConfigService);
+    // required global configuration values
+    globalConfig = new HashMap<>();
+    globalConfig.put(EnrichmentConfigurations.TABLE_NAME, "enrichments");
+    globalConfig.put(EnrichmentConfigurations.COLUMN_FAMILY, "columnFamily");
+
+    // the coprocessor configuration needs to define the zookeeper URL
     config = HBaseConfiguration.create();
-    config.set(EnrichmentCoprocessor.ZOOKEEPER_URL, "foobar");
-    when(copEnv.getConfiguration()).thenReturn(config);
-    instantiatedCustomTableProvider = false;
+    config.set(EnrichmentCoprocessor.ZOOKEEPER_URL, "zookeeper:2181");
+
+    // the environment needs to return the configuration to the coprocessor
+    environment = mock(CoprocessorEnvironment.class);
+    when(environment.getConfiguration()).thenReturn(config);
   }
 
   @Test
-  public void cache_writes_only_on_first_cache_miss() throws Exception {
-    cop.start(copEnv);
-    String[] enrichTypes = new String[]{"foo", "bar", "baz", "metron"};
-    final int putsPerType = 3;
-    Map<String, List<Put>> putsByType = simulateMultiplePutsPerType(putsPerType, enrichTypes);
-    int totalPuts = 0;
-    for (Map.Entry<String, List<Put>> entry : putsByType.entrySet()) {
-      String type = entry.getKey();
-      List<Put> puts = entry.getValue();
-      for (Put put : puts) {
-        cop.postPut(observerContext, put, null, null);
-        verify(cacheWriter, times(1)).write(eq(type), eq("{}"));
-        totalPuts++;
-      }
-    }
-    assertThat(totalPuts, equalTo(enrichTypes.length * putsPerType));
+  public void shouldCreateRegionObserver() {
+    enrichmentCoprocessor = new EnrichmentCoprocessor(zookeeperUrl -> globalConfig);
+    enrichmentCoprocessor.start(environment);
+
+    // the region observer and its cache should be instantiated on start
+    EnrichmentRegionObserver observer = (EnrichmentRegionObserver) enrichmentCoprocessor.getRegionObserver().get();
+    assertNotNull(observer);
+    assertNotNull(observer.getCache());
   }
 
-  /**
-   * Generate a list of 'count' puts for each type in 'types'.
-   *
-   * @param count Number of puts to create per type
-   * @param types List of types to create the puts for.
-   * @return Map of types to a List of size 'count' puts
-   */
-  private Map<String, List<Put>> simulateMultiplePutsPerType(int count, String... types) {
-    Map<String, List<Put>> putsByType = new HashMap<>();
-    for (String type : types) {
-      List<Put> puts = putsByType.getOrDefault(type, new ArrayList<>());
-      for (int i = 0; i < count; i++) {
-        EnrichmentKey ek = new EnrichmentKey(type, String.valueOf(i));
-        puts.add(new Put(ek.toBytes()));
-        putsByType.put(type, puts);
-      }
-    }
-    return putsByType;
+  @Test(expected = IllegalStateException.class)
+  public void shouldErrorIfMissingZookeeperURL() {
+    // do NOT define the Zookeeper URL within the HBase configuration
+    config = HBaseConfiguration.create();
+
+    // the environment needs to return the configuration to the coprocessor
+    environment = mock(CoprocessorEnvironment.class);
+    when(environment.getConfiguration()).thenReturn(config);
+
+    enrichmentCoprocessor = new EnrichmentCoprocessor(zookeeperUrl -> globalConfig);
+    enrichmentCoprocessor.start(environment);
+    fail("expected error due to missing Zookeeper URL");
   }
 
-  public static class TestTableProvider implements TableProvider {
+  @Test(expected = IllegalStateException.class)
+  public void shouldErrorIfMissingTableName() {
+    // do NOT define the table name within the global config
+    globalConfig = new HashMap<>();
+    globalConfig.put(EnrichmentConfigurations.COLUMN_FAMILY, "columnFamily");
 
-    public TestTableProvider() {
-      instantiatedCustomTableProvider = true;
-    }
-
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return null; // not used for instantiation test
-    }
+    enrichmentCoprocessor = new EnrichmentCoprocessor(zookeeperUrl -> globalConfig);
+    enrichmentCoprocessor.start(environment);
+    fail(String.format("expected error due to missing '%s' configuration", EnrichmentConfigurations.TABLE_NAME));
   }
 
-  @Test
-  public void creates_tableprovider_from_config_property() throws Exception {
-    cop = new EnrichmentCoprocessor(globalConfigService);
-    Map<String, Object> globalConfig = new HashMap<String, Object>() {{
-      put(EnrichmentConfigurations.TABLE_PROVIDER, TestTableProvider.class.getName());
-    }};
-    when(globalConfigService.get()).thenReturn(globalConfig);
-    cop.start(copEnv);
-    assertThat(instantiatedCustomTableProvider, equalTo(true));
-  }
+  @Test(expected = IllegalStateException.class)
+  public void shouldErrorIfMissingColumnFamily() {
+    // do NOT define the column family within the global config
+    globalConfig = new HashMap<>();
+    globalConfig.put(EnrichmentConfigurations.TABLE_NAME, "enrichments");
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
-  @Test
-  public void bad_enrichment_key_exceptions_thrown_as_IOException() throws Exception {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Error occurred while processing enrichment Put.");
-    thrown.expectCause(instanceOf(RuntimeException.class));
-    cop.start(copEnv);
-    cop.postPut(observerContext, new Put("foo".getBytes()), null, null);
-  }
-
-  @Test
-  public void general_exceptions_thrown_as_IOException() throws Exception {
-    Throwable cause = new Throwable("Bad things happened.");
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Error occurred while processing enrichment Put.");
-    thrown.expectCause(equalTo(cause));
-    // strictly speaking, this is a checked exception not in the api for CacheWriter, but it allows
-    // us to test catching all Throwable types
-    willAnswer(i -> {
-      throw cause;
-    }).given(cacheWriter).write(any(), any());
-    cop.start(copEnv);
-    EnrichmentKey ek = new EnrichmentKey("foo", "bar");
-    cop.postPut(observerContext, new Put(ek.toBytes()), null, null);
+    enrichmentCoprocessor = new EnrichmentCoprocessor(zookeeperUrl -> globalConfig);
+    enrichmentCoprocessor.start(environment);
+    fail(String.format("expected error due to missing '%s' configuration", EnrichmentConfigurations.COLUMN_FAMILY));
   }
 
 }

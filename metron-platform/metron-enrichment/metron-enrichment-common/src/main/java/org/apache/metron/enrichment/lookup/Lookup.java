@@ -24,6 +24,7 @@ import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
 import java.io.IOException;
 
 public class Lookup<CONTEXT_T, KEY_T extends LookupKey, RESULT_T> implements Handler<CONTEXT_T, KEY_T, RESULT_T> {
+
   private String name;
   private AccessTracker accessTracker;
   private Handler<CONTEXT_T, KEY_T, RESULT_T> lookupHandler;
@@ -50,6 +51,11 @@ public class Lookup<CONTEXT_T, KEY_T extends LookupKey, RESULT_T> implements Han
 
   public void setLookupHandler(Handler< CONTEXT_T, KEY_T, RESULT_T > lookupHandler) {
     this.lookupHandler = lookupHandler;
+  }
+
+  @Override
+  public boolean isInitialized() {
+    return lookupHandler.isInitialized();
   }
 
   @Override

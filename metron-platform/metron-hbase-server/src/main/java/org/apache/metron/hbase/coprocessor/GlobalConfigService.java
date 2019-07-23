@@ -20,8 +20,14 @@ package org.apache.metron.hbase.coprocessor;
 
 import java.util.Map;
 
+/**
+ * A service that retrieves the global configuration.
+ */
 public interface GlobalConfigService {
 
-  Map<String, Object> get();
-
+  /**
+   * @param zookeeperUrl The zookeeper URL.
+   * @return The global configuration.
+   */
+  Map<String, Object> get(String zookeeperUrl);
 }

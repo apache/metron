@@ -20,15 +20,21 @@ package org.apache.metron.hbase.coprocessor;
 
 import com.github.benmanes.caffeine.cache.CacheWriter;
 import com.github.benmanes.caffeine.cache.RemovalCause;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.ColumnList;
+import org.apache.metron.hbase.client.HBaseTableClient;
+import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.HBaseClientFactory;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.client.HBaseTableClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 
 /**
  * Caffeine cache writer implementation that will write to an HBase table.
@@ -36,38 +42,69 @@ import org.slf4j.LoggerFactory;
 public class HBaseCacheWriter implements CacheWriter<String, String> {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private TableProvider tableProvider;
-  private final Configuration config;
+  private HBaseConnectionFactory connectionFactory;
+  private Configuration conf;
+  private HBaseClientFactory clientCreator;
   private final String tableName;
   private final String columnFamily;
   private final String columnQualifier;
 
-  public HBaseCacheWriter(Configuration config, TableProvider tableProvider, String tableName,
-      String columnFamily, String columnQualifier) {
-    this.config = config;
-    this.tableProvider = tableProvider;
+  /**
+   * @param conf The HBase configuration.
+   * @param tableName The name of the HBase table.
+   * @param columnFamily The column family within the table.
+   * @param columnQualifier The column qualifier within the family.
+   */
+  public HBaseCacheWriter(Configuration conf,
+                          String tableName,
+                          String columnFamily,
+                          String columnQualifier) {
+    this(new HBaseTableClientFactory(), new HBaseConnectionFactory(), conf, tableName, columnFamily, columnQualifier);
+  }
+
+  /**
+   * Constructor useful for testing.
+   *
+   * @param clientCreator Creates the {@link HBaseTableClient}.
+   * @param connectionFactory Creates the {@link org.apache.hadoop.hbase.client.Connection} to HBase.
+   * @param conf The HBase configuration.
+   * @param tableName The name of the HBase table.
+   * @param columnFamily The column family within the table.
+   * @param columnQualifier The column qualifier within the family.
+   */
+  public HBaseCacheWriter(HBaseClientFactory clientCreator,
+                          HBaseConnectionFactory connectionFactory,
+                          Configuration conf,
+                          String tableName,
+                          String columnFamily,
+                          String columnQualifier) {
+    this.connectionFactory = connectionFactory;
+    this.conf = conf;
+    this.clientCreator = clientCreator;
     this.tableName = tableName;
     this.columnFamily = columnFamily;
     this.columnQualifier = columnQualifier;
   }
 
   /**
-   * Writes a rowkey as provided by 'key' to the configured hbase table.
+   * Writes a rowkey as provided by 'key' to the configured HBase table.
    * @param key value to use as a row key.
    * @param value not used.
    */
   @Override
   public void write(@Nonnull String key, @Nonnull String value) {
-    LOG.debug("Calling hbase cache writer with key='{}', value='{}'", key, value);
-    try (LegacyHBaseClient hbClient = new LegacyHBaseClient(this.tableProvider, this.config, this.tableName)) {
-      LOG.debug("rowKey={}, columnFamily={}, columnQualifier={}, value={}", key, columnFamily,
-          columnQualifier, value);
-      hbClient.put(key, columnFamily, columnQualifier, value);
-      LOG.debug("Done with put");
+    LOG.debug("Calling HBase cache writer with key='{}', value='{}'", key, value);
+    try (HBaseClient hbaseClient = clientCreator.create(connectionFactory, conf, tableName)) {
+      LOG.debug("rowKey={}, columnFamily={}, columnQualifier={}, value={}", key, columnFamily, columnQualifier, value);
+
+      ColumnList columns = new ColumnList().addColumn(columnFamily, columnQualifier, value);
+      hbaseClient.addMutation(Bytes.toBytes(key), columns);
+      hbaseClient.mutate();
+
     } catch (IOException e) {
       throw new RuntimeException("Error writing to HBase table", e);
     }
-    LOG.debug("Done calling hbase cache writer");
+    LOG.debug("Done calling HBase cache writer");
   }
 
   @Override

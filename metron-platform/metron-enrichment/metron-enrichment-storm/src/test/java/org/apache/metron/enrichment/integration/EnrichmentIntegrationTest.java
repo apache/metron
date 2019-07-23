@@ -29,15 +29,14 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.maxmind.asn.GeoLiteAsnDatabase;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
-import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookupCreator;
+import org.apache.metron.enrichment.lookup.accesstracker.AccessTrackers;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.enrichment.utils.ThreatIntelUtils;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.ProcessorResult;
@@ -48,6 +47,7 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
@@ -66,6 +66,9 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import static org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions.EnrichmentExists;
+import static org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions.EnrichmentGet;
 
 /**
  * Integration test for the enrichment topology.
@@ -88,7 +91,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static final String DEFAULT_DMACODE= "test dmaCode";
   public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
   public static final String cf = "cf";
-  public static final String trackerHBaseTableName = "tracker";
   public static final String threatIntelTableName = "threat_intel";
   public static final String enrichmentsTableName = "enrichments";
 
@@ -158,7 +160,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("threatintel_error_topic", ERROR_TOPIC);
 
       // enrichment
-      setProperty("enrichment_hbase_provider_impl", "" + MockHBaseTableProvider.class.getName());
+      setProperty("enrichment_lookup_creator", FakeEnrichmentLookupCreator.class.getName());
       setProperty("enrichment_hbase_table", enrichmentsTableName);
       setProperty("enrichment_hbase_cf", cf);
       setProperty("enrichment_host_known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"}," +
@@ -201,10 +203,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     {
       File globalConfig = new File(enrichmentConfigPath, "global.json");
       Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
-      config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, MockHBaseTableProvider.class.getName());
-      config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
-      config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
-      config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_CF, cf);
+      config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, AccessTrackers.NOOP);
       config.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
       config.put(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
       globalConfigStr = JSONUtils.INSTANCE.toJSON(config, true);
@@ -214,19 +213,20 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withGlobalConfig(globalConfigStr)
             .withEnrichmentConfigsPath(enrichmentConfigPath);
 
-    //create MockHBaseTables
-    final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(trackerHBaseTableName, cf);
-    final MockHTable threatIntelTable = (MockHTable) MockHBaseTableProvider.addToCache(threatIntelTableName, cf);
-    EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
-      add(new LookupKV<>(new EnrichmentKey(MALICIOUS_IP_TYPE, "10.0.2.3"), new EnrichmentValue(new HashMap<>())));
-    }});
-    final MockHTable enrichmentTable = (MockHTable) MockHBaseTableProvider.addToCache(enrichmentsTableName, cf);
-    EnrichmentHelper.INSTANCE.load(enrichmentTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
-      add(new LookupKV<>(new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3")
-                      , new EnrichmentValue(PLAYFUL_ENRICHMENT)
-              )
-      );
-    }});
+    // add some enrichments to a set of global, static enrichment values to use during these tests
+    FakeEnrichmentLookup lookup = new FakeEnrichmentLookup()
+            .withEnrichment(
+                    new EnrichmentKey(MALICIOUS_IP_TYPE, "10.0.2.3"),
+                    new EnrichmentValue(new HashMap<>()))
+            .withEnrichment(
+                    new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3"),
+                    new EnrichmentValue(PLAYFUL_ENRICHMENT));
+    EnrichmentLookupFactory lookupCreator = (w, x, y, z) -> lookup;
+
+    // the enrichment stellar functions need to access the same global, static enrichment values
+    StellarFunctions.FUNCTION_RESOLVER()
+            .withInstance(new EnrichmentGet().withEnrichmentLookupCreator(lookupCreator))
+            .withInstance(new EnrichmentExists().withEnrichmentLookupCreator(lookupCreator));
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath()))
@@ -234,7 +234,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withTemplateLocation(new File(getTemplatePath()))
             .withTopologyProperties(topologyProperties)
             .build();
-
 
     //UnitTestHelper.verboseLogging();
     ComponentRunner runner = new ComponentRunner.Builder()

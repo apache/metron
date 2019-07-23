@@ -20,72 +20,122 @@ package org.apache.metron.dataloads.hbase.mr;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class BulkLoadMapperTest {
     /**
-         {
-            "config" : {
-                        "columns" : {
-                                "host" : 0
-                                ,"meta" : 2
-                                    }
-                       ,"indicator_column" : "host"
-                       ,"type" : "threat"
-                       ,"separator" : ","
-                       }
-            ,"extractor" : "CSV"
-         }
-         */
+     * {
+     *   "config": {
+     *     "columns":{
+     *       "host": 0,
+     *       "meta": 2
+     *     },
+     *     "indicator_column": "host",
+     *     "type": "threat",
+     *     "separator": ","
+     *   },
+     *   "extractor": "CSV"
+     * }
+     */
     @Multiline
     private static String extractorConfig;
-    @Test
-    public void testMapper() throws IOException, InterruptedException {
 
-        final Map<ImmutableBytesWritable, Put> puts = new HashMap<>();
-        BulkLoadMapper mapper = new BulkLoadMapper() {
-            @Override
-            protected void write(ImmutableBytesWritable key, Put value, Context context) throws IOException, InterruptedException {
-                puts.put(key, value);
-            }
-        };
-        mapper.initialize(new Configuration() {{
+    private Configuration config;
+
+    @Before
+    public void setup() {
+        config = new Configuration() {{
             set(BulkLoadMapper.COLUMN_FAMILY_KEY, "cf");
             set(BulkLoadMapper.CONFIG_KEY, extractorConfig);
             set(BulkLoadMapper.LAST_SEEN_KEY, "0");
             set(BulkLoadMapper.CONVERTER_KEY, EnrichmentConverter.class.getName());
-        }});
-        {
-            mapper.map(null, new Text("#google.com,1,foo"), null);
-            Assert.assertTrue(puts.size() == 0);
-        }
-        {
-            mapper.map(null, new Text("google.com,1,foo"), null);
-            Assert.assertTrue(puts.size() == 1);
-            EnrichmentKey expectedKey = new EnrichmentKey() {{
-                indicator = "google.com";
-                type = "threat";
-            }};
-            EnrichmentConverter converter = new EnrichmentConverter();
-            Put put = puts.get(new ImmutableBytesWritable(expectedKey.toBytes()));
-            Assert.assertNotNull(puts);
-            LookupKV<EnrichmentKey, EnrichmentValue> results = converter.fromPut(put, "cf");
-            Assert.assertEquals(results.getKey().indicator, "google.com");
-            Assert.assertEquals(results.getValue().getMetadata().size(), 2);
-            Assert.assertEquals(results.getValue().getMetadata().get("meta"), "foo");
-            Assert.assertEquals(results.getValue().getMetadata().get("host"), "google.com");
-        }
+        }};
+    }
 
+    @Test
+    public void testSetup() throws IOException, InterruptedException {
+        final String expectedConverter = EnrichmentConverter.class.getName();
+        final String expectedColumnFamily = "columnFamily";
+        config = new Configuration() {{
+            set(BulkLoadMapper.COLUMN_FAMILY_KEY, expectedColumnFamily);
+            set(BulkLoadMapper.CONFIG_KEY, extractorConfig);
+            set(BulkLoadMapper.LAST_SEEN_KEY, "0");
+            set(BulkLoadMapper.CONVERTER_KEY, expectedConverter);
+        }};
+
+        // need the Context to return the configuration
+        Mapper.Context context = mock(Mapper.Context.class);
+        when(context.getConfiguration()).thenReturn(config);
+
+        // setup the mapper
+        BulkLoadMapper mapper = new BulkLoadMapper();
+        mapper.setup(context);
+
+        // ensure setup was successful
+        Assert.assertNotNull(mapper.getConverter());
+        Assert.assertEquals(expectedConverter, mapper.getConverter().getClass().getName());
+        Assert.assertNotNull(mapper.getExtractor());
+        Assert.assertEquals(expectedColumnFamily, mapper.getColumnFamily());
+    }
+
+    @Test
+    public void testLoadCsv() throws IOException, InterruptedException {
+        // the converter will return a Put
+        Put expectedValue = mock(Put.class);
+        HbaseConverter converter = mock(HbaseConverter.class);
+        when(converter.toPut(any(), any(), any())).thenReturn(expectedValue);
+
+        // need the Context to return the configuration
+        Mapper.Context context = mock(Mapper.Context.class);
+        when(context.getConfiguration()).thenReturn(config);
+
+        // use the mapper to load some data
+        BulkLoadMapper mapper = new BulkLoadMapper();
+        mapper.setup(context);
+        mapper.withHBaseConverter(converter);
+        mapper.map(new Object(), new Text("google.com,1,foo"), context);
+
+        // the data should have been mapped to the expected Put
+        ArgumentCaptor<Object> keyCaptor = ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<Object> valueCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(context, times(1)).write(keyCaptor.capture(), valueCaptor.capture());
+        Object value = valueCaptor.getValue();
+        Assert.assertEquals(expectedValue, value);
+    }
+
+    @Test
+    public void testLoadCommentedCsv() throws IOException, InterruptedException {
+        // the converter will return a Put
+        Put expectedValue = mock(Put.class);
+        HbaseConverter converter = mock(HbaseConverter.class);
+        when(converter.toPut(any(), any(), any())).thenReturn(expectedValue);
+
+        // need the Context to return the configuration
+        Mapper.Context context = mock(Mapper.Context.class);
+        when(context.getConfiguration()).thenReturn(config);
+
+        // use the mapper to load some data
+        BulkLoadMapper mapper = new BulkLoadMapper();
+        mapper.setup(context);
+        mapper.withHBaseConverter(converter);
+        mapper.map(new Object(), new Text("#google.com,1,foo"), context);
+
+        // there is no data to load because it is commented
+        verify(context, times(0)).write(any(), any());
     }
 }

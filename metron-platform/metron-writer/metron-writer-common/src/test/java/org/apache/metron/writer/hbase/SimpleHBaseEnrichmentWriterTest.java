@@ -18,28 +18,29 @@
 
 package org.apache.metron.writer.hbase;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class SimpleHBaseEnrichmentWriterTest {
   private static final String SENSOR_TYPE= "dummy";
@@ -50,92 +51,84 @@ public class SimpleHBaseEnrichmentWriterTest {
     put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_TABLE.getKey(), TABLE_NAME);
     put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_CF.getKey(), TABLE_CF);
     put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), ENRICHMENT_TYPE);
-    put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
+    put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_PROVIDER.getKey(), HBaseConnectionFactory.class.getName());
   }};
 
+  private EnrichmentConverter converter;
+  private List<BulkMessage<JSONObject>> messages;
+
   @Before
-  public void setupMockTable() {
-    MockHBaseTableProvider.addToCache(TABLE_NAME, TABLE_CF);
-  }
-  @Test
-  public void testBatchOneNormalPath() throws Exception {
-    final String sensorType = "dummy";
-    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
-
-    WriterConfiguration configuration = createConfig(1,
-            new HashMap<String, Object>(BASE_WRITER_CONFIG) {{
-              put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), "ip");
-            }}
-    );
-    writer.configure(sensorType,configuration);
-
-    writer.write( SENSOR_TYPE
-            , configuration
-            , new ArrayList<BulkMessage<JSONObject>>() {{
-              add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
-            }}
-    );
-    List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
-    Assert.assertEquals(1, values.size());
-    Assert.assertEquals("localhost", values.get(0).getKey().indicator);
-    Assert.assertEquals("cstella", values.get(0).getValue().getMetadata().get("user"));
-    Assert.assertEquals("bar", values.get(0).getValue().getMetadata().get("foo"));
-    Assert.assertEquals(2, values.get(0).getValue().getMetadata().size());
+  public void setup() {
+    converter = mock(EnrichmentConverter.class);
+    messages = new ArrayList<>();
+    messages.add(new BulkMessage<>("1", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
   }
 
   @Test
-  public void testFilteredKey() throws Exception {
-    final String sensorType = "dummy";
+  public void shouldWriteBatch() throws Exception {
+    // setup the writer configuration
+    Map<String, Object> sensorConfig = new HashMap<String, Object>(BASE_WRITER_CONFIG) {{
+      put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), "ip");
+    }};
+    WriterConfiguration configuration = createConfig(1, sensorConfig);
+
+    // setup the writer
     SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+    writer.withEnrichmentConverter(converter);
+    writer.configure("sensor1", configuration);
+    writer.init(new HashMap(), configuration);
 
-    WriterConfiguration configuration = createConfig(1,
-            new HashMap<String, Object>(BASE_WRITER_CONFIG) {{
-              put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), "ip");
-              put(SimpleHbaseEnrichmentWriter.Configurations.VALUE_COLUMNS.getKey(), "user");
-            }}
-    );
-    writer.configure(sensorType,configuration);
+    // write a message
+    writer.write(SENSOR_TYPE, configuration, messages);
 
-    writer.write( SENSOR_TYPE
-            , configuration
-            , new ArrayList<BulkMessage<JSONObject>>() {{
-              add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
-            }}
-    );
-    List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
-    Assert.assertEquals(1, values.size());
-    Assert.assertEquals("localhost", values.get(0).getKey().indicator);
-    Assert.assertEquals("cstella", values.get(0).getValue().getMetadata().get("user"));
-    Assert.assertNull(values.get(0).getValue().getMetadata().get("foo"));
-    Assert.assertEquals(1, values.get(0).getValue().getMetadata().size());
+    ArgumentCaptor<EnrichmentKey> keyCaptor = new ArgumentCaptor<>();
+    ArgumentCaptor<EnrichmentValue> valueCaptor = new ArgumentCaptor<>();
+    verify(converter, times(1)).put(eq(TABLE_CF), keyCaptor.capture(), valueCaptor.capture());
+
+    // validate the enrichment key
+    EnrichmentKey key = keyCaptor.getValue();
+    Assert.assertEquals("localhost", key.getIndicator());
+    Assert.assertEquals(ENRICHMENT_TYPE, key.getType());
+
+    // validate the enrichment value
+    EnrichmentValue value = valueCaptor.getValue();
+    Assert.assertEquals("cstella", value.getMetadata().get("user"));
+    Assert.assertEquals("bar", value.getMetadata().get("foo"));
   }
 
   @Test
-  public void testFilteredKeys() throws Exception {
-    final String sensorType = "dummy";
+  public void shouldOnlyWriteDefinedValueColumns() throws Exception {
+    // setup the writer configuration - the VALUE_COLUMNS
+    Map<String, Object> sensorConfig = new HashMap<String, Object>(BASE_WRITER_CONFIG) {{
+      put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), "ip");
+      put(SimpleHbaseEnrichmentWriter.Configurations.VALUE_COLUMNS.getKey(), "user");
+    }};
+    WriterConfiguration configuration = createConfig(1, sensorConfig);
+
+    // setup the writer
     SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+    writer.withEnrichmentConverter(converter);
+    writer.configure("sensor1", configuration);
+    writer.init(new HashMap(), configuration);
 
-    WriterConfiguration configuration = createConfig(1,
-            new HashMap<String, Object>(BASE_WRITER_CONFIG) {{
-              put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), "ip");
-              put(SimpleHbaseEnrichmentWriter.Configurations.VALUE_COLUMNS.getKey(), ImmutableList.of("user", "ip"));
-            }}
-    );
-    writer.configure(sensorType,configuration);
+    // write a message
+    writer.write(SENSOR_TYPE, configuration, messages);
 
-    writer.write( SENSOR_TYPE
-            , configuration
-            , new ArrayList<BulkMessage<JSONObject>>() {{
-              add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
-            }}
-    );
-    List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
-    Assert.assertEquals(1, values.size());
-    Assert.assertEquals("localhost", values.get(0).getKey().indicator);
-    Assert.assertEquals("cstella", values.get(0).getValue().getMetadata().get("user"));
-    Assert.assertEquals("localhost", values.get(0).getValue().getMetadata().get("ip"));
-    Assert.assertNull(values.get(0).getValue().getMetadata().get("foo"));
-    Assert.assertEquals(2, values.get(0).getValue().getMetadata().size());
+    ArgumentCaptor<EnrichmentKey> keyCaptor = new ArgumentCaptor<>();
+    ArgumentCaptor<EnrichmentValue> valueCaptor = new ArgumentCaptor<>();
+    verify(converter, times(1)).put(eq(TABLE_CF), keyCaptor.capture(), valueCaptor.capture());
+
+    // validate the enrichment key
+    EnrichmentKey key = keyCaptor.getValue();
+    Assert.assertEquals("localhost", key.getIndicator());
+    Assert.assertEquals(ENRICHMENT_TYPE, key.getType());
+
+    // validate the enrichment value
+    EnrichmentValue value = valueCaptor.getValue();
+    Assert.assertEquals("cstella", value.getMetadata().get("user"));
+
+    // the `shew.valueColumns` indicates that only the 'user' metadata should be written, not 'foo'
+    Assert.assertFalse(value.getMetadata().containsKey("foo"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -254,18 +247,7 @@ public class SimpleHBaseEnrichmentWriterTest {
     }
   }
 
-  public static List<LookupKV<EnrichmentKey, EnrichmentValue>> getValues() throws IOException {
-    MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE_NAME);
-    Assert.assertNotNull(table);
-    List<LookupKV<EnrichmentKey, EnrichmentValue>> ret = new ArrayList<>();
-    EnrichmentConverter converter = new EnrichmentConverter();
-    for(Result r : table.getScanner(Bytes.toBytes(TABLE_CF))) {
-      ret.add(converter.fromResult(r, TABLE_CF));
-    }
-    return ret;
-  }
-  public static WriterConfiguration createConfig(final int batchSize, final Map<String, Object> sensorConfig)
-  {
+  public static WriterConfiguration createConfig(final int batchSize, final Map<String, Object> sensorConfig) {
     return new WriterConfiguration() {
       @Override
       public int getBatchSize(String sensorName) {

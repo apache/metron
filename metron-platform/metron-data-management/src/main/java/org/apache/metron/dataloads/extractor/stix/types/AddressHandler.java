@@ -21,7 +21,7 @@ import com.google.common.base.Splitter;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.mitre.cybox.common_2.StringObjectPropertyType;
 import org.mitre.cybox.objects.Address;
 import org.mitre.cybox.objects.CategoryTypeEnum;
@@ -42,8 +42,8 @@ public class AddressHandler extends AbstractObjectTypeHandler<Address> {
   }
 
   @Override
-  public Iterable<LookupKV> extract(final Address type, Map<String, Object> config) throws IOException {
-    List<LookupKV> ret = new ArrayList<>();
+  public Iterable<EnrichmentResult> extract(final Address type, Map<String, Object> config) throws IOException {
+    List<EnrichmentResult> ret = new ArrayList<>();
     final CategoryTypeEnum category= type.getCategory();
     if(!SUPPORTED_CATEGORIES.contains(category)) {
       return ret;
@@ -67,7 +67,7 @@ public class AddressHandler extends AbstractObjectTypeHandler<Address> {
     StringObjectPropertyType value = type.getAddressValue();
     for(String token : StixExtractor.split(value)) {
       final String indicatorType = typeStr + ":" + category;
-      LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, token)
+      EnrichmentResult results = new EnrichmentResult(new EnrichmentKey(indicatorType, token)
               , new EnrichmentValue(
               new HashMap<String, Object>() {{
                 put("source-type", "STIX");

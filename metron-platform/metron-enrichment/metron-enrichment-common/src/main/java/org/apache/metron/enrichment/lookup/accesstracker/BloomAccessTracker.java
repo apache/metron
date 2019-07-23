@@ -106,7 +106,7 @@ public class BloomAccessTracker implements AccessTracker {
     }
 
     @Override
-    public String getName() {
+    public String getTableName() {
         return name;
     }
 
