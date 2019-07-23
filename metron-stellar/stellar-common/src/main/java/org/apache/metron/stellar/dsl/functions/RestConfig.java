@@ -20,6 +20,7 @@ package org.apache.metron.stellar.dsl.functions;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A Map containing the Stellar REST settings.
@@ -30,6 +31,16 @@ public class RestConfig extends HashMap<String, Object> {
    * A global config prefix used for storing Stellar REST settings.
    */
   public final static String STELLAR_REST_SETTINGS = "stellar.rest.settings";
+
+  /**
+   * A global config prefix used for storing Stellar REST GET settings.
+   */
+  public final static String STELLAR_REST_GET_SETTINGS = "stellar.rest.get.settings";
+
+  /**
+   * A global config prefix used for storing Stellar REST POST settings.
+   */
+  public final static String STELLAR_REST_POST_SETTINGS = "stellar.rest.post.settings";
 
   /**
    * User name for basic authentication.
@@ -99,14 +110,20 @@ public class RestConfig extends HashMap<String, Object> {
   public final static String POOLING_DEFAULT_MAX_PER_RUOTE = "pooling.default.max.per.route";
 
   /**
-   * Setting this to true will verify the actual body content length equals the content length header
+   * Setting this to true will verify the actual body content length equals the content length header.
    */
   public final static String VERIFY_CONTENT_LENGTH = "verify.content.length";
+
+  /**
+   * Setting this to true will verify POST data is well-formed JSON.
+   */
+  public final static String ENFORCE_JSON = "enforce.json";
 
   public RestConfig() {
     put(TIMEOUT, 1000);
     put(RESPONSE_CODES_ALLOWED, Collections.singletonList(200));
     put(VERIFY_CONTENT_LENGTH, false);
+    put(ENFORCE_JSON, true);
   }
 
   public String getBasicAuthUser() {
@@ -172,5 +189,9 @@ public class RestConfig extends HashMap<String, Object> {
 
   public Boolean verifyContentLength() {
     return (Boolean) get(VERIFY_CONTENT_LENGTH);
+  }
+
+  public Boolean enforceJson() {
+    return (Boolean) get(ENFORCE_JSON);
   }
 }

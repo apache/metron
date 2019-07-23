@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input, EventEmitter, Output } from '@angular/core';
 import {Subscription, Observable} from 'rxjs';
 
 import {TableViewComponent} from '../table-view/table-view.component';
@@ -57,12 +57,15 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   @Output() onMetaAlertCreated = new EventEmitter<boolean>();
 
+  @Output() treeViewChange = new EventEmitter<number>();
   groupByFields: string[] = [];
   topGroups: TreeGroupData[] = [];
   groupResponse: GroupResponse = new GroupResponse();
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
   configSubscription: Subscription;
+  dialogService: DialogService;
+  subgroupTotalAlerts = 0;
 
   constructor(searchService: SearchService,
               updateService: UpdateService,
@@ -172,10 +175,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     let previousTopGroupKeys = this.topGroups.map(group => group.key);
 
     if (this.topGroups.length === 0 || JSON.stringify(this.groupByFields) !== JSON.stringify(groupByFields) ||
-        JSON.stringify(currentTopGroupKeys) !== JSON.stringify(previousTopGroupKeys)) {
+    JSON.stringify(currentTopGroupKeys) !== JSON.stringify(previousTopGroupKeys)) {
       this.createTopGroups(groupByFields);
     }
 
+    this.subgroupTotalAlerts = this.topGroups.reduce((accumulator, currentValue) => {
+      return accumulator + currentValue.total;
+    }, 0);
+    this.treeViewChange.next(this.subgroupTotalAlerts);
     this.groupByFields = groupByFields;
   }
 
@@ -195,6 +202,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   ngOnDestroy(): void {
     this.removeAlertChangedLister();
+    this.treeViewChange.next(0);
   }
 
   searchGroup(selectedGroup: TreeGroupData, searchRequest: SearchRequest): Subscription {

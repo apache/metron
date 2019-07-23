@@ -231,11 +231,6 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
   }
 
   @Override
-  protected MockHTable getMockHTable() {
-    return null;
-  }
-
-  @Override
   protected void addTestData(String indexName, String sensorType, List<Map<String, Object>> docs) {
   }
 

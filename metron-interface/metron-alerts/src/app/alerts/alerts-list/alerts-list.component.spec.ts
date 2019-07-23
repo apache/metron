@@ -100,4 +100,15 @@ describe('AlertsListComponent', () => {
     expect(component.selectedTimeRange.dateFilterValue.toDate).toBeTruthy();
   });
 
+  it('shows subtotals in view when onTreeViewChange is truthy', () => {
+    component.onTreeViewChange(4);
+    fixture.detectChanges();
+    let subtotal = fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]');
+    expect(subtotal.textContent).toEqual('Alerts in Groups (4)');
+
+    component.onTreeViewChange(0);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]')).toBeNull();
+  });
+
 });

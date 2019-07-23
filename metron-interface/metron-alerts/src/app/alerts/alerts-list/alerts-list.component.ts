@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {forkJoin as observableForkJoin} from 'rxjs';
-import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Subscription} from 'rxjs';
 
@@ -82,6 +82,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   globalConfig: {} = {};
   configSubscription: Subscription;
   groups = [];
+  subgroupTotal = 0;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -93,7 +94,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private metaAlertsService: MetaAlertService,
               private globalConfigService: GlobalConfigService,
               private dialogService: DialogService,
-              public queryBuilder: QueryBuilder) {
+              public queryBuilder: QueryBuilder,
+              private cdRef: ChangeDetectorRef) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -511,5 +513,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   removeAlertChangedListner() {
     this.alertChangedSubscription.unsubscribe();
+  }
+
+  onTreeViewChange(subgroupTotal) {
+    this.subgroupTotal = subgroupTotal;
+    this.cdRef.detectChanges();
   }
 }
