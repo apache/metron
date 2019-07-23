@@ -119,6 +119,11 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
+  public void close() throws IOException {
+    // nothing to do
+  }
+
+  @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
     return this.searchDao.search(searchRequest);
   }

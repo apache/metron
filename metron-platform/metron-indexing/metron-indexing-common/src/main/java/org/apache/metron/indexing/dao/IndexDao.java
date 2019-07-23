@@ -20,11 +20,13 @@ package org.apache.metron.indexing.dao;
 import org.apache.metron.indexing.dao.search.SearchDao;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 
+import java.io.Closeable;
+
 /**
  * The IndexDao provides a common interface for retrieving and storing data in a variety of persistent stores.
  * Document reads and writes require a GUID and sensor type with an index being optional.
  */
-public interface IndexDao extends UpdateDao, SearchDao, RetrieveLatestDao, ColumnMetadataDao {
+public interface IndexDao extends UpdateDao, SearchDao, RetrieveLatestDao, ColumnMetadataDao, Closeable {
 
   String COMMENTS_FIELD = "comments";
 

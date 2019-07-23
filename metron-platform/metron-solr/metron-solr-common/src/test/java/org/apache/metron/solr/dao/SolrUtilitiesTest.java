@@ -30,17 +30,20 @@ public class SolrUtilitiesTest {
 
   @Test
   public void toDocumentShouldProperlyReturnDocument() throws Exception {
+    long expectedTimestamp = System.currentTimeMillis();
     SolrDocument solrDocument = new SolrDocument();
     solrDocument.addField(SolrDao.VERSION_FIELD, 1.0);
     solrDocument.addField(Constants.GUID, "guid");
     solrDocument.addField(Constants.SENSOR_TYPE, "bro");
+    solrDocument.addField(Constants.Fields.TIMESTAMP.getName(), expectedTimestamp);
     solrDocument.addField("field", "value");
 
     Document expectedDocument = new Document(new HashMap<String, Object>() {{
       put("field", "value");
       put(Constants.GUID, "guid");
       put(Constants.SENSOR_TYPE, "bro");
-    }}, "guid", "bro", 0L);
+      put(Constants.Fields.TIMESTAMP.getName(), expectedTimestamp);
+    }}, "guid", "bro", expectedTimestamp);
 
     Document actualDocument = SolrUtilities.toDocument(solrDocument);
     assertEquals(expectedDocument, actualDocument);

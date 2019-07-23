@@ -18,9 +18,28 @@
 
 package org.apache.metron.indexing.integration;
 
-import static org.apache.metron.indexing.dao.HBaseDao.HBASE_CF;
-import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Delete;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.HBaseDao;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.UpdateIntegrationTest;
+import org.apache.metron.indexing.dao.search.AlertComment;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.update.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,28 +49,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.HBaseDao;
-import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.UpdateIntegrationTest;
-import org.apache.metron.indexing.dao.search.AlertComment;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.update.Document;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
+import static org.apache.metron.indexing.dao.HBaseDao.HBASE_CF;
+import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+
+/**
+ * An integration test for the {@link HBaseDao}.
+ */
 public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
 
   private static final String TABLE_NAME = "metron_update";
   private static final String COLUMN_FAMILY = "cf";
   private static final String SENSOR_TYPE = "test";
-
-  private static IndexDao hbaseDao;
-  private static byte[] expectedKeySerialization = new byte[] {
+  private static final byte[] expectedKeySerialization = new byte[] {
           (byte)0xf5,0x53,0x76,(byte)0x96,0x67,0x3a,
           (byte)0xc1,(byte)0xaf,(byte)0xff,0x41,0x33,(byte)0x9d,
           (byte)0xac,(byte)0xb9,0x1a,(byte)0xb0,0x00,0x04,
@@ -60,17 +71,43 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
           0x54,0x79,0x70,0x65
   };
 
+  private static HBaseTestingUtility testUtil;
+  private static Configuration conf;
+  private static Table table;
+  private IndexDao hbaseDao;
+
+  @BeforeClass
+  public static void startHBase() throws Exception {
+    Configuration config = HBaseConfiguration.create();
+    config.set("hbase.master.hostname", "localhost");
+    config.set("hbase.regionserver.hostname", "localhost");
+
+    testUtil = new HBaseTestingUtility(config);
+    testUtil.startMiniCluster();
+
+    // create the table
+    table = testUtil.createTable(TableName.valueOf(TABLE_NAME), COLUMN_FAMILY);
+    testUtil.waitTableEnabled(table.getName());
+  }
+
+  @AfterClass
+  public static void stopHBase() throws Exception {
+    testUtil.deleteTable(table.getName());
+    testUtil.shutdownMiniCluster();
+    testUtil.cleanupTestDir();
+  }
+
   @Before
-  public void startHBase() throws Exception {
+  public void setup() throws Exception {
     AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setHbaseConnectionFactory(new HBaseConnectionFactory());
+    accessConfig.setHbaseConfiguration(testUtil.getConfiguration());
     accessConfig.setMaxSearchResults(1000);
     accessConfig.setMaxSearchGroups(1000);
     accessConfig.setGlobalConfigSupplier(() -> new HashMap<String, Object>() {{
       put(HBASE_TABLE, TABLE_NAME);
       put(HBASE_CF, COLUMN_FAMILY);
     }});
-    MockHBaseTableProvider.addToCache(TABLE_NAME, COLUMN_FAMILY);
-    accessConfig.setTableProvider(new MockHBaseTableProvider());
 
     hbaseDao = new HBaseDao();
     hbaseDao.init(accessConfig);
@@ -78,7 +115,11 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
 
   @After
   public void clearTable() throws Exception {
-    MockHBaseTableProvider.clear();
+    // clear all records from the the table
+    List<Delete> deletions = new ArrayList<>();
+    for(Result r : table.getScanner(new Scan())) {
+      deletions.add(new Delete(r.getRow()));
+    }
   }
 
   /**
@@ -94,7 +135,6 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
     byte[] raw = k.toBytes();
     Assert.assertArrayEquals(raw, expectedKeySerialization);
   }
-
 
   @Test
   public void testKeySerialization() throws Exception {
@@ -227,11 +267,6 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
 
   @Override
   protected String getIndexName() {
-    return null;
-  }
-
-  @Override
-  protected MockHTable getMockHTable() {
     return null;
   }
 

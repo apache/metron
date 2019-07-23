@@ -17,13 +17,8 @@
  */
 package org.apache.metron.rest.config;
 
-import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
-import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
-
-import java.util.Optional;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.IndexDaoFactory;
@@ -36,6 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import java.util.Optional;
+
+import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
+import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 
 @Configuration
 public class IndexConfig {
@@ -55,50 +55,55 @@ public class IndexConfig {
   }
 
   @Bean
-  public IndexDao indexDao() {
-    try {
-      String hbaseProviderImpl = environment.getProperty(MetronRestConstants.INDEX_HBASE_TABLE_PROVIDER_IMPL, String.class, null);
-      String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
-      int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, 1000);
-      int searchMaxGroups = environment.getProperty(MetronRestConstants.SEARCH_MAX_GROUPS, Integer.class, 1000);
-      String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
-      String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_SORT, String.class, null);
+  public AccessConfig accessConfig(HBaseConnectionFactory hBaseConnectionFactory,
+                                   org.apache.hadoop.conf.Configuration hBaseConfiguration) {
+    int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, 1000);
+    int searchMaxGroups = environment.getProperty(MetronRestConstants.SEARCH_MAX_GROUPS, Integer.class, 1000);
 
-      AccessConfig config = new AccessConfig();
-      config.setMaxSearchResults(searchMaxResults);
-      config.setMaxSearchGroups(searchMaxGroups);
-      config.setGlobalConfigSupplier(() -> {
-        try {
-          return globalConfigService.get();
-        } catch (RestException e) {
-          throw new IllegalStateException("Unable to retrieve the global config.", e);
-        }
-      });
-      config.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache, environment.getProperty(INDEX_WRITER_NAME)));
-      config.setTableProvider(TableProvider.create(hbaseProviderImpl, () -> new HTableProvider()));
-      config.setKerberosEnabled(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false));
+    AccessConfig config = new AccessConfig();
+    config.setHbaseConnectionFactory(hBaseConnectionFactory);
+    config.setHbaseConfiguration(hBaseConfiguration);
+    config.setMaxSearchResults(searchMaxResults);
+    config.setMaxSearchGroups(searchMaxGroups);
+    config.setGlobalConfigSupplier(() -> {
+      try {
+        return globalConfigService.get();
+      } catch (RestException e) {
+        throw new IllegalStateException("Unable to retrieve the global config.", e);
+      }
+    });
+    config.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache, environment.getProperty(INDEX_WRITER_NAME)));
+    config.setKerberosEnabled(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false));
+    return config;
+  }
+
+  @Bean(destroyMethod = "close")
+  public IndexDao indexDao(AccessConfig accessConfig) {
+    try {
+      String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
       if (indexDaoImpl == null) {
         throw new IllegalStateException("You must provide an index DAO implementation via the " + INDEX_DAO_IMPL + " config");
       }
-      IndexDao indexDao = IndexDaoFactory.combine(IndexDaoFactory.create(indexDaoImpl, config));
+
+      IndexDao indexDao = IndexDaoFactory.combine(IndexDaoFactory.create(indexDaoImpl, accessConfig));
       if (indexDao == null) {
         throw new IllegalStateException("IndexDao is unable to be created.");
       }
+
+      String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
       if (metaDaoImpl == null) {
         // We're not using meta alerts.
         return indexDao;
+
+      } else {
+        // Create the meta alert dao and wrap it around the index dao.
+        String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_SORT, String.class, null);
+        MetaAlertDao metaAlertDao = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, accessConfig).get(0);
+        metaAlertDao.init(indexDao, Optional.ofNullable(metaDaoSort));
+        return metaAlertDao;
       }
 
-      // Create the meta alert dao and wrap it around the index dao.
-      MetaAlertDao ret = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, config).get(0);
-      ret.init(indexDao, Optional.ofNullable(metaDaoSort));
-      return ret;
-
-    }
-    catch(RuntimeException re) {
-      throw re;
-    }
-    catch(Exception e) {
+    } catch(Exception e) {
       throw new IllegalStateException("Unable to create index DAO: " + e.getMessage(), e);
     }
   }

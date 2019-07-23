@@ -161,6 +161,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
+  public void close() throws IOException {
+    // nothing to do
+  }
+
+  @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return indexDao.getColumnMetadata(indices);
   }

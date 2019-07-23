@@ -17,30 +17,17 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import org.adrianwalker.multilinestring.Multiline;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.common.system.FakeClock;
+import org.apache.metron.hbase.client.FakeHBaseClientFactory;
+import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.model.AlertsUIUserSettings;
 import org.apache.metron.rest.service.KafkaService;
+import org.apache.metron.rest.user.HBaseUserSettingsClient;
 import org.apache.metron.rest.user.UserSettingsClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,27 +37,34 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.apache.metron.rest.service.impl.AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+
+/**
+ * Tests the {@link AlertsUIServiceImpl} class.
+ */
 @SuppressWarnings("unchecked")
 public class AlertsUIServiceImplTest {
 
   public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
           new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
-  /**
-   * {
-   *   "tableColumns": ["user1_field"]
-   * }
-   */
-  @Multiline
-  public static String user1AlertUserSettings;
-
-  /**
-   * {
-   *   "tableColumns": ["user2_field"]
-   * }
-   */
-  @Multiline
-  public static String user2AlertUserSettings;
+  private static final String field = "field";
+  private static final String value1 = "value1";
+  private static final String value2 = "value2";
+  private static final String escalationTopic = "escalation";
 
   private KafkaService kafkaService;
   private Environment environment;
@@ -85,7 +79,19 @@ public class AlertsUIServiceImplTest {
   public void setUp() throws Exception {
     kafkaService = mock(KafkaService.class);
     environment = mock(Environment.class);
-    userSettingsClient = mock(UserSettingsClient.class);
+
+    Map<String, Object> globals = new HashMap<String, Object>() {{
+      put(HBaseUserSettingsClient.USER_SETTINGS_HBASE_TABLE, "some_table");
+      put(HBaseUserSettingsClient.USER_SETTINGS_HBASE_CF, "column_family");
+      put(HBaseUserSettingsClient.USER_SETTINGS_MAX_SCAN, "100000");
+    }};
+
+    userSettingsClient = new HBaseUserSettingsClient(
+            () -> globals,
+            new FakeHBaseClientFactory(),
+            new FakeHBaseConnectionFactory(),
+            HBaseConfiguration.create());
+    userSettingsClient.init();
     alertsUIService = new AlertsUIServiceImpl(kafkaService, environment, userSettingsClient);
 
     // use a fake clock for testing
@@ -103,12 +109,7 @@ public class AlertsUIServiceImplTest {
 
   @Test
   public void escalateAlertShouldSendMessageToKafka() throws Exception {
-    final String field = "field";
-    final String value1 = "value1";
-    final String value2 = "value2";
-
     // define the escalation topic
-    final String escalationTopic = "escalation";
     when(environment.getProperty(MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY)).thenReturn(escalationTopic);
 
     // create an alert along with the expected escalation message that is sent to kafka
@@ -126,63 +127,63 @@ public class AlertsUIServiceImplTest {
   }
 
   @Test
-  public void getShouldProperlyReturnActiveProfile() throws Exception {
-    when(userSettingsClient.findOne(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE)).thenReturn(Optional.of(user1AlertUserSettings));
+  public void shouldGetActiveProfile() throws Exception {
+    AlertsUIUserSettings expected = new AlertsUIUserSettings();
+    expected.setTableColumns(Collections.singletonList("user1_field"));
 
-    AlertsUIUserSettings expectedAlertsUIUserSettings = new AlertsUIUserSettings();
-    expectedAlertsUIUserSettings.setTableColumns(Collections.singletonList("user1_field"));
-    assertEquals(expectedAlertsUIUserSettings, alertsUIService.getAlertsUIUserSettings().get());
-    verify(userSettingsClient, times(1)).findOne(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
-    verifyNoMoreInteractions(userSettingsClient);
+    // save a profile for current user
+    userSettingsClient.save(user1, ALERT_USER_SETTING_TYPE, toJSON(expected));
+
+    // retrieve the active profile
+    assertEquals(expected, alertsUIService.getAlertsUIUserSettings().get());
   }
 
   @Test
-  public void findAllShouldProperlyReturnActiveProfiles() throws Exception {
-    AlertsUIUserSettings alertsProfile1 = new AlertsUIUserSettings();
-    alertsProfile1.setUser(user1);
-    AlertsUIUserSettings alertsProfile2 = new AlertsUIUserSettings();
-    alertsProfile2.setUser(user1);
-    when(userSettingsClient.findAll(AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE))
-            .thenReturn(new HashMap<String, Optional<String>>() {{
-              put(user1,  Optional.of(user1AlertUserSettings));
-              put(user2, Optional.of(user2AlertUserSettings));
-              }});
+  public void shouldFindAllActiveProfiles() throws Exception {
+    AlertsUIUserSettings settings1 = new AlertsUIUserSettings();
+    settings1.setTableColumns(Collections.singletonList("user1_field"));
 
-    AlertsUIUserSettings expectedAlertsUIUserSettings1 = new AlertsUIUserSettings();
-    expectedAlertsUIUserSettings1.setTableColumns(Collections.singletonList("user1_field"));
-    AlertsUIUserSettings expectedAlertsUIUserSettings2 = new AlertsUIUserSettings();
-    expectedAlertsUIUserSettings2.setTableColumns(Collections.singletonList("user2_field"));
+    AlertsUIUserSettings settings2 = new AlertsUIUserSettings();
+    settings2.setTableColumns(Collections.singletonList("user2_field"));
+
+    // save some profiles
+    userSettingsClient.save(user1, ALERT_USER_SETTING_TYPE, toJSON(settings1));
+    userSettingsClient.save(user2, ALERT_USER_SETTING_TYPE, toJSON(settings2));
+
+    // retrieve all active profiles
     Map<String, AlertsUIUserSettings> actualAlertsProfiles = alertsUIService.findAllAlertsUIUserSettings();
     assertEquals(2, actualAlertsProfiles.size());
-    assertEquals(expectedAlertsUIUserSettings1, actualAlertsProfiles.get(user1));
-    assertEquals(expectedAlertsUIUserSettings2, actualAlertsProfiles.get(user2));
-
-    verify(userSettingsClient, times(1)).findAll(AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
-    verifyNoMoreInteractions(userSettingsClient);
+    assertEquals(settings1, actualAlertsProfiles.get(user1));
+    assertEquals(settings2, actualAlertsProfiles.get(user2));
   }
 
   @Test
-  public void saveShouldProperlySaveActiveProfile() throws Exception {
-    AlertsUIUserSettings alertsUIUserSettings = new AlertsUIUserSettings();
-    alertsUIUserSettings.setTableColumns(Collections.singletonList("user1_field"));
+  public void shouldSaveActiveProfile() throws Exception {
+    AlertsUIUserSettings expected = new AlertsUIUserSettings();
+    expected.setTableColumns(Collections.singletonList("user1_field"));
 
-    alertsUIService.saveAlertsUIUserSettings(alertsUIUserSettings);
+    // save an active profile
+    alertsUIService.saveAlertsUIUserSettings(expected);
 
-    String expectedAlertUserSettings = _mapper.get().writeValueAsString(alertsUIUserSettings);
-    verify(userSettingsClient, times(1))
-            .save(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE, expectedAlertUserSettings);
-    verifyNoMoreInteractions(userSettingsClient);
+    // get the active profile
+    Optional<AlertsUIUserSettings> actual = alertsUIService.getAlertsUIUserSettings();
+    assertEquals(expected, actual.get());
   }
 
+
   @Test
-  public void deleteShouldProperlyDeleteActiveProfile() throws Exception {
+  public void shouldDeleteActiveProfile() throws Exception {
+    AlertsUIUserSettings expected = new AlertsUIUserSettings();
+    expected.setTableColumns(Collections.singletonList("user1_field"));
+
+    userSettingsClient.save(user1, ALERT_USER_SETTING_TYPE, toJSON(expected));
     assertTrue(alertsUIService.deleteAlertsUIUserSettings(user1));
+  }
 
-    doThrow(new IOException()).when(userSettingsClient).delete(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
-    assertFalse(alertsUIService.deleteAlertsUIUserSettings(user1));
-
-    verify(userSettingsClient, times(2)).delete(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
-    verifyNoMoreInteractions(userSettingsClient);
+  @Test
+  public void shouldNotDeleteMissingProfile() throws Exception {
+    // no profile saved for 'user999'
+    assertFalse(alertsUIService.deleteAlertsUIUserSettings("user999"));
   }
 
   /**
@@ -208,5 +209,9 @@ public class AlertsUIServiceImplTest {
     Map<String, Object> map = new HashMap<>();
     map.put(key, value);
     return map;
+  }
+
+  private String toJSON(AlertsUIUserSettings settings) throws JsonProcessingException {
+    return _mapper.get().writeValueAsString(settings);
   }
 }

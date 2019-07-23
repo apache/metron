@@ -91,6 +91,11 @@ public class SolrDao implements IndexDao {
     }
   }
 
+  @Override
+  public void close() {
+    // nothing to do
+  }
+
   public Optional<String> getIndex(String sensorName, Optional<String> index) {
     if (index.isPresent()) {
       return index;

@@ -22,8 +22,6 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
@@ -162,10 +160,6 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.project").doesNotExist())
             .andExpect(jsonPath("$.timestamp").value(2));
 
-    // nothing is recorded in HBase
-    MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE);
-    Assert.assertEquals(0,table.size());
-
     // patch the document
     this.mockMvc.perform(patchRequest)
             .andExpect(status().isOk());
@@ -178,16 +172,6 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.guid").value(guid))
             .andExpect(jsonPath("$.project").value("metron"))
             .andExpect(jsonPath("$.timestamp").value(2));
-
-    // the change should be recorded in HBase
-    Assert.assertEquals(1,table.size());
-    {
-        //ensure hbase is up to date
-        Get g = new Get(new HBaseDao.Key(guid,"bro").toBytes());
-        Result r = table.get(g);
-        NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
-        Assert.assertEquals(1, columns.size());
-    }
   }
 
   @Test
