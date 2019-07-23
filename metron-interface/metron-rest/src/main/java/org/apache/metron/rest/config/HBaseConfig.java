@@ -18,15 +18,9 @@
 package org.apache.metron.rest.config;
 
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.hbase.client.HBaseClientFactory;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
-import org.apache.metron.hbase.client.HBaseTableClient;
 import org.apache.metron.hbase.client.HBaseTableClientFactory;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.user.HBaseUserSettingsClient;
@@ -36,7 +30,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -89,25 +82,5 @@ public class HBaseConfig {
             hBaseConfiguration);
     userSettingsClient.init();
     return userSettingsClient;
-  }
-
-  @Bean()
-  public LegacyHBaseClient legacyHBaseClient() {
-    Map<String, Object> restConfig = null;
-    try {
-      restConfig = globalConfigService.get();
-    } catch (RestException e) {
-      throw new IllegalStateException("Unable to retrieve the global config.", e);
-    }
-    TableProvider provider = null;
-    try {
-      provider = TableProvider
-              .create((String) restConfig.get(EnrichmentConfigurations.TABLE_PROVIDER),
-                      HTableProvider::new);
-    } catch (ClassNotFoundException | InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-      throw new IllegalStateException("Unable to create table provider", e);
-    }
-    return new LegacyHBaseClient(provider, HBaseConfiguration.create(),
-            (String) restConfig.get(EnrichmentConfigurations.TABLE_NAME));
   }
 }

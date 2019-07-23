@@ -20,8 +20,6 @@ package org.apache.metron.elasticsearch.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
@@ -30,13 +28,10 @@ import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.client.ElasticsearchClientFactory;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
-import org.apache.metron.integration.UnableToStartException;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
@@ -64,7 +59,6 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
 
   private static final String TABLE_NAME = "modifications";
   private static final String CF = "p";
-  private static MockHTable table;
   private static IndexDao elasticsearchDao;
   private static AccessConfig accessConfig;
   private static Map<String, Object> globalConfig;
@@ -92,9 +86,7 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   }
 
   @BeforeClass
-  public static void setupBeforeClass() throws UnableToStartException, IOException {
-    Configuration config = HBaseConfiguration.create();
-
+  public static void setupBeforeClass() throws Exception {
     globalConfig = new HashMap<>();
     globalConfig.put("es.clustername", "metron");
     globalConfig.put("es.port", "9200");
@@ -104,7 +96,6 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     globalConfig.put(HBaseDao.HBASE_CF, CF);
 
     accessConfig = new AccessConfig();
-    accessConfig.setTableProvider(tableProvider);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
     es = new ElasticSearchComponent.Builder()
@@ -128,7 +119,6 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   @After
   public void reset() {
     es.reset();
-    table.clear();
   }
 
   @AfterClass

@@ -22,7 +22,6 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.hbase.client.FakeHBaseClientFactory;
 import org.apache.metron.hbase.client.HBaseClientFactory;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
@@ -96,13 +95,5 @@ public class HBaseConfigTest {
             hBaseConnectionFactory,
             hBaseConfiguration);
     Assert.assertNotNull(client);
-  }
-
-  @Test
-  public void hBaseClientShouldBeCreatedWithSpecifiedProvider() throws Exception {
-    when(globalConfigService.get()).thenReturn(new HashMap<String, Object>() {{
-      put(EnrichmentConfigurations.TABLE_NAME, "enrichment_list_hbase_table_name");
-    }});
-    Assert.assertNotNull(hBaseConfig.legacyHBaseClient());
   }
 }

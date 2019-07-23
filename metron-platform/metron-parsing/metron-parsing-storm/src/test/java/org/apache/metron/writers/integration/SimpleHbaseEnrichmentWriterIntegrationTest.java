@@ -19,6 +19,25 @@
 package org.apache.metron.writers.integration;
 
 import com.google.common.collect.ImmutableList;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.TestConstants;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.UnableToStartException;
+import org.apache.metron.integration.components.ConfigUploadComponent;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,30 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.TestConstants;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.integration.components.ConfigUploadComponent;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.ReadinessState;
-import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
-import org.junit.Assert;
-import org.junit.Test;
 
 public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationTest {
 
@@ -91,7 +86,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     }};
 
     // setup external components; kafka, zookeeper
-    MockHBaseTableProvider.addToCache(sensorType, "cf");
+//    MockHBaseTableProvider.addToCache(sensorType, "cf");
     final Properties topologyProperties = new Properties();
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
@@ -127,30 +122,30 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     try {
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
-      ProcessorResult<List<LookupKV<EnrichmentKey, EnrichmentValue>>> result =
-              runner.process(new Processor<List<LookupKV<EnrichmentKey, EnrichmentValue>>>() {
-                List<LookupKV<EnrichmentKey, EnrichmentValue>> messages = null;
+      ProcessorResult<List<EnrichmentResult>> result =
+              runner.process(new Processor<List<EnrichmentResult>>() {
+                List<EnrichmentResult> messages = null;
 
                 @Override
                 public ReadinessState process(ComponentRunner runner) {
-                  MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(sensorType);
-                  if (table != null && table.size() == inputMessages.size()) {
-                    EnrichmentConverter converter = new EnrichmentConverter();
-                    messages = new ArrayList<>();
-                    try {
-                      for (Result r : table.getScanner(Bytes.toBytes("cf"))) {
-                        messages.add(converter.fromResult(r, "cf"));
-                      }
-                    } catch (IOException e) {
-                    }
-                    return ReadinessState.READY;
-                  }
+//                  MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(sensorType);
+//                  if (table != null && table.size() == inputMessages.size()) {
+//                    EnrichmentConverter converter = new EnrichmentConverter();
+//                    messages = new ArrayList<>();
+//                    try {
+//                      for (Result r : table.getScanner(Bytes.toBytes("cf"))) {
+//                        messages.add(converter.fromResult(r, "cf"));
+//                      }
+//                    } catch (IOException e) {
+//                    }
+//                    return ReadinessState.READY;
+//                  }
                   return ReadinessState.NOT_READY;
                 }
 
                 @Override
-                public ProcessorResult<List<LookupKV<EnrichmentKey, EnrichmentValue>>> getResult() {
-                  ProcessorResult.Builder<List<LookupKV<EnrichmentKey,EnrichmentValue>>> builder = new ProcessorResult.Builder();
+                public ProcessorResult<List<EnrichmentResult>> getResult() {
+                  ProcessorResult.Builder<List<EnrichmentResult>> builder = new ProcessorResult.Builder();
                   return builder.withResult(messages).build();
                 }
               });
@@ -169,12 +164,12 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
           put("col3", "col33");
         }});
       }};
-      for (LookupKV<EnrichmentKey, EnrichmentValue> kv : result.getResult()) {
-        Assert.assertTrue(validIndicators.contains(kv.getKey().indicator));
+      for (EnrichmentResult kv : result.getResult()) {
+        Assert.assertTrue(validIndicators.contains(kv.getKey().getIndicator()));
         Assert.assertEquals(kv.getValue().getMetadata().get("source.type"), "dummy");
         Assert.assertNotNull(kv.getValue().getMetadata().get("timestamp"));
         Assert.assertNotNull(kv.getValue().getMetadata().get("original_string"));
-        Map<String, String> metadata = validMetadata.get(kv.getKey().indicator);
+        Map<String, String> metadata = validMetadata.get(kv.getKey().getIndicator());
         for (Map.Entry<String, String> x : metadata.entrySet()) {
           Assert.assertEquals(kv.getValue().getMetadata().get(x.getKey()), x.getValue());
         }

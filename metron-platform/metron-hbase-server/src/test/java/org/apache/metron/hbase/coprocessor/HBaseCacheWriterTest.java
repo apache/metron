@@ -20,10 +20,11 @@ package org.apache.metron.hbase.coprocessor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.client.HBaseTableClient;
+import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.hbase.client.HBaseClientFactory;
-import org.apache.metron.hbase.client.MockHBaseConnectionFactory;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.client.HBaseTableClient;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,13 +44,13 @@ public class HBaseCacheWriterTest {
   private final String columnFamily = "colFamily";
   private final String columnQualifier = "colQualifier";
 
-  private MockHBaseConnectionFactory connectionFactory;
+  private HBaseConnectionFactory connectionFactory;
   private HBaseCacheWriter cacheWriter;
   private Configuration conf;
 
   @Before
   public void setup() {
-    connectionFactory = new MockHBaseConnectionFactory();
+    connectionFactory = new FakeHBaseConnectionFactory();
     conf = HBaseConfiguration.create();
   }
 

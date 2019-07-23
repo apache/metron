@@ -18,13 +18,11 @@
 package org.apache.metron.indexing.dao;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
-
-import java.util.function.Function;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class AccessConfig {
@@ -35,7 +33,6 @@ public class AccessConfig {
   private Map<String, String> optionalSettings = new HashMap<>();
   private HBaseConnectionFactory hbaseConnectionFactory;
   private Configuration hbaseConfiguration;
-  private TableProvider tableProvider = null;
   private Boolean isKerberosEnabled = false;
 
 
