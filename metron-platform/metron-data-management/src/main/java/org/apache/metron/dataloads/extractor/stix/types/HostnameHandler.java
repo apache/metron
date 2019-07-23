@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.mitre.cybox.common_2.StringObjectPropertyType;
 import org.mitre.cybox.objects.Hostname;
 
@@ -39,7 +39,7 @@ public class HostnameHandler  extends AbstractObjectTypeHandler<Hostname>{
   }
 
   @Override
-  public Iterable<LookupKV> extract(final Hostname type, Map<String, Object> config) throws IOException {
+  public Iterable<EnrichmentResult> extract(final Hostname type, Map<String, Object> config) throws IOException {
     StringObjectPropertyType value = type.getHostnameValue();
     String typeStr = getType();
     if(config != null) {
@@ -48,10 +48,10 @@ public class HostnameHandler  extends AbstractObjectTypeHandler<Hostname>{
         typeStr = o.toString();
       }
     }
-    List<LookupKV> ret = new ArrayList<>();
+    List<EnrichmentResult> ret = new ArrayList<>();
     for(String token : StixExtractor.split(value)) {
       final String indicatorType = typeStr;
-      LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, token)
+      EnrichmentResult results = new EnrichmentResult(new EnrichmentKey(indicatorType, token)
               , new EnrichmentValue(new HashMap<String, Object>() {{
         put("source-type", "STIX");
         put("indicator-type", indicatorType);

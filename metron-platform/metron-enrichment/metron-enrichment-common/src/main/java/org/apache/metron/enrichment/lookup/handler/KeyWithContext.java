@@ -18,13 +18,36 @@
 
 package org.apache.metron.enrichment.lookup.handler;
 
+import java.util.Objects;
+
 public class KeyWithContext<KEY_T, CONTEXT_T> {
   private KEY_T key;
   private CONTEXT_T context;
+
   public KeyWithContext(KEY_T key, CONTEXT_T context) {
     this.key = key;
     this.context = context;
   }
-  public KEY_T getKey() { return key; }
-  public CONTEXT_T getContext() { return context; }
+
+  public KEY_T getKey() {
+    return key;
+  }
+
+  public CONTEXT_T getContext() {
+    return context;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof KeyWithContext)) return false;
+    KeyWithContext<?, ?> that = (KeyWithContext<?, ?>) o;
+    return Objects.equals(key, that.key) &&
+            Objects.equals(context, that.context);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(key, context);
+  }
 }

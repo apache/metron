@@ -18,35 +18,7 @@
 
 package org.apache.metron.dataloads.nonbulk.taxii;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.lang.invoke.MethodHandles;
-import java.net.URI;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimerTask;
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Put;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -68,10 +40,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.metron.common.utils.RuntimeErrors;
 import org.apache.metron.dataloads.extractor.Extractor;
+import org.apache.metron.enrichment.converter.DefaultEnrichmentConverterFactory;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.converter.EnrichmentConverterFactory;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.mitre.taxii.client.HttpClient;
 import org.mitre.taxii.messages.xml11.AnyMixedContentType;
 import org.mitre.taxii.messages.xml11.CollectionInformationRequest;
@@ -92,6 +64,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimerTask;
 
 public class TaxiiHandler extends TimerTask {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -116,49 +114,56 @@ public class TaxiiHandler extends TimerTask {
   private Extractor extractor;
   private String hbaseTable;
   private String columnFamily;
-  private Map<String, HTableInterface> connectionCache = new HashMap<>();
+  private Map<String, EnrichmentConverter> connectionCache = new HashMap<>();
   private HttpClientContext context;
   private String collection;
   private String subscriptionId;
-  private EnrichmentConverter converter = new EnrichmentConverter();
   private Date beginTime;
   private Configuration config;
   private boolean inProgress = false;
   private Set<String> allowedIndicatorTypes;
+  private EnrichmentConverterFactory creator;
 
-  public TaxiiHandler( TaxiiConnectionConfig connectionConfig
-             , Extractor extractor
-             , Configuration config
-             ) throws Exception
-  {
+  public TaxiiHandler( TaxiiConnectionConfig connectionConfig,
+                       Extractor extractor,
+                       Configuration config) throws Exception {
+    this(connectionConfig, extractor, new DefaultEnrichmentConverterFactory(), config);
+  }
+
+  public TaxiiHandler( TaxiiConnectionConfig connectionConfig,
+                       Extractor extractor,
+                       EnrichmentConverterFactory creator,
+                       Configuration config) throws Exception {
     LOG.info("Loading configuration: {}", connectionConfig);
     this.allowedIndicatorTypes = connectionConfig.getAllowedIndicatorTypes();
     this.extractor = extractor;
     this.collection = connectionConfig.getCollection();
     this.subscriptionId = connectionConfig.getSubscriptionId();
-    hbaseTable = connectionConfig.getTable();
-    columnFamily = connectionConfig.getColumnFamily();
+    this.hbaseTable = connectionConfig.getTable();
+    this.columnFamily = connectionConfig.getColumnFamily();
     this.beginTime = connectionConfig.getBeginTime();
     this.config = config;
     this.proxy = connectionConfig.getProxy();
     this.username = connectionConfig.getUsername();
     this.password = connectionConfig.getPassword();
+    this.creator = creator;
     initializeClient(connectionConfig);
     LOG.info("Configured, starting polling {} for {}", endpoint, collection);
   }
 
-  protected synchronized HTableInterface getTable(String table) throws IOException {
-    HTableInterface ret = connectionCache.get(table);
+  protected synchronized EnrichmentConverter getConverter(String tableName) throws IOException {
+    EnrichmentConverter ret = connectionCache.get(tableName);
     if(ret == null) {
-      ret = createHTable(table);
-      connectionCache.put(table, ret);
+      ret = createConverter(tableName);
+      connectionCache.put(tableName, ret);
     }
     return ret;
   }
 
-  protected synchronized HTableInterface createHTable(String tableInfo) throws IOException {
-    return new HTable(config, tableInfo);
+  protected synchronized EnrichmentConverter createConverter(String tableName) throws IOException {
+    return creator.create(tableName);
   }
+
   /**
    * The action to be performed by this timer task.
    */
@@ -213,17 +218,14 @@ public class TaxiiHandler extends TimerTask {
               if(LOG.isDebugEnabled() && Math.random() < 0.01) {
                 LOG.debug("Random Stix doc: {}", xml);
               }
-              for (LookupKV<EnrichmentKey, EnrichmentValue> kv : extractor.extract(xml)) {
-                if(allowedIndicatorTypes.isEmpty()
-                || allowedIndicatorTypes.contains(kv.getKey().type)
-                  )
-                {
+              for (EnrichmentResult kv : extractor.extract(xml)) {
+                if(allowedIndicatorTypes.isEmpty() || allowedIndicatorTypes.contains(kv.getKey().getType())) {
                   kv.getValue().getMetadata().put("source_type", "taxii");
                   kv.getValue().getMetadata().put("taxii_url", endpoint.toString());
                   kv.getValue().getMetadata().put("taxii_collection", collection);
-                  Put p = converter.toPut(columnFamily, kv.getKey(), kv.getValue());
-                  HTableInterface table = getTable(hbaseTable);
-                  table.put(p);
+
+                  EnrichmentConverter converter = getConverter(hbaseTable);
+                  converter.put(columnFamily, kv.getKey(), kv.getValue());
                   LOG.info("Found Threat Intel: {} => ", kv.getKey(), kv.getValue());
                 }
               }
@@ -247,10 +249,8 @@ public class TaxiiHandler extends TimerTask {
       beginTime = ts;
     }
   }
-  public String getStringFromDocument(Document doc)
-  {
-    try
-    {
+  public String getStringFromDocument(Document doc) {
+    try {
       DOMSource domSource = new DOMSource(doc);
       StringWriter writer = new StringWriter();
       StreamResult result = new StreamResult(writer);
@@ -259,9 +259,7 @@ public class TaxiiHandler extends TimerTask {
       Transformer transformer = tf.newTransformer();
       transformer.transform(domSource, result);
       return writer.toString();
-    }
-    catch(TransformerException ex)
-    {
+    } catch(TransformerException ex) {
       ex.printStackTrace();
       return null;
     }

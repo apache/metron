@@ -19,8 +19,8 @@ package org.apache.metron.enrichment.lookup.accesstracker;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.hbase.TableProvider;
 
 import java.io.IOException;
 import java.util.Map;
@@ -80,7 +80,7 @@ public class PersistentBloomTrackerCreator implements AccessTrackerCreator {
   }
 
   @Override
-  public AccessTracker create(Map<String, Object> config, TableProvider provider) throws IOException {
+  public AccessTracker create(Map<String, Object> config, HBaseConnectionFactory connectionFactory) throws IOException {
     Config patConfig = new Config(config);
     String hbaseTable = patConfig.getHBaseTable();
     int expectedInsertions = patConfig.getExpectedInsertions();
@@ -89,13 +89,15 @@ public class PersistentBloomTrackerCreator implements AccessTrackerCreator {
     BloomAccessTracker bat = new BloomAccessTracker(hbaseTable, expectedInsertions, falsePositives);
     Configuration hbaseConfig = HBaseConfiguration.create();
 
-    AccessTracker ret = new PersistentAccessTracker( hbaseTable
-                                                   , UUID.randomUUID().toString()
-                                                   , provider.getTable(hbaseConfig, hbaseTable)
-                                                   , patConfig.getHBaseCF()
-                                                   , bat
-                                                   , millisecondsBetweenPersist
-                                                   );
+    AccessTracker ret = new PersistentAccessTracker(hbaseTable
+            , UUID.randomUUID().toString()
+            , hbaseTable
+            , patConfig.getHBaseCF()
+            , bat
+            , millisecondsBetweenPersist
+            , connectionFactory
+            , hbaseConfig
+    );
     return ret;
   }
 }

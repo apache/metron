@@ -22,6 +22,13 @@ import org.apache.metron.enrichment.lookup.LookupKey;
 import java.io.IOException;
 
 public interface Handler<CONTEXT_T, KEY_T extends LookupKey, RESULT_T> extends AutoCloseable{
+
+  /**
+   * Is the handler initialized and ready?
+   * @return True, if the handler is initialized.  Otherwise, False.
+   */
+  boolean isInitialized();
+
   boolean exists(KEY_T key, CONTEXT_T context, boolean logAccess) throws IOException;
   RESULT_T get(KEY_T key, CONTEXT_T context, boolean logAccess) throws IOException;
   Iterable<Boolean> exists(Iterable<KeyWithContext<KEY_T, CONTEXT_T>> key, boolean logAccess) throws IOException;

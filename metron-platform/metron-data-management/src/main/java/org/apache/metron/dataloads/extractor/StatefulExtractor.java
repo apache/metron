@@ -17,7 +17,7 @@
  */
 package org.apache.metron.dataloads.extractor;
 
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,5 +27,5 @@ import java.util.concurrent.atomic.AtomicReference;
 public interface StatefulExtractor extends Extractor {
   Object initializeState(Map<String, Object> config);
   Object mergeStates(List<? extends Object> states);
-  Iterable<LookupKV> extract(String line, AtomicReference<Object> state) throws IOException;
+  Iterable<EnrichmentResult> extract(String line, AtomicReference<Object> state) throws IOException;
 }

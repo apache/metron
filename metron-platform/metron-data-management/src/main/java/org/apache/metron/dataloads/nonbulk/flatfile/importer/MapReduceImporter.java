@@ -17,12 +17,6 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.Put;
@@ -37,11 +31,15 @@ import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public enum MapReduceImporter implements Importer<LoadOptions> {
-  INSTANCE
-  ;
-
+  INSTANCE;
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
@@ -74,5 +72,10 @@ public enum MapReduceImporter implements Importer<LoadOptions> {
     } catch (Exception e) {
       throw new IllegalStateException("Unable to complete job: " + e.getMessage(), e);
     }
+  }
+
+  @Override
+  public void close() {
+    // nothing to do
   }
 }

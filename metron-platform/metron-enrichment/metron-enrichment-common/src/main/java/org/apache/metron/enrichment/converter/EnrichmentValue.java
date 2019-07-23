@@ -23,84 +23,80 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class EnrichmentValue implements LookupValue {
-   private static final ThreadLocal<ObjectMapper> _mapper = new ThreadLocal<ObjectMapper>() {
-             @Override
-             protected ObjectMapper initialValue() {
-                return new ObjectMapper();
-             }
-    };
-    public static final String VALUE_COLUMN_NAME = "v";
-    public static final byte[] VALUE_COLUMN_NAME_B = Bytes.toBytes(VALUE_COLUMN_NAME);
+  private static final ThreadLocal<ObjectMapper> _mapper = new ThreadLocal().withInitial(() -> new ObjectMapper());
+  public static final String VALUE_COLUMN_NAME = "v";
+  public static final byte[] VALUE_COLUMN_NAME_B = Bytes.toBytes(VALUE_COLUMN_NAME);
+  private Map<String, Object> metadata;
 
-    private Map<String, Object> metadata = null;
+  public EnrichmentValue() {
+    this.metadata = new HashMap<>();
+  }
 
-    public EnrichmentValue()
-    {
+  public EnrichmentValue(Map<String, Object> metadata) {
+    this.metadata = metadata;
+  }
 
+  public EnrichmentValue withValue(String key, Object value) {
+    metadata.put(key, value);
+    return this;
+  }
+
+  public Map<String, Object> getMetadata() {
+    return metadata;
+  }
+
+  @Override
+  public Iterable<Map.Entry<byte[], byte[]>> toColumns() {
+    return EnrichmentConverter.toEntries( VALUE_COLUMN_NAME_B, Bytes.toBytes(valueToString(metadata)));
+  }
+
+  @Override
+  public void fromColumns(Iterable<Map.Entry<byte[], byte[]>> values) {
+    for(Map.Entry<byte[], byte[]> cell : values) {
+      String columnValue = Bytes.toString(cell.getValue());
+      if(Bytes.equals(cell.getKey(), VALUE_COLUMN_NAME_B)) {
+        metadata = stringToValue(columnValue);
+      }
     }
+  }
 
-    public EnrichmentValue(Map<String, Object> metadata) {
-        this.metadata = metadata;
+  public Map<String, Object> stringToValue(String s){
+    try {
+      return _mapper.get().readValue(s, new TypeReference<Map<String, Object>>(){});
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to convert string to metadata: " + s);
     }
-
-
-
-    public Map<String, Object> getMetadata() {
-        return metadata;
+  }
+  public String valueToString(Map<String, Object> value) {
+    try {
+      return _mapper.get().writeValueAsString(value);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to convert metadata to string: " + value);
     }
+  }
 
-    @Override
-    public Iterable<Map.Entry<byte[], byte[]>> toColumns() {
-        return AbstractConverter.toEntries( VALUE_COLUMN_NAME_B, Bytes.toBytes(valueToString(metadata))
-                                  );
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof EnrichmentValue)) return false;
+    EnrichmentValue that = (EnrichmentValue) o;
+    return Objects.equals(metadata, that.metadata);
+  }
 
-    @Override
-    public void fromColumns(Iterable<Map.Entry<byte[], byte[]>> values) {
-        for(Map.Entry<byte[], byte[]> cell : values) {
-            if(Bytes.equals(cell.getKey(), VALUE_COLUMN_NAME_B)) {
-                metadata = stringToValue(Bytes.toString(cell.getValue()));
-            }
-        }
-    }
-    public Map<String, Object> stringToValue(String s){
-        try {
-            return _mapper.get().readValue(s, new TypeReference<Map<String, Object>>(){});
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to convert string to metadata: " + s);
-        }
-    }
-    public String valueToString(Map<String, Object> value) {
-        try {
-            return _mapper.get().writeValueAsString(value);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to convert metadata to string: " + value);
-        }
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(metadata);
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        EnrichmentValue that = (EnrichmentValue) o;
-
-        return getMetadata() != null ? getMetadata().equals(that.getMetadata()) : that.getMetadata() == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        return getMetadata() != null ? getMetadata().hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "EnrichmentValue{" +
-                "metadata=" + metadata +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "EnrichmentValue{" +
+            "metadata=" + metadata +
+            '}';
+  }
 }

@@ -20,11 +20,9 @@ package org.apache.metron.dataloads.extractor;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.lang.ref.Reference;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -35,7 +33,7 @@ import org.apache.metron.stellar.common.StellarPredicateProcessor;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,14 +229,14 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator implem
   }
 
   @Override
-  public Iterable<LookupKV> extract(String line) throws IOException {
+  public Iterable<EnrichmentResult> extract(String line) throws IOException {
     return extract(line, new AtomicReference<>(null));
   }
 
   @Override
-  public Iterable<LookupKV> extract(String line, AtomicReference<Object> state) throws IOException {
-    List<LookupKV> lkvs = new ArrayList<>();
-    for (LookupKV lkv : super.extract(line)) {
+  public Iterable<EnrichmentResult> extract(String line, AtomicReference<Object> state) throws IOException {
+    List<EnrichmentResult> lkvs = new ArrayList<>();
+    for (EnrichmentResult lkv : super.extract(line)) {
       if (updateLookupKV(lkv, state)) {
         lkvs.add(lkv);
       }
@@ -251,7 +249,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator implem
    * @param lkv LookupKV to transform and filter
    * @return true if lkv is not null after transform/filter
    */
-  private boolean updateLookupKV(LookupKV lkv, AtomicReference<Object> state) {
+  private boolean updateLookupKV(EnrichmentResult lkv, AtomicReference<Object> state) {
     Map<String, Object> ret = lkv.getValue().getMetadata();
     Map<String, Object> ind = new LinkedHashMap<>();
     String indicator = lkv.getKey().getIndicator();

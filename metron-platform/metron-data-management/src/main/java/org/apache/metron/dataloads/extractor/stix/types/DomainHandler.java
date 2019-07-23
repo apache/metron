@@ -20,7 +20,7 @@ package org.apache.metron.dataloads.extractor.stix.types;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.mitre.cybox.common_2.StringObjectPropertyType;
 import org.mitre.cybox.objects.DomainName;
 import org.mitre.cybox.objects.DomainNameTypeEnum;
@@ -36,8 +36,8 @@ public class DomainHandler extends AbstractObjectTypeHandler<DomainName> {
   }
 
   @Override
-  public Iterable<LookupKV> extract(final DomainName type, Map<String, Object> config) throws IOException {
-    List<LookupKV> ret = new ArrayList<>();
+  public Iterable<EnrichmentResult> extract(final DomainName type, Map<String, Object> config) throws IOException {
+    List<EnrichmentResult> ret = new ArrayList<>();
     String typeStr = getType();
     if(config != null) {
       Object o = config.get(TYPE_CONFIG);
@@ -50,7 +50,7 @@ public class DomainHandler extends AbstractObjectTypeHandler<DomainName> {
       StringObjectPropertyType value = type.getValue();
       for (String token : StixExtractor.split(value)) {
         final String indicatorType = typeStr + ":" + DomainNameTypeEnum.FQDN;
-        LookupKV results = new LookupKV(new EnrichmentKey(indicatorType, token)
+        EnrichmentResult results = new EnrichmentResult(new EnrichmentKey(indicatorType, token)
                 , new EnrichmentValue(
                 new HashMap<String, Object>() {{
                   put("source-type", "STIX");

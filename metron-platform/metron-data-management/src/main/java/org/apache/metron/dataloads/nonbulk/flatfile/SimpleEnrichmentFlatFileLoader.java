@@ -28,13 +28,13 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentUpdateC
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.nonbulk.flatfile.importer.ImportStrategy;
+import org.apache.metron.dataloads.nonbulk.flatfile.importer.Importer;
 
 import java.io.File;
 import java.util.EnumMap;
 import java.util.Optional;
 
 public class SimpleEnrichmentFlatFileLoader {
-
 
   public static void main(String... argv) throws Exception {
     Configuration hadoopConfig = HBaseConfiguration.create();
@@ -43,23 +43,25 @@ public class SimpleEnrichmentFlatFileLoader {
   }
 
   public static void main(Configuration hadoopConfig, String[] argv) throws Exception {
-
     CommandLine cli = LoadOptions.parse(new PosixParser(), argv);
     EnumMap<LoadOptions, Optional<Object>> config = LoadOptions.createConfig(cli);
     if(LoadOptions.LOG4J_PROPERTIES.has(cli)) {
       PropertyConfigurator.configure(LoadOptions.LOG4J_PROPERTIES.get(cli));
     }
-    ExtractorHandler handler = ExtractorHandler.load(
-            FileUtils.readFileToString(new File(LoadOptions.EXTRACTOR_CONFIG.get(cli).trim()))
-    );
+
+    File configFile = new File(LoadOptions.EXTRACTOR_CONFIG.get(cli).trim());
+    String rawConfig = FileUtils.readFileToString(configFile);
+    ExtractorHandler handler = ExtractorHandler.load(rawConfig);
     ImportStrategy strategy = (ImportStrategy) config.get(LoadOptions.IMPORT_MODE).get();
-    strategy.getImporter().importData(config, handler, hadoopConfig);
+    try(Importer importer = strategy.getImporter()) {
+      importer.importData(config, handler, hadoopConfig);
+    }
 
     SensorEnrichmentUpdateConfig sensorEnrichmentUpdateConfig = null;
     if(LoadOptions.ENRICHMENT_CONFIG.has(cli)) {
-      sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load( new File(LoadOptions.ENRICHMENT_CONFIG.get(cli))
-              , SensorEnrichmentUpdateConfig.class
-      );
+      sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load(
+              new File(LoadOptions.ENRICHMENT_CONFIG.get(cli)),
+              SensorEnrichmentUpdateConfig.class);
     }
 
     if(sensorEnrichmentUpdateConfig != null) {

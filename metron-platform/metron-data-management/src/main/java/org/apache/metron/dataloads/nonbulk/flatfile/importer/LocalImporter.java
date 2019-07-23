@@ -18,36 +18,33 @@
 package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.nonbulk.flatfile.HBaseExtractorState;
 import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.HbaseConverter;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Optional;
 
 public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtractorState> {
 
-  public interface HTableProviderRetriever {
-    HTableProvider retrieve();
-  }
-
-  HTableProviderRetriever provider;
-
-  public LocalImporter(HTableProviderRetriever provider) {
-    this.provider = provider;
+  public LocalImporter(HBaseConnectionFactory connectionFactory) {
+    super(connectionFactory);
   }
 
   public LocalImporter() {
-    this(() -> new HTableProvider());
+    this(new HBaseConnectionFactory());
   }
-
 
   @Override
   protected List<String> getInputs(EnumMap<LoadOptions, Optional<Object>> config) {
@@ -75,8 +72,6 @@ public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtra
     assertOption(config, LoadOptions.HBASE_TABLE);
   }
 
-
-
   @Override
   protected ThreadLocal<HBaseExtractorState> createState(EnumMap<LoadOptions, Optional<Object>> config
                                                    , Configuration hadoopConfig
@@ -86,9 +81,13 @@ public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtra
       @Override
       protected HBaseExtractorState initialValue() {
         try {
+          String tableName = (String) config.get(LoadOptions.HBASE_TABLE).get();
           String cf = (String) config.get(LoadOptions.HBASE_CF).get();
-          HTableInterface table = provider.retrieve().getTable(hadoopConfig, (String) config.get(LoadOptions.HBASE_TABLE).get());
-          return new HBaseExtractorState(table, cf, handler.getExtractor(), new EnrichmentConverter(), hadoopConfig);
+          Table table = getConnection().getTable(TableName.valueOf(tableName));
+
+          // TODO does the HBaseExtractState still need a Table?  The EnrichmentConverter is going
+          // to connect to HBase itself
+          return new HBaseExtractorState(table, cf, handler.getExtractor(), new EnrichmentConverter(tableName), hadoopConfig);
         } catch (IOException e1) {
           throw new IllegalStateException("Unable to get table: " + e1);
         }
@@ -110,8 +109,8 @@ public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtra
                      ) throws IOException
   {
     List<Put> ret = new ArrayList<>();
-    Iterable<LookupKV> kvs = extractor.extract(line);
-    for(LookupKV kv : kvs) {
+    Iterable<EnrichmentResult> kvs = extractor.extract(line);
+    for(EnrichmentResult kv : kvs) {
       Put put = converter.toPut(cf, kv.getKey(), kv.getValue());
       ret.add(put);
     }

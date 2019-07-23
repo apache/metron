@@ -21,18 +21,18 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.StringUtils;
+import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.lookup.handler.HBaseContext;
+import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.json.simple.JSONObject;
+
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.lookup.EnrichmentLookup;
-import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
-import org.apache.metron.hbase.TableProvider;
-import org.json.simple.JSONObject;
 
 public class EnrichmentUtils {
 
@@ -42,20 +42,20 @@ public class EnrichmentUtils {
     return Joiner.on(".").join(new String[]{KEY_PREFIX, enrichmentName, field});
   }
 
-  public static class TypeToKey implements Function<String, KeyWithContext<EnrichmentKey, EnrichmentLookup.HBaseContext>> {
+  public static class TypeToKey implements Function<String, KeyWithContext<EnrichmentKey, HBaseContext>> {
     private final String indicator;
     private final EnrichmentConfig config;
-    private final HTableInterface table;
-    public TypeToKey(String indicator, HTableInterface table, EnrichmentConfig config) {
+
+    public TypeToKey(String indicator, EnrichmentConfig config) {
       this.indicator = indicator;
       this.config = config;
-      this.table = table;
     }
+
     @Nullable
     @Override
-    public KeyWithContext<EnrichmentKey, EnrichmentLookup.HBaseContext> apply(@Nullable String enrichmentType) {
+    public KeyWithContext<EnrichmentKey, HBaseContext> apply(@Nullable String enrichmentType) {
       EnrichmentKey key = new EnrichmentKey(enrichmentType, indicator);
-      EnrichmentLookup.HBaseContext context = new EnrichmentLookup.HBaseContext(table, getColumnFamily(enrichmentType, config));
+      HBaseContext context = new HBaseContext(getColumnFamily(enrichmentType, config));
       return new KeyWithContext<>(key, context);
     }
   }
@@ -67,12 +67,12 @@ public class EnrichmentUtils {
   };
 
   public static final String TYPE_TO_COLUMN_FAMILY_CONF = "typeToColumnFamily";
+
   public static String getColumnFamily(String enrichmentType, EnrichmentConfig config) {
     Object o = config.getConfig().get(TYPE_TO_COLUMN_FAMILY_CONF);
     if(o == null) {
       return null;
-    }
-    else {
+    } else {
       Map<String, String> cfMap = typeToCFs.get().get(o);
       if(cfMap == null) {
         cfMap = new HashMap<>();
@@ -93,28 +93,6 @@ public class EnrichmentUtils {
       return null;
     }
     return Iterables.getLast(Splitter.on('.').split(field));
-  }
-
-  public static TableProvider getTableProvider(String connectorImpl, TableProvider defaultImpl) {
-    if(connectorImpl == null || connectorImpl.length() == 0 || connectorImpl.charAt(0) == '$') {
-      return defaultImpl;
-    }
-    else {
-      try {
-        Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(connectorImpl);
-        return clazz.getConstructor().newInstance();
-      } catch (InstantiationException e) {
-        throw new IllegalStateException("Unable to instantiate connector.", e);
-      } catch (IllegalAccessException e) {
-        throw new IllegalStateException("Unable to instantiate connector: illegal access", e);
-      } catch (InvocationTargetException e) {
-        throw new IllegalStateException("Unable to instantiate connector", e);
-      } catch (NoSuchMethodException e) {
-        throw new IllegalStateException("Unable to instantiate connector: no such method", e);
-      } catch (ClassNotFoundException e) {
-        throw new IllegalStateException("Unable to instantiate connector: class not found", e);
-      }
-    }
   }
 
   public static JSONObject adjustKeys(JSONObject enrichedMessage, JSONObject enrichedField, String field, String prefix) {

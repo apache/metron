@@ -19,7 +19,9 @@ package org.apache.metron.dataloads.extractor.csv;
 
 import org.apache.metron.common.csv.CSVConverter;
 import org.apache.metron.dataloads.extractor.Extractor;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.apache.metron.enrichment.lookup.LookupKey;
 
 import java.io.IOException;
@@ -55,7 +57,7 @@ public class CSVExtractor extends CSVConverter implements Extractor {
   }
 
   @Override
-  public Iterable<LookupKV> extract(String line) throws IOException {
+  public Iterable<EnrichmentResult> extract(String line) throws IOException {
     if(ignore(line)) {
       return Collections.emptyList();
     }
@@ -66,7 +68,12 @@ public class CSVExtractor extends CSVConverter implements Extractor {
     for(Map.Entry<String, Integer> kv : columnMap.entrySet()) {
       values.put(kv.getKey(), tokens[kv.getValue()]);
     }
-    return Arrays.asList(new LookupKV(key, converter.toValue(values)));
+
+    // TODO there is only one freaking LookupKey/LookupValue; EnrichmentKey/EnrichmentValue. No need to parameterize this
+    // TODO fix this cast
+    return Arrays.asList(new EnrichmentResult(
+            (EnrichmentKey) key,
+            (EnrichmentValue) converter.toValue(values)));
   }
 
   private String getType(String[] tokens) {

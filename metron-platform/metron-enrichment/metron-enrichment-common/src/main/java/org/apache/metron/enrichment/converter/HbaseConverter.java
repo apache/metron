@@ -21,20 +21,24 @@ package org.apache.metron.enrichment.converter;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.LookupValue;
 
+import java.io.Closeable;
 import java.io.IOException;
 
-public interface HbaseConverter<KEY_T extends LookupKey, VALUE_T extends LookupValue> {
+public interface HbaseConverter<KEY_T extends LookupKey, VALUE_T extends LookupValue> extends Closeable {
+
     Put toPut(String columnFamily, KEY_T key, VALUE_T values) throws IOException;
 
-    LookupKV<KEY_T, VALUE_T> fromPut(Put put, String columnFamily) throws IOException;
+    void put(String columnFamily, KEY_T key, VALUE_T values) throws IOException;
+
+//    EnrichmentResult fromPut(Put put, String columnFamily) throws IOException;
 
     Result toResult(String columnFamily, KEY_T key, VALUE_T values) throws IOException;
 
-    LookupKV<KEY_T, VALUE_T> fromResult(Result result, String columnFamily) throws IOException;
+    EnrichmentResult fromResult(Result result, String columnFamily) throws IOException;
 
     Get toGet(String columnFamily, KEY_T key);
 }

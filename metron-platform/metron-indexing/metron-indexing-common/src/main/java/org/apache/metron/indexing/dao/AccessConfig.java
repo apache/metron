@@ -116,17 +116,6 @@ public class AccessConfig {
   }
 
   /**
-   * @return The table provider to use for NoSql DAOs
-   */
-  public TableProvider getTableProvider() {
-    return tableProvider;
-  }
-
-  public void setTableProvider(TableProvider tableProvider) {
-    this.tableProvider = tableProvider;
-  }
-
-  /**
    * @return True if clients should be configured for Kerberos
    */
   public Boolean getKerberosEnabled() {

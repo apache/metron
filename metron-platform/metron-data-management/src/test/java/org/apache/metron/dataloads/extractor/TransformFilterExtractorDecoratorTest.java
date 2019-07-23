@@ -22,7 +22,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -90,11 +90,11 @@ public class TransformFilterExtractorDecoratorTest {
       put("bar", indicatorVal);
       put("baz", "val3");
     }});
-    LookupKV lkv = new LookupKV<>(lookupKey, lookupValue);
-    List<LookupKV> extractedLkvs = new ArrayList<>();
+    EnrichmentResult lkv = new EnrichmentResult(lookupKey, lookupValue);
+    List<EnrichmentResult> extractedLkvs = new ArrayList<>();
     extractedLkvs.add(lkv);
     Mockito.when(extractor.extract("val1,val2,val3")).thenReturn(extractedLkvs);
-    Iterable<LookupKV> extracted = decorator.extract("val1,val2,val3");
+    Iterable<EnrichmentResult> extracted = decorator.extract("val1,val2,val3");
 
     EnrichmentKey expectedLookupKey = new EnrichmentKey("testenrichment", "VAL2");
     EnrichmentValue expectedLookupValue = new EnrichmentValue(new HashMap<String, Object>() {{
@@ -104,8 +104,8 @@ public class TransformFilterExtractorDecoratorTest {
       put("newvar", "VAL1");
       put("lowernewvar", "val1");
     }});
-    LookupKV expectedLkv = new LookupKV<>(expectedLookupKey, expectedLookupValue);
-    List<LookupKV> expectedLkvs = new ArrayList<>();
+    EnrichmentResult expectedLkv = new EnrichmentResult(expectedLookupKey, expectedLookupValue);
+    List<EnrichmentResult> expectedLkvs = new ArrayList<>();
     expectedLkvs.add(expectedLkv);
     Assert.assertThat(extracted, CoreMatchers.equalTo(expectedLkvs));
   }
@@ -119,11 +119,11 @@ public class TransformFilterExtractorDecoratorTest {
       put("bar", indicatorVal);
       put("baz", "");
     }});
-    LookupKV lkv = new LookupKV<>(lookupKey, lookupValue);
-    List<LookupKV> extractedLkvs = new ArrayList<>();
+    EnrichmentResult lkv = new EnrichmentResult(lookupKey, lookupValue);
+    List<EnrichmentResult> extractedLkvs = new ArrayList<>();
     extractedLkvs.add(lkv);
     Mockito.when(extractor.extract("val1,val2,")).thenReturn(extractedLkvs);
-    Iterable<LookupKV> extracted = decorator.extract("val1,val2,");
+    Iterable<EnrichmentResult> extracted = decorator.extract("val1,val2,");
     Assert.assertThat(extracted, CoreMatchers.equalTo(new ArrayList<>()));
   }
 
@@ -135,11 +135,11 @@ public class TransformFilterExtractorDecoratorTest {
       put("bar", "");
       put("baz", "val3");
     }});
-    LookupKV lkv = new LookupKV<>(lookupKey, lookupValue);
-    List<LookupKV> extractedLkvs = new ArrayList<>();
+    EnrichmentResult lkv = new EnrichmentResult(lookupKey, lookupValue);
+    List<EnrichmentResult> extractedLkvs = new ArrayList<>();
     extractedLkvs.add(lkv);
     Mockito.when(extractor.extract("val1,,val3")).thenReturn(extractedLkvs);
-    Iterable<LookupKV> extracted = decorator.extract("val1,,val3");
+    Iterable<EnrichmentResult> extracted = decorator.extract("val1,,val3");
     Assert.assertThat(extracted, CoreMatchers.equalTo(new ArrayList<>()));
   }
 
