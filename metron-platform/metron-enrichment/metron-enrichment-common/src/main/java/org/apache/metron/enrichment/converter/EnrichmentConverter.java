@@ -31,9 +31,12 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +44,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 
 public class EnrichmentConverter implements HbaseConverter<EnrichmentKey, EnrichmentValue> {
-
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Connection connection;
   private Table table;
 
@@ -71,12 +74,21 @@ public class EnrichmentConverter implements HbaseConverter<EnrichmentKey, Enrich
   }
 
   @Override
-  public void close() throws IOException {
-    if(table != null) {
-      table.close();
+  public void close() {
+    try {
+      if(table != null) {
+        table.close();
+      }
+    } catch(IOException e) {
+      LOG.error("Error while closing HBase table", e);
     }
-    if(connection != null) {
-      connection.close();
+
+    try {
+      if(connection != null) {
+        connection.close();
+      }
+    } catch(IOException e) {
+      LOG.error("Error while closing HBase connection",e);
     }
   }
 
@@ -96,12 +108,19 @@ public class EnrichmentConverter implements HbaseConverter<EnrichmentKey, Enrich
     table.put(put);
   }
 
-//  public EnrichmentResult fromPut(Put put, String columnFamily, EnrichmentKey key, EnrichmentValue value) throws IOException {
-//    key.fromBytes(put.getRow());
-//    byte[] cf = Bytes.toBytes(columnFamily);
-//    value.fromColumns(Iterables.transform(put.getFamilyCellMap().get(cf), CELL_TO_ENTRY));
-//    return new EnrichmentResult(key, value);
-//  }
+  @Override
+  @Deprecated
+  public EnrichmentResult fromPut(Put put, String columnFamily) {
+    return fromPut(put, columnFamily, new EnrichmentKey(), new EnrichmentValue());
+  }
+
+  @Deprecated
+  private EnrichmentResult fromPut(Put put, String columnFamily, EnrichmentKey key, EnrichmentValue value) {
+    byte[] cf = Bytes.toBytes(columnFamily);
+    key.fromBytes(put.getRow());
+    value.fromColumns(Iterables.transform(put.getFamilyCellMap().get(cf), CELL_TO_ENTRY));
+    return new EnrichmentResult(key, value);
+  }
 
   @Override
   public Result toResult(String columnFamily, EnrichmentKey key, EnrichmentValue values) throws IOException {
@@ -138,10 +157,7 @@ public class EnrichmentConverter implements HbaseConverter<EnrichmentKey, Enrich
     return ret;
   }
 
-//  @Override
-//  public EnrichmentResult fromPut(Put put, String columnFamily) throws IOException {
-//    return fromPut(put, columnFamily, new EnrichmentKey(), new EnrichmentValue());
-//  }
+
 
   @Override
   public EnrichmentResult fromResult(Result result, String columnFamily) throws IOException {

@@ -20,22 +20,31 @@ package org.apache.metron.writer.hbase;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
+import org.apache.metron.enrichment.converter.DefaultEnrichmentConverterFactory;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
+import org.apache.metron.enrichment.converter.EnrichmentConverterFactory;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.hbase.ColumnList;
+import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.HBaseClientFactory;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.client.HBaseTableClientFactory;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.writer.AbstractWriter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -47,28 +56,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.apache.metron.writer.hbase.SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE;
-import static org.apache.metron.writer.hbase.SimpleHbaseEnrichmentWriter.Configurations.HBASE_PROVIDER;
-import static org.apache.metron.writer.hbase.SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS;
-import static org.apache.metron.writer.hbase.SimpleHbaseEnrichmentWriter.Configurations.KEY_DELIM;
-import static org.apache.metron.writer.hbase.SimpleHbaseEnrichmentWriter.Configurations.VALUE_COLUMNS;
-
 /**
  * Writes streaming enrichment data to HBase.
  */
 public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
-
   private static final Logger LOG = LoggerFactory.getLogger(SimpleHbaseEnrichmentWriter.class);
 
   public enum Configurations {
-    HBASE_TABLE("shew.table"),
-    HBASE_CF("shew.cf"),
-    KEY_COLUMNS("shew.keyColumns"),
-    KEY_DELIM("shew.keyDelim"),
-    ENRICHMENT_TYPE("shew.enrichmentType"),
-    VALUE_COLUMNS("shew.valueColumns"),
-    HBASE_PROVIDER("shew.hbaseProvider");
-
+    HBASE_TABLE("shew.table")
+    ,HBASE_CF("shew.cf")
+    ,KEY_COLUMNS("shew.keyColumns")
+    ,KEY_DELIM("shew.keyDelim")
+    ,ENRICHMENT_TYPE("shew.enrichmentType")
+    ,VALUE_COLUMNS("shew.valueColumns")
+    ,HBASE_CONNECTION_FACTORY("shew.hBaseConnectionFactory")
+    ,HBASE_CLIENT_FACTORY("shew.hBaseClientFactory")
+    ;
     String key;
     Configurations(String key) {
       this.key = key;
@@ -122,17 +125,21 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       return transformedMessage;
     }
   }
-  private transient EnrichmentConverter converter;
   private String tableName;
   private String cf;
-  private HBaseConnectionFactory connectionFactory;
   private Map.Entry<Object, KeyTransformer> keyTransformer;
+  private HBaseConnectionFactory hBaseConnectionFactory;
+  private HBaseClientFactory hBaseClientFactory;
+  private transient HBaseClient hBaseClient;
 
   public SimpleHbaseEnrichmentWriter() {
+    // the defaults should no others be defined
+    hBaseConnectionFactory = new HBaseConnectionFactory();
+    hBaseClientFactory = new HBaseTableClientFactory();
   }
 
-  public SimpleHbaseEnrichmentWriter withEnrichmentConverter(EnrichmentConverter converter) {
-    this.converter = converter;
+  SimpleHbaseEnrichmentWriter withHBaseClientFactory(HBaseClientFactory hBaseClientFactory) {
+    this.hBaseClientFactory = hBaseClientFactory;
     return this;
   }
 
@@ -140,60 +147,73 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   public void configure(String sensorName, WriterConfiguration configuration) {
     validateEnrichmentType(sensorName, configuration);
     validateKeyColumns(sensorName, configuration);
-
     Map<String, Object> sensorConfig = configuration.getSensorConfig(sensorName);
 
+    // hbase table
     tableName = Configurations.HBASE_TABLE.getAndConvert(sensorConfig, String.class);
-    cf = Configurations.HBASE_CF.getAndConvert(sensorConfig, String.class);
-    String hbaseProviderImpl = HBASE_PROVIDER.getAndConvert(sensorConfig, String.class);
-    if(hbaseProviderImpl != null) {
-      connectionFactory = HBaseConnectionFactory.byName(hbaseProviderImpl);
+    if(tableName == null) {
+      String msg = String.format("Missing configuration: %s", Configurations.HBASE_TABLE.getKey());
+      throw new IllegalArgumentException(msg);
     }
 
-    LOG.debug("configured writer; sensor={}, connectionFactory={}", sensorName, getClassName(connectionFactory));
+    // hbase column family
+    cf = Configurations.HBASE_CF.getAndConvert(sensorConfig, String.class);
+    if(cf == null) {
+      String msg = String.format("Missing configuration: %s", Configurations.HBASE_CF.getKey());
+      throw new IllegalArgumentException(msg);
+    }
+
+    // hbase connection factory
+    String connectionFactoryImpl = Configurations.HBASE_CONNECTION_FACTORY.getAndConvert(sensorConfig, String.class);
+    if(connectionFactoryImpl != null) {
+      hBaseConnectionFactory = HBaseConnectionFactory.byName(connectionFactoryImpl);
+    }
+
+    // hbase client factory
+    String clientImpl = Configurations.HBASE_CLIENT_FACTORY.getAndConvert(sensorConfig, String.class);
+    if(clientImpl != null) {
+      hBaseClientFactory = HBaseClientFactory.byName(clientImpl, () -> new HBaseTableClientFactory());
+    }
   }
 
   @Override
   public void init(Map stormConf, WriterConfiguration configuration) {
-    if(converter == null) {
-      converter = new EnrichmentConverter(tableName, connectionFactory, HBaseConfiguration.create());
+    if(hBaseClient == null) {
+      // establish a connection to HBase
+      hBaseClient = hBaseClientFactory.create(hBaseConnectionFactory, HBaseConfiguration.create(), tableName);
     }
   }
 
   private void validateEnrichmentType(String sensorName, WriterConfiguration configuration) {
     Map<String, Object> sensorConfig = configuration.getSensorConfig(sensorName);
-    Object enrichmentTypeObj = ENRICHMENT_TYPE.get(sensorConfig);
+    Object enrichmentTypeObj = Configurations.ENRICHMENT_TYPE.get(sensorConfig);
     if (enrichmentTypeObj == null) {
-      throw new IllegalArgumentException(String.format("%s must be provided", ENRICHMENT_TYPE.getKey()));
+      throw new IllegalArgumentException(String.format("%s must be provided", Configurations.ENRICHMENT_TYPE.getKey()));
     }
 
     if (!(enrichmentTypeObj instanceof String)) {
-      throw new IllegalArgumentException(String.format("%s must be a string", ENRICHMENT_TYPE.getKey()));
+      throw new IllegalArgumentException(String.format("%s must be a string", Configurations.ENRICHMENT_TYPE.getKey()));
     }
 
     String enrichmentType = enrichmentTypeObj.toString();
     if (enrichmentType.trim().isEmpty()) {
       throw new IllegalArgumentException(String.format("%s must not be an empty string",
-              ENRICHMENT_TYPE.getKey()));
+              Configurations.ENRICHMENT_TYPE.getKey()));
     }
   }
 
   private void validateKeyColumns(String sensorName, WriterConfiguration configuration) {
     Map<String, Object> sensorConfig = configuration.getSensorConfig(sensorName);
-    Object keyColumnsObj = KEY_COLUMNS.get(sensorConfig);
+    Object keyColumnsObj = Configurations.KEY_COLUMNS.get(sensorConfig);
 
     try {
       List<String> keyColumns = getColumns(keyColumnsObj, true);
       if (keyColumns == null || keyColumns.isEmpty()) {
-        throw new IllegalArgumentException(String.format("%s must be provided", KEY_COLUMNS.getKey()));
+        throw new IllegalArgumentException(String.format("%s must be provided", Configurations.KEY_COLUMNS.getKey()));
       }
     } catch (RuntimeException ex) {
       throw new IllegalArgumentException(ex.getMessage(), ex);
     }
-  }
-
-  private String getClassName(Object object) {
-    return object == null ? "" : object.getClass().getName();
   }
 
   private List<String> getColumns(Object keyColumnsObj, boolean allowNull) {
@@ -227,7 +247,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   }
 
   private KeyTransformer getTransformer(Map<String, Object> config) {
-    Object o = KEY_COLUMNS.get(config);
+    Object o = Configurations.KEY_COLUMNS.get(config);
     KeyTransformer transformer = null;
     if(keyTransformer != null && keyTransformer.getKey() == o) {
       transformer = keyTransformer.getValue();
@@ -236,7 +256,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     }
     else {
       List<String> keys = getColumns(o, false);
-      Object delimObj = KEY_DELIM.get(config);
+      Object delimObj = Configurations.KEY_DELIM.get(config);
       String delim = (delimObj == null || !(delimObj instanceof String))?null:delimObj.toString();
       transformer = new KeyTransformer(keys, delim);
       keyTransformer = new AbstractMap.SimpleEntry<>(o, transformer);
@@ -245,7 +265,12 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     }
   }
 
-  private EnrichmentValue getValue( JSONObject message, Set<String> keyColumns, Set<String> valueColumns) {
+
+  private EnrichmentValue getValue( JSONObject message
+                                  , Set<String> keyColumns
+                                  , Set<String> valueColumns
+                                  )
+  {
     Map<String, Object> metadata = new HashMap<>();
     if(valueColumns == null || valueColumns.isEmpty()) {
       for (Object kv : message.entrySet()) {
@@ -255,7 +280,8 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
         }
       }
       return new EnrichmentValue(metadata);
-    } else {
+    }
+    else {
       for (Object kv : message.entrySet()) {
         Map.Entry<Object, Object> entry = (Map.Entry<Object, Object>) kv;
         if (valueColumns.contains(entry.getKey())) {
@@ -276,46 +302,53 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   private EnrichmentKey getKey(JSONObject message, KeyTransformer transformer, String enrichmentType) {
     if(enrichmentType != null) {
       return new EnrichmentKey(enrichmentType, transformer.transform(message));
-    } else {
+    }
+    else {
       return null;
     }
   }
 
   @Override
-  public BulkWriterResponse write(String sensorType,
-                                  WriterConfiguration configurations,
-                                  List<BulkMessage<JSONObject>> messages) throws Exception {
+  public BulkWriterResponse write(String sensorType
+                    , WriterConfiguration configurations
+                    , List<BulkMessage<JSONObject>> messages
+                    ) throws Exception {
+
     Map<String, Object> sensorConfig = configurations.getSensorConfig(sensorType);
     KeyTransformer transformer = getTransformer(sensorConfig);
-    Object enrichmentTypeObj = ENRICHMENT_TYPE.get(sensorConfig);
+    Object enrichmentTypeObj = Configurations.ENRICHMENT_TYPE.get(sensorConfig);
     String enrichmentType = enrichmentTypeObj == null?null:enrichmentTypeObj.toString();
-    Set<String> valueColumns = new HashSet<>(getColumns(VALUE_COLUMNS.get(sensorConfig), true));
-
-    Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
-    BulkWriterResponse response = new BulkWriterResponse();
+    Set<String> valueColumns = new HashSet<>(getColumns(Configurations.VALUE_COLUMNS.get(sensorConfig), true));
 
     for(BulkMessage<JSONObject> bulkWriterMessage : messages) {
       EnrichmentKey key = getKey(bulkWriterMessage.getMessage(), transformer, enrichmentType);
       EnrichmentValue value = getValue(bulkWriterMessage.getMessage(), transformer.keySet, valueColumns);
       if(key != null && value != null) {
-        try {
-          LOG.debug("Writing a streaming enrichment: columnFamily={}, key={}, value={}", this.cf, key, value);
-          converter.put(this.cf, key, value);
-
-        } catch (Exception e) {
-          LOG.error("Unable to write streaming enrichment, failing {} value(s) in this batch; key={}, value={}, error={}",
-                  ids.size(), key, value, e.getMessage(), e);
-          response.addAllErrors(e, ids);
-          return response;
-        }
-      } else {
-        LOG.debug("Unable to write a streaming enrichment, key or value is null; key={}, value={}", key, value);
+        write(key, value);
       }
+    }
+
+    BulkWriterResponse response = new BulkWriterResponse();
+    Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
+    try {
+      hBaseClient.mutate();
+    } catch (Exception e) {
+      response.addAllErrors(e, ids);
+      return response;
     }
 
     // Can return no errors, because put will throw Exception on error.
     response.addAllSuccesses(ids);
     return response;
+  }
+
+  private void write(EnrichmentKey key, EnrichmentValue value) {
+    final byte[] columnFamily = Bytes.toBytes(cf);
+    ColumnList columns = new ColumnList();
+    for(Map.Entry<byte[], byte[]> kv : value.toColumns()) {
+      columns.addColumn(columnFamily, kv.getKey(), kv.getValue());
+    }
+    hBaseClient.addMutation(key.toBytes(), columns);
   }
 
   @Override
@@ -326,8 +359,8 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   @Override
   public void close() throws Exception {
     synchronized(this) {
-      if(converter != null) {
-        converter.close();
+      if(hBaseClient != null) {
+        hBaseClient.close();
       }
     }
   }
