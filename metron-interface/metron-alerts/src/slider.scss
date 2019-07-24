@@ -128,5 +128,6 @@ $dialog-4x-width: 1340px;
 @include keyframes("keyframe-dialog-ltr", "-320px", "0px")
 
 .load-left-to-right {
-  @include animation("keyframe-dialog-ltr", "0.5s", "linear")
+  @include animation("keyframe-dialog-ltr", "0.5s", "linear");
+  left: 0;
 }

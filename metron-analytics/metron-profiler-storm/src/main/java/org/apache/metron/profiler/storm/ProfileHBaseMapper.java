@@ -21,7 +21,7 @@
 package org.apache.metron.profiler.storm;
 
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.hbase.bolt.mapper.ColumnList;
+import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;

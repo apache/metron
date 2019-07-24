@@ -21,6 +21,7 @@ import org.apache.commons.lang.SerializationUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -103,6 +104,18 @@ public class StormParserDriver extends ParserDriver {
     protected void handleError(String sensorType, byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
       errors.add(originalMessage);
       LOG.error("Error parsing message: " + ex.getMessage(), ex);
+    }
+
+    @Override
+    protected void handleError(OutputCollector collector, MetronError error) {
+      for(Object rawMessage: error.getRawMessages()) {
+        errors.add((byte[]) rawMessage);
+      }
+      if (error.getThrowable().isPresent()) {
+        Throwable throwable = error.getThrowable().get();
+        LOG.error("Error parsing message: " + throwable.getMessage(), throwable);
+      }
+
     }
 
     @SuppressWarnings("unchecked")

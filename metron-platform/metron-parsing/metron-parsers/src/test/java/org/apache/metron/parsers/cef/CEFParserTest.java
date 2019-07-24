@@ -18,22 +18,6 @@
 
 package org.apache.metron.parsers.cef;
 
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,10 +26,23 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
 import com.google.common.io.Resources;
+import org.apache.metron.common.Constants.Fields;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class CEFParserTest {
-
-	private static final Charset UTF_8 = Charset.forName("utf-8");
 	private CEFParser parser;
 
 	@Before
@@ -64,9 +61,9 @@ public class CEFParserTest {
 	public void testEscaping() {
 		for (JSONObject obj : parse(
 				"Sep 19 08:26:10 host CEF:0|security|threatmanager|1.0|100|detected a \\ in packet|10|src=10.0.0.1 act=blocked a \\ dst=1.1.1.1")) {
-			Assert.assertEquals("10.0.0.1", obj.get("ip_src_addr"));
+			Assert.assertEquals("10.0.0.1", obj.get(Fields.SRC_ADDR.getName()));
 			Assert.assertEquals("blocked a \\", obj.get("deviceAction"));
-			Assert.assertEquals("1.1.1.1", obj.get("ip_dst_addr"));
+			Assert.assertEquals("1.1.1.1", obj.get(Fields.DST_ADDR.getName()));
 		}
 	}
 
@@ -87,9 +84,9 @@ public class CEFParserTest {
 	public void testBasicExtensions() {
 		for (JSONObject obj : parse(
 				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 dst=2.1.2.2 spt=1232")) {
-			Assert.assertEquals("10.0.0.1", obj.get("ip_src_addr"));
-			Assert.assertEquals("2.1.2.2", obj.get("ip_dst_addr"));
-			Assert.assertEquals(1232, obj.get("ip_src_port"));
+			Assert.assertEquals("10.0.0.1", obj.get(Fields.SRC_ADDR.getName()));
+			Assert.assertEquals("2.1.2.2", obj.get(Fields.DST_ADDR.getName()));
+			Assert.assertEquals(1232, obj.get(Fields.SRC_PORT.getName()));
 		}
 	}
 
@@ -111,22 +108,22 @@ public class CEFParserTest {
 
 		for (JSONObject obj : parse(
 				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt=May 1 2016 09:29:11.356 -0400 dst=2.1.2.2 spt=1232")) {
-			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
-			Assert.assertEquals(correctTime, obj.get("timestamp"));
+			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
+			Assert.assertEquals(correctTime, obj.get(Fields.TIMESTAMP.getName()));
 		}
 		for (JSONObject obj : parse(
 				"2016-06-01T09:29:11.356-04:00 host CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt=May 1 2016 09:29:11.356 -0400 dst=2.1.2.2 spt=1232")) {
-			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
-			Assert.assertEquals(correctTime, obj.get("timestamp"));
+			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
+			Assert.assertEquals(correctTime, obj.get(Fields.TIMESTAMP.getName()));
 		}
 		for (JSONObject obj : parse(
 				"2016-05-01T09:29:11.356-04:00 host CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 dst=2.1.2.2 spt=1232")) {
-			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
-			Assert.assertEquals(correctTime, obj.get("timestamp"));
+			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
+			Assert.assertEquals(correctTime, obj.get(Fields.TIMESTAMP.getName()));
 		}
 		for (JSONObject obj : parse(
 				"CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 dst=2.1.2.2 spt=1232")) {
-			Assert.assertNotNull(obj.get("timestamp"));
+			Assert.assertNotNull(obj.get(Fields.TIMESTAMP.getName()));
 		}
 
 	}
@@ -137,8 +134,8 @@ public class CEFParserTest {
 				.getTime();
 		for (JSONObject obj : parse("CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt="
 				+ String.valueOf(correctTime) + " dst=2.1.2.2 spt=1232")) {
-			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get("timestamp")));
-			Assert.assertEquals(correctTime, obj.get("timestamp"));
+			Assert.assertEquals(new Date(correctTime), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
+			Assert.assertEquals(correctTime, obj.get(Fields.TIMESTAMP.getName()));
 		}
 	}
 
@@ -146,8 +143,8 @@ public class CEFParserTest {
 		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd HH:mm:ss.SSS");
 		for (JSONObject obj : parse("CEF:0|Security|threatmanager|1.0|100|worm successfully stopped|10|src=10.0.0.1 rt="
 				+ sdf.format(input.getTime()) + " dst=2.1.2.2 spt=1232")) {
-			Assert.assertEquals(expected.getTimeInMillis(), obj.get("timestamp"));
-			Assert.assertEquals(expected.getTime(), new Date((long) obj.get("timestamp")));
+			Assert.assertEquals(expected.getTimeInMillis(), obj.get(Fields.TIMESTAMP.getName()));
+			Assert.assertEquals(expected.getTime(), new Date((long) obj.get(Fields.TIMESTAMP.getName())));
 		}
 	}
 
@@ -176,29 +173,29 @@ public class CEFParserTest {
 
 	@Test
 	public void testCEFParserAdallom() throws Exception {
-		runTest("adallom", Resources.readLines(Resources.getResource(getClass(), "adallom.cef"), UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "adallom.schema"), UTF_8));
+		runTest("adallom", Resources.readLines(Resources.getResource(getClass(), "adallom.cef"), StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "adallom.schema"), StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testCEFParserCyberArk() throws Exception {
-		runTest("cyberark", Resources.readLines(Resources.getResource(getClass(), "cyberark.cef"), UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "cyberark.schema"), UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "cyberark.json"), UTF_8));
+		runTest("cyberark", Resources.readLines(Resources.getResource(getClass(), "cyberark.cef"), StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "cyberark.schema"), StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "cyberark.json"), StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testCEFParserWAF() throws Exception {
 		URL waf_url = Resources.getResource(getClass(), "waf.cef");
-		runTest("waf", Resources.readLines(waf_url, UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "waf.schema"), UTF_8));
+		runTest("waf", Resources.readLines(waf_url, StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "waf.schema"), StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testPaloAltoCEF() throws Exception {
 		URL palo_url = Resources.getResource(getClass(), "palo.cef");
-		runTest("palo", Resources.readLines(palo_url, UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "palo.schema"), UTF_8));
+		runTest("palo", Resources.readLines(palo_url, StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "palo.schema"), StandardCharsets.UTF_8));
 	}
 
 	private void runTest(String name, List<String> lines, String schema) throws Exception {
@@ -209,23 +206,14 @@ public class CEFParserTest {
 		for (String inputString : lines) {
 			JSONObject parsed = parse(inputString).get(0);
 			Assert.assertNotNull(parsed);
-			Assert.assertNotNull(parsed.get("timestamp"));
-			Assert.assertTrue((long) parsed.get("timestamp") > 0);
+			Assert.assertNotNull(parsed.get(Fields.TIMESTAMP.getName()));
+			Assert.assertTrue((long) parsed.get(Fields.TIMESTAMP.getName()) > 0);
 
 			JSONParser parser = new JSONParser();
 
 			Map<?, ?> json = null;
-			try {
-				json = (Map<?, ?>) parser.parse(parsed.toJSONString());
-				Assert.assertEquals(true, validateJsonData(schema, json.toString()));
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-
-			// test against an explicit json example
-			if (!targetJson.isEmpty()) {
-
-			}
+			json = (Map<?, ?>) parser.parse(parsed.toJSONString());
+			Assert.assertEquals(true, validateJsonData(schema, json.toString()));
 		}
 	}
 
@@ -258,7 +246,7 @@ public class CEFParserTest {
 		JSONObject obj = parse.get(0);
 
 		Assert.assertEquals("TestVendor", obj.get("DeviceVendor"));
-		Assert.assertEquals(1423441663000L, obj.get("timestamp"));
+		Assert.assertEquals(1423441663000L, obj.get(Fields.TIMESTAMP.getName()));
 		Assert.assertEquals("9223372036854775807", obj.get("Test Long"));
 		Assert.assertEquals(obj.get("Test FP Number"), String.valueOf(1.234F));
 		Assert.assertEquals("00:00:0c:07:ac:00", obj.get("smac"));
@@ -283,7 +271,7 @@ public class CEFParserTest {
 	}
 
 	private List<JSONObject> parse(String string) {
-		List<JSONObject> parse = parser.parse(string.getBytes(Charset.forName("utf-8")));
+		List<JSONObject> parse = parser.parse(string.getBytes(StandardCharsets.UTF_8));
 		Assert.assertNotNull(parse);
 		return parse;
 	}

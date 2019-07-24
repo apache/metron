@@ -93,7 +93,7 @@ public class GrokServiceImpl implements GrokService {
         if (statement != null) {
             Path path = getTemporaryGrokRootPath();
             hdfsService.mkdirs(path);
-            hdfsService.write(new Path(path, name), statement.getBytes(Charset.forName("utf-8")),null,null,null);
+            hdfsService.write(new Path(path, name), statement.getBytes(StandardCharsets.UTF_8),null,null,null);
             return path;
         } else {
             throw new RestException("A grokStatement must be provided");

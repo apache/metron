@@ -56,15 +56,32 @@
                                 <div class="px-0">
                                     <span [ngClass]="{'editable-text': alertSources.length > 1}" *ngIf="!showEditor" (click)="toggleNameEditor()"> {{ (alertSource.name && alertSource.name.length > 0)? alertSource.name : alertId | centerEllipses:20 }} </span>
                                     <div class="input-group" *ngIf="showEditor">
-                                        <input type="text" class="form-control"  [(ngModel)]="alertName">
-                                        <span class="input-group-addon" [ngClass]="{'disabled': alertName.length === 0}" (click)="saveName()" ><i class="fa fa-check" aria-hidden="true"></i></span>
-                                        <span class="input-group-addon" (click)="toggleNameEditor()"><i class="fa fa-times" aria-hidden="true"></i></span>
+                                        <input
+                                            #metaAlertNameInput
+                                            type="text"
+                                            class="form-control"
+                                            [value]="alertSource.name"
+                                            [(ngModel)]="alertName"
+                                            (keyup)="onSaveNameInputKeyPress($event)"
+                                        >
+                                        <span
+                                            class="input-group-addon"
+                                            [ngClass]="{ disabled: isSaveNameButtonDisabled() }"
+                                            (click)="saveName()"
+                                        >
+                                            <i class="fa fa-check" aria-hidden="true"></i>
+                                        </span>
+                                        <span class="input-group-addon" (click)="onSaveNameInputCancel()">
+                                            <i class="fa fa-times" aria-hidden="true"></i>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-2 pr-3">
-                            <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i>
+                        <div class="close-button-wrapper">
+                            <div class="col-md-2 pr-3">
+                                <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="px-3 py-4 actions">

@@ -15,16 +15,19 @@
 
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.rest.MetronRestConstants.STORM_UI_SPRING_PROPERTY;
+import static org.apache.metron.rest.MetronRestConstants.SUPERVISOR_SUMMARY_URL;
+import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_SUMMARY_URL;
+import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_URL;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.metron.common.configuration.SensorParserGroup;
 import org.apache.metron.parsers.topology.ParserTopologyCLI;
-import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.SupervisorSummary;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
@@ -33,15 +36,12 @@ import org.apache.metron.rest.model.TopologySummary;
 import org.apache.metron.rest.service.SensorParserGroupService;
 import org.apache.metron.rest.service.StormStatusService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import static org.apache.metron.rest.MetronRestConstants.STORM_UI_SPRING_PROPERTY;
-import static org.apache.metron.rest.MetronRestConstants.SUPERVISOR_SUMMARY_URL;
-import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_SUMMARY_URL;
-import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_URL;
-
+@Qualifier("StormStatusServiceImpl")
 @Service
 public class StormStatusServiceImpl implements StormStatusService {
 

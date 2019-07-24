@@ -33,6 +33,8 @@ public class MetronRestConstants {
   public static final String GROK_PATH_KEY = "grokPath";
 
   public static final String STORM_UI_SPRING_PROPERTY = "storm.ui.url";
+  public static final String STORM_STATUS_CACHE_MAX_SIZE = "storm.status.cache.max.size";
+  public static final String STORM_STATUS_CACHE_TIMEOUT_SECONDS = "storm.status.cache.timeout.seconds";
   public static final String SUPERVISOR_SUMMARY_URL = "/api/v1/supervisor/summary";
   public static final String TOPOLOGY_SUMMARY_URL = "/api/v1/topology/summary";
   public static final String TOPOLOGY_URL = "/api/v1/topology";

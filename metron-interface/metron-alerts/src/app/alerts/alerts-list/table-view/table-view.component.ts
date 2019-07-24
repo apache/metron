@@ -24,7 +24,6 @@ import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
 import {ColumnMetadata} from '../../../model/column-metadata';
 import {Alert} from '../../../model/alert';
 import {SearchService} from '../../../service/search.service';
-import {QueryBuilder} from '../query-builder';
 import {Sort} from '../../../utils/enums';
 import {Filter} from '../../../model/filter';
 import {AlertSource} from '../../../model/alert-source';
@@ -35,10 +34,22 @@ import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
 import { ConfirmationType } from 'app/model/confirmation-type';
-import {HttpErrorResponse} from "@angular/common/http";
+import {HttpErrorResponse} from '@angular/common/http';
+
+import { merge } from '../../../shared/context-menu/context-menu.util'
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
+}
+
+export interface SortChangedEvent {
+  sortBy: string;
+  sortOrder: string;
+}
+
+export interface PageChangedEvent {
+  from: number;
+  size: number;
 }
 
 @Component({
@@ -55,15 +66,17 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   globalConfig: {} = {};
   configSubscription: Subscription;
 
+  merge: Function = merge;
+
   @Input() alerts: Alert[] = [];
-  @Input() queryBuilder: QueryBuilder;
   @Input() pagination: Pagination;
   @Input() alertsColumnsToDisplay: ColumnMetadata[] = [];
   @Input() selectedAlerts: Alert[] = [];
 
   @Output() onResize = new EventEmitter<void>();
   @Output() onAddFilter = new EventEmitter<Filter>();
-  @Output() onRefreshData = new EventEmitter<boolean>();
+  @Output() onSortChanged = new EventEmitter<SortChangedEvent>();
+  @Output() onPageChanged = new EventEmitter<PageChangedEvent>();
   @Output() onShowDetails = new EventEmitter<Alert>();
   @Output() onShowConfigureTable = new EventEmitter<Alert>();
   @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
@@ -108,12 +121,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   hasScore(alertSource) {
-    if(alertSource[this.threatScoreFieldName()]) {
-      return true;
-    }
-    else {
-      return false;
-    }
+    return !!this.getScore(alertSource);
   }
 
   getScore(alertSource) {
@@ -143,8 +151,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   onSort(sortEvent: SortEvent) {
     let sortOrder = (sortEvent.sortOrder === Sort.ASC ? 'asc' : 'desc');
     let sortBy = sortEvent.sortBy === 'id' ? '_uid' : sortEvent.sortBy;
-    this.queryBuilder.setSort(sortBy, sortOrder);
-    this.onRefreshData.emit(true);
+    this.onSortChanged.emit({ sortBy, sortOrder });
   }
 
   getValue(alert: Alert, column: ColumnMetadata, formatData: boolean) {
@@ -190,8 +197,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onPageChange() {
-    this.queryBuilder.setFromAndSize(this.pagination.from, this.pagination.size);
-    this.onRefreshData.emit(false);
+    this.onPageChanged.emit({ from: this.pagination.from, size: this.pagination.size });
   }
 
   selectRow($event, alert: Alert) {

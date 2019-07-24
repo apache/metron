@@ -46,7 +46,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
           "websphere",
           "yaf",
           "syslog3164",
-          "syslog5424"
+          "syslog5424",
+          "leef"
           );
 
   protected List<byte[]> inputMessages;

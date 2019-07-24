@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-writer</artifactId>
-        <version>0.7.1</version>
+        <version>0.7.2</version>
     </parent>
     <artifactId>metron-writer-common</artifactId>
     <name>metron-writer-common</name>
@@ -192,7 +192,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-hbase</artifactId>
+            <artifactId>metron-hbase-common</artifactId>
             <version>${project.parent.version}</version>
             <type>test-jar</type>
             <scope>test</scope>

@@ -61,11 +61,21 @@ There are two general types types of parsers:
             * `ERROR` : Throw an error when a multidimensional map is encountered
         * `jsonpQuery` : A [JSON Path](#json_path) query string. If present, the result of the JSON Path query should be a list of messages. This is useful if you have a JSON document which contains a list or array of messages embedded in it, and you do not have another means of splitting the message.
         * `wrapInEntityArray` : `"true" or "false"`. If `jsonQuery` is present and this flag is present and set to `"true"`, the incoming message will be wrapped in a JSON  entity and array.
-           for example:
-           `{"name":"value"},{"name2","value2}` will be wrapped as `{"message" : [{"name":"value"},{"name2","value2}]}`.
-           This is using the default value for `wrapEntityName` if that property is not set.
-        * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name.
+          for example:
+          `{"name":"value"},{"name2","value2"}` will be wrapped as `{"message" : [{"name":"value"},{"name2","value2"}]}`.
+          This is using the default value for `wrapEntityName` if that property is not set.
+        * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name. Only applicable if `jsonpQuery` and `wrapInEntityArray` are specified.
         * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.
+        * `overrideOriginalString` : A boolean setting that will change the way `original_string` is handled by the parser. The default value of `false` uses the global functionality that will append the unmodified original raw source message as an `original_string` field.
+          This is the recommended setting. Setting this option to `true` will use the individual substrings returned by the json query as the original_string. For example, a wrapped map such as `{"foo" : [{"name":"value"},{"name2","value2"}]}`
+          that uses the jsonpQuery, `$.foo`, will result in 2 messages returned. Using the default global `original_string` strategy, the messages returned would be:
+            * `{ "name"  : "value",  "original_string" : "{\"foo\" : [{\"name\":\"value\"},{\"name2\",\"value2\"}]}}`
+            * `{ "name2" : "value2", "original_string" : "{\"foo\" : [{\"name\":\"value\"},{\"name2\",\"value2\"}]}}`
+          Setting this value to `true` would result in messages with `original_string` set as follows:
+            * `{ "name"  : "value",  "original_string" : "{\"name\":\"value\"}}`
+            * `{ "name"  : "value",  "original_string" : "{\"name2\":\"value2\"}}`
+          One final important point to note, and word of caution about setting this property to `true`, is about how JSON PQuery handles parsing and searching the source raw message - it will **NOT** retain a pure raw sub-message. This is due to the JSON libraries under
+          the hood that normalize the JSON. The resulting generated `original_string` values may have a different property order and spacing. e.g. `{ "foo" :"bar"  , "baz":"bang"}` would end up with an `original_string` that looks more like `{ "baz" : "bang", "foo" : "bar" }`.
     * Regular Expressions Parser
         * `recordTypeRegex` : A regular expression to uniquely identify a record type.
         * `messageHeaderRegex` : A regular expression used to extract fields from a message part which is common across all the messages.
@@ -655,6 +665,8 @@ Java parser adapters are intended for higher-velocity topologies and are not eas
 * org.apache.metron.parsers.lancope.BasicLancopeParser : Parse Lancope messages
 * org.apache.metron.parsers.syslog.Syslog5424Parser : Parse Syslog RFC 5424 messages
 * org.apache.metron.parsers.syslog.Syslog3164Parser : Parse Syslog RFC 3164 messages
+* org.apache.metron.parsers.cef.CEFParser: Parse CEF format messages
+* org.apache.metron.parsers.leef.LEEFParser: Parse LEEF format messages
 
 ### Grok Parser Adapters
 Grok parser adapters are designed primarily for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recompiled in order to make changes to them.  Example of a Grok parsers are:

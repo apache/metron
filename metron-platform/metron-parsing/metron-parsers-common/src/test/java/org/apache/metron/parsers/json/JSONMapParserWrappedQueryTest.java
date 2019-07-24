@@ -62,7 +62,7 @@ public class JSONMapParserWrappedQueryTest {
     List<JSONObject> output = parser.parse(JSON_LIST.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 2);
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 5);
+    Assert.assertEquals(output.get(0).size(), 4);
     JSONObject message = output.get(0);
     Assert.assertEquals("foo1", message.get("name"));
     Assert.assertEquals("bar", message.get("value"));
@@ -129,7 +129,7 @@ public class JSONMapParserWrappedQueryTest {
     Assert.assertEquals(output.size(), 2);
 
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 2);
+    Assert.assertEquals(output.get(0).size(), 1);
 
     JSONObject message = output.get(0);
     Assert.assertNotNull(message.get("timestamp"));
@@ -160,12 +160,12 @@ public class JSONMapParserWrappedQueryTest {
             JSONMapParser.JSONP_QUERY, "$.foo"));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 2);
-    Assert.assertEquals(output.get(0).size(), 3);
+    Assert.assertEquals(output.get(0).size(), 2);
     JSONObject message = output.get(0);
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
 
-    Assert.assertEquals(output.get(1).size(), 3);
+    Assert.assertEquals(output.get(1).size(), 2);
     message = output.get(1);
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
@@ -179,7 +179,7 @@ public class JSONMapParserWrappedQueryTest {
             JSONMapParser.JSONP_QUERY, "$.foo"));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 2);
-    Assert.assertEquals(output.get(0).size(), 6);
+    Assert.assertEquals(output.get(0).size(), 5);
     JSONObject message = output.get(0);
     Assert.assertEquals(message.get("collection.blah"), 7);
     Assert.assertEquals(message.get("collection.blah2"), "foo");
@@ -188,7 +188,7 @@ public class JSONMapParserWrappedQueryTest {
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number);
 
-    Assert.assertEquals(output.get(1).size(), 6);
+    Assert.assertEquals(output.get(1).size(), 5);
     message = output.get(1);
     Assert.assertEquals(message.get("collection.blah"), 8);
     Assert.assertEquals(message.get("collection.blah2"), "bar");

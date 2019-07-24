@@ -16,13 +16,21 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {ConfigureRowsComponent} from './configure-rows.component';
-import {SwitchModule} from '../../shared/switch/switch.module';
+import { SharedModule } from '../../shared/shared.module';
+import { ConfigureRowsComponent } from './configure-rows.component';
+import { ShowHideAlertEntriesComponent } from './show-hide/show-hide-alert-entries.component';
+import { SwitchModule } from 'app/shared/switch/switch.module';
+import { QueryBuilder } from '../alerts-list/query-builder';
+import { ShowHideService } from './show-hide/show-hide.service';
 
-@NgModule ({
+@NgModule({
     imports: [ SharedModule, SwitchModule ],
-    declarations: [ ConfigureRowsComponent ],
-    exports: [  ConfigureRowsComponent ]
+    declarations: [ ConfigureRowsComponent, ShowHideAlertEntriesComponent ],
+    exports: [ ConfigureRowsComponent ],
+    providers: [ QueryBuilder, ShowHideService ],
 })
-export class ConfigureRowsModule { }
+export class ConfigureRowsModule {
+
+    constructor(private showHideService: ShowHideService) {}
+
+}

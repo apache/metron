@@ -44,9 +44,13 @@ import org.apache.metron.job.manager.InMemoryJobManager;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.mock.*;
+import org.apache.metron.rest.service.StormStatusService;
+import org.apache.metron.rest.service.impl.CachedStormStatusServiceImpl;
 import org.apache.metron.rest.service.impl.PcapToPdmlScriptWrapper;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
 import org.apache.metron.rest.user.UserSettingsClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -227,5 +231,13 @@ public class TestConfig {
   @Bean
   public PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper() {
     return new MockPcapToPdmlScriptWrapper();
+  }
+
+  @Bean
+  public StormStatusService stormStatusService(
+      @Autowired @Qualifier("StormStatusServiceImpl") StormStatusService wrappedService) {
+    long maxCacheSize = 0L;
+    long maxCacheTimeoutSeconds = 0L;
+    return new CachedStormStatusServiceImpl(wrappedService, maxCacheSize, maxCacheTimeoutSeconds);
   }
 }

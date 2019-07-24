@@ -22,6 +22,9 @@ import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 
+/**
+ * Wrapper class to couple a MessageParser with a MessageFilter.
+ */
 public class ParserComponent implements Serializable {
   private static final long serialVersionUID = 7880346740026374665L;
 

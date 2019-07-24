@@ -15,15 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Utils} from '../utils/utils';
-import {TIMESTAMP_FIELD_NAME} from '../utils/constants';
-import {DateFilterValue} from './date-filter-value';
+import { Utils } from '../utils/utils';
+import { TIMESTAMP_FIELD_NAME, GIUD_FIELD_NAME } from '../utils/constants';
+import { DateFilterValue } from './date-filter-value';
 
 export class Filter {
-  field: string;
   value: string;
   display: boolean;
   dateFilterValue: DateFilterValue;
+
+  private readonly excludeOperatorRxp = /^-/;
+  private readonly excludeOperator = '-';
+  private isExcluding = false;
+
+  private clearedField: string;
+
+  get field(): string {
+    return this.operatorToAdd() + this.clearedField;
+  }
 
   static fromJSON(objs: Filter[]): Filter[] {
     let filters = [];
@@ -35,40 +44,68 @@ export class Filter {
     return filters;
   }
 
+  toJSON() {
+    return { field: this.field, value: this.value, display: this.display };
+  }
+
   constructor(field: string, value: string, display = true) {
-    this.field = field;
+    const { clearedField, isExcluding } = this.parseAndClearField(field);
+
     this.value = value;
     this.display = display;
+
+    this.clearedField = clearedField;
+    this.isExcluding = isExcluding;
+  }
+
+  private parseAndClearField(field: string): { clearedField: string, isExcluding: boolean } {
+    field = field.replace(/\*/, ''); // removing wildcard caracter
+    field = field.trim(); // removing whitespaces
+    const isExcluding = this.excludeOperatorRxp.test(field); // looking for excluding operator
+    const clearedField = field.replace(this.excludeOperatorRxp, ''); // removing exlude operator
+
+    return { clearedField, isExcluding };
   }
 
   getQueryString(): string {
-    if (this.field === 'guid') {
+    if (this.clearedField === GIUD_FIELD_NAME) {
       let valueWithQuote = '\"' + this.value + '\"';
-      return this.createNestedQueryWithoutValueEscaping(this.field, valueWithQuote);
+      return this.createNestedQuery(this.clearedField, valueWithQuote);
     }
 
-    if (this.field === TIMESTAMP_FIELD_NAME && !this.display) {
+    if (this.clearedField === TIMESTAMP_FIELD_NAME && !this.display) {
       this.dateFilterValue = Utils.timeRangeToDateObj(this.value);
       if (this.dateFilterValue !== null && this.dateFilterValue.toDate !== null) {
-        return this.createNestedQueryWithoutValueEscaping(this.field,
+        return this.createNestedQuery(this.clearedField,
             '[' + this.dateFilterValue.fromDate + ' TO ' + this.dateFilterValue.toDate + ']');
       } else {
-        return this.createNestedQueryWithoutValueEscaping(this.field,  this.value);
+        return this.createNestedQuery(this.clearedField,  this.value);
       }
     }
 
-    return this.createNestedQuery(this.field, this.value);
+    return this.createNestedQuery(this.clearedField, this.value);
   }
 
   private createNestedQuery(field: string, value: string): string {
+    field = this.escapingESSpearators(field);
 
-    return '(' + Utils.escapeESField(field) + ':' +  Utils.escapeESValue(value)  + ' OR ' +
-                Utils.escapeESField('metron_alert.' + field) + ':' +  Utils.escapeESValue(value) + ')';
+    return this.operatorToAdd() + '(' + field + ':' +  value  + ' OR ' +
+      this.addMetaAlertPrefix('metron_alert', field) + ':' + value + ')';
   }
 
-  private createNestedQueryWithoutValueEscaping(field: string, value: string): string {
+  private escapingESSpearators(field: string): string {
+    return field.replace(/\:/g, '\\:');
+  }
 
-    return '(' + Utils.escapeESField(field) + ':' +  value  + ' OR ' +
-        Utils.escapeESField('metron_alert.' + field) + ':' +  value + ')';
+  private operatorToAdd() {
+    return this.isExcluding ? this.excludeOperator : '';
+  }
+
+  private addMetaAlertPrefix(prefix: string, field: string): string {
+    return prefix + '.' + field;
+  }
+
+  equals(filter: Filter): boolean {
+    return this.field === filter.field && this.value === filter.value;
   }
 }

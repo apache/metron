@@ -702,9 +702,9 @@ Where:
   * Returns: True if the string is a valid URL and false if otherwise.
 
 ### `JOIN`
-  * Description: Joins the components in the list of strings with the specified delimiter.
+  * Description: Joins the non-null items in the iterable as strings with the specified delimiter. Null items are dropped.
   * Input:
-    * list - List of strings
+    * iterable - Java iterable (e.g. List, LinkedHashSet, etc.) of items treated as strings
     * delim - String delimiter
   * Returns: String
 
@@ -963,6 +963,16 @@ Where:
   * Input:
     * url - URI to the REST service
     * rest_config - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
+    * query_parameters - Optional - Map (in curly braces) of name:value pairs that will be added to the request as query parameters
+  * Returns: JSON results as a Map
+  
+### `REST_POST`
+  * Description: Performs a REST POST request and parses the JSON results into a map.
+  * Input:
+    * url - URI to the REST service
+    * post_data - POST data that will be sent in the POST request.  Must be well-formed JSON unless the 'enforce.json' property is set to false.
+    * rest_config - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter of the same name. Default is the empty Map, meaning no overrides.
+    * query_parameters - Optional - Map (in curly braces) of name:value pairs that will be added to the request as query parameters
   * Returns: JSON results as a Map
 
 ### `ROUND`
@@ -1534,7 +1544,7 @@ operating system.
 
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.7.1-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.7.2-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1544,7 +1554,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.7.1-uber.jar
+    └── stellar-common-0.7.2-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:
@@ -1649,15 +1659,64 @@ that specify what should be included when searching for Stellar functions.
 
 ## Stellar REST Client
 
-Stellar provides a REST Client with the `REST_GET` function.  This function depends on the Apache HttComponents library for
-executing Http requests.  The syntax is:
+Stellar provides a REST Client with the `REST_GET` and `REST_POST` functions.  This function depends on the Apache HttComponents library for
+executing Http requests.  
+
+### REST GET Syntax
+The REST_GET function requires a URI along with an optional configuration and an optional map of query parameters.  The syntax is:
 ```
-REST_GET( uri , optional config )
+REST_GET( uri , optional config , optional query parameters )
+```
+
+### REST POST Syntax
+The REST_POST function requires a URI and POST data along with an optional configuration and an optional map of query parameters.  The syntax is:
+```
+REST_POST( uri , data, optional config , optional query parameters )
 ```
 
 ### Configuration
 
-The second argument is an optional Map of settings.  The following settings are available:
+Stellar REST functions can be configured several different ways.  Sensible defaults are set for applicable settings with the option to override settings at different levels.
+For REST_GET, configuration settings are applied in this order (last has highest priority):
+1. Default settings
+2. Settings stored in the Global Config for all Stellar REST functions
+3. Settings stored in the Global Config for all Stellar REST_GET calls
+4. Settings passed into the function call as an argument
+
+For REST_POST, configuration settings are applied in this order (last has highest priority):
+1. Default settings
+2. Settings stored in the Global Config for all Stellar REST functions
+3. Settings stored in the Global Config for all Stellar REST_POST calls
+4. Settings passed into the function call as an argument
+
+For example, assume the Global Config is set to:
+```
+{
+  "stellar.rest.settings": {
+    "proxy.basic.auth.user": "global_proxy_user",
+    "basic.auth.user": "global_user",
+    "empty.content.override": "global content override"
+  },
+  "stellar.rest.get.settings": {
+    "basic.auth.user": "rest_get_user",
+    "empty.content.override": "rest get content override"
+  }
+}
+```
+and the function call is:
+```
+REST_GET('some uri', { "empty.content.override": "function config override" } )
+```
+After the various settings are applied in order of priority, the final configuration is:
+```
+{
+  "proxy.basic.auth.user": "global_proxy_user",
+  "basic.auth.user": "rest_get_user",
+  "empty.content.override": "function config override"
+}
+```
+
+The following is a list of settings that are available:
 
 * basic.auth.user - User name for basic authentication.
 * basic.auth.password.path - Path to the basic authentication password file stored in HDFS.
@@ -1665,31 +1724,19 @@ The second argument is an optional Map of settings.  The following settings are 
 * proxy.port - Proxy port.
 * proxy.basic.auth.user - User name for proxy basic authentication.
 * proxy.basic.auth.password.path - Path to the proxy basic authentication password file stored in HDFS.
-* timeout - Stellar enforced hard timeout for the total request time. Defaults to 1000 ms.  HttpClient timeouts alone are insufficient to guarantee the hard timeout.
+* timeout - Stellar enforced hard timeout (in milliseconds) for the total request time. HttpClient timeouts alone are insufficient to guarantee the hard timeout. (Defaults to `1000`)
 * connect.timeout - Connect timeout exposed by the HttpClient object.
 * connection.request.timeout - Connection request timeout exposed by the HttpClient object.
 * socket.timeout - Socket timeout exposed by the HttpClient object.
-* response.codes.allowed - A list of response codes that are allowed.  All others will be treated as errors.  Defaults to `200`.
-* empty.content.override - The default value that will be returned on a successful request with empty content.  Defaults to null.
-* error.value.override - The default value that will be returned on an error.  Defaults to null.
+* response.codes.allowed - A list of response codes that are allowed.  All others will be treated as errors.  (Defaults to `200`)
+* empty.content.override - The default value that will be returned on a successful request with empty content.  (Defaults to null)
+* error.value.override - The default value that will be returned on an error.  (Defaults to null)
 * pooling.max.total - The maximum number of connections in the connection pool.
 * pooling.default.max.per.route - The default maximum number of connections per route in the connection pool.
+* verify.content.length - Setting this to true will verify the actual body content length equals the content length header. (Defaults to false)
+* enforce.json - Setting this to true will verify POST data is well-formed JSON. (Defaults to true)
 
-This Map of settings can also be stored in the global config `stellar.rest.settings` property.  For example, to configure basic authentication
-settings you would add this property to the global config:
-
-```
-{
-  "stellar.rest.settings": {
-    "basic.auth.user": "user",
-    "basic.auth.password.path": "/password/path"
-  }
-}
-```
-
-Any settings passed into the expression will take precedence over the global config settings.  The global config settings will take precedence over the defaults.
-
-For security purposes, passwords are read from a file in HDFS.  Passwords are read as is including any new lines or spaces. Be careful not to include these in the file unless they are specifically part of the password.
+For security purposes, all passwords are read from a file in HDFS.  Passwords are read as is including any new lines or spaces. Be careful not to include these in the file unless they are specifically part of the password.
 
 ### Security
 
@@ -1717,6 +1764,11 @@ Perform a GET request using a proxy:
 {proxy.basic.auth.password.path=/proxy/password/path, proxy.port=3128, proxy.host=node1, proxy.basic.auth.user=user}
 [Stellar]>>> REST_GET('http://httpbin.org/get', config)
 {args={}, headers={Accept=application/json, Accept-Encoding=gzip,deflate, Cache-Control=max-age=259200, Connection=close, Host=httpbin.org, User-Agent=Apache-HttpClient/4.3.2 (java 1.5)}, origin=127.0.0.1, 136.62.241.236, url=http://httpbin.org/get}
+```
+
+Perform a POST request with additional query parameters:
+```
+
 ```
 
 ### Latency

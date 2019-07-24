@@ -20,6 +20,7 @@ package org.apache.metron.parsers.cef;
 
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,10 +43,9 @@ public class CEFParser extends BasicParser {
 	protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private static final String HEADER_CAPTURE_PATTERN = "[^\\|]*";
 	private static final String EXTENSION_CAPTURE_PATTERN = "(?<!\\\\)=";
-	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
 	private Pattern p;
-	private Pattern pext;
+	private static final Pattern patternExtensions = Pattern.compile(EXTENSION_CAPTURE_PATTERN);
 
 	public void init() {
 
@@ -94,22 +94,64 @@ public class CEFParser extends BasicParser {
 
 		p = Pattern.compile(pattern);
 
-		// key finder for extensions
-		pext = Pattern.compile(EXTENSION_CAPTURE_PATTERN);
+	}
+
+	public static void parseExtensions(String ext, JSONObject obj) {
+		Matcher m = patternExtensions.matcher(ext);
+
+		int index = 0;
+		String key = null;
+		String value = null;
+		Map<String, String> labelMap = new HashMap<String, String>();
+
+		while (m.find()) {
+			if (key == null) {
+				key = ext.substring(index, m.start());
+				index = m.end();
+				if (!m.find()) {
+					break;
+				}
+			}
+			value = ext.substring(index, m.start());
+			index = m.end();
+			int v = value.lastIndexOf(" ");
+			if (v > 0) {
+				String temp = value.substring(0, v).trim();
+				if (key.endsWith("Label")) {
+					labelMap.put(key.substring(0, key.length() - 5), temp);
+				} else {
+					obj.put(key, temp);
+				}
+				key = value.substring(v).trim();
+			}
+		}
+		value = ext.substring(index);
+
+		// Build a map of Label extensions to apply later
+		if (key.endsWith("Label")) {
+			labelMap.put(key.substring(0, key.length() - 5), value);
+		} else {
+			obj.put(key, value);
+		}
+
+		// Apply the labels to custom fields
+		for (Entry<String, String> label : labelMap.entrySet()) {
+			mutate(obj, label.getKey(), label.getValue());
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	public List<JSONObject> parse(byte[] rawMessage) {
 		List<JSONObject> messages = new ArrayList<>();
 
-		String cefString = new String(rawMessage, UTF_8);
+		String cefString = new String(rawMessage, StandardCharsets.UTF_8);
 
 		Matcher matcher = p.matcher(cefString);
 
 		while (matcher.find()) {
 			JSONObject obj = new JSONObject();
 			if (matcher.matches()) {
-				LOG.info("Found %d groups", matcher.groupCount());
+				LOG.debug("Found %d groups", matcher.groupCount());
 				obj.put("DeviceVendor", matcher.group("DeviceVendor"));
 				obj.put("DeviceProduct", matcher.group("DeviceProduct"));
 				obj.put("DeviceVersion", matcher.group("DeviceVersion"));
@@ -118,48 +160,7 @@ public class CEFParser extends BasicParser {
 				obj.put("Severity", standardizeSeverity(matcher.group("Severity")));
 			}
 
-			String ext = matcher.group("extensions");
-			Matcher m = pext.matcher(ext);
-
-			int index = 0;
-			String key = null;
-			String value = null;
-			Map<String, String> labelMap = new HashMap<String, String>();
-
-			while (m.find()) {
-				if (key == null) {
-					key = ext.substring(index, m.start());
-					index = m.end();
-					if (!m.find()) {
-						break;
-					}
-				}
-				value = ext.substring(index, m.start());
-				index = m.end();
-				int v = value.lastIndexOf(" ");
-				if (v > 0) {
-					String temp = value.substring(0, v).trim();
-					if (key.endsWith("Label")) {
-						labelMap.put(key.substring(0, key.length() - 5), temp);
-					} else {
-						obj.put(key, temp);
-					}
-					key = value.substring(v).trim();
-				}
-			}
-			value = ext.substring(index);
-
-			// Build a map of Label extensions to apply later
-			if (key.endsWith("Label")) {
-				labelMap.put(key.substring(0, key.length() - 5), value);
-			} else {
-				obj.put(key, value);
-			}
-
-			// Apply the labels to custom fields
-			for (Entry<String, String> label : labelMap.entrySet()) {
-				mutate(obj, label.getKey(), label.getValue());
-			}
+			parseExtensions(matcher.group("extensions"), obj);
 
 			// Rename standard CEF fields to comply with Metron standards
 			obj = mutate(obj, "dst", "ip_dst_addr");
@@ -259,12 +260,10 @@ public class CEFParser extends BasicParser {
 
 	@Override
 	public void configure(Map<String, Object> config) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@SuppressWarnings("unchecked")
-	private JSONObject mutate(JSONObject json, String oldKey, String newKey) {
+	private static JSONObject mutate(JSONObject json, String oldKey, String newKey) {
 		if (json.containsKey(oldKey)) {
 			json.put(newKey, json.remove(oldKey));
 		}

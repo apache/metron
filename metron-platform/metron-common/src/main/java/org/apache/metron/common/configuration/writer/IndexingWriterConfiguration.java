@@ -77,4 +77,9 @@ public class IndexingWriterConfiguration implements WriterConfiguration{
   public String getFieldNameConverter(String sensorName) {
     return config.orElse(new IndexingConfigurations()).getFieldNameConverter(sensorName, writerName);
   }
+
+  @Override
+  public boolean isSetDocumentId(String sensorName) {
+    return config.orElse(new IndexingConfigurations()).isSetDocumentId(sensorName, writerName);
+  }
 }

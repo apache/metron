@@ -181,5 +181,16 @@
         <description>The field name where the threat triage score can be found in the search indices. This setting primarily affects the Alerts UI.</description>
         <value>threat:triage:score</value>
     </property>
-
+    <property>
+        <name>storm_status_cache_max_size</name>
+        <value>10000</value>
+        <description>The maximum size for the cache that fronts calls to the Storm API for topology status.</description>
+        <display-name>Storm Status Cache Max Size</display-name>
+    </property>
+    <property>
+        <name>storm_status_cache_timeout_seconds</name>
+        <value>5</value>
+        <description>Duration in seconds for cache entries to timeout. Note that the higher the value, the more stale the returned value will be.</description>
+        <display-name>Storm Status Cache Timeout Seconds</display-name>
+    </property>
 </configuration>

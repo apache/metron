@@ -1,5 +1,3 @@
-
-import {forkJoin as observableForkJoin} from 'rxjs';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +15,8 @@ import {forkJoin as observableForkJoin} from 'rxjs';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
+import {forkJoin as observableForkJoin} from 'rxjs';
+import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Subscription} from 'rxjs';
 
@@ -38,16 +37,15 @@ import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {Filter} from '../../model/filter';
 import { TIMESTAMP_FIELD_NAME, ALL_TIME, POLLING_DEFAULT_STATE } from '../../utils/constants';
-import {TableViewComponent} from './table-view/table-view.component';
+import {TableViewComponent, PageChangedEvent, SortChangedEvent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
-import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
-import {AlertSource} from "../../model/alert-source";
+import { AlertSource } from '../../model/alert-source';
 
 @Component({
   selector: 'app-alerts-list',
@@ -68,7 +66,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   isRefreshPaused = POLLING_DEFAULT_STATE;
   lastIsRefreshPausedValue = false;
   isMetaAlertPresentInSelectedAlerts = false;
-  timeStampfilterPresent = false;
+  timeStampFilterPresent = false;
 
   readonly DEFAULT_TIME_RANGE = 'last-15-minutes';
   selectedTimeRange: Filter;
@@ -78,13 +76,13 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
 
   tableMetaData = new TableMetadata();
-  queryBuilder: QueryBuilder = new QueryBuilder();
   pagination: Pagination = new Pagination();
   alertChangedSubscription: Subscription;
   groupFacets: Facets;
   globalConfig: {} = {};
   configSubscription: Subscription;
   groups = [];
+  subgroupTotal = 0;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -95,7 +93,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private saveSearchService: SaveSearchService,
               private metaAlertsService: MetaAlertService,
               private globalConfigService: GlobalConfigService,
-              private dialogService: DialogService) {
+              private dialogService: DialogService,
+              public queryBuilder: QueryBuilder,
+              private cdRef: ChangeDetectorRef) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -127,14 +127,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
-      let queryBuilder = new QueryBuilder();
-      queryBuilder.setGroupby(this.getGroupRequest().groups.map(group => group.field));
-      queryBuilder.searchRequest = savedSearch.searchRequest;
-      queryBuilder.filters = savedSearch.filters;
-      this.queryBuilder = queryBuilder;
+      this.queryBuilder.searchRequest = savedSearch.searchRequest;
+      this.queryBuilder.filters = savedSearch.filters;
       this.setSelectedTimeRange(savedSearch.filters);
       this.prepareColumnData(savedSearch.tableColumns, []);
-      this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
+      this.timeStampFilterPresent = this.queryBuilder.isTimeStampFieldPresent();
       this.search(true, savedSearch);
     });
   }
@@ -222,15 +219,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onClear() {
-    this.timeStampfilterPresent = false;
+    this.timeStampFilterPresent = false;
     this.queryBuilder.clearSearch();
-    this.selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
     this.search();
   }
 
-  onSearch($event) {
-    this.queryBuilder.setSearch($event);
-    this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
+  onSearch(query: string) {
+    this.queryBuilder.setSearch(query);
+    this.timeStampFilterPresent = this.queryBuilder.isTimeStampFieldPresent();
     this.search();
     return false;
   }
@@ -239,8 +235,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.onAddFilter(new Filter($event.name, $event.key));
   }
 
-  onRefreshData($event) {
-    this.search($event);
+  onSortChanged(event: SortChangedEvent) {
+    this.queryBuilder.setSort(event.sortBy, event.sortOrder);
+    this.search(true);
+  }
+
+  onPageChanged(event: PageChangedEvent) {
+    this.queryBuilder.setFromAndSize(event.from, event.size);
+    this.search(false);
   }
 
   onSelectedAlertsChange(selectedAlerts) {
@@ -257,7 +259,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onAddFilter(filter: Filter) {
-    this.timeStampfilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
+    this.timeStampFilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
     this.queryBuilder.addOrUpdateFilter(filter);
     this.search();
   }
@@ -294,7 +296,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   private updateQueryBuilder(timeRangeFilter: Filter) {
     if (timeRangeFilter.value === ALL_TIME) {
-      this.queryBuilder.removeFilter(timeRangeFilter.field);
+      this.queryBuilder.removeFilter(timeRangeFilter);
     } else {
       this.queryBuilder.addOrUpdateFilter(timeRangeFilter);
     }
@@ -314,41 +316,54 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
   }
 
-  processEscalate() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
-      const alerts = [...this.selectedAlerts];
-      this.updateSelectedAlertStatus('ESCALATE');
-      this.alertsService.escalate(alerts).subscribe();
-    });
+  preventDropdownOptionIfDisabled(event: Event): boolean {
+    if ((event.target as HTMLElement).classList.contains('disabled')) {
+      event.stopPropagation();
+      event.preventDefault();
+      return false;
+    }
+    return true
   }
 
-  processDismiss() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
-      this.updateSelectedAlertStatus('DISMISS');
-    });
+  processEscalate(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(() => {
+        const alerts = [...this.selectedAlerts];
+        this.updateSelectedAlertStatus('ESCALATE');
+        this.alertsService.escalate(alerts).subscribe();
+      });
+    }
   }
 
-  processOpen() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
-      this.updateSelectedAlertStatus('OPEN');
-    });
+  processDismiss(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
+        this.updateSelectedAlertStatus('DISMISS');
+      });
+    }
   }
 
-  processResolve() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
-      this.updateSelectedAlertStatus('RESOLVE');
-    });
+  processOpen(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
+        this.updateSelectedAlertStatus('OPEN');
+      });
+    }
   }
 
-  processAddToAlert() {
-    this.metaAlertsService.selectedAlerts = this.selectedAlerts;
-    this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
+  processResolve(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
+        this.updateSelectedAlertStatus('RESOLVE');
+      });
+    }
   }
 
-  removeFilter(field: string) {
-    this.timeStampfilterPresent = (field === TIMESTAMP_FIELD_NAME) ? false : this.timeStampfilterPresent;
-    this.queryBuilder.removeFilter(field);
-    this.search();
+  processAddToAlert(event: Event) {
+    if (this.preventDropdownOptionIfDisabled(event) === true) {
+      this.metaAlertsService.selectedAlerts = this.selectedAlerts;
+      this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
+    }
   }
 
   restoreRefreshState() {
@@ -374,12 +389,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.tryStartPolling();
   }
 
-  getGroupRequest() {
-    return this.queryBuilder.groupRequest(this.globalConfig['threat.triage.score.field']);
-  }
-
   setSearchRequestSize() {
-    if (this.getGroupRequest().groups.length === 0) {
+    if (this.groups.length === 0) {
       this.queryBuilder.searchRequest.from = this.pagination.from;
       if (this.tableMetaData.size) {
         this.pagination.size = this.tableMetaData.size;
@@ -466,7 +477,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   tryStartPolling() {
     if (!this.isRefreshPaused) {
       this.tryStopPolling();
-      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder).subscribe(results => {
+      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
         this.setData(results);
       });
     }
@@ -501,5 +512,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   removeAlertChangedListner() {
     this.alertChangedSubscription.unsubscribe();
+  }
+
+  onTreeViewChange(subgroupTotal) {
+    this.subgroupTotal = subgroupTotal;
+    this.cdRef.detectChanges();
   }
 }
