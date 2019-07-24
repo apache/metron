@@ -19,6 +19,7 @@
 package org.apache.metron.dataloads.nonbulk.taxii;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -40,10 +41,14 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.metron.common.utils.RuntimeErrors;
 import org.apache.metron.dataloads.extractor.Extractor;
-import org.apache.metron.enrichment.converter.DefaultEnrichmentConverterFactory;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
-import org.apache.metron.enrichment.converter.EnrichmentConverterFactory;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentResult;
+import org.apache.metron.hbase.ColumnList;
+import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.HBaseClientFactory;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.client.HBaseTableClientFactory;
 import org.mitre.taxii.client.HttpClient;
 import org.mitre.taxii.messages.xml11.AnyMixedContentType;
 import org.mitre.taxii.messages.xml11.CollectionInformationRequest;
@@ -114,7 +119,7 @@ public class TaxiiHandler extends TimerTask {
   private Extractor extractor;
   private String hbaseTable;
   private String columnFamily;
-  private Map<String, EnrichmentConverter> connectionCache = new HashMap<>();
+  private Map<String, HBaseClient> connectionCache = new HashMap<>();
   private HttpClientContext context;
   private String collection;
   private String subscriptionId;
@@ -122,17 +127,18 @@ public class TaxiiHandler extends TimerTask {
   private Configuration config;
   private boolean inProgress = false;
   private Set<String> allowedIndicatorTypes;
-  private EnrichmentConverterFactory creator;
+  private HBaseClientFactory hBaseClientFactory;
+  private HBaseConnectionFactory hBaseConnectionFactory;
 
   public TaxiiHandler( TaxiiConnectionConfig connectionConfig,
                        Extractor extractor,
                        Configuration config) throws Exception {
-    this(connectionConfig, extractor, new DefaultEnrichmentConverterFactory(), config);
+    this(connectionConfig, extractor, new HBaseTableClientFactory(), config);
   }
 
   public TaxiiHandler( TaxiiConnectionConfig connectionConfig,
                        Extractor extractor,
-                       EnrichmentConverterFactory creator,
+                       HBaseClientFactory hBaseClientFactory,
                        Configuration config) throws Exception {
     LOG.info("Loading configuration: {}", connectionConfig);
     this.allowedIndicatorTypes = connectionConfig.getAllowedIndicatorTypes();
@@ -146,22 +152,19 @@ public class TaxiiHandler extends TimerTask {
     this.proxy = connectionConfig.getProxy();
     this.username = connectionConfig.getUsername();
     this.password = connectionConfig.getPassword();
-    this.creator = creator;
+    this.hBaseClientFactory = hBaseClientFactory;
+    this.hBaseConnectionFactory = new HBaseConnectionFactory();
     initializeClient(connectionConfig);
     LOG.info("Configured, starting polling {} for {}", endpoint, collection);
   }
 
-  protected synchronized EnrichmentConverter getConverter(String tableName) throws IOException {
-    EnrichmentConverter ret = connectionCache.get(tableName);
-    if(ret == null) {
-      ret = createConverter(tableName);
-      connectionCache.put(tableName, ret);
+  protected synchronized HBaseClient getHBaseClient(String tableName) {
+    HBaseClient client = connectionCache.get(tableName);
+    if(client == null) {
+      client = hBaseClientFactory.create(hBaseConnectionFactory, config, tableName);
+      connectionCache.put(tableName, client);
     }
-    return ret;
-  }
-
-  protected synchronized EnrichmentConverter createConverter(String tableName) throws IOException {
-    return creator.create(tableName);
+    return client;
   }
 
   /**
@@ -224,8 +227,8 @@ public class TaxiiHandler extends TimerTask {
                   kv.getValue().getMetadata().put("taxii_url", endpoint.toString());
                   kv.getValue().getMetadata().put("taxii_collection", collection);
 
-                  EnrichmentConverter converter = getConverter(hbaseTable);
-                  converter.put(columnFamily, kv.getKey(), kv.getValue());
+                  HBaseClient hBaseClient = getHBaseClient(hbaseTable);
+                  write(hBaseClient, kv.getKey(), kv.getValue());
                   LOG.info("Found Threat Intel: {} => ", kv.getKey(), kv.getValue());
                 }
               }
@@ -249,6 +252,17 @@ public class TaxiiHandler extends TimerTask {
       beginTime = ts;
     }
   }
+
+  private void write(HBaseClient hBaseClient, EnrichmentKey key, EnrichmentValue value) {
+    final byte[] columnFamilyBytes = Bytes.toBytes(columnFamily);
+    ColumnList columns = new ColumnList();
+    for(Map.Entry<byte[], byte[]> kv : value.toColumns()) {
+      columns.addColumn(columnFamilyBytes, kv.getKey(), kv.getValue());
+    }
+    hBaseClient.addMutation(key.toBytes(), columns);
+    hBaseClient.mutate();
+  }
+
   public String getStringFromDocument(Document doc) {
     try {
       DOMSource domSource = new DOMSource(doc);
