@@ -17,9 +17,35 @@
  */
 package org.apache.metron.enrichment.converter;
 
+import java.lang.reflect.InvocationTargetException;
+
+/**
+ * The default implementation of an {@link EnrichmentConverterFactory}.
+ */
 public class DefaultEnrichmentConverterFactory implements EnrichmentConverterFactory {
+
+  /**
+   * The fully-qualified class name of an {@link EnrichmentConverter}.
+   */
+  private String className;
+
+  public DefaultEnrichmentConverterFactory() {
+    this.className = EnrichmentConverter.class.getName();
+  }
+
+  public DefaultEnrichmentConverterFactory(String className) {
+    this.className = className;
+  }
+
   @Override
   public EnrichmentConverter create(String tableName) {
-    return new EnrichmentConverter(tableName);
+    try {
+      Class<? extends EnrichmentConverter> clazz = (Class<? extends EnrichmentConverter>) Class.forName(className);
+      return clazz.getConstructor().newInstance();
+
+    } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | ClassNotFoundException | InvocationTargetException e) {
+      String msg = String.format("Unable to instantiate EnrichmentConverter; className=%s", className);
+      throw new IllegalStateException(msg, e);
+    }
   }
 }

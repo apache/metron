@@ -17,15 +17,16 @@
  */
 package org.apache.metron.enrichment.converter;
 
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Creates an {@link EnrichmentConverter}.
  */
 public interface EnrichmentConverterFactory {
 
   // TODO should this return an HBaseConverter instead?
-
-  // TODO change name of converter to something else?
-
   /**
    * @param tableName The name of the HBase table.
    * @return The {@link EnrichmentConverter} that was created.
