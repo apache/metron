@@ -93,18 +93,17 @@ public class HBaseCacheWriter implements CacheWriter<String, String> {
    */
   @Override
   public void write(@Nonnull String key, @Nonnull String value) {
-    LOG.debug("Calling HBase cache writer with key='{}', value='{}'", key, value);
+    LOG.debug("Calling hbase cache writer with key='{}', value='{}'", key, value);
     try (HBaseClient hbaseClient = clientCreator.create(connectionFactory, conf, tableName)) {
       LOG.debug("rowKey={}, columnFamily={}, columnQualifier={}, value={}", key, columnFamily, columnQualifier, value);
 
       ColumnList columns = new ColumnList().addColumn(columnFamily, columnQualifier, value);
       hbaseClient.addMutation(Bytes.toBytes(key), columns);
       hbaseClient.mutate();
-
     } catch (IOException e) {
       throw new RuntimeException("Error writing to HBase table", e);
     }
-    LOG.debug("Done calling HBase cache writer");
+    LOG.debug("Done calling hbase cache writer");
   }
 
   @Override
