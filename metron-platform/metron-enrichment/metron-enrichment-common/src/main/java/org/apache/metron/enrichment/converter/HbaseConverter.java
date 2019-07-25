@@ -31,9 +31,7 @@ import java.io.IOException;
 public interface HbaseConverter<KEY_T extends LookupKey, VALUE_T extends LookupValue> extends Closeable {
 
     Put toPut(String columnFamily, KEY_T key, VALUE_T values) throws IOException;
-
-    void put(String columnFamily, KEY_T key, VALUE_T values) throws IOException;
-
+    
     EnrichmentResult fromPut(Put put, String columnFamily) throws IOException;
 
     Result toResult(String columnFamily, KEY_T key, VALUE_T values) throws IOException;

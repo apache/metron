@@ -103,12 +103,6 @@ public class EnrichmentConverter implements HbaseConverter<EnrichmentKey, Enrich
   }
 
   @Override
-  public void put(String columnFamily, EnrichmentKey key, EnrichmentValue values) throws IOException {
-    Put put = toPut(columnFamily, key, values);
-    table.put(put);
-  }
-
-  @Override
   @Deprecated
   public EnrichmentResult fromPut(Put put, String columnFamily) {
     return fromPut(put, columnFamily, new EnrichmentKey(), new EnrichmentValue());
