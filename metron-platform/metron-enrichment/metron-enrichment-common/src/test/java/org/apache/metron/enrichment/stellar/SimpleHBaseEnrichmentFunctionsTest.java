@@ -110,7 +110,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
   }
 
   @Test
-  public void testGet() {
+  public void testSuccessfulGet() {
     // 'indicator0' exists, so ENRICHMENT_GET('et','indicator0','enrichments','cf') == { "key0": "value0" }
     List<Object> args = Arrays.asList("et", "indicator0", "enrichments", "cf");
     Object result = getFunction.apply(args, context);
@@ -119,7 +119,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
   }
 
   @Test
-  public void testGetMiss() {
+  public void testUnsuccessfulGet() {
     // 'indicator99' does not exist, so ENRICHMENT_GET('et','indicator99','enrichments','cf') == { }
     List<Object> args = Arrays.asList("et", "indicator99", "enrichments", "cf");
     Object result = getFunction.apply(args, context);

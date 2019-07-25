@@ -83,10 +83,8 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
     silenceLogging();
     // don't need the properties for anything else now, but could extract var if desired.
     startZookeeper(new Properties());
-    globalConfig = globalConfig
-            .replace("%TABLE_NAME%", ENRICHMENT_LIST_TABLE)
+    globalConfig = globalConfig.replace("%TABLE_NAME%", ENRICHMENT_LIST_TABLE)
             .replace("%COLUMN_FAMILY%", COLUMN_FAMILY);
-
     uploadGlobalConfigToZK(globalConfig, zookeeperComponent.getConnectionString());
     configureAndStartHBase();
   }
@@ -164,6 +162,12 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
   @AfterClass
   public static void teardown() throws Exception {
+    if(enrichmentTable != null) {
+      enrichmentTable.close();
+    }
+    if(enrichmentListTable != null) {
+      enrichmentListTable.close();
+    }
     HBaseUtil.INSTANCE.teardown(testUtil);
     componentRunner.stop();
     resetLogging();
@@ -194,19 +198,11 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
       String indicator = enrichKV.getKey();
       String type = enrichKV.getValue();
       expectedEnrichmentTypes.add(type);
-
-      // TODO we are unable to insert this record for some reason
-      HelperDao.insertRecord(
-              enrichmentTable,
-              hBaseConfig,
-              new EnrichmentKey(type, indicator),
-              COLUMN_FAMILY,
-              "{ \"apache\" : \"metron\" }");
+      HelperDao.insertRecord(enrichmentTable, new EnrichmentKey(type, indicator), COLUMN_FAMILY,
+          "{ \"apache\" : \"metron\" }");
     }
-    enrichmentTable.close();
-
     List<String> enrichmentsList = HelperDao.readRecords(enrichmentListTable);
-    assertThat(new HashSet<>(enrichmentsList), equalTo(expectedEnrichmentTypes));
+    assertThat(new HashSet<String>(enrichmentsList), equalTo(expectedEnrichmentTypes));
   }
 
 }
