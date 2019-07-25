@@ -30,6 +30,15 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
   <dependencies>
+
+    <!-- Test dependencies needed preferentially -->
+    <dependency>
+      <groupId>com.github.fge</groupId>
+      <artifactId>jackson-coreutils</artifactId>
+      <version>1.8</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Metron Dependencies -->
     <dependency>
       <groupId>org.apache.metron</groupId>
