@@ -298,7 +298,6 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     customLineByLineExtractorConfigFile.delete();
   }
 
-
   @Test
   public void testArgs() throws Exception {
     String[] argv = {"-c cf", "-t enrichment"
@@ -306,9 +305,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-l log4j", "-i input.csv"
             , "-p 2", "-b 128", "-q"
     };
-
     String[] otherArgs = new GenericOptionsParser(config, argv).getRemainingArgs();
-
     CommandLine cli = LoadOptions.parse(new PosixParser(), otherArgs);
     Assert.assertEquals(extractorJson, LoadOptions.EXTRACTOR_CONFIG.get(cli).trim());
     Assert.assertEquals(cf, LoadOptions.HBASE_CF.get(cli).trim());
@@ -328,9 +325,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-p 2", "-b 128", "-q"
     };
     SimpleEnrichmentFlatFileLoader.main(config, argv);
-
-    // TODO the convert is going to connect to HBase
-    EnrichmentConverter converter = new EnrichmentConverter(tableName);
+    EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
     List<EnrichmentResult> results = new ArrayList<>();
     for (Result r : scanner) {
@@ -353,8 +348,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-p 2", "-b 128", "-q"
     };
     SimpleEnrichmentFlatFileLoader.main(config, argv);
-    // TODO the convert is going to connect to HBase
-    EnrichmentConverter converter = new EnrichmentConverter(tableName);
+    EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
     List<EnrichmentResult> results = new ArrayList<>();
     for (Result r : scanner) {
@@ -378,8 +372,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-p 2", "-b 128", "-q"
     };
     SimpleEnrichmentFlatFileLoader.main(config, argv);
-    // TODO the convert is going to connect to HBase
-    EnrichmentConverter converter = new EnrichmentConverter(tableName);
+    EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
     List<EnrichmentResult> results = new ArrayList<>();
     for (Result r : scanner) {
@@ -403,8 +396,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-p 2", "-b 128", "-q"
     };
     SimpleEnrichmentFlatFileLoader.main(config, argv);
-    // TODO the convert is going to connect to HBase
-    EnrichmentConverter converter = new EnrichmentConverter(tableName);
+    EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
     List<EnrichmentResult> results = new ArrayList<>();
     for(Result r : scanner) {
@@ -431,8 +423,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     FileSystem fs = FileSystem.get(config);
     HBaseUtil.INSTANCE.writeFile(new String(Files.readAllBytes(multilineFile.toPath())), new Path(multilineFile.getName()), fs);
     SimpleEnrichmentFlatFileLoader.main(config, argv);
-    // TODO the convert is going to connect to HBase
-    EnrichmentConverter converter = new EnrichmentConverter(tableName);
+    EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
     List<EnrichmentResult> results = new ArrayList<>();
     for (Result r : scanner) {
@@ -455,8 +446,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-p 2", "-b 128", "-q"
     };
     SimpleEnrichmentFlatFileLoader.main(config, argv);
-    // TODO the convert is going to connect to HBase
-    EnrichmentConverter converter = new EnrichmentConverter(tableName);
+    EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
     List<EnrichmentResult> results = new ArrayList<>();
     for (Result r : scanner) {
@@ -480,8 +470,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-p 2", "-b 128", "-q"
     };
     SimpleEnrichmentFlatFileLoader.main(config, argv);
-    // TODO the convert is going to connect to HBase
-    EnrichmentConverter converter = new EnrichmentConverter(tableName);
+    EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));
     List<EnrichmentResult> results = new ArrayList<>();
     for (Result r : scanner) {

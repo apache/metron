@@ -74,7 +74,7 @@ public class HBaseEnrichmentConverterTest {
 
     @Test
     public void testPut() throws IOException {
-        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter("table", new FakeHBaseConnectionFactory(), HBaseConfiguration.create());
+        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Put put = converter.toPut("cf", key, value);
         EnrichmentResult converted = converter.fromPut(put, "cf");
         Assert.assertEquals(results, converted);
@@ -82,7 +82,7 @@ public class HBaseEnrichmentConverterTest {
 
     @Test
     public void testResult() throws IOException {
-        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter("table", new FakeHBaseConnectionFactory(), HBaseConfiguration.create());
+        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Result r = converter.toResult("cf", key, value);
         EnrichmentResult converted = converter.fromResult(r, "cf");
         Assert.assertEquals(results, converted);
@@ -90,7 +90,7 @@ public class HBaseEnrichmentConverterTest {
 
     @Test
     public void testGet() throws Exception {
-        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter("table", new FakeHBaseConnectionFactory(), HBaseConfiguration.create());
+        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Get get = converter.toGet("cf", key);
         Assert.assertArrayEquals(key.toBytes(), get.getRow());
     }
