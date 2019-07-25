@@ -130,16 +130,18 @@ public class TaxiiHandler extends TimerTask {
   private HBaseClientFactory hBaseClientFactory;
   private HBaseConnectionFactory hBaseConnectionFactory;
 
-  public TaxiiHandler( TaxiiConnectionConfig connectionConfig,
-                       Extractor extractor,
-                       Configuration config) throws Exception {
+  public TaxiiHandler( TaxiiConnectionConfig connectionConfig
+          , Extractor extractor
+          , Configuration config
+  ) throws Exception {
     this(connectionConfig, extractor, new HBaseTableClientFactory(), config);
   }
 
-  public TaxiiHandler( TaxiiConnectionConfig connectionConfig,
-                       Extractor extractor,
-                       HBaseClientFactory hBaseClientFactory,
-                       Configuration config) throws Exception {
+  public TaxiiHandler( TaxiiConnectionConfig connectionConfig
+            , Extractor extractor
+            , HBaseClientFactory hBaseClientFactory
+            , Configuration config
+    ) throws Exception {
     LOG.info("Loading configuration: {}", connectionConfig);
     this.allowedIndicatorTypes = connectionConfig.getAllowedIndicatorTypes();
     this.extractor = extractor;
@@ -165,6 +167,16 @@ public class TaxiiHandler extends TimerTask {
       connectionCache.put(tableName, client);
     }
     return client;
+  }
+
+  protected synchronized void cleanup() {
+    for(HBaseClient client: connectionCache.values()) {
+      try {
+        client.close();
+      } catch(IOException e) {
+        LOG.error("Error while closing HBase client", e);
+      }
+    }
   }
 
   /**
@@ -246,10 +258,10 @@ public class TaxiiHandler extends TimerTask {
         LOG.error(e.getMessage(), e);
         throw new RuntimeException("Unable to make request", e);
       }
-    }
-    finally {
+    } finally {
       inProgress = false;
       beginTime = ts;
+      cleanup();
     }
   }
 
