@@ -28,7 +28,5 @@ import java.util.EnumMap;
 import java.util.Optional;
 
 public interface Importer<OPTIONS_T extends Enum<OPTIONS_T>> extends Closeable {
-  void importData(EnumMap<OPTIONS_T, Optional<Object>> config,
-                  ExtractorHandler handler,
-                  final Configuration hadoopConfig) throws IOException, InvalidWriterOutput;
+  void importData(EnumMap<OPTIONS_T, Optional<Object>> config, ExtractorHandler handler , final Configuration hadoopConfig) throws IOException, InvalidWriterOutput;
 }

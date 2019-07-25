@@ -122,7 +122,6 @@
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
-
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-integration-test</artifactId>

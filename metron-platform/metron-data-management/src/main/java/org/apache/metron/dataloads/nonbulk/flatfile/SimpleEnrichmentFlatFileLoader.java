@@ -36,6 +36,7 @@ import java.util.Optional;
 
 public class SimpleEnrichmentFlatFileLoader {
 
+
   public static void main(String... argv) throws Exception {
     Configuration hadoopConfig = HBaseConfiguration.create();
     String[] otherArgs = new GenericOptionsParser(hadoopConfig, argv).getRemainingArgs();
@@ -43,15 +44,15 @@ public class SimpleEnrichmentFlatFileLoader {
   }
 
   public static void main(Configuration hadoopConfig, String[] argv) throws Exception {
+
     CommandLine cli = LoadOptions.parse(new PosixParser(), argv);
     EnumMap<LoadOptions, Optional<Object>> config = LoadOptions.createConfig(cli);
     if(LoadOptions.LOG4J_PROPERTIES.has(cli)) {
       PropertyConfigurator.configure(LoadOptions.LOG4J_PROPERTIES.get(cli));
     }
-
-    File configFile = new File(LoadOptions.EXTRACTOR_CONFIG.get(cli).trim());
-    String rawConfig = FileUtils.readFileToString(configFile);
-    ExtractorHandler handler = ExtractorHandler.load(rawConfig);
+    ExtractorHandler handler = ExtractorHandler.load(
+            FileUtils.readFileToString(new File(LoadOptions.EXTRACTOR_CONFIG.get(cli).trim()))
+    );
     ImportStrategy strategy = (ImportStrategy) config.get(LoadOptions.IMPORT_MODE).get();
     try(Importer importer = strategy.getImporter()) {
       importer.importData(config, handler, hadoopConfig);
@@ -59,9 +60,9 @@ public class SimpleEnrichmentFlatFileLoader {
 
     SensorEnrichmentUpdateConfig sensorEnrichmentUpdateConfig = null;
     if(LoadOptions.ENRICHMENT_CONFIG.has(cli)) {
-      sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load(
-              new File(LoadOptions.ENRICHMENT_CONFIG.get(cli)),
-              SensorEnrichmentUpdateConfig.class);
+      sensorEnrichmentUpdateConfig = JSONUtils.INSTANCE.load( new File(LoadOptions.ENRICHMENT_CONFIG.get(cli))
+              , SensorEnrichmentUpdateConfig.class
+      );
     }
 
     if(sensorEnrichmentUpdateConfig != null) {

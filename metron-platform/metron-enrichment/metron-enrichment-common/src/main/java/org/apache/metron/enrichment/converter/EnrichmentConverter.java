@@ -103,12 +103,10 @@ public class EnrichmentConverter implements HbaseConverter<EnrichmentKey, Enrich
   }
 
   @Override
-  @Deprecated
   public EnrichmentResult fromPut(Put put, String columnFamily) {
     return fromPut(put, columnFamily, new EnrichmentKey(), new EnrichmentValue());
   }
 
-  @Deprecated
   private EnrichmentResult fromPut(Put put, String columnFamily, EnrichmentKey key, EnrichmentValue value) {
     byte[] cf = Bytes.toBytes(columnFamily);
     key.fromBytes(put.getRow());
@@ -150,8 +148,6 @@ public class EnrichmentConverter implements HbaseConverter<EnrichmentKey, Enrich
     }
     return ret;
   }
-
-
 
   @Override
   public EnrichmentResult fromResult(Result result, String columnFamily) throws IOException {

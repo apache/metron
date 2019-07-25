@@ -49,9 +49,10 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
   }
 
   @Override
-  public void importData( final EnumMap<OPTIONS_T, Optional<Object>> config,
-                          final ExtractorHandler handler,
-                          final Configuration hadoopConfig) throws IOException, InvalidWriterOutput {
+  public void importData( final EnumMap<OPTIONS_T, Optional<Object>> config
+                        , final ExtractorHandler handler
+                        , final Configuration hadoopConfig
+                         ) throws IOException, InvalidWriterOutput {
 
     connection = connectionFactory.createConnection(hadoopConfig);
 
@@ -63,7 +64,8 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
     FileSystem fs = FileSystem.get(hadoopConfig);
     if(!lineByLine) {
       extractWholeFiles(inputs, fs, state, quiet);
-    } else {
+    }
+    else {
       int batchSize = batchSize(config);
       int numThreads = numThreads(config, handler);
       extractLineByLine(inputs, fs, state, batchSize, numThreads, quiet);
@@ -87,16 +89,20 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
   protected abstract List<String> getInputs(final EnumMap<OPTIONS_T, Optional<Object>> config);
   protected abstract boolean isQuiet(final EnumMap<OPTIONS_T, Optional<Object>> config);
   protected abstract int batchSize(final EnumMap<OPTIONS_T, Optional<Object>> config);
-  protected abstract int numThreads(final EnumMap<OPTIONS_T, Optional<Object>> config,
-                                    ExtractorHandler handler);
-  protected abstract void validateState(final EnumMap<OPTIONS_T, Optional<Object>> config,
-                                        final ExtractorHandler handler);
+  protected abstract int numThreads(final EnumMap<OPTIONS_T, Optional<Object>> config, ExtractorHandler handler);
 
-  protected abstract ThreadLocal<STATE_T> createState( final EnumMap<OPTIONS_T, Optional<Object>> config,
-                                                       final Configuration hadoopConfig,
-                                                       final ExtractorHandler handler);
+  protected abstract void validateState(final EnumMap<OPTIONS_T, Optional<Object>> config
+                                       ,final ExtractorHandler handler
+                                       );
 
-  protected abstract void extract(STATE_T state, String line) throws IOException;
+  protected abstract ThreadLocal<STATE_T> createState( final EnumMap<OPTIONS_T, Optional<Object>> config
+                                                     , final Configuration hadoopConfig
+                                                     , final ExtractorHandler handler
+                                                     );
+
+  protected abstract void extract(STATE_T state
+                                 , String line
+                                 ) throws IOException;
 
   protected Location resolveLocation(String input, FileSystem fs) {
     return LocationStrategy.getLocation(input, fs);

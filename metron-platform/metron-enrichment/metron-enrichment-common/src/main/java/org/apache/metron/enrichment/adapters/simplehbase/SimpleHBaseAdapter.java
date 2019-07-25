@@ -42,8 +42,8 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private SimpleHBaseConfig config;
-  private EnrichmentLookup lookup;
+  protected SimpleHBaseConfig config;
+  protected EnrichmentLookup lookup;
 
   public SimpleHBaseAdapter() {
   }
@@ -113,8 +113,8 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>, Serializ
   public boolean initializeAdapter(Map<String, Object> configuration) {
     try {
       if(lookup == null) {
-        EnrichmentLookupFactory creator = config.getEnrichmentLookupCreator();
-        lookup = creator.create(config.getConnectionFactory(), config.getHBaseTable(), config.getHBaseCF(), null);
+        EnrichmentLookupFactory factory = config.getEnrichmentLookupCreator();
+        lookup = factory.create(config.getConnectionFactory(), config.getHBaseTable(), config.getHBaseCF(), null);
       }
     } catch (IOException e) {
       LOG.error("Unable to initialize adapter: {}", e.getMessage(), e);

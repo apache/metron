@@ -84,9 +84,6 @@ public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtra
           String tableName = (String) config.get(LoadOptions.HBASE_TABLE).get();
           String cf = (String) config.get(LoadOptions.HBASE_CF).get();
           Table table = getConnection().getTable(TableName.valueOf(tableName));
-
-          // TODO does the HBaseExtractState still need a Table?  The EnrichmentConverter is going
-          // to connect to HBase itself
           return new HBaseExtractorState(table, cf, handler.getExtractor(), new EnrichmentConverter(tableName), hadoopConfig);
         } catch (IOException e1) {
           throw new IllegalStateException("Unable to get table: " + e1);

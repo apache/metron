@@ -69,8 +69,6 @@ public class CSVExtractor extends CSVConverter implements Extractor {
       values.put(kv.getKey(), tokens[kv.getValue()]);
     }
 
-    // TODO there is only one freaking LookupKey/LookupValue; EnrichmentKey/EnrichmentValue. No need to parameterize this
-    // TODO fix this cast
     return Arrays.asList(new EnrichmentResult(
             (EnrichmentKey) key,
             (EnrichmentValue) converter.toValue(values)));

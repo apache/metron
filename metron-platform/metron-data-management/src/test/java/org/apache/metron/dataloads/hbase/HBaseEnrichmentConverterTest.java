@@ -20,6 +20,7 @@ package org.apache.metron.dataloads.hbase;
 
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -71,13 +72,13 @@ public class HBaseEnrichmentConverterTest {
         Assert.assertEquals(key, deserialized);
     }
 
-//    @Test
-//    public void testPut() throws IOException {
-//        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter("table", new MockHBaseConnectionFactory(), HBaseConfiguration.create());
-//        Put put = converter.toPut("cf", key, value);
-//        EnrichmentResult converted = converter.fromPut(put, "cf");
-//        Assert.assertEquals(results, converted);
-//    }
+    @Test
+    public void testPut() throws IOException {
+        HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter("table", new FakeHBaseConnectionFactory(), HBaseConfiguration.create());
+        Put put = converter.toPut("cf", key, value);
+        EnrichmentResult converted = converter.fromPut(put, "cf");
+        Assert.assertEquals(results, converted);
+    }
 
     @Test
     public void testResult() throws IOException {
