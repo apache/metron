@@ -35,18 +35,17 @@ public class EnrichmentConverterTest {
     Assert.assertEquals(k1, k2);
   }
 
-  // TODO test this against HBase or something?
-//  @Test
-//  public void testValueConversion() throws IOException {
-//    EnrichmentConverter converter = new EnrichmentConverter("table");
-//    EnrichmentKey k1 = new EnrichmentKey("type", "indicator");
-//    EnrichmentValue v1 = new EnrichmentValue(new HashMap<String, Object>() {{
-//      put("k1", "v1");
-//      put("k2", "v2");
-//    }});
-//    Put serialized = converter.toPut("cf", k1, v1);
-//    EnrichmentResult kv = converter.fromPut(serialized,"cf");
-//    Assert.assertEquals("v1", kv.getValue().getMetadata().get("k1"));
-//    Assert.assertEquals("v2", kv.getValue().getMetadata().get("k2"));
-//  }
+  @Test
+  public void testValueConversion() throws IOException {
+    EnrichmentConverter converter = new EnrichmentConverter();
+    EnrichmentKey k1 = new EnrichmentKey("type", "indicator");
+    EnrichmentValue v1 = new EnrichmentValue(new HashMap<String, Object>() {{
+      put("k1", "v1");
+      put("k2", "v2");
+    }});
+    Put serialized = converter.toPut("cf", k1, v1);
+    EnrichmentResult kv = converter.fromPut(serialized,"cf");
+    Assert.assertEquals("v1", kv.getValue().getMetadata().get("k1"));
+    Assert.assertEquals("v2", kv.getValue().getMetadata().get("k2"));
+  }
 }

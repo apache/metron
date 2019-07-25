@@ -50,7 +50,7 @@ public class HBaseEnrichmentLookup implements EnrichmentLookup {
     this.connection = connectionFactory.createConnection(HBaseConfiguration.create());
     this.table = connection.getTable(TableName.valueOf(tableName));
     this.columnFamily = columnFamily;
-    this.converter = new EnrichmentConverter(tableName);
+    this.converter = new EnrichmentConverter();
   }
 
   @Override

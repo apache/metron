@@ -25,13 +25,12 @@ import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.LookupValue;
 
-import java.io.Closeable;
 import java.io.IOException;
 
-public interface HbaseConverter<KEY_T extends LookupKey, VALUE_T extends LookupValue> extends Closeable {
+public interface HbaseConverter<KEY_T extends LookupKey, VALUE_T extends LookupValue> {
 
     Put toPut(String columnFamily, KEY_T key, VALUE_T values) throws IOException;
-    
+
     EnrichmentResult fromPut(Put put, String columnFamily) throws IOException;
 
     Result toResult(String columnFamily, KEY_T key, VALUE_T values) throws IOException;

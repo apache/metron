@@ -57,7 +57,8 @@ public class EnrichmentValue implements LookupValue {
 
   @Override
   public Iterable<Map.Entry<byte[], byte[]>> toColumns() {
-    return EnrichmentConverter.toEntries( VALUE_COLUMN_NAME_B, Bytes.toBytes(valueToString(metadata)));
+    String value = valueToString(metadata);
+    return EnrichmentConverter.toEntries(VALUE_COLUMN_NAME_B, Bytes.toBytes(value));
   }
 
   @Override
