@@ -17,7 +17,7 @@
  */
 
 import { Component, OnInit, Input, OnChanges, SimpleChanges, ViewChild, EventEmitter, Output} from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
+import {ParserConfigModel} from '../models/parser-config.model';
 import {ParseMessageRequest} from '../../model/parse-message-request';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {AutocompleteOption} from '../../model/autocomplete-option';
@@ -33,7 +33,7 @@ import {MetronAlerts} from '../../shared/metron-alerts';
 export class SensorGrokComponent implements OnInit, OnChanges {
 
   @Input() showGrok; boolean;
-  @Input() sensorParserConfig: SensorParserConfig;
+  @Input() sensorParserConfig: ParserConfigModel;
   @Input() grokStatement: string;
   @Input() patternLabel: string;
 

@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SensorParserConfig} from './sensor-parser-config';
+import {ParserConfigModel} from '../sensors/models/parser-config.model';
 export class ParseMessageRequest {
-  sensorParserConfig: SensorParserConfig;
+  sensorParserConfig: ParserConfigModel;
   grokStatement: string;
   sampleData: string;
 }
