@@ -140,11 +140,12 @@ export class QueryBuilder {
   }
 
   removeFilter(filter: Filter) {
-    const filterIndex = this._filters.indexOf(filter);
-    if (filterIndex >= 0) {
-      this._filters.splice(filterIndex, 1);
-      this.onSearchChange();
-    }
+    this._filters = this._filters.filter(fItem => fItem !== filter );
+    this.onSearchChange();
+  }
+
+  removeFilterByField(field: string): void {
+    this._filters = this._filters.filter(fItem => fItem.field !== field );
   }
 
   setFields(fieldNames: string[]) {

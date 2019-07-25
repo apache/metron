@@ -296,7 +296,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   private updateQueryBuilder(timeRangeFilter: Filter) {
     if (timeRangeFilter.value === ALL_TIME) {
-      this.queryBuilder.removeFilter(timeRangeFilter);
+      this.queryBuilder.removeFilterByField(timeRangeFilter.field);
     } else {
       this.queryBuilder.addOrUpdateFilter(timeRangeFilter);
     }

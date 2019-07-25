@@ -130,4 +130,36 @@ describe('query-builder', () => {
     expect(queryBuilder.searchRequest.query).toBe('(source\\:type:bro OR metron_alert.source\\:type:bro)');
   });
 
+  it('removeFilter should remove filter by reference', () => {
+    const queryBuilder = new QueryBuilder();
+
+    const filter1 = new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]');
+    const filter2 = new Filter('fieldName', 'value');
+
+    queryBuilder.addOrUpdateFilter(filter1);
+    queryBuilder.addOrUpdateFilter(filter2);
+
+    queryBuilder.removeFilter(filter1);
+
+    expect(queryBuilder.filters.length).toBe(1);
+    expect(queryBuilder.filters[0]).toBe(filter2);
+  });
+
+  it('removeFilterByField should remove filter having the passed field name', () => {
+    const queryBuilder = new QueryBuilder();
+
+    const filter1 = new Filter('fruit', 'banana');
+    const filter2 = new Filter('fruit', 'orange');
+    const filter3 = new Filter('animal', 'horse');
+
+    queryBuilder.addOrUpdateFilter(filter1);
+    queryBuilder.addOrUpdateFilter(filter2);
+    queryBuilder.addOrUpdateFilter(filter3);
+
+    queryBuilder.removeFilterByField('fruit');
+
+    expect(queryBuilder.filters.length).toBe(1);
+    expect(queryBuilder.filters[0]).toBe(filter3);
+  });
+
 });
