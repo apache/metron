@@ -286,7 +286,6 @@ This package installs the Metron Parser files
 %{metron_home}/bin/flatfile_summarizer.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh
 %{metron_home}/bin/prune_hdfs_files.sh
-%{metron_home}/bin/threatintel_bulk_prune.sh
 %{metron_home}/bin/threatintel_taxii_load.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-data-management-%{full_version}.jar
 
