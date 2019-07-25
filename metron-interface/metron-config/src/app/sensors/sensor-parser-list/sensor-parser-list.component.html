@@ -54,6 +54,12 @@
     <tbody>
           'active': isSelected(sensor),
           'parent': sensor.isGroup,
+          'dragged-over': sensor.config.getName() === draggedOverElementId && !sensor.isRunning && !sensor.startStopInProgress,
+          'drop-not-allowed': sensor.config.getName() === draggedOverElementId && sensor.isRunning && !sensor.startStopInProgress,
+          'dirty': sensor.isDirty,
+          'deleted': sensor.isDeleted,
+          'phantom': sensor.isPhantom
+        }"
       <td>{{ getParserType(sensor.config) }}</td>
       <td [ngClass]="{'warning-text': (sensor.status == 'Stopped' || sensor.status == 'Disabled')}">{{ sensor.status }}</td>
       <td>{{ sensor.latency }}</td>
