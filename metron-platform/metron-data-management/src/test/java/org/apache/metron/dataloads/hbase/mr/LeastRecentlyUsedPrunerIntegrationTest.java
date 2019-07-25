@@ -106,7 +106,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
     @Test
     public void test() throws Exception {
         HBaseConnectionFactory connFactory = new HBaseConnectionFactory();
-        Configuration config = HBaseConfiguration.create();
+        Configuration config = testUtil.getConfiguration();
         config.set("hbase.rpc.timeout", "1000");
         long ts = System.currentTimeMillis();
 
@@ -128,7 +128,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         Iterable<LookupKey> goodKeys = Iterables.concat(goodKeysHalf, goodKeysOtherHalf);
         List<LookupKey> badKey = getKeys(10, 11);
 
-        EnrichmentConverter converter = new EnrichmentConverter(tableName);
+        EnrichmentConverter converter = new EnrichmentConverter();
         for(LookupKey k : goodKeysHalf) {
             testTable.put(converter.toPut(columnFamily,
                     (EnrichmentKey) k,
