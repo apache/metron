@@ -186,8 +186,8 @@ public class PersistentAccessTracker implements AccessTracker {
     }
 
     @Override
-    public String getTableName() {
-        return underlyingTracker.getTableName();
+    public String getName() {
+        return underlyingTracker.getName();
     }
 
     @Override

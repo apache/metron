@@ -105,7 +105,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     JSONObject ret = new JSONObject();
     Iterable<Map.Entry<String, Object>> stellarStatements = getStellarStatements(handler, field);
 
-    _LOG.debug("About to execute Stellar enrichment(s); message={}", message);
+    _LOG.debug("message := {}", message);
     if(stellarStatements != null) {
       List<String> mapEntries = new ArrayList<>();
       for (Map.Entry<String, Object> kv : stellarStatements) {
@@ -115,19 +115,16 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
             String stellarStatement = (String) kv.getValue();
             Object o = null;
             try {
-              _LOG.trace("Executing Stellar enrichment; stellar={}", stellarStatement);
               o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
-              _LOG.trace("Done executing Stellar enrichment; stellar={}", stellarStatement);
-
-
-            } catch(Throwable t) {
-              _LOG.error("Stellar enrichment failed; stellar={}", stellarStatement, t);
-              throw t;
+            }
+            catch(Exception e) {
+              _LOG.error(e.getMessage(), e);
+              throw e;
             }
             if (slowLogThreshold != null && _PERF_LOG.isDebugEnabled()) {
               long duration = System.currentTimeMillis() - startTime;
               if (duration > slowLogThreshold) {
-                _PERF_LOG.debug("SLOW LOG: {} took {} ms", stellarStatement, duration);
+                _PERF_LOG.debug("SLOW LOG: " + stellarStatement + " took" + duration + "ms");
               }
             }
             _LOG.debug("{} := {} yields {}", kv.getKey(), stellarStatement , o);

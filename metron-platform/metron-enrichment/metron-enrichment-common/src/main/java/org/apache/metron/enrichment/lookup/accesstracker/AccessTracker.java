@@ -27,7 +27,7 @@ public interface AccessTracker extends Serializable{
     void logAccess(LookupKey key);
     void configure(Map<String, Object> config);
     boolean hasSeen(LookupKey key);
-    String getTableName();
+    String getName();
     AccessTracker union(AccessTracker tracker);
     void reset();
     boolean isFull();

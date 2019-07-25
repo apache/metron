@@ -37,17 +37,16 @@ public enum EnrichmentLookups implements EnrichmentLookupFactory {
     return new InMemoryEnrichmentLookup();
   });
 
-  private EnrichmentLookupFactory creator;
+  private EnrichmentLookupFactory factory;
 
-  EnrichmentLookups(EnrichmentLookupFactory creator) {
-    this.creator = creator;
+  EnrichmentLookups(EnrichmentLookupFactory factory) {
+    this.factory = factory;
   }
 
   public EnrichmentLookup create(HBaseConnectionFactory connFactory,
                                  String tableName,
                                  String columnFamily,
-                                 AccessTracker accessTracker)
-          throws IOException {
-    return creator.create(connFactory, tableName, columnFamily, accessTracker);
+                                 AccessTracker accessTracker) throws IOException {
+    return factory.create(connFactory, tableName, columnFamily, accessTracker);
   }
 }

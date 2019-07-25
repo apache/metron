@@ -20,10 +20,7 @@ package org.apache.metron.enrichment.parallel;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
@@ -31,12 +28,13 @@ import java.util.function.Function;
  * Enrich based on a key and enrichment adapter.  The CacheKey contains all necessary input information for an enrichment.
  */
 public class EnrichmentCallable implements Callable<JSONObject>, Function<CacheKey, JSONObject> {
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   CacheKey key;
   EnrichmentAdapter<CacheKey> adapter;
 
-  public EnrichmentCallable(CacheKey key, EnrichmentAdapter<CacheKey> adapter) {
-    LOG.debug("Creating enrichment callable; adapter={}, key={}", adapter.getClass().getName(), key);
+  public EnrichmentCallable( CacheKey key
+          , EnrichmentAdapter<CacheKey> adapter
+  )
+  {
     this.key = key;
     this.adapter = adapter;
   }
@@ -51,10 +49,7 @@ public class EnrichmentCallable implements Callable<JSONObject>, Function<CacheK
   public JSONObject call() throws Exception {
     //Log access for this key.
     adapter.logAccess(key);
-    JSONObject result = adapter.enrich(key);
-
-    LOG.trace("Enrichment completed by call(); adapter={}, key={}", adapter.getClass().getName(), key);
-    return result;
+    return adapter.enrich(key);
   }
 
   /**
@@ -66,8 +61,6 @@ public class EnrichmentCallable implements Callable<JSONObject>, Function<CacheK
   @Override
   public JSONObject apply(CacheKey cacheKey) {
     adapter.logAccess(key);
-    JSONObject result = adapter.enrich(cacheKey);
-    LOG.trace("Enrichment completed by apply(); adapter={}, key={}", adapter.getClass().getName(), key);
-    return result;
+    return adapter.enrich(cacheKey);
   }
 }

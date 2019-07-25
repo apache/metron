@@ -28,8 +28,11 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +40,7 @@ import java.util.List;
  * Performs a lookup for enrichement values stored in HBase.
  */
 public class HBaseEnrichmentLookup implements EnrichmentLookup {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Connection connection;
   private Table table;
   private String columnFamily;
@@ -46,8 +50,6 @@ public class HBaseEnrichmentLookup implements EnrichmentLookup {
     this.connection = connectionFactory.createConnection(HBaseConfiguration.create());
     this.table = connection.getTable(TableName.valueOf(tableName));
     this.columnFamily = columnFamily;
-
-    // TODO don't need this class and EnrichmentConverter to both interact with HBase
     this.converter = new EnrichmentConverter(tableName);
   }
 
@@ -71,9 +73,6 @@ public class HBaseEnrichmentLookup implements EnrichmentLookup {
   @Override
   public Iterable<Boolean> exists(Iterable<EnrichmentKey> keys) throws IOException {
     List<Boolean> results = new ArrayList<>();
-//    if(Iterables.isEmpty(keys)) {
-//      return Collections.emptyList();
-//    }
     for(boolean exists : table.existsAll(keysToGets(keys))) {
       results.add(exists);
     }
@@ -83,10 +82,6 @@ public class HBaseEnrichmentLookup implements EnrichmentLookup {
   @Override
   public Iterable<EnrichmentResult> get(Iterable<EnrichmentKey> keys) throws IOException {
     List<EnrichmentResult> results = new ArrayList<>();
-//    if(Iterables.isEmpty(keys)) {
-//      return results;
-//    }
-
     List<Get> gets = keysToGets(keys);
     for(Result result : table.get(gets)) {
       results.add(converter.fromResult(result, columnFamily));
@@ -96,12 +91,20 @@ public class HBaseEnrichmentLookup implements EnrichmentLookup {
   }
 
   @Override
-  public void close() throws IOException {
-    if(table != null) {
-      table.close();
+  public void close() {
+    try {
+      if(table != null) {
+        table.close();
+      }
+    } catch(IOException e) {
+      LOG.error("Error while closing HBase table", e);
     }
-    if(connection != null) {
-      connection.close();
+    try {
+      if(connection != null) {
+        connection.close();
+      }
+    } catch(IOException e) {
+      LOG.error("Error while closing HBase connection",e);
     }
   }
 

@@ -28,10 +28,7 @@ import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.invoke.MethodHandles;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,10 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -55,7 +49,7 @@ import java.util.function.Supplier;
  * unified together and a list of errors which happened.
  */
 public class ParallelEnricher {
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType = new HashMap<>();
   private EnumMap<EnrichmentStrategies, CacheStats> cacheStats = new EnumMap<>(EnrichmentStrategies.class);
 
@@ -122,7 +116,7 @@ public class ParallelEnricher {
                          , EnrichmentStrategies strategy
                          , SensorEnrichmentConfig config
                          , PerformanceLogger perfLog
-                         ) throws ExecutionException, InterruptedException, TimeoutException {
+                         ) throws ExecutionException, InterruptedException {
     if(message == null) {
       return null;
     }
@@ -185,30 +179,20 @@ public class ParallelEnricher {
           String prefix = adapter.getOutputPrefix(cacheKey);
           Supplier<JSONObject> supplier = () -> {
             try {
-              LOG.trace("Beginning an enrichment; key={}", cacheKey);
-              JSONObject ret = concurrencyContext
-                      .getCache()
-                      .get(cacheKey, new EnrichmentCallable(cacheKey, adapter));
+              JSONObject ret = concurrencyContext.getCache().get(cacheKey, new EnrichmentCallable(cacheKey, adapter));
               if(ret == null) {
                 ret = new JSONObject();
               }
-
               //each enrichment has their own unique prefix to use to adjust the keys for the enriched fields.
-              JSONObject adjustedKeys = EnrichmentUtils.adjustKeys(new JSONObject(), ret, cacheKey.getField(), prefix);
+              JSONObject adjustedKeys = EnrichmentUtils
+                  .adjustKeys(new JSONObject(), ret, cacheKey.getField(), prefix);
               adjustedKeys.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
-
-              LOG.trace("Completed an enrichment; cacheKey={}, message={}", cacheKey, adjustedKeys);
               return adjustedKeys;
-
             } catch (Throwable e) {
               JSONObject errorMessage = new JSONObject();
               errorMessage.putAll(m);
               errorMessage.put(Constants.SENSOR_TYPE, sensorType );
-
-              String err = strategy + " error with " + task.getKey() + " failed: " + e.getMessage();
-              errors.add(new AbstractMap.SimpleEntry<>(errorMessage, new IllegalStateException(err, e)));
-              LOG.error("Enrichment failed, returning empty result; cacheKey={}, error={}", cacheKey, err);
-
+              errors.add(new AbstractMap.SimpleEntry<>(errorMessage, new IllegalStateException(strategy + " error with " + task.getKey() + " failed: " + e.getMessage(), e)));
               return new JSONObject();
             }
           };
@@ -222,25 +206,13 @@ public class ParallelEnricher {
       return new EnrichmentResult(message, errors);
     }
 
-    LOG.error("======================= ABOUT TO CALL ALL=================");
-    CompletableFuture<JSONObject> enrichmentFutures = all(taskList,
-            message,
-            (left, right) -> join(left, right));
-
-    // TODO could add a timeout here
-    JSONObject enrichedMessage = enrichmentFutures.get(5, TimeUnit.SECONDS);
-    LOG.error("======================= DONE W CALL ALL=================");
-
-
-    EnrichmentResult ret = new EnrichmentResult(enrichedMessage, errors);
+    EnrichmentResult ret = new EnrichmentResult(all(taskList, message, (left, right) -> join(left, right)).get(), errors);
     ret.getResult().put(getClass().getSimpleName().toLowerCase() + ".enrich.end.ts", "" + System.currentTimeMillis());
     if(perfLog != null) {
       String key = message.get(Constants.GUID) + "";
       perfLog.log("enrich", "key={}, elapsed time to enrich", key);
       perfLog.log("execute", "key={}, elapsed time to run execute", key);
     }
-
-    LOG.trace("{} enrichment(s) completed; message={}, result={}", taskList.size(), message, ret);
     return ret;
   }
 
@@ -278,12 +250,7 @@ public class ParallelEnricher {
   ) {
     CompletableFuture[] cfs = futures.toArray(new CompletableFuture[futures.size()]);
     CompletableFuture<Void> future = CompletableFuture.allOf(cfs);
-
-    // TODO could put a timeout for each entichment future here?
-    return future.thenApply(aVoid -> futures
-            .stream()
-            .map(CompletableFuture::join)
-            .reduce(identity, reduceOp));
+    return future.thenApply(aVoid -> futures.stream().map(CompletableFuture::join).reduce(identity, reduceOp));
   }
 
   /**
@@ -299,7 +266,9 @@ public class ParallelEnricher {
                                                    ) {
     Map<String, List<JSONObject>> streamMessageMap = new HashMap<>();
     Map<String, Object> enrichmentFieldMap = enrichmentStrategy.getUnderlyingConfig(config).getFieldMap();
+
     Map<String, ConfigHandler> fieldToHandler = enrichmentStrategy.getUnderlyingConfig(config).getEnrichmentConfigs();
+
     Set<String> enrichmentTypes = new HashSet<>(enrichmentFieldMap.keySet());
 
     //the set of enrichments configured
@@ -312,13 +281,13 @@ public class ParallelEnricher {
       ConfigHandler retriever = fieldToHandler.get(enrichmentType);
 
       //How this is split depends on the ConfigHandler
-      Function<String, String> fieldToKey = field -> enrichmentStrategy.fieldToEnrichmentKey(enrichmentType, field);
-      List<JSONObject> enrichmentObject = retriever
-              .getType()
-              .splitByFields(message, fields, fieldToKey, retriever);
+      List<JSONObject> enrichmentObject = retriever.getType()
+              .splitByFields( message
+                      , fields
+                      , field -> enrichmentStrategy.fieldToEnrichmentKey(enrichmentType, field)
+                      , retriever
+              );
       streamMessageMap.put(enrichmentType, enrichmentObject);
-      LOG.debug("Enrichment split; type={}, value={}, guid={}",
-              enrichmentType, enrichmentObject, message.getOrDefault(Constants.GUID, "undefined"));
     }
     return streamMessageMap;
   }

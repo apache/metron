@@ -28,7 +28,12 @@ import java.util.Map;
 import java.util.Objects;
 
 public class EnrichmentValue implements LookupValue {
-  private static final ThreadLocal<ObjectMapper> _mapper = new ThreadLocal().withInitial(() -> new ObjectMapper());
+  private static final ThreadLocal<ObjectMapper> _mapper = new ThreadLocal<ObjectMapper>() {
+    @Override
+    protected ObjectMapper initialValue() {
+      return new ObjectMapper();
+    }
+  };
   public static final String VALUE_COLUMN_NAME = "v";
   public static final byte[] VALUE_COLUMN_NAME_B = Bytes.toBytes(VALUE_COLUMN_NAME);
   private Map<String, Object> metadata;
@@ -76,6 +81,7 @@ public class EnrichmentValue implements LookupValue {
       throw new RuntimeException("Unable to convert string to metadata: " + s);
     }
   }
+
   public String valueToString(Map<String, Object> value) {
     try {
       return _mapper.get().writeValueAsString(value);
