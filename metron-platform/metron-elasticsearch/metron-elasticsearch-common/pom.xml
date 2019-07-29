@@ -68,6 +68,18 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
             <version>${global_hbase_version}</version>

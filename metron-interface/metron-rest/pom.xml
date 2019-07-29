@@ -200,6 +200,10 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -211,12 +215,22 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
           </exclusion>
+            <exclusion>
+              <groupId>javax.servlet</groupId>
+              <artifactId>servlet-api</artifactId>
+            </exclusion>
         </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-app</artifactId>
         <version>${global_hadoop_version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>javax.servlet</groupId>
+              <artifactId>servlet-api</artifactId>
+            </exclusion>
+          </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>

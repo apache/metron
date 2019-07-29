@@ -66,6 +66,7 @@ Source19:       metron-profiler-repl-%{full_version}-archive.tar.gz
 Source20:       metron-parsing-storm-%{full_version}-archive.tar.gz
 Source21:       metron-parsers-%{full_version}-archive.tar.gz
 Source22:       metron-hbase-server-%{full_version}-archive.tar.gz
+Source23:       stellar-common-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -111,6 +112,7 @@ tar -xzf %{SOURCE19} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE20} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE21} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE22} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE23} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -713,6 +715,23 @@ This package installs the Metron HBase Server files
 %dir %{metron_home}/bin
 %{metron_home}/bin/load_enrichment_coprocessor.sh
 %attr(0644,root,root) %{metron_home}/coprocessor/metron-hbase-server-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        stellar-common
+Summary:        Stellar Common Files
+Group:          Applications/Internet
+Provides:       stellar-common = %{version}
+
+%description    stellar-common
+This package installs the Stellar Common files
+
+%files          stellar-common
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/stellar-common-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

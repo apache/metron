@@ -26,17 +26,17 @@ if [ -e /usr/libexec/bigtop-detect-javahome ]; then
 elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
   . /usr/lib/bigtop-utils/bigtop-detect-javahome
 fi
-
+export METRON_VERSION=${project.version}
+export METRON_HOME=/usr/metron/$METRON_VERSION
+export DM_JAR=${project.artifactId}-$METRON_VERSION-uber.jar
+export STELLAR_JAR=stellar-common-$METRON_VERSION-uber.jar
 export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
-HADOOP_CLASSPATH=${HBASE_HOME}/lib/hbase-server.jar:`${HBASE_HOME}/bin/hbase classpath`
+HADOOP_CLASSPATH=${HBASE_HOME}/lib/hbase-server.jar:${METRON_HOME}/lib/${STELLAR_JAR}:`${HBASE_HOME}/bin/hbase classpath`
 for jar in $(echo $HADOOP_CLASSPATH | sed 's/:/ /g');do
   if [ -f $jar ];then
     LIBJARS="$jar,$LIBJARS"
   fi
 done
 export HADOOP_CLASSPATH
-export METRON_VERSION=${project.version}
-export METRON_HOME=/usr/metron/$METRON_VERSION
-export DM_JAR=${project.artifactId}-$METRON_VERSION-uber.jar
 export HADOOP_OPTS="$HADOOP_OPTS $METRON_JVMFLAGS"
 hadoop jar $METRON_HOME/lib/$DM_JAR org.apache.metron.dataloads.nonbulk.geo.MaxmindDbEnrichmentLoader "$@"
