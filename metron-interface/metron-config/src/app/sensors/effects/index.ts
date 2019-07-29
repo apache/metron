@@ -15,20 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TopologyStatus } from '../../model/topology-status';
-import { ParserModel } from './parser.model';
 
-export interface ParserMetaInfoModel {
-  config: ParserModel;
-  status?: TopologyStatus;
-  isGroup?: boolean;
-  isHighlighted?: boolean;
-  isDraggedOver?: boolean;
-  isPhantom?: boolean;
-  isDirty?: boolean;
-  isDeleted?: boolean;
-  startStopInProgress?: boolean;
-  modifiedByDate?: string;
-  modifiedBy?: string;
-  isRunning?: boolean;
-}
+ import { SensorsEffects } from './sensors.effects';
+
+ export * from './sensors.effects';
+
+ export const effects = [ SensorsEffects ];
