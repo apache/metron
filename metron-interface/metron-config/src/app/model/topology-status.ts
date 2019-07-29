@@ -23,4 +23,16 @@ export class TopologyStatus {
   throughput: number;
   emitted: number;
   acked: number;
+
+  constructor(props?) {
+    if (props) {
+      this.id = props.id;
+      this.name = props.name;
+      this.status = props.status;
+      this.latency = props.latency;
+      this.throughput = props.throughput;
+      this.emitted = props.emitted;
+      this.acked = props.acked;
+    }
+  }
 }
