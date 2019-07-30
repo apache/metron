@@ -41,6 +41,11 @@ public class LazyLoggerImpl implements LazyLogger {
   }
 
   @Override
+  public Logger getLogger() {
+    return logger;
+  }
+
+  @Override
   public String getName() {
     return logger.getName();
   }

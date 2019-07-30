@@ -54,4 +54,18 @@ public class LazyLoggerFactory {
     return getLogger(clazz.getName());
   }
 
+
+  /**
+   * Return a lazylogger wrapping the passed Logger instance
+   *
+   * @param logger the returned logger will be named after clazz
+   * @return logger
+   */
+  public static LazyLogger getLogger(Logger logger) {
+    if (logger != null) {
+      return new LazyLoggerImpl(logger);
+    } else {
+      throw new NullPointerException("Null logger passed");
+    }
+  }
 }

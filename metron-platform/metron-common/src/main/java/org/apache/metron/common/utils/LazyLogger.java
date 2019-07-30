@@ -28,6 +28,8 @@ import java.util.function.Supplier;
  * that cost if the logging level is actually enabled.
  */
 public interface LazyLogger extends Logger {
+  Logger getLogger();
+
   void trace(String format, Supplier<Object> arg);
 
   void trace(String format, Supplier<Object> arg1, Supplier<Object> arg2);
