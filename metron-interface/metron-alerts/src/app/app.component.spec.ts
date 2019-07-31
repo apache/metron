@@ -37,11 +37,19 @@ import {
 } from '@ant-design/icons-angular/icons';
 import { IconDefinition } from '@ant-design/icons-angular';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {AppConfigService} from "./service/app-config.service";
 
 const icons: IconDefinition[] = [ ToolOutline, WarningOutline, FileOutline ];
 
 @Component({ selector: 'router-outlet', template: '' })
 class RouterOutletStubComponent {}
+
+class FakeAppConfigService {
+
+    getManagementUIPort() {
+        return '4200'
+    }
+}
 
 describe('AppComponent', () => {
   let component: AppComponent;
@@ -52,6 +60,7 @@ describe('AppComponent', () => {
       providers: [
         DialogService,
         { provide: AuthenticationService, useValue: { onLoginEvent: of(true) } },
+        { provide: AppConfigService, useClass: FakeAppConfigService },
         { provide: NZ_ICONS, useValue: icons }
       ],
       declarations: [
