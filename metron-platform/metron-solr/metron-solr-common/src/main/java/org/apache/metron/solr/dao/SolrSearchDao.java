@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,20 @@ public class SolrSearchDao implements SearchDao {
   // If null, use whatever the searchRequest defines.
   public SearchResponse search(SearchRequest searchRequest, String fieldList)
       throws InvalidSearchException {
+    validateSearchRequest(searchRequest);
+    try {
+      SolrQuery query = buildSearchRequest(searchRequest, fieldList);
+      QueryResponse response = client.query(query);
+      logQueryDebugDetail(query, response);
+      return buildSearchResponse(searchRequest, response);
+    } catch (SolrException | IOException | SolrServerException e) {
+      String msg = e.getMessage();
+      LOG.error(msg, e);
+      throw new InvalidSearchException(msg, e);
+    }
+  }
+
+  private void validateSearchRequest(SearchRequest searchRequest) throws InvalidSearchException {
     if (searchRequest.getQuery() == null) {
       throw new InvalidSearchException("Search query is invalid: null");
     }
@@ -91,29 +106,28 @@ public class SolrSearchDao implements SearchDao {
       throw new InvalidSearchException(
           "Search result size must be less than " + accessConfig.getMaxSearchResults());
     }
-    try {
-      SolrQuery query = buildSearchRequest(searchRequest, fieldList);
-      QueryResponse response = client.query(query);
-      return buildSearchResponse(searchRequest, response);
-    } catch (SolrException | IOException | SolrServerException e) {
-      String msg = e.getMessage();
-      LOG.error(msg, e);
-      throw new InvalidSearchException(msg, e);
+  }
+
+  private void logQueryDebugDetail(SolrQuery query, QueryResponse response) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Solr query string: {}", query.toQueryString());
+      LOG.debug("Solr query debug map: {}", response.getDebugMap());
+      LOG.debug("Solr query elapsed time: {}", response.getElapsedTime());
+      LOG.debug("Solr query Q time: {}", response.getQTime());
     }
   }
 
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
     try {
-      if (groupRequest.getGroups() == null || groupRequest.getGroups().size() == 0) {
-        throw new InvalidSearchException("At least 1 group must be provided.");
-      }
+      validateGroupRequest(groupRequest);
       String groupNames = groupRequest.getGroups().stream().map(Group::getField).collect(
           Collectors.joining(","));
       SolrQuery query = new SolrQuery()
           .setStart(0)
           .setRows(0)
-          .setQuery(groupRequest.getQuery());
+          .setQuery(groupRequest.getQuery())
+          .setShowDebugInfo(LOG.isDebugEnabled()); // tie Solr query debug output to our log level
 
       query.set("collection", getCollections(groupRequest.getIndices()));
       Optional<String> scoreField = groupRequest.getScoreField();
@@ -124,11 +138,18 @@ public class SolrSearchDao implements SearchDao {
       query.set("facet", true);
       query.set("facet.pivot", String.format("{!stats=piv1}%s", groupNames));
       QueryResponse response = client.query(query);
+      logQueryDebugDetail(query, response);
       return buildGroupResponse(groupRequest, response);
     } catch (IOException | SolrServerException e) {
       String msg = e.getMessage();
       LOG.error(msg, e);
       throw new InvalidSearchException(msg, e);
+    }
+  }
+
+  private void validateGroupRequest(GroupRequest groupRequest) throws InvalidSearchException {
+    if (groupRequest.getGroups() == null || groupRequest.getGroups().size() == 0) {
+      throw new InvalidSearchException("At least 1 group must be provided.");
     }
   }
 
@@ -139,7 +160,8 @@ public class SolrSearchDao implements SearchDao {
     SolrQuery query = new SolrQuery()
         .setStart(searchRequest.getFrom())
         .setRows(searchRequest.getSize())
-        .setQuery(searchRequest.getQuery());
+        .setQuery(searchRequest.getQuery())
+        .setShowDebugInfo(LOG.isDebugEnabled()); // tie Solr query debug output to our log level
 
     // handle sort fields
     for (SortField sortField : searchRequest.getSort()) {
