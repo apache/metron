@@ -48,8 +48,7 @@ import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   private static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -95,7 +94,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     this.stellarProcessor = new StellarProcessor();
     if(syncPolicy != null) {
       //if the user has specified the sync policy, we don't want to override their wishes.
-      LOG.debug("Using user specified sync policy {}", syncPolicy.getClass().getSimpleName());
+      LOG.debug("Using user specified sync policy {}", () -> syncPolicy.getClass().getSimpleName());
       syncPolicyCreator = new ClonedSyncPolicyCreator(syncPolicy);
     }
     else {

@@ -28,13 +28,13 @@ import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.zookeeper.KeeperException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SensorEnrichmentUpdateConfig {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static class FieldList {
     Type type;
@@ -185,7 +185,7 @@ public class SensorEnrichmentUpdateConfig {
         }
         //adding only the ones that we don't already have to the field list
         if (additionalFields.size() > 0) {
-          LOG.debug("Adding additional fields: {}", Joiner.on(',').join(additionalFields));
+          LOG.debug("Adding additional fields: {}", () -> Joiner.on(',').join(additionalFields));
           fieldList.addAll(additionalFields);
           sourceConfigsChanged.put(kv.getKey(), config);
         }

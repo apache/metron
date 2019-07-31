@@ -26,6 +26,8 @@ import java.util.function.Supplier;
  * Extension of a Logger interface that supports lazy argument evaluation
  * Useful when some arguments are costly to evaluate, and you only want to incur
  * that cost if the logging level is actually enabled.
+ *
+ * Please note this interface is a temporary measure until the move to use SLF4J 2.x
  */
 public interface LazyLogger extends Logger {
   Logger getLogger();
