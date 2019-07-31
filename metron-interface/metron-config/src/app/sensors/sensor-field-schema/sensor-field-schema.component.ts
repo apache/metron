@@ -17,7 +17,7 @@
  */
 /* tslint:disable:max-line-length */
 import { Component, OnInit, Input, OnChanges, ViewChild, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
+import {ParserConfigModel} from '../../sensors/models/parser-config.model';
 import {ParseMessageRequest} from '../../model/parse-message-request';
 import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
 import {StellarService} from '../../service/stellar.service';
@@ -62,7 +62,7 @@ export class FieldSchemaRow {
 })
 export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
-  @Input() sensorParserConfig: SensorParserConfig;
+  @Input() sensorParserConfig: ParserConfigModel;
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
   @Input() showFieldSchema: boolean;
   @Input() grokStatement: string;

@@ -1,3 +1,5 @@
+import { Injectable } from "@angular/core";
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,9 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@Injectable()
 export class MetronAlerts {
 
-  public static SUCESS_MESSAGE_DISPALY_TIME = 5000;
+  public static SUCCESS_MESSAGE_DISPLAY_TIME = 5000;
 
   private createMessage(message: string, type: string): Node {
     let element = document.createElement('div');
@@ -47,6 +50,6 @@ export class MetronAlerts {
 
       document.body.removeChild(element);
 
-    }, MetronAlerts.SUCESS_MESSAGE_DISPALY_TIME);
+    }, MetronAlerts.SUCCESS_MESSAGE_DISPLAY_TIME);
   }
 }
