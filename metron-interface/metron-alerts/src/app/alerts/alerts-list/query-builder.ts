@@ -22,7 +22,9 @@ import {SortField} from '../../model/sort-field';
 import {TIMESTAMP_FIELD_NAME} from '../../utils/constants';
 import {GroupRequest} from '../../model/group-request';
 import {Group} from '../../model/group';
+import { Injectable } from '@angular/core';
 
+@Injectable()
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
   private _groupRequest = new GroupRequest();
@@ -47,7 +49,6 @@ export class QueryBuilder {
   get filters(): Filter[] {
     return this._filters;
   }
-
 
   get searchRequest(): SearchRequest {
     this._searchRequest.query = this.generateSelect();
@@ -78,9 +79,11 @@ export class QueryBuilder {
   addOrUpdateFilter(filter: Filter) {
     let existingFilterIndex = -1;
 
-    // only one timerange filter applicable
     if (filter.field === TIMESTAMP_FIELD_NAME) {
-      this.removeFilter(filter.field);
+      const existingTimeRangeFilter = this.filters.find(fItem => fItem.field === TIMESTAMP_FIELD_NAME);
+      if (existingTimeRangeFilter) {
+        this.removeFilter(existingTimeRangeFilter);
+      }
       this._filters.push(filter);
       this.onSearchChange();
       return;
@@ -136,11 +139,13 @@ export class QueryBuilder {
     this._displayQuery = this.generateSelectForDisplay();
   }
 
-  removeFilter(field: string) {
-    let filter = this._filters.find(tFilter => tFilter.field === field);
-    this._filters.splice(this._filters.indexOf(filter), 1);
-
+  removeFilter(filter: Filter) {
+    this._filters = this._filters.filter(fItem => fItem !== filter );
     this.onSearchChange();
+  }
+
+  removeFilterByField(field: string): void {
+    this._filters = this._filters.filter(fItem => fItem.field !== field );
   }
 
   setFields(fieldNames: string[]) {

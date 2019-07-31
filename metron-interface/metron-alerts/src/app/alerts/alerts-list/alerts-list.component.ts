@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {forkJoin as observableForkJoin} from 'rxjs';
-import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Subscription} from 'rxjs';
 
@@ -37,16 +37,15 @@ import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {Filter} from '../../model/filter';
 import { TIMESTAMP_FIELD_NAME, ALL_TIME, POLLING_DEFAULT_STATE } from '../../utils/constants';
-import {TableViewComponent} from './table-view/table-view.component';
+import {TableViewComponent, PageChangedEvent, SortChangedEvent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
-import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 import {Facets} from '../../model/facets';
 import { GlobalConfigService } from '../../service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
-import {AlertSource} from "../../model/alert-source";
+import { AlertSource } from '../../model/alert-source';
 
 @Component({
   selector: 'app-alerts-list',
@@ -67,7 +66,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   isRefreshPaused = POLLING_DEFAULT_STATE;
   lastIsRefreshPausedValue = false;
   isMetaAlertPresentInSelectedAlerts = false;
-  timeStampfilterPresent = false;
+  timeStampFilterPresent = false;
 
   readonly DEFAULT_TIME_RANGE = 'last-15-minutes';
   selectedTimeRange: Filter;
@@ -77,13 +76,13 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
 
   tableMetaData = new TableMetadata();
-  queryBuilder: QueryBuilder = new QueryBuilder();
   pagination: Pagination = new Pagination();
   alertChangedSubscription: Subscription;
   groupFacets: Facets;
   globalConfig: {} = {};
   configSubscription: Subscription;
   groups = [];
+  subgroupTotal = 0;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -94,7 +93,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private saveSearchService: SaveSearchService,
               private metaAlertsService: MetaAlertService,
               private globalConfigService: GlobalConfigService,
-              private dialogService: DialogService) {
+              private dialogService: DialogService,
+              public queryBuilder: QueryBuilder,
+              private cdRef: ChangeDetectorRef) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -126,14 +127,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
-      let queryBuilder = new QueryBuilder();
-      queryBuilder.setGroupby(this.getGroupRequest().groups.map(group => group.field));
-      queryBuilder.searchRequest = savedSearch.searchRequest;
-      queryBuilder.filters = savedSearch.filters;
-      this.queryBuilder = queryBuilder;
+      this.queryBuilder.searchRequest = savedSearch.searchRequest;
+      this.queryBuilder.filters = savedSearch.filters;
       this.setSelectedTimeRange(savedSearch.filters);
       this.prepareColumnData(savedSearch.tableColumns, []);
-      this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
+      this.timeStampFilterPresent = this.queryBuilder.isTimeStampFieldPresent();
       this.search(true, savedSearch);
     });
   }
@@ -221,15 +219,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onClear() {
-    this.timeStampfilterPresent = false;
+    this.timeStampFilterPresent = false;
     this.queryBuilder.clearSearch();
-    this.selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
     this.search();
   }
 
   onSearch(query: string) {
     this.queryBuilder.setSearch(query);
-    this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
+    this.timeStampFilterPresent = this.queryBuilder.isTimeStampFieldPresent();
     this.search();
     return false;
   }
@@ -238,8 +235,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.onAddFilter(new Filter($event.name, $event.key));
   }
 
-  onRefreshData($event) {
-    this.search($event);
+  onSortChanged(event: SortChangedEvent) {
+    this.queryBuilder.setSort(event.sortBy, event.sortOrder);
+    this.search(true);
+  }
+
+  onPageChanged(event: PageChangedEvent) {
+    this.queryBuilder.setFromAndSize(event.from, event.size);
+    this.search(false);
   }
 
   onSelectedAlertsChange(selectedAlerts) {
@@ -256,7 +259,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onAddFilter(filter: Filter) {
-    this.timeStampfilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
+    this.timeStampFilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
     this.queryBuilder.addOrUpdateFilter(filter);
     this.search();
   }
@@ -293,7 +296,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   private updateQueryBuilder(timeRangeFilter: Filter) {
     if (timeRangeFilter.value === ALL_TIME) {
-      this.queryBuilder.removeFilter(timeRangeFilter.field);
+      this.queryBuilder.removeFilterByField(timeRangeFilter.field);
     } else {
       this.queryBuilder.addOrUpdateFilter(timeRangeFilter);
     }
@@ -363,12 +366,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  removeFilter(field: string) {
-    this.timeStampfilterPresent = (field === TIMESTAMP_FIELD_NAME) ? false : this.timeStampfilterPresent;
-    this.queryBuilder.removeFilter(field);
-    this.search();
-  }
-
   restoreRefreshState() {
     this.isRefreshPaused = this.lastIsRefreshPausedValue;
     this.tryStartPolling();
@@ -392,12 +389,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.tryStartPolling();
   }
 
-  getGroupRequest() {
-    return this.queryBuilder.groupRequest(this.globalConfig['threat.triage.score.field']);
-  }
-
   setSearchRequestSize() {
-    if (this.getGroupRequest().groups.length === 0) {
+    if (this.groups.length === 0) {
       this.queryBuilder.searchRequest.from = this.pagination.from;
       if (this.tableMetaData.size) {
         this.pagination.size = this.tableMetaData.size;
@@ -484,7 +477,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   tryStartPolling() {
     if (!this.isRefreshPaused) {
       this.tryStopPolling();
-      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder).subscribe(results => {
+      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
         this.setData(results);
       });
     }
@@ -519,5 +512,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   removeAlertChangedListner() {
     this.alertChangedSubscription.unsubscribe();
+  }
+
+  onTreeViewChange(subgroupTotal) {
+    this.subgroupTotal = subgroupTotal;
+    this.cdRef.detectChanges();
   }
 }

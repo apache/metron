@@ -20,7 +20,7 @@
       </div>
       <div class="mrow top-group" (click)="toggleTopLevelGroup(group)">
         <div class="col-5 text-light severity-padding"> <span class="title"> {{ group.key | centerEllipses:45 }} </span> </div>
-        <div class="col-5 text-light two-line"> <span class="text-dark"> ALERTS </span> <br> <span class="title"> {{ group.total | number }} </span> </div>
+        <div class="col-5 text-light two-line"> <span class=""> ALERTS </span> <br> <span class="title"> {{ group.total | number }} </span> </div>
         <div class="col-1 text-right pr-4">
           <i class="fa fa-link top-group-link" aria-hidden="true" (click)="createMetaAlert($event, group, i)" data-animation="false" data-toggle="tooltip" data-placement="left"  title="Merge Alerts"></i>
         </div>

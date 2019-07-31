@@ -24,7 +24,7 @@
                         <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
                     </span>
                     <span class="input-group-append" style="white-space: nowrap;">
-                        <app-time-range class="d-flex position-relative" (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
+                        <app-time-range class="d-flex position-relative" (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampFilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
                     </span>
                     <span class="input-group-append">
                         <button data-qe-id="alert-search-btn" class="btn btn-secondary btn-search rounded-right" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
@@ -39,7 +39,8 @@
     </div>
     <div class="mrow">
         <div class="col-md-9 px-0">
-            <span class="col-form-label-lg"> Alerts ({{searchResponse.total}}) </span>
+            <span class="col-form-label-lg">Alerts ({{searchResponse.total}}) </span>
+            <div *ngIf="subgroupTotal" data-qe-id="alert-subgroup-total">Alerts in Groups ({{subgroupTotal}})</div>
         </div>
         <div class="col-md-3 px-0">
             <div class="pull-right" style="position: relative; display: block;">
@@ -81,26 +82,28 @@
         <div class="col-xs-12 px-0">
             <app-table-view #dataViewComponent
                             [alerts]="alerts" *ngIf="groups.length === 0"
-                            [queryBuilder]="queryBuilder"
                             [pagination]="pagination"
                             [alertsColumnsToDisplay]="alertsColumnsToDisplay"
                             [selectedAlerts]="selectedAlerts"
                             (onResize)="onResize()"
                             (onAddFilter)="onAddFilter($event)"
-                            (onRefreshData)="onRefreshData($event)"
                             (onShowDetails)="showDetails($event)"
-                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
+                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"
+                            (onSortChanged)="onSortChanged($event)"
+                            (onPageChanged)="onPageChanged($event)"></app-table-view>
             <app-tree-view #dataViewComponent *ngIf="groups.length !== 0"
                            [alerts]="alerts"
-                           [queryBuilder]="queryBuilder"
                            [alertsColumnsToDisplay]="alertsColumnsToDisplay"
                            [selectedAlerts]="selectedAlerts"
                            [globalConfig]="globalConfig"
+                           [query]="queryBuilder.generateSelect()"
+                           [groups]="groups"
                            (onResize)="onResize()"
                            (onAddFilter)="onAddFilter($event)"
-                           (onRefreshData)="onRefreshData($event)"
                            (onShowDetails)="showDetails($event)"
-                           (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-tree-view>
+                           (onSelectedAlertsChange)="onSelectedAlertsChange($event)"
+                           (onMetaAlertCreated)="search($event)"
+                           (treeViewChange)="onTreeViewChange($event)"></app-tree-view>
         </div>
     </div>
   </div>

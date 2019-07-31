@@ -21,7 +21,7 @@
     <property>
         <name>parsers</name>
         <value>bro,snort,yaf</value>
-        <description>Metron parsers to deploy. You can also specify an aggregated parser list by grouping them with double quotes. For example: "parserA,parserB",parserC,parserD</description>
+        <description>Metron parsers to deploy. You can also specify an aggregated parser list by grouping them with double quotes. For example: "parserA,parserB",parserC,parserD. Parser names with hyphens need to be wrapped in single quotes, e.g. 'my-hyphenated-parser-name'</description>
         <display-name>Metron Parsers</display-name>
     </property>
     <property>

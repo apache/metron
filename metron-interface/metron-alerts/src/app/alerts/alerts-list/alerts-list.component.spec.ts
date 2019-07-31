@@ -30,6 +30,7 @@ import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { Observable } from 'rxjs';
 import { Filter } from 'app/model/filter';
+import { QueryBuilder } from './query-builder';
 
 describe('AlertsListComponent', () => {
 
@@ -68,6 +69,9 @@ describe('AlertsListComponent', () => {
           get: () => new Observable(),
         } } },
         { provide: DialogService, useClass: () => { return {} } },
+        { provide: QueryBuilder, useClass: () => { return {
+          addOrUpdateFilter: () => {}
+        } } },
       ]
     })
     .compileComponents();
@@ -94,6 +98,17 @@ describe('AlertsListComponent', () => {
 
   it('default query time range to date should be set', () => {
     expect(component.selectedTimeRange.dateFilterValue.toDate).toBeTruthy();
+  });
+
+  it('shows subtotals in view when onTreeViewChange is truthy', () => {
+    component.onTreeViewChange(4);
+    fixture.detectChanges();
+    let subtotal = fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]');
+    expect(subtotal.textContent).toEqual('Alerts in Groups (4)');
+
+    component.onTreeViewChange(0);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]')).toBeNull();
   });
 
 });

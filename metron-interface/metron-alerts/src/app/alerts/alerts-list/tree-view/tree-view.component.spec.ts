@@ -79,4 +79,10 @@ describe('TreeViewComponent', () => {
   it('should be created', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should emit subgroup total on change', () => {
+    component.treeViewChange.subscribe((num: number) => {
+      expect(num).toBe(0);
+    });
+  })
 });
