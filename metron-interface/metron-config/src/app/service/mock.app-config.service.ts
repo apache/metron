@@ -27,6 +27,10 @@ export class MockAppConfigService extends AppConfigService {
     return '/login'
   }
 
+  getAlertsUIHost() {
+    return 'localhost';
+  }
+
   getAlertsUIPort() {
     return '4201'
   }

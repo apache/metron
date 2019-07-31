@@ -30,7 +30,7 @@ export class AppComponent {
 
   loggedIn = false;
   isCollapsed = false;
-  hostname = window.location.hostname;
+  hostname = this.appConfigService.getAlertsUIHost();
   centralNavLinks = [
     {
       linkName: 'Alerts',

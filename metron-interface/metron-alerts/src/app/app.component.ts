@@ -29,7 +29,7 @@ export class AppComponent implements OnInit {
   loggedIn = false;
   noTransition = false;
   isCollapsed = false;
-  hostname = window.location.hostname;
+  hostname = this.appConfigService.getManagementUIHost();
   centralNavLinks = [
     {
       linkName: 'Alerts',

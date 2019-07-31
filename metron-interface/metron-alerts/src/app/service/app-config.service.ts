@@ -60,6 +60,13 @@ export class AppConfigService {
     return AppConfigService.appConfigStatic['contextMenuConfigURL'];
   }
 
+  getManagementUIHost() {
+      if (AppConfigService.appConfigStatic['managementUIHost'] === undefined) {
+          console.error('[AppConfigService] managementUIHost entry is missing from /assets/app-config.json');
+      }
+      return AppConfigService.appConfigStatic['managementUIHost'];
+  }
+
   getManagementUIPort() {
       if (AppConfigService.appConfigStatic['managementUIPort'] === undefined) {
           console.error('[AppConfigService] managementUIPort entry is missing from /assets/app-config.json');

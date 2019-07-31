@@ -46,9 +46,13 @@ class RouterOutletStubComponent {}
 
 class FakeAppConfigService {
 
-    getManagementUIPort() {
-        return '4200'
-    }
+  getManagementUIHost() {
+    return 'localhost';
+  }
+
+  getManagementUIPort() {
+    return '4200'
+  }
 }
 
 describe('AppComponent', () => {
