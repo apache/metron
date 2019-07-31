@@ -267,7 +267,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       keyTransformer = new AbstractMap.SimpleEntry<>(o, newtransformer);
       LOG.debug("Transformer found for keys '{}' and delimiter '{}': '{}'", () -> String.join(",", keys),
               () -> delim, () -> newtransformer);
-      return transformer;
+      return newtransformer;
     }
   }
 
