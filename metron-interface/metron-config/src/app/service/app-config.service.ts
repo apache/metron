@@ -43,6 +43,13 @@ export class AppConfigService {
     return AppConfigService.appConfigStatic['loginPath'];
   }
 
+  getAlertsUIPort() {
+      if (AppConfigService.appConfigStatic['alertsUIPort'] === undefined) {
+          console.error('[AppConfigService] alertsUIPort entry is missing from /assets/app-config.json');
+      }
+      return AppConfigService.appConfigStatic['alertsUIPort'];
+  }
+
   static getAppConfigStatic() {
     return AppConfigService.appConfigStatic;
   }

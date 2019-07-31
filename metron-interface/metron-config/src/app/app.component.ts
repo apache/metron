@@ -17,6 +17,7 @@
  */
 import {Component} from '@angular/core';
 import {AuthenticationService} from './service/authentication.service';
+import {AppConfigService} from './service/app-config.service';
 
 
 @Component({
@@ -37,12 +38,12 @@ export class AppComponent {
       subLinks: [
         {
           linkName: 'Overview',
-          routerLink: ':4201/alerts-list',
+          routerLink: ':' + this.appConfigService.getAlertsUIPort() + '/alerts-list',
           externalLink: true
         },
         {
           linkName: 'PCAP',
-          routerLink: ':4201/pcap',
+          routerLink: ':' + this.appConfigService.getAlertsUIPort() + '/pcap',
           externalLink: true
         }
       ]
@@ -63,7 +64,7 @@ export class AppComponent {
     }
   ];
 
-  constructor(private authService: AuthenticationService) {
+  constructor(private authService: AuthenticationService, private appConfigService: AppConfigService) {
     this.authService.onLoginEvent.subscribe(result => {
       this.loggedIn = result;
     });

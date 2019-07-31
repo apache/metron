@@ -18,6 +18,7 @@
 import { Component, OnInit } from '@angular/core';
 import {AuthenticationService} from './service/authentication.service';
 import { environment } from 'environments/environment';
+import {AppConfigService} from './service/app-config.service';
 
 @Component({
   selector: 'metron-alerts-root',
@@ -50,19 +51,19 @@ export class AppComponent implements OnInit {
       subLinks: [
         {
           linkName: 'Sensors',
-          routerLink: ':4200/sensors',
+          routerLink: ':' + this.appConfigService.getManagementUIPort() + '/sensors',
           externalLink: true
         },
         {
           linkName: 'General Settings',
-          routerLink: ':4200/general-settings',
+          routerLink: ':' + this.appConfigService.getManagementUIPort() + '/general-settings',
           externalLink: true
         }
       ]
     }
   ]
 
-  constructor(private authService: AuthenticationService) {
+  constructor(private authService: AuthenticationService, private appConfigService: AppConfigService) {
     this.authService.onLoginEvent.subscribe(result => {
       this.loggedIn = result;
     });
