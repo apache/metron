@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
@@ -74,6 +75,11 @@ public class EmailValidationTest extends BaseValidationTest {
     Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "caseystella.com")));
     Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.7f)));
     Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.7f)));
+  }
+  @Test
+  public void negativeTest_empty() throws IOException {
+    Assert.assertFalse(runPredicate("IS_EMAIL()", Collections.emptyMap()));
+    Assert.assertFalse(runPredicate("IS_EMAIL('')", Collections.emptyMap()));
   }
   @Test
   public void positiveTest_multiple() throws IOException {
