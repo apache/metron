@@ -32,7 +32,7 @@ import {
 import { KafkaService } from '../../service/kafka.service';
 import { Observable, throwError } from 'rxjs';
 import { StellarFunctionDescription } from '../../model/stellar-function-description';
-import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParserConfigModel } from '../../sensors/models/parser-config.model';
 import {
   SensorEnrichmentConfig,
   EnrichmentConfig,
@@ -171,7 +171,7 @@ describe('Component: SensorFieldSchema', () => {
     configuration: {}
   };
   let sensorParserConfig = Object.assign(
-    new SensorParserConfig(),
+    new ParserConfigModel('TestConfigId01'),
     squidSensorConfigJson
   );
   let sensorEnrichmentConfig = Object.assign(
@@ -581,7 +581,7 @@ describe('Component: SensorFieldSchema', () => {
       codeFieldSchemaRow
     ];
 
-    component.sensorParserConfig = new SensorParserConfig();
+    component.sensorParserConfig = new ParserConfigModel('TestConfigId01');
     component.sensorParserConfig.parserClassName =
       'org.apache.metron.parsers.GrokParser';
     component.sensorParserConfig.sensorTopic = 'squid';
