@@ -15,12 +15,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface ParserModel {
-  group?: string,
 
-  setName(value: string)
-
-  getName(): string
-
-  getDescription(): string
-}
+export * from './sensors.actions';
