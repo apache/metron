@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,10 +109,13 @@ public class SolrSearchDao implements SearchDao {
 
   private void logQueryDebugDetail(SolrQuery query, QueryResponse response) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Solr query string: {}", query.toQueryString());
-      LOG.debug("Solr query debug map: {}", response.getDebugMap());
-      LOG.debug("Solr query elapsed time: {}", response.getElapsedTime());
-      LOG.debug("Solr query Q time: {}", response.getQTime());
+      final String ls = System.lineSeparator();
+      LOG.debug(
+          "Solr query string: {}{} Solr query debug map: {}{} Solr query elapsed time: {}{} Solr query Q time: {}",
+          query.toQueryString(), ls,
+          response.getDebugMap(), ls,
+          response.getElapsedTime(), ls,
+          response.getQTime());
     }
   }
 
