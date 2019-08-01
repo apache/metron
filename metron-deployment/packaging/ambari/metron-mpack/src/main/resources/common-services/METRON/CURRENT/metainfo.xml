@@ -375,6 +375,7 @@
                 <config-type>metron-security-env</config-type>
                 <config-type>metron-rest-env</config-type>
                 <config-type>metron-management-ui-env</config-type>
+                <config-type>metron-alerts-ui-env</config-type>
             </configuration-dependencies>
         </component>
         <component>
@@ -401,6 +402,7 @@
           <configuration-dependencies>
             <config-type>metron-security-env</config-type>
             <config-type>metron-rest-env</config-type>
+            <config-type>metron-management-ui-env</config-type>
             <config-type>metron-alerts-ui-env</config-type>
           </configuration-dependencies>
         </component>
