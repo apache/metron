@@ -17,16 +17,13 @@ limitations under the License.
 
 """
 
+from management_ui_commands import ManagementUICommands
+from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Execute
-from resource_management.core.logger import Logger
-from resource_management.core.exceptions import Fail
-
-from management_ui_commands import ManagementUICommands
 
 
 class ManagementUIMaster(Script):

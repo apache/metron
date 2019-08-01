@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import metron_security
+import metron_service
+from enrichment_commands import EnrichmentCommands
+from metron_security import storm_security_setup
 from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script import Script
-from resource_management.core.logger import Logger
 
-from enrichment_commands import EnrichmentCommands
-from metron_security import storm_security_setup
-import metron_service
-import metron_security
 
 class Enrichment(Script):
 

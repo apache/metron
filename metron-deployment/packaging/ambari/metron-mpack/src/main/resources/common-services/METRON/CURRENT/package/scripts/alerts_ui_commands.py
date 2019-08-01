@@ -18,10 +18,10 @@ limitations under the License.
 
 """
 
-from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
-
 import metron_service
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+
 
 # Wrap major operations and functionality in this class
 class AlertsUICommands:

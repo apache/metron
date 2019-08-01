@@ -17,18 +17,18 @@ limitations under the License.
 
 import os
 import re
+
 import requests
 import time
 
-from datetime import datetime
+import metron_security
+import metron_service
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.functions.format import format
 
-import metron_service
-import metron_security
 
 # Wrap major operations and functionality in this class
 class IndexingCommands:
