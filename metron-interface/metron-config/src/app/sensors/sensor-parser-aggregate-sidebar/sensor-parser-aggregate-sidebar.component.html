@@ -1,0 +1,74 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<metron-config-metron-modal>
+  <div class="metron-slider-pane-edit load-right-to-left dialog1x aggregate-sensors-pane">
+    <i class="fa fa-times float-right close-button" (click)="close()"></i>
+    <div class="form-title">
+      Aggregate Sensors
+    </div>
+    <div>
+      <div *ngIf="showCreateForm()">
+        <div class="form-fields">
+          <div class="form-field">
+            <label>
+              <span class="label-text">NAME *</span>
+              <input #groupNameInput type="text" class="form-control" [value]="name" [readOnly]="existingGroup" (keyup)="onNameChange($event)" />
+              <div *ngIf="groupNameInvalid"><label><span class="warning-text"> Group already exists </span></label></div>
+            </label>
+          </div>
+          <div class="form-field">
+            <label>
+              <span class="label-text">DESCRIPTION</span>
+              <input #descriptionInput type="text" class="form-control" [value]="description"/>
+            </label>
+          </div>
+        </div>
+        <div>
+          <button (click)="createNew(groupNameInput.value, descriptionInput.value)"
+                  (keyup.enter)="createNew(groupNameInput.value, descriptionInput.value)"
+                  class="btn save-button"
+                  [disabled]="groupNameInvalid">DONE</button>
+          <button (click)="close()"
+                  (keyup.enter)="close()"
+                  class="btn form-enable-disable-button">CANCEL</button>
+        </div>
+      </div>
+      <div *ngIf="!showCreateForm()">
+        <div class="form-fields">
+          <span class="label-text">JOIN BY GROUP</span>
+          <div class="switch-buttons">
+            <button
+              (click)="allowMerge = true"
+              [ngClass]="{ 'active': allowMerge }"
+            >
+              MERGE
+            </button><button
+              (click)="allowMerge = false"
+              [ngClass]="{ 'active': !allowMerge }"
+            >
+              CREATE NEW
+            </button>
+          </div>
+        </div>
+        <div>
+          <button (click)="mergeOrCreate()" class="btn save-button">DONE</button>
+          <button (click)="close()" class="btn form-enable-disable-button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</metron-config-metron-modal>
