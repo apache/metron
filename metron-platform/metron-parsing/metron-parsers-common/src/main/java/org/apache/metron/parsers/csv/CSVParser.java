@@ -37,8 +37,10 @@ public class CSVParser extends BasicParser {
   public static final String TIMESTAMP_FORMAT_CONF = "timestampFormat";
   private transient CSVConverter converter;
   private SimpleDateFormat timestampFormat;
+
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
     converter = new CSVConverter();
     converter.initialize(parserConfig);
     Object tsFormatObj = parserConfig.get(TIMESTAMP_FORMAT_CONF);
@@ -56,7 +58,7 @@ public class CSVParser extends BasicParser {
   @Override
   public List<JSONObject> parse(byte[] rawMessage) {
     try {
-      String msg = new String(rawMessage, StandardCharsets.UTF_8);
+      String msg = new String(rawMessage, getReadCharset());
       Map<String, String> value = converter.toMap(msg);
       if(value != null) {
         value.put("original_string", msg);

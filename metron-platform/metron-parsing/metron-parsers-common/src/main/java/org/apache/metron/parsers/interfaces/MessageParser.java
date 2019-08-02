@@ -17,17 +17,17 @@
  */
 package org.apache.metron.parsers.interfaces;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.metron.parsers.DefaultMessageParserResult;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 public interface MessageParser<T> extends Configurable {
+
+  String READ_CHARSET = "readCharset"; // property to use for getting the read charset from parser config
+
   /**
    * Initialize the message parser.  This is done once.
    */
@@ -81,4 +81,11 @@ public interface MessageParser<T> extends Configurable {
    */
   boolean validate(T message);
 
+  /**
+   * Provides a hook to override the default charset parsers use to read data.
+   * @return Charset to use for for reading
+   */
+  default Charset getReadCharset() {
+    return StandardCharsets.UTF_8;
+  }
 }

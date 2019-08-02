@@ -16,20 +16,25 @@
 package org.apache.metron.parsers.regex;
 
 import com.google.common.base.CaseFormat;
+import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.invoke.MethodHandles;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 //@formatter:off
 /**
@@ -154,7 +159,7 @@ public class RegularExpressionsParser extends BasicParser {
     public List<JSONObject> parse(byte[] rawMessage) {
         String originalMessage = null;
         try {
-            originalMessage = new String(rawMessage, StandardCharsets.UTF_8).trim();
+            originalMessage = new String(rawMessage, getReadCharset()).trim();
             LOG.debug(" raw message. {}", originalMessage);
             if (originalMessage.isEmpty()) {
                 LOG.warn("Message is empty.");
@@ -201,6 +206,7 @@ public class RegularExpressionsParser extends BasicParser {
   // @formatter:on
   @Override
   public void configure(Map<String, Object> parserConfig) {
+      setReadCharset(parserConfig);
       setParserConfig(parserConfig);
       setFields((List<Map<String, Object>>) getParserConfig()
           .get(ParserConfigConstants.FIELDS.getName()));

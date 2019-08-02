@@ -106,6 +106,7 @@ public class JSONMapParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> config) {
+    setReadCharset(config);
     String strategyStr = (String) config.getOrDefault(MAP_STRATEGY_CONFIG, MapStrategy.DROP.name());
     mapStrategy = MapStrategy.valueOf(strategyStr);
     overrideOriginalString = (Boolean) config.getOrDefault(OVERRIDE_ORIGINAL_STRING, false);
@@ -170,7 +171,7 @@ public class JSONMapParser extends BasicParser {
   @SuppressWarnings("unchecked")
   public List<JSONObject> parse(byte[] rawMessage) {
     try {
-      String rawString = new String(rawMessage, StandardCharsets.UTF_8);
+      String rawString = new String(rawMessage, getReadCharset());
       List<Map<String, Object>> messages = new ArrayList<>();
 
       // if configured, wrap the json in an entity and array

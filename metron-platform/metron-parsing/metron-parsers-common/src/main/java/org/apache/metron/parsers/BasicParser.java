@@ -19,6 +19,8 @@ package org.apache.metron.parsers;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.Charset;
+import java.util.Map;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -29,6 +31,8 @@ public abstract class BasicParser implements
         Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  private Charset readCharset;
 
   @Override
   public boolean validate(JSONObject message) {
@@ -65,5 +69,18 @@ public abstract class BasicParser implements
     } catch (Exception e) {
       return "0";
     }
+  }
+
+  public void setReadCharset(Map<String, Object> config) {
+    if (config.containsKey(READ_CHARSET)) {
+      readCharset = Charset.forName((String) config.get(READ_CHARSET));
+    } else {
+      readCharset = MessageParser.super.getReadCharset();
+    }
+  }
+
+  @Override
+  public Charset getReadCharset() {
+    return null == this.readCharset ? MessageParser.super.getReadCharset() : this.readCharset;
   }
 }
