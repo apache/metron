@@ -124,7 +124,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
             if (slowLogThreshold != null && _PERF_LOG.isDebugEnabled()) {
               long duration = System.currentTimeMillis() - startTime;
               if (duration > slowLogThreshold) {
-                _PERF_LOG.debug("SLOW LOG: " + stellarStatement + " took" + duration + "ms");
+                _PERF_LOG.debug("SLOW LOG: {} took {} ms",stellarStatement,duration);
               }
             }
             _LOG.debug("{} := {} yields {}", kv.getKey(), stellarStatement , o);
