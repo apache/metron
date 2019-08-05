@@ -46,6 +46,7 @@ import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
 import { AlertSource } from '../../model/alert-source';
+import { SearchRequest } from 'app/model/search-request';
 
 @Component({
   selector: 'app-alerts-list',
@@ -74,6 +75,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
+  @ViewChild('manualQuery') manualQuery: ElementRef;
 
   tableMetaData = new TableMetadata();
   pagination: Pagination = new Pagination();
@@ -83,6 +85,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   configSubscription: Subscription;
   groups = [];
   subgroupTotal = 0;
+  hideQueryBuilder = false;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -221,6 +224,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onClear() {
     this.timeStampFilterPresent = false;
     this.queryBuilder.clearSearch();
+    if (this.hideQueryBuilder) { this.manualQuery.nativeElement.value = '*'; }
     this.search();
   }
 
@@ -259,7 +263,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onAddFilter(filter: Filter) {
-    this.timeStampFilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
+    this.timeStampFilterPresent = this.queryBuilder.isTimeStampFieldPresent();
     this.queryBuilder.addOrUpdateFilter(filter);
     this.search();
   }
@@ -371,7 +375,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.tryStartPolling();
   }
 
-  search(resetPaginationParams = true, savedSearch?: SaveSearch) {
+  search(resetPaginationParams = true, savedSearch?: SaveSearch, manualQueryInput?: string) {
     this.saveCurrentSearch(savedSearch);
     if (resetPaginationParams) {
       this.pagination.from = 0;
@@ -379,14 +383,30 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
     this.setSearchRequestSize();
 
-    this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
-      this.setData(results);
-    }, error => {
-      this.setData(new SearchResponse());
-      this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
-    });
+    if (this.hideQueryBuilder) {
+      const newSearch = new SearchRequest();
+      newSearch.query = this.manualQuery.nativeElement.value;
+      newSearch.size = this.pagination.size;
+      newSearch.from = 0;
 
-    this.tryStartPolling();
+      this.searchService.search(newSearch).subscribe(results => {
+        this.setData(results);
+      }, error => {
+        this.setData(new SearchResponse());
+        this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
+      });
+
+      this.tryStartPolling(newSearch);
+    } else {
+        this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
+        this.setData(results);
+      }, error => {
+        this.setData(new SearchResponse());
+        this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
+      });
+
+      this.tryStartPolling();
+    }
   }
 
   setSearchRequestSize() {
@@ -474,10 +494,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl('/alerts-list(dialog:save-search)');
   }
 
-  tryStartPolling() {
-    if (!this.isRefreshPaused) {
+  tryStartPolling(manualSearch?: SearchRequest) {
+    if (!this.isRefreshPaused && !manualSearch) {
       this.tryStopPolling();
       this.refreshTimer = this.searchService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
+        this.setData(results);
+      });
+    } else if (!this.isRefreshPaused && manualSearch) {
+      this.tryStopPolling();
+      this.refreshTimer = this.searchService.pollSearch(manualSearch).subscribe(results => {
         this.setData(results);
       });
     }
@@ -518,4 +543,25 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.subgroupTotal = subgroupTotal;
     this.cdRef.detectChanges();
   }
+
+  toggleQueryBuilder() {
+    this.setSelectedTimeRange([this.selectedTimeRange]);
+    if (!this.hideQueryBuilder) {
+      this.hideQueryBuilder = true;
+      this.manualQuery.nativeElement.value = this.queryBuilder.query;
+    } else {
+      this.hideQueryBuilder = false;
+      this.queryBuilder.clearSearch();
+      this.search();
+    }
+  }
+
+  queryForTreeView() {
+    if (!this.hideQueryBuilder) {
+      return this.queryBuilder.generateSelect();
+    } else {
+      return this.manualQuery.nativeElement.value;
+    }
+  }
+
 }

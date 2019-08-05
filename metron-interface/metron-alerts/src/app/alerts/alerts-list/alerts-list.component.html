@@ -19,15 +19,27 @@
                     <span class="input-group-prepend">
                         <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
                     </span>
-                    <div appAceEditor style="width:100%;" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
+                    <div appAceEditor *ngIf="!hideQueryBuilder" class="flex-fill" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
+                    <div class="flex-fill" [class.d-none]="!hideQueryBuilder">
+                        <input class="manual-query-input" type="text" #manualQuery >
+                    </div>
+                    <span class="input-group-append">
+                        <button class="btn btn-secondary btn-options" (click)="toggleQueryBuilder()">
+                            <span *ngIf="hideQueryBuilder">Use Query Builder</span>
+                            <span *ngIf="!hideQueryBuilder">Use Manual Query</span>
+                        </button>
+                    </span>
                     <span class="input-group-append">
                         <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
                     </span>
-                    <span class="input-group-append" style="white-space: nowrap;">
+                    <span class="input-group-append" style="white-space: nowrap;" [class.d-none]="hideQueryBuilder">
                         <app-time-range class="d-flex position-relative" (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampFilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
                     </span>
-                    <span class="input-group-append">
+                    <span class="input-group-append" [class.d-none]="hideQueryBuilder">
                         <button data-qe-id="alert-search-btn" class="btn btn-secondary btn-search rounded-right" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                    </span>
+                    <span class="input-group-append" [class.d-none]="!hideQueryBuilder">
+                        <button data-qe-id="alert-search-btn" class="btn btn-secondary btn-search rounded-right" type="button" data-name="search" (click)="search(false, null, manualQuery.value)"></button>
                     </span>
                     <div class="input-group-append">
                         <span class="save-button" (click)="showSaveSearch()">
@@ -72,7 +84,7 @@
 
 <div class="container-fluid no-gutters">
     <div class="row">
-      <div class="px-0" style="width: 200px;max-width: 200px;">
+      <div class="px-0" style="width: 200px;max-width: 200px;" [class.d-none]="hideQueryBuilder">
         <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
       </div>
       <div class="col px-0 pl-4" style="overflow: auto;">
@@ -96,7 +108,7 @@
                            [alertsColumnsToDisplay]="alertsColumnsToDisplay"
                            [selectedAlerts]="selectedAlerts"
                            [globalConfig]="globalConfig"
-                           [query]="queryBuilder.generateSelect()"
+                           [query]="queryForTreeView()"
                            [groups]="groups"
                            (onResize)="onResize()"
                            (onAddFilter)="onAddFilter($event)"
