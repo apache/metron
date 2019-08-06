@@ -31,6 +31,7 @@ import { GroupByModule } from '../../shared/group-by/group-by.module';
 import { AlertFiltersComponent } from './alert-filters/alert-filters.component';
 import { TableViewComponent } from './table-view/table-view.component';
 import { TreeViewComponent } from './tree-view/tree-view.component';
+import { ModalLoadingIndicatorComponent } from 'app/shared/modal-loading-indicator/modal-loading-indicator.component';
 
 @NgModule({
   imports: [
@@ -49,7 +50,8 @@ import { TreeViewComponent } from './tree-view/tree-view.component';
     AlertsListComponent,
     TableViewComponent,
     TreeViewComponent,
-    AlertFiltersComponent
+    AlertFiltersComponent,
+    ModalLoadingIndicatorComponent,
   ],
   providers: [ DecimalPipe ]
 })
