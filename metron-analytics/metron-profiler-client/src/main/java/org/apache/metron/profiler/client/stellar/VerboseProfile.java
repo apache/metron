@@ -83,6 +83,10 @@ public class VerboseProfile implements StellarFunction {
   protected static final String PERIOD_END_KEY = "period.end";
   protected static final String VALUE_KEY = "value";
   protected static final String GROUPS_KEY = "groups";
+  private static final int PROFILE_ARG_INDEX = 0;
+  private static final int ENTITY_ARG_INDEX = 1;
+  private static final int PERIOD_ARG_INDEX = 2;
+  private static final int GROUPS_ARG_INDEX = 3;
 
   public VerboseProfile() {
     this.profilerClientFactory = new HBaseProfilerClientFactory();
@@ -119,14 +123,14 @@ public class VerboseProfile implements StellarFunction {
   @Override
   public Object apply(List<Object> args, Context context) throws ParseException {
     // required arguments
-    String profile = getArg(0, String.class, args);
-    String entity = getArg(1, String.class, args);
-    List<ProfilePeriod> periods = getArg(2, List.class, args);
+    String profile = getArg(PROFILE_ARG_INDEX, String.class, args);
+    String entity = getArg(ENTITY_ARG_INDEX, String.class, args);
+    List<ProfilePeriod> periods = getArg(PERIOD_ARG_INDEX, List.class, args);
 
     // optional 'groups' argument
     List<Object> groups = new ArrayList<>();
-    if(args.size() >= 4) {
-      groups = getArg(3, List.class, args);
+    if(args.size() > GROUPS_ARG_INDEX) {
+      groups = getArg(GROUPS_ARG_INDEX, List.class, args);
     }
 
     // is there a default value?
