@@ -65,10 +65,12 @@ public class HBaseWriterFunctionTest {
     hBaseClientFactory = (x, y, z) -> hbaseClient;
     rowKeyBuilder = new SaltyRowKeyBuilder();
     columnBuilder = new ValueOnlyColumnBuilder();
-    function = new HBaseWriterFunction(profilerProperties)
+    function = new HBaseWriterFunction.Builder()
+            .withProperties(profilerProperties)
             .withRowKeyBuilder(rowKeyBuilder)
             .withColumnBuilder(columnBuilder)
-            .withClientFactory(hBaseClientFactory);
+            .withClientFactory(hBaseClientFactory)
+            .build();
   }
 
   @Test
@@ -102,8 +104,10 @@ public class HBaseWriterFunctionTest {
     List<ProfileMeasurementAdapter> measurements = createMeasurements(10, entity, timestamp, profile);
 
     // setup the function to test
-    HBaseWriterFunction function = new HBaseWriterFunction(profilerProperties);
-    function.withClientFactory(hBaseClientFactory);
+    HBaseWriterFunction function = new HBaseWriterFunction.Builder()
+            .withProperties(profilerProperties)
+            .withClientFactory(hBaseClientFactory)
+            .build();
 
     // write the measurements
     Iterator<Integer> results = function.call(measurements.iterator());
@@ -120,8 +124,10 @@ public class HBaseWriterFunctionTest {
     List<ProfileMeasurementAdapter> measurements = new ArrayList<>();
 
     // setup the function to test
-    HBaseWriterFunction function = new HBaseWriterFunction(profilerProperties);
-    function.withClientFactory(hBaseClientFactory);
+    HBaseWriterFunction function = new HBaseWriterFunction.Builder()
+            .withProperties(profilerProperties)
+            .withClientFactory(hBaseClientFactory)
+            .build();
 
     // write the measurements
     Iterator<Integer> results = function.call(measurements.iterator());

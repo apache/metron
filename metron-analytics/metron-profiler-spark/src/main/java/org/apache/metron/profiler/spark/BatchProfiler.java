@@ -28,6 +28,7 @@ import org.apache.metron.profiler.spark.function.MessageRouterFunction;
 import org.apache.metron.profiler.spark.function.ProfileBuilderFunction;
 import org.apache.metron.profiler.spark.reader.TelemetryReader;
 import org.apache.metron.profiler.spark.reader.TelemetryReaders;
+import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
@@ -97,8 +98,11 @@ public class BatchProfiler implements Serializable {
     LOG.debug("Produced {} profile measurement(s)", measurements.cache().count());
 
     // write the profile measurements to HBase
+    MapPartitionsFunction<ProfileMeasurementAdapter, Integer> mapper = new HBaseWriterFunction.Builder()
+            .withProperties(profilerProps)
+            .build();
     long count = measurements
-            .mapPartitions(new HBaseWriterFunction(profilerProps), Encoders.INT())
+            .mapPartitions(mapper, Encoders.INT())
             .agg(sum("value"))
             .head()
             .getLong(0);

@@ -61,6 +61,84 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  public static class Builder {
+    private HBaseConnectionFactory connectionFactory;
+    private HBaseClientFactory hBaseClientFactory;
+    private String tableName;
+    private Durability durability;
+    private RowKeyBuilder rowKeyBuilder;
+    private ColumnBuilder columnBuilder;
+
+    public Builder withConnectionFactory(HBaseConnectionFactory connectionFactory) {
+      this.connectionFactory = connectionFactory;
+      return this;
+    }
+
+    public Builder withClientFactory(HBaseClientFactory clientFactory) {
+      this.hBaseClientFactory = clientFactory;
+      return this;
+    }
+
+    public Builder withRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {
+      this.rowKeyBuilder = rowKeyBuilder;
+      return this;
+    }
+
+    public Builder withColumnBuilder(ColumnBuilder columnBuilder) {
+      this.columnBuilder = columnBuilder;
+      return this;
+    }
+
+    public Builder withProperties(Properties properties) {
+      // row key builder
+      int saltDivisor = HBASE_SALT_DIVISOR.get(properties, Integer.class);
+      int periodDuration = PERIOD_DURATION.get(properties, Integer.class);
+      TimeUnit periodDurationUnits = TimeUnit.valueOf(PERIOD_DURATION_UNITS.get(properties, String.class));
+      rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodDurationUnits);
+
+      // column builder
+      String columnFamily = HBASE_COLUMN_FAMILY.get(properties, String.class);
+      columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+
+      // hbase
+      tableName = HBASE_TABLE_NAME.get(properties, String.class);
+      durability = HBASE_WRITE_DURABILITY.get(properties, Durability.class);
+
+      // connection factory
+      String factoryImpl = HBASE_CONNECTION_FACTORY.get(properties, String.class);
+      connectionFactory = createConnectionFactory(factoryImpl);
+
+      // client creator
+      String creatorImpl = HBASE_CLIENT_FACTORY.get(properties, String.class);
+      hBaseClientFactory = HBaseClientFactory.byName(creatorImpl, () -> new HBaseTableClientFactory());
+
+      return this;
+    }
+
+    private static HBaseConnectionFactory createConnectionFactory(String factoryImpl) {
+      LOG.trace("Creating table provider; className={}", factoryImpl);
+
+      // if class name not defined, use a reasonable default
+      if(StringUtils.isEmpty(factoryImpl) || factoryImpl.charAt(0) == '$') {
+        return new HBaseConnectionFactory();
+      }
+
+      // instantiate the table provider
+      return HBaseConnectionFactory.byName(factoryImpl);
+    }
+
+    public HBaseWriterFunction build() {
+      HBaseWriterFunction function = new HBaseWriterFunction();
+      function.connectionFactory = connectionFactory;
+      function.hBaseClientFactory = hBaseClientFactory;
+      function.tableName = tableName;
+      function.durability = durability;
+      function.rowKeyBuilder = rowKeyBuilder;
+      function.columnBuilder = columnBuilder;
+      return function;
+    }
+  }
+
   /**
    * Establishes connections to HBase.
    */
@@ -91,28 +169,11 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
    */
   private ColumnBuilder columnBuilder;
 
-  public HBaseWriterFunction(Properties properties) {
-    // row key builder
-    int saltDivisor = HBASE_SALT_DIVISOR.get(properties, Integer.class);
-    int periodDuration = PERIOD_DURATION.get(properties, Integer.class);
-    TimeUnit periodDurationUnits = TimeUnit.valueOf(PERIOD_DURATION_UNITS.get(properties, String.class));
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodDurationUnits);
-
-    // column builder
-    String columnFamily = HBASE_COLUMN_FAMILY.get(properties, String.class);
-    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-
-    // hbase
-    tableName = HBASE_TABLE_NAME.get(properties, String.class);
-    durability = HBASE_WRITE_DURABILITY.get(properties, Durability.class);
-
-    // connection factory
-    String factoryImpl = HBASE_CONNECTION_FACTORY.get(properties, String.class);
-    connectionFactory = createConnectionFactory(factoryImpl);
-
-    // client creator
-    String creatorImpl = HBASE_CLIENT_FACTORY.get(properties, String.class);
-    hBaseClientFactory = HBaseClientFactory.byName(creatorImpl, () -> new HBaseTableClientFactory());
+  /**
+   * Use the {@link HBaseWriterFunction.Builder} instead.
+   */
+  private HBaseWriterFunction() {
+    // nothing to do
   }
 
   /**
@@ -147,41 +208,5 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
 
     LOG.debug("{} profile measurement(s) written to HBase", count);
     return IteratorUtils.singletonIterator(count);
-  }
-
-  /**
-   * Creates an {@link HBaseConnectionFactory} based on a class name.
-   * @param factoryImpl The class name of an {@link HBaseConnectionFactory} implementation.
-   */
-  private static HBaseConnectionFactory createConnectionFactory(String factoryImpl) {
-    LOG.trace("Creating table provider; className={}", factoryImpl);
-
-    // if class name not defined, use a reasonable default
-    if(StringUtils.isEmpty(factoryImpl) || factoryImpl.charAt(0) == '$') {
-      return new HBaseConnectionFactory();
-    }
-
-    // instantiate the table provider
-    return HBaseConnectionFactory.byName(factoryImpl);
-  }
-
-  protected HBaseWriterFunction withConnectionFactory(HBaseConnectionFactory connectionFactory) {
-    this.connectionFactory = connectionFactory;
-    return this;
-  }
-
-  protected HBaseWriterFunction withClientFactory(HBaseClientFactory clientFactory) {
-    this.hBaseClientFactory = clientFactory;
-    return this;
-  }
-
-  protected HBaseWriterFunction withRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {
-    this.rowKeyBuilder = rowKeyBuilder;
-    return this;
-  }
-
-  protected HBaseWriterFunction withColumnBuilder(ColumnBuilder columnBuilder) {
-    this.columnBuilder = columnBuilder;
-    return this;
   }
 }
