@@ -104,6 +104,10 @@ public class VerboseProfile implements StellarFunction {
 
   @Override
   public void initialize(Context context) {
+    // values stored in the global config that are used to initialize the ProfilerClient
+    // are read only once during initialization.  if those values change during a Stellar
+    // session, this function will not respond to them.  the Stellar session would need to be
+    // restarted for those changes to take effect.  this differs from the behavior of `PROFILE_GET`.
     Map<String, Object> globals = getGlobals(context);
     profilerClient = profilerClientFactory.create(globals);
   }
