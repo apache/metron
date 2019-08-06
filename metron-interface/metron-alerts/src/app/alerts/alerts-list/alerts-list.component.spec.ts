@@ -111,4 +111,17 @@ describe('AlertsListComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]')).toBeNull();
   });
 
+  it('should set pendingSearch on search', () => {
+    component.search(false);
+    expect(component.pendingSearch)
+  });
+
+  it('should clear pendingSearch on search success', () => {
+
+  });
+
+  it('should clear pendingSearch on search fail', () => {
+
+  });
+
 });

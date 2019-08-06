@@ -12,6 +12,22 @@
   the specific language governing permissions and limitations under the License.
   -->
 <div class="container-fluid px-0">
+
+    <div *ngIf="pendingSearch" class="modal-backdrop show"></div>
+    <!-- Modal -->
+    <div *ngIf="pendingSearch" class="modal modal-loader">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <img src="/assets/images/logo.png">
+                    <div class="spinner-border text-info" role="status"></div>
+                    <div class="pt-2"><small>Fetching alerts...</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="mrow">
         <div class="col-md-12 px-0">
             <div >

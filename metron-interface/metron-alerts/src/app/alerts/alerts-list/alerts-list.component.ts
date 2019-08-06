@@ -84,6 +84,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   groups = [];
   subgroupTotal = 0;
 
+  pendingSearch: Subscription;
+
   constructor(private router: Router,
               private searchService: SearchService,
               private updateService: UpdateService,
@@ -379,11 +381,13 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
     this.setSearchRequestSize();
 
-    this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
+    this.pendingSearch = this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
+      this.pendingSearch = null;
     }, error => {
       this.setData(new SearchResponse());
       this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
+      this.pendingSearch = null;
     });
 
     this.tryStartPolling();
