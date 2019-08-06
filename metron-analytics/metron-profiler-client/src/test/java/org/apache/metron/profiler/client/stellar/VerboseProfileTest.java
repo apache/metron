@@ -67,8 +67,9 @@ public class VerboseProfileTest {
     profilerClient = mock(ProfilerClient.class);
 
     // the VERBOSE_PROFILE function that will be tested
-    function = new VerboseProfile();
-    function.withProfilerClientFactory(globals -> profilerClient);
+    function = new VerboseProfile.Builder()
+            .withProfilerClientFactory(globals -> profilerClient)
+            .build();
 
     // global properties
     globals = new HashMap<>();
