@@ -22,6 +22,7 @@ import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.client.HBaseProfilerClientFactory;
 import org.apache.metron.profiler.client.ProfilerClient;
+import org.apache.metron.profiler.client.ProfilerClientFactories;
 import org.apache.metron.profiler.client.ProfilerClientFactory;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
@@ -89,7 +90,7 @@ public class VerboseProfile implements StellarFunction {
   private static final int GROUPS_ARG_INDEX = 3;
 
   public static class Builder {
-    private ProfilerClientFactory profilerClientFactory = new HBaseProfilerClientFactory();
+    private ProfilerClientFactory profilerClientFactory = ProfilerClientFactories.DEFAULT;
 
     public VerboseProfile.Builder withProfilerClientFactory(ProfilerClientFactory profilerClientFactory) {
       this.profilerClientFactory = profilerClientFactory;

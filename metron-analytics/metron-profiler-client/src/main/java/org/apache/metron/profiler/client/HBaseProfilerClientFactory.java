@@ -44,6 +44,9 @@ import static org.apache.metron.profiler.client.stellar.Util.getPeriodDurationIn
  */
 public class HBaseProfilerClientFactory implements ProfilerClientFactory {
 
+  /**
+   * The factory that provides the {@link HBaseClient} that is used to interact with HBase.
+   */
   private HBaseClientFactory hBaseClientFactory;
 
   public HBaseProfilerClientFactory() {
