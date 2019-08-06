@@ -62,12 +62,12 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static class Builder {
-    private HBaseConnectionFactory connectionFactory;
-    private HBaseClientFactory hBaseClientFactory;
-    private String tableName;
-    private Durability durability;
-    private RowKeyBuilder rowKeyBuilder;
-    private ColumnBuilder columnBuilder;
+    private HBaseConnectionFactory connectionFactory = new HBaseConnectionFactory();
+    private HBaseClientFactory hBaseClientFactory = new HBaseTableClientFactory();
+    private String tableName = String.class.cast(HBASE_TABLE_NAME.getDefault());
+    private Durability durability = Durability.class.cast(HBASE_WRITE_DURABILITY.getDefault());
+    private RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
+    private ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder();
 
     public Builder withConnectionFactory(HBaseConnectionFactory connectionFactory) {
       this.connectionFactory = connectionFactory;
