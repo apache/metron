@@ -135,8 +135,9 @@ public class BatchProfilerIntegrationTest {
             TimeUnit.MINUTES.toMillis(15));
 
     // create an instance of `PROFILE_GET` that indirectly uses the `FakeHBaseClient`
-    GetProfile profileGetFunction = new GetProfile()
-            .withProfilerClientFactory(globals -> profilerClient);
+    GetProfile profileGetFunction = new GetProfile.Builder()
+            .withProfilerClientFactory(globals -> profilerClient)
+            .build();
 
     // create the stellar execution environment
     executor = new DefaultStellarStatefulExecutor(

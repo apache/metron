@@ -68,9 +68,10 @@ public class GetProfileTest {
     // the mock profiler client used to feed profile measurement values to the function
     profilerClient = mock(ProfilerClient.class);
 
-    // the VERBOSE_PROFILE function that will be tested
-    function = new GetProfile();
-    function.withProfilerClientFactory(globals -> profilerClient);
+    // the PROFILE_GET function that will be tested
+    function = new GetProfile.Builder()
+            .withProfilerClientFactory(globals -> profilerClient)
+            .build();
 
     // global properties
     globals = new HashMap<>();
