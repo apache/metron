@@ -48,11 +48,11 @@ public class HBaseProfilerClientFactoryTest {
   private static final TimeUnit periodDurationUnits = TimeUnit.MINUTES;
   private static final Integer saltDivisor = 1000;
   private static final long periodDurationMillis = periodDurationUnits.toMillis(23);
-  private HBaseProfilerClientFactory creator;
+  private HBaseProfilerClientFactory factory;
 
   @Before
   public void setup() {
-    creator = new HBaseProfilerClientFactory();
+    factory = new HBaseProfilerClientFactory();
   }
 
   @Test
@@ -66,7 +66,7 @@ public class HBaseProfilerClientFactoryTest {
       put(PROFILER_PERIOD_UNITS.getKey(), periodDurationUnits.toString());
     }};
 
-    HBaseProfilerClient client = creator.create(globals);
+    HBaseProfilerClient client = factory.create(globals);
     assertEquals(periodDurationMillis, client.getPeriodDurationMillis());
 
     // validate the row key builder that is created
@@ -93,7 +93,7 @@ public class HBaseProfilerClientFactoryTest {
     final long defaultSaltDivisor = (Long) PROFILER_SALT_DIVISOR.getDefault();
     final String defaultColumnFamily = (String) PROFILER_COLUMN_FAMILY.getDefault();
 
-    HBaseProfilerClient client = creator.create(globals);
+    HBaseProfilerClient client = factory.create(globals);
     assertEquals(defaultPeriodDurationMillis, client.getPeriodDurationMillis());
 
     // validate the row key builder that is created
