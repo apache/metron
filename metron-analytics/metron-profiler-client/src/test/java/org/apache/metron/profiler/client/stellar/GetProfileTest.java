@@ -56,6 +56,8 @@ public class GetProfileTest {
   private ProfilerClient profilerClient;
   private List<Integer> results;
   private ProfileMeasurement expected;
+  private ProfileMeasurement defaultMeasurement;
+  private Object defaultValue;
 
   private List run(String expression) {
     return executor.execute(expression, new HashMap<>(), List.class);
@@ -88,6 +90,13 @@ public class GetProfileTest {
             .withEntity("entity1")
             .withPeriod(System.currentTimeMillis(), 5, TimeUnit.MINUTES)
             .withProfileValue(1231121);
+
+    defaultValue = 7777777;
+    defaultMeasurement = new ProfileMeasurement()
+            .withProfileName("profile1")
+            .withEntity("entity1")
+            .withPeriod(System.currentTimeMillis(), 5, TimeUnit.MINUTES)
+            .withProfileValue(defaultValue);
   }
 
   @Test
@@ -165,37 +174,37 @@ public class GetProfileTest {
   @Test
   public void shouldUseDefaultValueFromGlobals() {
     // set a default value
-    globals.put("profiler.default.value", expected);
+    globals.put("profiler.default.value", defaultValue);
 
-    // the underlying profile client needs to be setup to return the default
+    // the underlying profile client is responsible for returning the default value, if no profiles are found
     when(profilerClient.fetch(
             eq(Object.class),
             eq(expected.getProfileName()),
             eq(expected.getEntity()),
             eq(expected.getGroups()),
             any(),
-            eq(Optional.of(expected)))).thenReturn(Arrays.asList(expected));
+            eq(Optional.of(defaultValue)))).thenReturn(Arrays.asList(defaultMeasurement));
 
     results = run("PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))");
     assertEquals(1, results.size());
-    assertEquals(expected.getProfileValue(), results.get(0));
+    assertEquals(defaultValue, results.get(0));
   }
 
   @Test
   public void shouldUseDefaultValueFromOverrides() {
-    // the underlying profile client needs to be setup to return the default
-    int defaultVal = (Integer) expected.getProfileValue();
+    // the underlying profile client is responsible for returning the default value, if no profiles are found
     when(profilerClient.fetch(
             eq(Object.class),
             eq(expected.getProfileName()),
             eq(expected.getEntity()),
             eq(expected.getGroups()),
             any(),
-            eq(Optional.of(defaultVal)))).thenReturn(Arrays.asList(expected));
+            eq(Optional.of(defaultValue)))).thenReturn(Arrays.asList(defaultMeasurement));
 
-    // set the default in the overrides map
-    results = run("PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), [], { 'profiler.default.value': 1231121 })");
+    // set the default value in the overrides map
+    String overrides = String.format( "{ 'profiler.default.value': %s }", defaultValue);
+    results = run("PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), [], " + overrides + ")");
     assertEquals(1, results.size());
-    assertEquals(expected.getProfileValue(), results.get(0));
+    assertEquals(defaultValue, results.get(0));
   }
 }

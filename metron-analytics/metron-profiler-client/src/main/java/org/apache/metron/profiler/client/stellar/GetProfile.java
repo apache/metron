@@ -79,18 +79,23 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
         name="GET",
         description="Retrieves a series of values from a stored profile.",
         params={
-          "profile - The name of the profile.",
-          "entity - The name of the entity.",
-          "periods - The list of profile periods to fetch. Use PROFILE_WINDOW or PROFILE_FIXED.",
-          "groups - Optional - The groups to retrieve. Must correspond to the 'groupBy' " +
-                    "list used during profile creation. Defaults to an empty list, meaning no groups.",
-          "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
-                  "of the same name. Default is the empty Map, meaning no overrides."
+                "profile - The name of the profile.",
+                "entity - The name of the entity.",
+                "periods - The list of profile periods to fetch. Use PROFILE_WINDOW or PROFILE_FIXED.",
+                "groups - Optional - The groups to retrieve. Must correspond to the 'groupBy' " +
+                        "list used during profile creation. Defaults to an empty list, meaning no groups.",
+                "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
+                        "of the same name. Default is the empty Map, meaning no overrides."
         },
         returns="The selected profile measurements."
 )
 public class GetProfile implements StellarFunction {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int PROFILE_ARG_INDEX = 0;
+  private static final int ENTITY_ARG_INDEX = 1;
+  private static final int PERIOD_ARG_INDEX = 2;
+  private static final int GROUPS_ARG_INDEX = 3;
+  private static final int CONFIG_OVERRIDES_ARG_INDEX = 4;
 
   /**
    * Allows the function to retrieve persisted {@link ProfileMeasurement} values.
@@ -133,9 +138,9 @@ public class GetProfile implements StellarFunction {
   @Override
   public Object apply(List<Object> args, Context context) throws ParseException {
     // required arguments
-    String profile = getArg(0, String.class, args);
-    String entity = getArg(1, String.class, args);
-    List<ProfilePeriod> periods = getArg(2, List.class, args);
+    String profile = getArg(PROFILE_ARG_INDEX, String.class, args);
+    String entity = getArg(ENTITY_ARG_INDEX, String.class, args);
+    List<ProfilePeriod> periods = getArg(PERIOD_ARG_INDEX, List.class, args);
 
     // optional arguments
     List<Object> groups = getGroups(args);
@@ -166,8 +171,8 @@ public class GetProfile implements StellarFunction {
 
   private Map<String, Object> getOverrides(List<Object> args) {
     Map<String, Object> configOverridesMap = null;
-    if(args.size() >= 5 && args.get(3) instanceof List) {
-      configOverridesMap = getArg(4, Map.class, args);
+    if(args.size() > CONFIG_OVERRIDES_ARG_INDEX && args.get(GROUPS_ARG_INDEX) instanceof List) {
+      configOverridesMap = getArg(CONFIG_OVERRIDES_ARG_INDEX, Map.class, args);
       if (configOverridesMap.isEmpty()) {
         configOverridesMap = null;
       }
@@ -177,17 +182,17 @@ public class GetProfile implements StellarFunction {
 
   private List<Object> getGroups(List<Object> args) {
     List<Object> groups;
-    if (args.size() < 4) {
+    if (args.size() < CONFIG_OVERRIDES_ARG_INDEX) {
       // no optional args, so default 'groups' and configOverridesMap remains null.
       groups = new ArrayList<>(0);
 
-    } else if (args.get(3) instanceof List) {
+    } else if (args.get(GROUPS_ARG_INDEX) instanceof List) {
       // correct extensible usage
-      groups = getArg(3, List.class, args);
+      groups = getArg(GROUPS_ARG_INDEX, List.class, args);
 
     } else {
       // deprecated "varargs" style usage for groups_list
-      groups = getVarArgGroups(3, args);
+      groups = getVarArgGroups(GROUPS_ARG_INDEX, args);
     }
     return groups;
   }
