@@ -28,14 +28,20 @@ import { SaveSearchService } from 'app/service/save-search.service';
 import { MetaAlertService } from 'app/service/meta-alert.service';
 import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
-import { Observable } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { Filter } from 'app/model/filter';
 import { QueryBuilder } from './query-builder';
+import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
+import { SearchResponse } from 'app/model/search-response';
+import { By } from '@angular/platform-browser';
 
 describe('AlertsListComponent', () => {
 
   let component: AlertsListComponent;
   let fixture: ComponentFixture<AlertsListComponent>;
+
+  let queryBuilder: QueryBuilder;
+  let searchService: SearchService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -47,7 +53,9 @@ describe('AlertsListComponent', () => {
         AlertsListComponent,
       ],
       providers: [
-        { provide: SearchService, useClass: () => { return {} } },
+        { provide: SearchService, useClass: () => { return {
+          search: () => {},
+        } } },
         { provide: UpdateService, useClass: () => { return {
           alertChanged$: new Observable(),
         } } },
@@ -75,6 +83,9 @@ describe('AlertsListComponent', () => {
       ]
     })
     .compileComponents();
+
+    queryBuilder = TestBed.get(QueryBuilder);
+    searchService = TestBed.get(SearchService);
   }));
 
   beforeEach(() => {
@@ -110,5 +121,51 @@ describe('AlertsListComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]')).toBeNull();
   });
+
+  describe('stale data state', () => {
+
+    it('should set staleDataState flag to true on filter change', () => {
+      expect(component.staleDataState).toBe(false);
+      component.onAddFilter(new Filter('ip_src_addr', '0.0.0.0'));
+      expect(component.staleDataState).toBe(true);
+    });
+
+    it('should set staleDataState flag to true on filter clearing', () => {
+      queryBuilder.clearSearch = jasmine.createSpy('clearSearch');
+
+      expect(component.staleDataState).toBe(false);
+      component.onClear();
+      expect(component.staleDataState).toBe(true);
+    });
+
+    it('should set staleDataState flag to true on timerange change', () => {
+      expect(component.staleDataState).toBe(false);
+      component.onTimeRangeChange(new Filter(TIMESTAMP_FIELD_NAME, 'this-year'));
+      expect(component.staleDataState).toBe(true);
+    });
+
+    it('should set staleDataState flag to false when the query resolves', () => {
+      const fakeObservable = new Subject();
+      spyOn(searchService, 'search').and.returnValue(of(new SearchResponse()));
+      spyOn(component, 'saveCurrentSearch');
+      spyOn(component, 'setSearchRequestSize');
+      spyOn(component, 'setSelectedTimeRange');
+      spyOn(component, 'createGroupFacets');
+
+      component.staleDataState = true;
+      component.search();
+      expect(component.staleDataState).toBe(false);
+    });
+
+    it('should show warning if data is in a stale state', () => {
+      expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBe(null);
+
+      component.staleDataState = true;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBeTruthy();
+    });
+
+  })
 
 });

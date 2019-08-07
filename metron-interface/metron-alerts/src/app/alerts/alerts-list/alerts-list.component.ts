@@ -84,6 +84,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   groups = [];
   subgroupTotal = 0;
 
+  staleDataState = false;
+
   constructor(private router: Router,
               private searchService: SearchService,
               private updateService: UpdateService,
@@ -221,7 +223,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onClear() {
     this.timeStampFilterPresent = false;
     this.queryBuilder.clearSearch();
-    this.search();
+    this.staleDataState = true;
   }
 
   onSearch(query: string) {
@@ -261,7 +263,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onAddFilter(filter: Filter) {
     this.timeStampFilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
     this.queryBuilder.addOrUpdateFilter(filter);
-    this.search();
+    this.staleDataState = true;
   }
 
   onConfigRowsChange() {
@@ -291,7 +293,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onTimeRangeChange(filter: Filter) {
     this.updateQueryBuilder(filter);
-    this.search();
+    this.staleDataState = true;
   }
 
   private updateQueryBuilder(timeRangeFilter: Filter) {
@@ -381,6 +383,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
     this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
+      this.staleDataState = false;
     }, error => {
       this.setData(new SearchResponse());
       this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
