@@ -501,9 +501,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             .build();
 
     // create the GET_PROFILE function
-    GetProfile getProfileFunction = new GetProfile.Builder()
-            .withProfilerClientFactory(new HBaseProfilerClientFactory(new FakeHBaseClientFactory()))
-            .build();
+    GetProfile getProfileFunction = new GetProfile(new HBaseProfilerClientFactory(new FakeHBaseClientFactory()));
 
     // ensure the functions that we need can be resolved
     FunctionResolver functionResolver = new SimpleFunctionResolver()

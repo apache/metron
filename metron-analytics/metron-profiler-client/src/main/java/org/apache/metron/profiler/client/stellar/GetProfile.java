@@ -98,21 +98,6 @@ public class GetProfile implements StellarFunction {
   private static final int GROUPS_ARG_INDEX = 3;
   private static final int CONFIG_OVERRIDES_ARG_INDEX = 4;
 
-  public static class Builder {
-    private ProfilerClientFactory profilerClientFactory = ProfilerClientFactories.DEFAULT;
-
-    public Builder withProfilerClientFactory(ProfilerClientFactory profilerClientFactory) {
-      this.profilerClientFactory = profilerClientFactory;
-      return this;
-    }
-
-    public GetProfile build() {
-      GetProfile function = new GetProfile();
-      function.profilerClientFactory = profilerClientFactory;
-      return function;
-    }
-  }
-
   /**
    * Allows the function to retrieve persisted {@link ProfileMeasurement} values.
    */
@@ -130,10 +115,18 @@ public class GetProfile implements StellarFunction {
   private Map<String, Object> lastKnownGlobals = new HashMap<>();
 
   /**
-   * Use the {@link GetProfile.Builder} instead.
+   * The default constructor used during Stellar function resolution.
    */
   public GetProfile() {
-    // constructor must be public to allow for stellar function resolution
+    this(ProfilerClientFactories.DEFAULT);
+  }
+
+  /**
+   * The constructor used for testing.
+   * @param profilerClientFactory
+   */
+  public GetProfile(ProfilerClientFactory profilerClientFactory) {
+    this.profilerClientFactory = profilerClientFactory;
   }
 
   @Override

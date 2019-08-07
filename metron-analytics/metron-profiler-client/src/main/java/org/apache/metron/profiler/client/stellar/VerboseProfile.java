@@ -89,26 +89,19 @@ public class VerboseProfile implements StellarFunction {
   private static final int PERIOD_ARG_INDEX = 2;
   private static final int GROUPS_ARG_INDEX = 3;
 
-  public static class Builder {
-    private ProfilerClientFactory profilerClientFactory = ProfilerClientFactories.DEFAULT;
-
-    public VerboseProfile.Builder withProfilerClientFactory(ProfilerClientFactory profilerClientFactory) {
-      this.profilerClientFactory = profilerClientFactory;
-      return this;
-    }
-
-    public VerboseProfile build() {
-      VerboseProfile function = new VerboseProfile();
-      function.profilerClientFactory = profilerClientFactory;
-      return function;
-    }
+  /**
+   * The default constructor used during Stellar function resolution.
+   */
+  public VerboseProfile() {
+    this(ProfilerClientFactories.DEFAULT);
   }
 
   /**
-   * Use the {@link VerboseProfile.Builder} instead.
+   * The constructor used for testing.
+   * @param profilerClientFactory
    */
-  public VerboseProfile() {
-    // constructor must be public to allow for stellar function resolution
+  public VerboseProfile(ProfilerClientFactory profilerClientFactory) {
+    this.profilerClientFactory = profilerClientFactory;
   }
 
   /**

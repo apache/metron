@@ -66,16 +66,15 @@ public class VerboseProfileTest {
     // the mock profiler client used to feed profile measurement values to the function
     profilerClient = mock(ProfilerClient.class);
 
-    // the VERBOSE_PROFILE function that will be tested
-    function = new VerboseProfile.Builder()
-            .withProfilerClientFactory(globals -> profilerClient)
-            .build();
-
     // global properties
     globals = new HashMap<>();
     Context context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, () -> globals)
             .build();
+
+    // the VERBOSE_PROFILE function that will be tested
+    function = new VerboseProfile(globals -> profilerClient);
+    function.initialize(context);
 
     // create the stellar execution environment
     functionResolver = new SimpleFunctionResolver()

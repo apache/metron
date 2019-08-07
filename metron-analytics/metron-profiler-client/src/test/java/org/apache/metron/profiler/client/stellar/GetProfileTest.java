@@ -68,16 +68,15 @@ public class GetProfileTest {
     // the mock profiler client used to feed profile measurement values to the function
     profilerClient = mock(ProfilerClient.class);
 
-    // the PROFILE_GET function that will be tested
-    function = new GetProfile.Builder()
-            .withProfilerClientFactory(globals -> profilerClient)
-            .build();
-
     // global properties
     globals = new HashMap<>();
     Context context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, () -> globals)
             .build();
+
+    // the PROFILE_GET function that will be tested
+    function = new GetProfile(globals -> profilerClient);
+    function.initialize(context);
 
     // create the stellar execution environment
     functionResolver = new SimpleFunctionResolver()
