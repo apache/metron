@@ -375,8 +375,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.tryStartPolling();
   }
 
-  search(resetPaginationParams = true, savedSearch?: SaveSearch, manualQueryInput?: string) {
-    this.saveCurrentSearch(savedSearch);
+  search(resetPaginationParams = true, savedSearch?: SaveSearch) {
+    if (savedSearch) { this.saveCurrentSearch(savedSearch); }
     if (resetPaginationParams) {
       this.pagination.from = 0;
     }

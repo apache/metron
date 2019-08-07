@@ -21,7 +21,7 @@
                     </span>
                     <div appAceEditor *ngIf="!hideQueryBuilder" class="flex-fill" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
                     <div class="flex-fill" [class.d-none]="!hideQueryBuilder">
-                        <input class="manual-query-input" type="text" #manualQuery >
+                        <input class="manual-query-input" data-qe-id="manual-query-input" type="text" #manualQuery >
                     </div>
                     <span class="input-group-append">
                         <button class="btn btn-secondary btn-options" (click)="toggleQueryBuilder()">
