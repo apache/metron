@@ -82,7 +82,7 @@ public class HBaseTableClient implements HBaseClient {
         connection.close();
       }
     } catch(IOException e) {
-      LOG.error("Error while closing HBase connection",e);
+      LOG.error("Error while closing HBase connection", e);
     }
   }
 

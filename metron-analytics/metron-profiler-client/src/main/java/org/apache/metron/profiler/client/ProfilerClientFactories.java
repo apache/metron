@@ -19,16 +19,27 @@
  */
 package org.apache.metron.profiler.client;
 
-import org.apache.metron.profiler.ProfileMeasurement;
+import java.util.Map;
 
 /**
- * Responsible for writing {@link ProfileMeasurement} values to persistent storage.
+ * Enumerates the available {@link ProfilerClientFactory} implementations.
  */
-public interface ProfileWriter {
+public enum ProfilerClientFactories implements ProfilerClientFactory {
 
   /**
-   * Write a {@link ProfileMeasurement} to persistent storage.
-   * @param m The ProfileMeasurement to write.
+   * The default factory that returns a {@link ProfilerClient} that interacts
+   * with profiles stored in HBase.
    */
-  void write(ProfileMeasurement m);
+  DEFAULT(new HBaseProfilerClientFactory());
+
+  private ProfilerClientFactory factory;
+
+  ProfilerClientFactories(ProfilerClientFactory factory) {
+    this.factory = factory;
+  }
+
+  @Override
+  public ProfilerClient create(Map<String, Object> globals) {
+    return factory.create(globals);
+  }
 }

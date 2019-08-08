@@ -22,6 +22,7 @@ import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.client.HBaseProfilerClientFactory;
 import org.apache.metron.profiler.client.ProfilerClient;
+import org.apache.metron.profiler.client.ProfilerClientFactories;
 import org.apache.metron.profiler.client.ProfilerClientFactory;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
@@ -83,9 +84,24 @@ public class VerboseProfile implements StellarFunction {
   protected static final String PERIOD_END_KEY = "period.end";
   protected static final String VALUE_KEY = "value";
   protected static final String GROUPS_KEY = "groups";
+  private static final int PROFILE_ARG_INDEX = 0;
+  private static final int ENTITY_ARG_INDEX = 1;
+  private static final int PERIOD_ARG_INDEX = 2;
+  private static final int GROUPS_ARG_INDEX = 3;
 
+  /**
+   * The default constructor used during Stellar function resolution.
+   */
   public VerboseProfile() {
-    this.profilerClientFactory = new HBaseProfilerClientFactory();
+    this(ProfilerClientFactories.DEFAULT);
+  }
+
+  /**
+   * The constructor used for testing.
+   * @param profilerClientFactory
+   */
+  public VerboseProfile(ProfilerClientFactory profilerClientFactory) {
+    this.profilerClientFactory = profilerClientFactory;
   }
 
   /**
@@ -100,6 +116,10 @@ public class VerboseProfile implements StellarFunction {
 
   @Override
   public void initialize(Context context) {
+    // values stored in the global config that are used to initialize the ProfilerClient
+    // are read only once during initialization.  if those values change during a Stellar
+    // session, this function will not respond to them.  the Stellar session would need to be
+    // restarted for those changes to take effect.  this differs from the behavior of `PROFILE_GET`.
     Map<String, Object> globals = getGlobals(context);
     profilerClient = profilerClientFactory.create(globals);
   }
@@ -119,14 +139,14 @@ public class VerboseProfile implements StellarFunction {
   @Override
   public Object apply(List<Object> args, Context context) throws ParseException {
     // required arguments
-    String profile = getArg(0, String.class, args);
-    String entity = getArg(1, String.class, args);
-    List<ProfilePeriod> periods = getArg(2, List.class, args);
+    String profile = getArg(PROFILE_ARG_INDEX, String.class, args);
+    String entity = getArg(ENTITY_ARG_INDEX, String.class, args);
+    List<ProfilePeriod> periods = getArg(PERIOD_ARG_INDEX, List.class, args);
 
     // optional 'groups' argument
     List<Object> groups = new ArrayList<>();
-    if(args.size() >= 4) {
-      groups = getArg(3, List.class, args);
+    if(args.size() > GROUPS_ARG_INDEX) {
+      groups = getArg(GROUPS_ARG_INDEX, List.class, args);
     }
 
     // is there a default value?
@@ -165,10 +185,5 @@ public class VerboseProfile implements StellarFunction {
     view.put(VALUE_KEY, measurement.getProfileValue());
     view.put(GROUPS_KEY, measurement.getGroups());
     return view;
-  }
-
-  public VerboseProfile withProfilerClientFactory(ProfilerClientFactory factory) {
-    this.profilerClientFactory = factory;
-    return this;
   }
 }

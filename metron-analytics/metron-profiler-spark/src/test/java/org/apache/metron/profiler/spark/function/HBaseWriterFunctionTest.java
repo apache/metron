@@ -38,7 +38,6 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.hbase.client.FakeHBaseClient.Mutation;
@@ -46,7 +45,6 @@ import static org.apache.metron.hbase.client.FakeHBaseClient.Mutation;
 public class HBaseWriterFunctionTest {
 
   private HBaseWriterFunction function;
-  private Properties profilerProperties;
   private RowKeyBuilder rowKeyBuilder;
   private ColumnBuilder columnBuilder;
   private FakeHBaseClient hbaseClient;
@@ -59,16 +57,16 @@ public class HBaseWriterFunctionTest {
 
   @Before
   public void setup() {
-    profilerProperties = getProfilerProperties();
     hbaseClient = new FakeHBaseClient();
     hbaseClient.deleteAll();
     hBaseClientFactory = (x, y, z) -> hbaseClient;
     rowKeyBuilder = new SaltyRowKeyBuilder();
     columnBuilder = new ValueOnlyColumnBuilder();
-    function = new HBaseWriterFunction(profilerProperties)
+    function = new HBaseWriterFunction.Builder()
             .withRowKeyBuilder(rowKeyBuilder)
             .withColumnBuilder(columnBuilder)
-            .withClientFactory(hBaseClientFactory);
+            .withClientFactory(hBaseClientFactory)
+            .build();
   }
 
   @Test
@@ -102,8 +100,9 @@ public class HBaseWriterFunctionTest {
     List<ProfileMeasurementAdapter> measurements = createMeasurements(10, entity, timestamp, profile);
 
     // setup the function to test
-    HBaseWriterFunction function = new HBaseWriterFunction(profilerProperties);
-    function.withClientFactory(hBaseClientFactory);
+    HBaseWriterFunction function = new HBaseWriterFunction.Builder()
+            .withClientFactory(hBaseClientFactory)
+            .build();
 
     // write the measurements
     Iterator<Integer> results = function.call(measurements.iterator());
@@ -120,8 +119,9 @@ public class HBaseWriterFunctionTest {
     List<ProfileMeasurementAdapter> measurements = new ArrayList<>();
 
     // setup the function to test
-    HBaseWriterFunction function = new HBaseWriterFunction(profilerProperties);
-    function.withClientFactory(hBaseClientFactory);
+    HBaseWriterFunction function = new HBaseWriterFunction.Builder()
+            .withClientFactory(hBaseClientFactory)
+            .build();
 
     // write the measurements
     Iterator<Integer> results = function.call(measurements.iterator());
@@ -166,13 +166,6 @@ public class HBaseWriterFunctionTest {
     message.put("status", "red");
     message.put("timestamp", System.currentTimeMillis());
     return message;
-  }
-
-  /**
-   * Returns profiler properties to use for testing.
-   */
-  private static Properties getProfilerProperties() {
-    return new Properties();
   }
 
   /**
