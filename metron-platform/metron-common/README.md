@@ -113,7 +113,6 @@ but a convenient index is provided here:
 | [`geo.hdfs.file`](../metron-enrichment/metron-enrichment-common#geohdfsfile)                                          | Enrichment    | String     | `geo_hdfs_file`                         |
 | [`enrichment.writer.batchSize`](../metron-enrichment/metron-enrichment-common#enrichmentwriterbatchsize)              | Enrichment    | Integer    | `enrichment_kafka_writer_batch_size`    |
 | [`enrichment.writer.batchTimeout`](../metron-enrichment/metron-enrichment-common#enrichmentwriterbatchtimeout)        | Enrichment    | Integer    | `enrichment_kafka_writer_batch_timeout` |
-| [`enrichment.list.hbase.provider.impl`](../metron-hbase-server#enrichmentlisthbaseproviderimpl)                       | Enrichment    | String     | `enrichment_list_hbase_provider_impl`   |
 | [`enrichment.list.hbase.table`](../metron-hbase-server#enrichmentlisthbasetable)                                      | Enrichment    | String     | `enrichment_list_hbase_table`           |
 | [`enrichment.list.hbase.cf`](../metron-hbase-server#enrichmentlisthbasecf)                                            | Enrichment    | String     | `enrichment_list_hbase_cf`              |
 | [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                   | Enrichment    | String     | `geo_hdfs_file`                         |
