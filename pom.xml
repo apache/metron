@@ -149,14 +149,6 @@
             </properties>
         </profile>
         <profile>
-            <id>HDP-2.6</id>
-            <properties>
-                <hdp_version>2.6.5.0</hdp_version>
-                <global_hbase_version>1.1.1</global_hbase_version>
-                <global_hbase_guava_version>12.0</global_hbase_guava_version>
-            </properties>
-        </profile>
-        <profile>
             <id>HDP-2.5.0.0</id>
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
