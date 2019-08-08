@@ -20,184 +20,187 @@
 
 package org.apache.metron.profiler.client;
 
-import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.utils.SerDeUtils;
+import org.apache.metron.hbase.client.HBaseTableClient;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
-import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
-import org.apache.metron.stellar.common.StellarStatefulExecutor;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * Tests the HBaseProfilerClient.
- *
- * The naming used in this test attempts to be as similar to how the 'groupBy'
- * functionality might be used 'in the wild'.  This test involves reading and
- * writing two separate groups originating from the same Profile and Entity.
- * There is a 'weekdays' group which contains all measurements taken on weekdays.
- * There is also a 'weekend' group which contains all measurements taken on weekends.
+ * Tests the {@link HBaseProfilerClient}.
  */
 public class HBaseProfilerClientTest {
-
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
+  private static final byte[] columnFamilyB = Bytes.toBytes(columnFamily);
+  private static final byte[] columnQualifier = Bytes.toBytes("column");
   private static final long periodDuration = 15;
   private static final TimeUnit periodUnits = TimeUnit.MINUTES;
   private static final int periodsPerHour = 4;
+  private static final byte[] expectedRowKey = Bytes.toBytes("some-row-key");
+  private static final String profileName = "profile1";
+  private static final String entityName = "entity1";
+  private static final int profileValue = 1231121;
+  private static final byte[] profileValueB = SerDeUtils.toBytes(profileValue);
+  private long periodDurationMillis = periodUnits.toMillis(periodDuration);
 
-  private HBaseProfilerClient client;
-  private StellarStatefulExecutor executor;
-  private MockHTable table;
-  private ProfileWriter profileWriter;
+  private HBaseClient hbaseClient;
+  private HBaseProfilerClient profilerClient;
+  private ProfileMeasurement expected;
+  private RowKeyBuilder rowKeyBuilder;
+  private ColumnBuilder columnBuilder;
+  private Result expectedResult;
+  private Result emptyResult;
 
   @Before
-  public void setup() throws Exception {
-    table = new MockHTable(tableName, columnFamily);
-    executor = new DefaultStellarStatefulExecutor();
+  public void setup() {
+    // create a profile measurement used in the tests
+    expected = new ProfileMeasurement()
+            .withProfileName(profileName)
+            .withEntity(entityName)
+            .withPeriod(System.currentTimeMillis(), 5, TimeUnit.MINUTES)
+            .withProfileValue(profileValue);
 
-    // writes values to be read during testing
-    long periodDurationMillis = periodUnits.toMillis(periodDuration);
-    RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
-    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodDurationMillis);
+    // mock row key builder needs to return a row key for the profile measurement used in the tests
+    rowKeyBuilder = mock(RowKeyBuilder.class);
+    when(rowKeyBuilder.rowKey(any())).thenReturn(expectedRowKey);
 
-    client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDurationMillis);
-  }
+    // mock column builder - column family/qualifier comes from the column builder
+    columnBuilder = mock(ColumnBuilder.class);
+    when(columnBuilder.getColumnFamily()).thenReturn(columnFamily);
+    when(columnBuilder.getColumnQualifier(eq("value"))).thenReturn(columnQualifier);
 
-  @After
-  public void tearDown() throws Exception {
-    table.clear();
-  }
+    // this mock is used to feed data to the profiler client while testing
+    hbaseClient = mock(HBaseTableClient.class);
 
-  @Test
-  public void Should_ReturnMeasurements_When_DataExistsForAGroup() throws Exception {
-    final String profile = "profile1";
-    final String entity = "entity1";
-    final int expectedValue = 2302;
-    final int hours = 2;
-    final int count = hours * periodsPerHour + 1;
-    final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
+    // a result that matches the expected profile measurement that can be return by the mock hbase client
+    expectedResult = mock(Result.class);
+    when(expectedResult.containsColumn(eq(columnFamilyB), eq(columnQualifier))).thenReturn(true);
+    when(expectedResult.getValue(eq(columnFamilyB), eq(columnQualifier))).thenReturn(profileValueB);
 
-    // setup - write two groups of measurements - 'weekends' and 'weekdays'
-    ProfileMeasurement prototype = new ProfileMeasurement()
-            .withProfileName(profile)
-            .withEntity(entity)
-            .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(prototype, count, Arrays.asList("weekdays"), val -> expectedValue);
-    profileWriter.write(prototype, count, Arrays.asList("weekends"), val -> 0);
+    // an empty result to use in the tests
+    emptyResult = mock(Result.class);
+    when(emptyResult.containsColumn(any(), any())).thenReturn(false);
 
-    long end = System.currentTimeMillis();
-    long start = end - TimeUnit.HOURS.toMillis(2);
-    {
-      //validate "weekday" results
-      List<Object> groups = Arrays.asList("weekdays");
-      List<ProfileMeasurement> results = client.fetch(Integer.class, profile, entity, groups, start, end, Optional.empty());
-      assertEquals(count, results.size());
-      results.forEach(actual -> {
-        assertEquals(profile, actual.getProfileName());
-        assertEquals(entity, actual.getEntity());
-        assertEquals(groups, actual.getGroups());
-        assertEquals(expectedValue, actual.getProfileValue());
-      });
-    }
-    {
-      //validate "weekend" results
-      List<Object> groups = Arrays.asList("weekends");
-      List<ProfileMeasurement> results = client.fetch(Integer.class, profile, entity, groups, start, end, Optional.empty());
-      assertEquals(count, results.size());
-      results.forEach(actual -> {
-        assertEquals(profile, actual.getProfileName());
-        assertEquals(entity, actual.getEntity());
-        assertEquals(groups, actual.getGroups());
-        assertEquals(0, actual.getProfileValue());
-      });
-    }
+    // create the profiler client that will be tested
+    profilerClient = new HBaseProfilerClient(hbaseClient, rowKeyBuilder, columnBuilder, periodDurationMillis);
   }
 
   @Test
-  public void Should_ReturnResultFromGroup_When_MultipleGroupsExist() throws Exception {
-    final String profile = "profile1";
-    final String entity = "entity1";
-    final int periodsPerHour = 4;
-    final int expectedValue = 2302;
-    final int hours = 2;
-    final int count = hours * periodsPerHour;
-    final long endTime = System.currentTimeMillis();
-    final long startTime = endTime - TimeUnit.HOURS.toMillis(hours);
+  public void shouldFetchProfileMeasurement() {
+    // need the hbase client to return a Result matching the expected profile measurement value
+    Result[] results = new Result[] { expectedResult };
+    when(hbaseClient.getAll()).thenReturn(results);
 
-    // setup - write two groups of measurements - 'weekends' and 'weekdays'
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
-    profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
-
-    List<Object> weekdays = Arrays.asList("weekdays");
-    List<ProfileMeasurement> results = client.fetch(Integer.class, profile, entity, weekdays, startTime, endTime, Optional.empty());
-
-    // should only return results from 'weekdays' group
-    assertEquals(count, results.size());
-    results.forEach(actual -> assertEquals(weekdays, actual.getGroups()));
+    List<ProfileMeasurement> measurements = profilerClient.fetch(
+            Object.class,
+            expected.getProfileName(),
+            expected.getEntity(),
+            expected.getGroups(),
+            Arrays.asList(expected.getPeriod()),
+            Optional.empty());
+    assertEquals(1, measurements.size());
+    assertEquals(expected, measurements.get(0));
   }
 
   @Test
-  public void Should_ReturnNoResults_When_GroupDoesNotExist() {
-    final String profile = "profile1";
-    final String entity = "entity1";
-    final int periodsPerHour = 4;
-    final int expectedValue = 2302;
-    final int hours = 2;
-    final int count = hours * periodsPerHour;
-    final long endTime = System.currentTimeMillis();
-    final long startTime = endTime - TimeUnit.HOURS.toMillis(hours);
+  public void shouldFetchNothingWhenNothingThere() {
+    // the hbase client will indicate their are no hits
+    Result[] results = new Result[] { emptyResult };
+    when(hbaseClient.getAll()).thenReturn(results);
 
-    // create two groups of measurements - one on weekdays and one on weekends
-    ProfileMeasurement m = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
-    profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
-
-    // should return no results when the group does not exist
-    List<Object> groups = Arrays.asList("does-not-exist");
-    List<ProfileMeasurement> results = client.fetch(Integer.class, profile, entity, groups, startTime, endTime, Optional.empty());
-    assertEquals(0, results.size());
+    List<ProfileMeasurement> measurements = profilerClient.fetch(
+            Object.class,
+            expected.getProfileName(),
+            expected.getEntity(),
+            expected.getGroups(),
+            Arrays.asList(expected.getPeriod()),
+            Optional.empty());
+    assertEquals(0, measurements.size());
   }
 
   @Test
-  public void Should_ReturnNoResults_When_NoDataInStartToEnd() throws Exception {
-    final String profile = "profile1";
-    final String entity = "entity1";
-    final int hours = 2;
-    int numberToWrite = hours * periodsPerHour;
-    final List<Object> group = Arrays.asList("weekends");
-    final long measurementTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
+  public void shouldFetchDefaultValueWhenNothingThere() {
+    // the hbase client will indicate their are no hits
+    Result[] results = new Result[] { emptyResult };
+    when(hbaseClient.getAll()).thenReturn(results);
 
-    // write some data with a timestamp of s1 day ago
-    ProfileMeasurement prototype = new ProfileMeasurement()
-            .withProfileName("profile1")
-            .withEntity("entity1")
-            .withPeriod(measurementTime, periodDuration, periodUnits);
-    profileWriter.write(prototype, numberToWrite, group, val -> 1000);
+    List<ProfileMeasurement> measurements = profilerClient.fetch(
+            Object.class,
+            expected.getProfileName(),
+            expected.getEntity(),
+            expected.getGroups(),
+            Arrays.asList(expected.getPeriod()),
+            Optional.of(profileValue));
 
-    // should return no results when [start,end] is long after when test data was written
-    final long endFetchAt = System.currentTimeMillis();
-    final long startFetchAt = endFetchAt - TimeUnit.MILLISECONDS.toMillis(30);
-    List<ProfileMeasurement> results = client.fetch(Integer.class, profile, entity, group, startFetchAt, endFetchAt, Optional.empty());
-    assertEquals(0, results.size());
+    // expect the default value to be returned
+    assertEquals(1, measurements.size());
+    assertEquals(expected, measurements.get(0));
+  }
+
+  @Test
+  public void shouldFetchMultipleProfilePeriods() {
+    // need the hbase client to return a Result matching the expected profile measurement value
+    Result[] results = new Result[] { expectedResult, expectedResult, expectedResult, expectedResult };
+    when(hbaseClient.getAll()).thenReturn(results);
+
+    // fetching across multiple periods
+    ProfilePeriod start = ProfilePeriod.fromPeriodId(1L, 15L, TimeUnit.MINUTES);
+    List<ProfilePeriod> periods = new ArrayList<ProfilePeriod>() {{
+      add(start);
+      add(start.next());
+      add(start.next());
+      add(start.next());
+    }};
+
+    List<ProfileMeasurement> measurements = profilerClient.fetch(
+            Object.class,
+            expected.getProfileName(),
+            expected.getEntity(),
+            expected.getGroups(),
+            periods,
+            Optional.empty());
+
+    // the row key builder should be called once for each profile period
+    ArgumentCaptor<ProfileMeasurement> captor = new ArgumentCaptor<>();
+    verify(rowKeyBuilder, times(4)).rowKey(captor.capture());
+
+    // the profile periods should match those originally submited
+    List<ProfileMeasurement> submitted = captor.getAllValues();
+    assertEquals(periods.get(0), submitted.get(0).getPeriod());
+    assertEquals(periods.get(1), submitted.get(1).getPeriod());
+    assertEquals(periods.get(2), submitted.get(2).getPeriod());
+    assertEquals(periods.get(3), submitted.get(3).getPeriod());
+
+    assertEquals(4, measurements.size());
+  }
+
+  @Test
+  public void shouldCloseHBaseClient() throws IOException {
+    profilerClient.close();
+    verify(hbaseClient, times(1)).close();
   }
 }

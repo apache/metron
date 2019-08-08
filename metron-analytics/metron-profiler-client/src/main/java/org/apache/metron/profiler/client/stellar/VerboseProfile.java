@@ -18,18 +18,12 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.client.HBaseProfilerClient;
+import org.apache.metron.profiler.client.HBaseProfilerClientFactory;
 import org.apache.metron.profiler.client.ProfilerClient;
-import org.apache.metron.profiler.hbase.ColumnBuilder;
-import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
-import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.apache.metron.profiler.client.ProfilerClientFactories;
+import org.apache.metron.profiler.client.ProfilerClientFactory;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -45,15 +39,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_DEFAULT_VALUE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
 import static org.apache.metron.profiler.client.stellar.Util.getArg;
-import static org.apache.metron.profiler.client.stellar.Util.getPeriodDurationInMillis;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
 /**
@@ -88,67 +76,99 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
         returns="A map for each profile measurement containing the profile name, entity, period, and value."
 )
 public class VerboseProfile implements StellarFunction {
-
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  protected static String PROFILE_KEY = "profile";
-  protected static String ENTITY_KEY = "entity";
-  protected static String PERIOD_KEY = "period";
-  protected static String PERIOD_START_KEY = "period.start";
-  protected static String PERIOD_END_KEY = "period.end";
-  protected static String VALUE_KEY = "value";
-  protected static String GROUPS_KEY = "groups";
-  private ProfilerClient client;
+  protected static final String PROFILE_KEY = "profile";
+  protected static final String ENTITY_KEY = "entity";
+  protected static final String PERIOD_KEY = "period";
+  protected static final String PERIOD_START_KEY = "period.start";
+  protected static final String PERIOD_END_KEY = "period.end";
+  protected static final String VALUE_KEY = "value";
+  protected static final String GROUPS_KEY = "groups";
+  private static final int PROFILE_ARG_INDEX = 0;
+  private static final int ENTITY_ARG_INDEX = 1;
+  private static final int PERIOD_ARG_INDEX = 2;
+  private static final int GROUPS_ARG_INDEX = 3;
+
+  /**
+   * The default constructor used during Stellar function resolution.
+   */
+  public VerboseProfile() {
+    this(ProfilerClientFactories.DEFAULT);
+  }
+
+  /**
+   * The constructor used for testing.
+   * @param profilerClientFactory
+   */
+  public VerboseProfile(ProfilerClientFactory profilerClientFactory) {
+    this.profilerClientFactory = profilerClientFactory;
+  }
+
+  /**
+   * Allows the function to retrieve persisted {@link ProfileMeasurement} values.
+   */
+  private ProfilerClient profilerClient;
+
+  /**
+   * Creates the {@link ProfilerClient} used by this function.
+   */
+  private ProfilerClientFactory profilerClientFactory;
 
   @Override
   public void initialize(Context context) {
-    // nothing to do
+    // values stored in the global config that are used to initialize the ProfilerClient
+    // are read only once during initialization.  if those values change during a Stellar
+    // session, this function will not respond to them.  the Stellar session would need to be
+    // restarted for those changes to take effect.  this differs from the behavior of `PROFILE_GET`.
+    Map<String, Object> globals = getGlobals(context);
+    profilerClient = profilerClientFactory.create(globals);
   }
 
   @Override
   public boolean isInitialized() {
-    return true;
+    return profilerClient != null;
+  }
+
+  @Override
+  public void close() throws IOException {
+    if(profilerClient != null) {
+      profilerClient.close();
+    }
   }
 
   @Override
   public Object apply(List<Object> args, Context context) throws ParseException {
     // required arguments
-    String profile = getArg(0, String.class, args);
-    String entity = getArg(1, String.class, args);
-    List<ProfilePeriod> periods = getArg(2, List.class, args);
+    String profile = getArg(PROFILE_ARG_INDEX, String.class, args);
+    String entity = getArg(ENTITY_ARG_INDEX, String.class, args);
+    List<ProfilePeriod> periods = getArg(PERIOD_ARG_INDEX, List.class, args);
 
     // optional 'groups' argument
     List<Object> groups = new ArrayList<>();
-    if(args.size() >= 4) {
-      groups = getArg(3, List.class, args);
-    }
-
-    // get globals from the context
-    Map<String, Object> globals = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG)
-            .orElse(Collections.emptyMap());
-
-    // lazily create the profiler client, if needed
-    if (client == null) {
-      RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(globals);
-      ColumnBuilder columnBuilder = getColumnBuilder(globals);
-      HTableInterface table = getTable(globals);
-      long periodDuration = getPeriodDurationInMillis(globals);
-      client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDuration);
+    if(args.size() > GROUPS_ARG_INDEX) {
+      groups = getArg(GROUPS_ARG_INDEX, List.class, args);
     }
 
     // is there a default value?
     Optional<Object> defaultValue = Optional.empty();
+    Map<String, Object> globals = getGlobals(context);
     if(globals != null) {
       defaultValue = Optional.ofNullable(PROFILER_DEFAULT_VALUE.get(globals));
     }
 
-    List<ProfileMeasurement> measurements = client.fetch(Object.class, profile, entity, groups, periods, defaultValue);
-
     // render a view of each profile measurement
+    List<ProfileMeasurement> measurements = profilerClient.fetch(Object.class, profile, entity, groups, periods, defaultValue);
     List<Object> results = new ArrayList<>();
     for(ProfileMeasurement measurement: measurements) {
       results.add(render(measurement));
     }
+
     return results;
+  }
+
+  private static Map<String, Object> getGlobals(Context context) {
+    return (Map<String, Object>) context.getCapability(GLOBAL_CONFIG)
+            .orElse(Collections.emptyMap());
   }
 
   /**
@@ -165,58 +185,5 @@ public class VerboseProfile implements StellarFunction {
     view.put(VALUE_KEY, measurement.getProfileValue());
     view.put(GROUPS_KEY, measurement.getGroups());
     return view;
-  }
-
-  /**
-   * Creates the ColumnBuilder to use in accessing the profile data.
-   * @param global The global configuration.
-   */
-  private ColumnBuilder getColumnBuilder(Map<String, Object> global) {
-    String columnFamily = PROFILER_COLUMN_FAMILY.get(global, String.class);
-    return new ValueOnlyColumnBuilder(columnFamily);
-  }
-
-  /**
-   * Creates the ColumnBuilder to use in accessing the profile data.
-   * @param global The global configuration.
-   */
-  private RowKeyBuilder getRowKeyBuilder(Map<String, Object> global) {
-    Integer saltDivisor = PROFILER_SALT_DIVISOR.get(global, Integer.class);
-    return new SaltyRowKeyBuilder(saltDivisor, getPeriodDurationInMillis(global), TimeUnit.MILLISECONDS);
-  }
-
-  /**
-   * Create an HBase table used when accessing HBase.
-   * @param global The global configuration.
-   * @return
-   */
-  private HTableInterface getTable(Map<String, Object> global) {
-    String tableName = PROFILER_HBASE_TABLE.get(global, String.class);
-    TableProvider provider = getTableProvider(global);
-    try {
-      return provider.getTable(HBaseConfiguration.create(), tableName);
-
-    } catch (IOException e) {
-      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName), e);
-    }
-  }
-
-  /**
-   * Create the TableProvider to use when accessing HBase.
-   * @param global The global configuration.
-   */
-  private TableProvider getTableProvider(Map<String, Object> global) {
-    String clazzName = PROFILER_HBASE_TABLE_PROVIDER.get(global, String.class);
-    TableProvider provider;
-    try {
-      @SuppressWarnings("unchecked")
-      Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(clazzName);
-      provider = clazz.getConstructor().newInstance();
-
-    } catch (Exception e) {
-      provider = new HTableProvider();
-    }
-
-    return provider;
   }
 }

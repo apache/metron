@@ -20,13 +20,10 @@
 
 package org.apache.metron.hbase.bolt;
 
-import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.Constants;
 import org.apache.storm.tuple.Tuple;
-import org.apache.metron.hbase.bolt.mapper.Widget;
-import org.apache.metron.hbase.bolt.mapper.WidgetMapper;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
-import org.apache.metron.test.bolt.BaseBoltTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,12 +45,11 @@ import static org.mockito.Mockito.when;
 public class HBaseBoltTest extends BaseBoltTest {
 
   private static final String tableName = "widgets";
-  private LegacyHBaseClient client;
+  private HBaseClient client;
   private Tuple tuple1;
   private Tuple tuple2;
   private Widget widget1;
   private Widget widget2;
-  private TableProvider provider;
 
   @Before
   public void setupTuples() throws Exception {
@@ -68,11 +64,10 @@ public class HBaseBoltTest extends BaseBoltTest {
   }
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     tuple1 = mock(Tuple.class);
     tuple2 = mock(Tuple.class);
-    client = mock(LegacyHBaseClient.class);
-    provider = mock(TableProvider.class);
+    client = mock(HBaseClient.class);
   }
 
   /**
@@ -80,9 +75,9 @@ public class HBaseBoltTest extends BaseBoltTest {
    */
   private HBaseBolt createBolt(int batchSize, WidgetMapper mapper) throws IOException {
     HBaseBolt bolt = new HBaseBolt(tableName, mapper)
-            .withBatchSize(batchSize).withTableProviderInstance(provider);
+            .withBatchSize(batchSize)
+            .withClientFactory((f, c, t) -> client);
     bolt.prepare(Collections.emptyMap(), topologyContext, outputCollector);
-    bolt.setClient(client);
     return bolt;
   }
 
