@@ -146,7 +146,6 @@ com.codahale.metrics:metrics-core:jar:3.0.2:compile,MIT,https://github.com/codah
 com.codahale.metrics:metrics-graphite:jar:3.0.2:compile,MIT,https://github.com/codahale/metrics
 com.esotericsoftware.reflectasm:reflectasm:jar:shaded:1.07:compile,BSD,https://github.com/EsotericSoftware/reflectasm
 com.fasterxml.jackson.core:jackson-annotations:jar:2.2.3:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
-com.fasterxml.jackson.core:jackson-annotations:jar:2.7.0:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
 com.fasterxml.jackson.core:jackson-annotations:jar:2.7.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-annotations:jar:2.8.3:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-annotations:jar:2.9.0:compile,ASLv2,http://github.com/FasterXML/jackson
