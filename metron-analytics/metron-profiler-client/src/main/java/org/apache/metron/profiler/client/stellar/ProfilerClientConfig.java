@@ -20,7 +20,6 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 
@@ -36,11 +35,6 @@ public enum ProfilerClientConfig {
    * A global property that defines the name of the column family used to store profile data.
    */
   PROFILER_COLUMN_FAMILY("profiler.client.hbase.column.family", "P", String.class),
-
-  /**
-   * A global property that defines the name of the HBaseTableProvider implementation class.
-   */
-  PROFILER_HBASE_TABLE_PROVIDER("hbase.provider.impl", HTableProvider.class.getName(), String.class),
 
   /**
    * A global property that defines the name of the {@link HBaseConnectionFactory} implementation class.
