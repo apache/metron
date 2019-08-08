@@ -206,11 +206,9 @@ HdfsResource = functools.partial(
 )
 
 # Metron HBase configuration
-enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_hbase_table = status_params.enrichment_hbase_table
 enrichment_hbase_cf = status_params.enrichment_hbase_cf
 # coprocessor config for enrichment list
-enrichment_list_hbase_provider_impl = status_params.enrichment_list_hbase_provider_impl
 enrichment_list_hbase_coprocessor_impl = status_params.enrichment_list_hbase_coprocessor_impl
 enrichment_list_hbase_table = status_params.enrichment_list_hbase_table
 enrichment_list_hbase_cf = status_params.enrichment_list_hbase_cf
