@@ -44,16 +44,16 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected transient Grok grok;
   protected String grokPath;
@@ -126,7 +126,8 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       }
       grok.addPatternFromReader(new InputStreamReader(patterInputStream, StandardCharsets.UTF_8));
 
-      LOG.info("Grok parser set the following grok expression for '{}': {}", patternLabel, grok.getPatterns().get(patternLabel));
+      LOG.info("Grok parser set the following grok expression for '{}': {}", () ->patternLabel,
+              () -> grok.getPatterns().get(patternLabel));
 
       String grokPattern = "%{" + patternLabel + "}";
 
@@ -270,7 +271,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   protected long toEpoch(String datetime) throws ParseException {
     LOG.debug("Grok parser converting timestamp to epoch: {}", datetime);
-    LOG.debug("Grok parser's DateFormat has TimeZone: {}", dateFormat.getTimeZone());
+    LOG.debug("Grok parser's DateFormat has TimeZone: {}", () -> dateFormat.getTimeZone());
 
     Date date = dateFormat.parse(datetime);
     LOG.debug("Grok parser converted timestamp to epoch: {}", date);

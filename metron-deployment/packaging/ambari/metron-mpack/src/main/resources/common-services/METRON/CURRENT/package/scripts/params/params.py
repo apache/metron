@@ -22,7 +22,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
 
 if OSCheck.is_windows_family():
-    from params_windows import *
+  pass
 else:
     from params_linux import *
 

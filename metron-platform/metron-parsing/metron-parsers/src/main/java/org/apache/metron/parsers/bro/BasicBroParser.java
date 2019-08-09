@@ -26,16 +26,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class BasicBroParser extends BasicParser {
 
-  protected static final Logger _LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger _LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final ThreadLocal<NumberFormat> DECIMAL_FORMAT = new ThreadLocal<NumberFormat>() {
     @Override
     protected NumberFormat initialValue() {
@@ -115,7 +115,7 @@ public class BasicBroParser extends BasicParser {
           timestamp = convertToMillis(broTimestamp);
           payload.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
           payload.put("bro_timestamp", broTimestampFormatted);
-          _LOG.trace("[Metron] new bro record - timestamp : {}", payload.get(Constants.Fields.TIMESTAMP.getName()));
+          _LOG.trace("[Metron] new bro record - timestamp : {}", () -> payload.get(Constants.Fields.TIMESTAMP.getName()));
         } catch (NumberFormatException nfe) {
           _LOG.error("[Metron] timestamp is invalid: {}", payload.get("timestamp"));
           payload.put(Constants.Fields.TIMESTAMP.getName(), 0);

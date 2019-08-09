@@ -17,11 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
-import fnmatch
-import imp
-import socket
-import sys
 import traceback
+
+import imp
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../../../stacks/')

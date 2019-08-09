@@ -16,12 +16,14 @@
 #  limitations under the License.
 #
 
+import argparse
+import os
+import os.path
+
+import cPickle as pickle
+import errno
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
-import cPickle as pickle
-import argparse, sys, os.path
-import errno
-import os
 
 
 class DashboardIndex(object):
