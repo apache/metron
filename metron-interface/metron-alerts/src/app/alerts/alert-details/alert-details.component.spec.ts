@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 
 import { AlertDetailsComponent, AlertCommentWrapper } from './alert-details.component';
 import { SharedModule } from 'app/shared/shared.module';
@@ -35,9 +35,10 @@ import { By } from '@angular/platform-browser';
 import { AlertComment } from './alert-comment';
 import { Subject } from 'rxjs';
 import { ConfirmationType } from 'app/model/confirmation-type';
-import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
-import {AlertSource} from "../../model/alert-source";
-import {of} from "rxjs/index";
+import { CommentAddRemoveRequest } from '../../model/comment-add-remove-request';
+import { AlertSource } from '../../model/alert-source';
+import { of } from 'rxjs/index';
+import { Router } from '@angular/router';
 
 const alertDetail = {
   'enrichments:geo:ip_dst_addr:locID': '5308655',
@@ -90,6 +91,8 @@ describe('AlertDetailsComponent', () => {
   let component: AlertDetailsComponent;
   let fixture: ComponentFixture<AlertDetailsComponent>;
   let updateService: UpdateService;
+  let router: Router;
+  let alertsService: AlertsService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -102,7 +105,6 @@ describe('AlertDetailsComponent', () => {
       providers: [
         SearchService,
         AuthenticationService,
-        AlertsService,
         UpdateService,
         GlobalConfigService,
         {
@@ -126,15 +128,22 @@ describe('AlertDetailsComponent', () => {
           provide: DataSource,
           useClass: ElasticSearchLocalstorageImpl
         },
+        { provide: AlertsService,
+          useValue: {
+            escalate: () => {}
+          }
+        },
       ],
     })
     .compileComponents();
+    alertsService = TestBed.get(AlertsService);
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(AlertDetailsComponent);
     component = fixture.componentInstance;
     updateService = fixture.debugElement.injector.get(UpdateService);
+    router = TestBed.get(Router)
     fixture.detectChanges();
   });
 
@@ -196,4 +205,152 @@ describe('AlertDetailsComponent', () => {
     expect(setAlertSpy).toHaveBeenCalledWith(expectedAlertSource);
     expect(setAlertSpy).toHaveBeenCalledTimes(1);
   }));
+
+  it('should return to alert list page when goBack() is called', () => {
+    let navigateSpy = spyOn(router, 'navigateByUrl');
+    component.goBack();
+    expect(navigateSpy).toHaveBeenCalledWith('/alerts-list');
+  });
+
+  it('should set alert source with setAlert', () => {
+    const alertSource = {
+      name: 'test',
+      comments: ['test comment 1', 'test comment 2'],
+      metron_alert: ''
+    };
+    component.setAlert(alertSource);
+    expect(component.alertName).toBe('test');
+    expect(component.alertSource).toBe(alertSource);
+
+    alertSource.metron_alert = 'test alert';
+    component.setAlert(alertSource);
+    expect(component.alertSources).toBe(alertSource.metron_alert);
+  });
+
+  it('should return the correct alert state with getAlertState', () => {
+    expect(component.getAlertState('OPEN')).toBe(component.alertState.OPEN);
+    expect(component.getAlertState('ESCALATE')).toBe(
+      component.alertState.ESCALATE
+    );
+    expect(component.getAlertState('DISMISS')).toBe(
+      component.alertState.DISMISS
+    );
+    expect(component.getAlertState('RESOLVE')).toBe(
+      component.alertState.RESOLVE
+    );
+    expect(component.getAlertState('NEW')).toBe(component.alertState.NEW);
+  });
+
+  it('should update alert state', () => {
+    spyOn(alertsService, 'escalate').and.returnValue(of({}));
+    spyOn(component, 'updateAlertState').and.callThrough();
+
+    component.alertSource = new AlertSource();
+    component.processEscalate();
+    expect(component.updateAlertState).toHaveBeenCalledWith('ESCALATE');
+
+    component.processOpen();
+    expect(component.updateAlertState).toHaveBeenCalledWith('OPEN');
+
+    component.processNew();
+    expect(component.updateAlertState).toHaveBeenCalledWith('NEW');
+
+    component.processDismiss();
+    expect(component.updateAlertState).toHaveBeenCalledWith('DISMISS');
+
+    component.processResolve();
+    expect(component.updateAlertState).toHaveBeenCalledWith('RESOLVE');
+  });
+
+  it('should toggle editor with toggleNameEditor', fakeAsync(() => {
+    expect(component.showEditor).toBe(false);
+    component.alertSources = ['test1', 'test2'];
+    component.toggleNameEditor();
+    fixture.detectChanges();
+
+    const focus = spyOn(component.metaAlertNameInput.nativeElement, 'focus');
+    expect(component.showEditor).toBe(true);
+    tick(500);
+    fixture.detectChanges();
+    expect(focus).toHaveBeenCalled();
+
+    component.alertSources = [];
+    component.toggleNameEditor();
+    fixture.detectChanges();
+    expect(component.showEditor).toBe(true);
+    flush();
+  }));
+
+  it('should send a request to update an alert name with saveName', () => {
+    const responseMock = new AlertSource();
+    const patchSpy = spyOn(updateService, 'patch').and.returnValue(
+      of(responseMock)
+    );
+    component.alertName = 'test name';
+    component.alertId = '123';
+    fixture.detectChanges();
+
+    component.saveName();
+    expect(patchSpy).toHaveBeenCalled();
+  });
+
+  it('should send a request to add a comment with onAddComment', () => {
+    const addCommentSpy = spyOn(updateService, 'addComment').and.returnValue(
+      of()
+    );
+    component.alertSources = ['test'];
+    component.activeTab = component.tabs.COMMENTS;
+    component.alertCommentStr = 'abcd';
+    fixture.detectChanges();
+
+    const addCommentBtn = fixture.debugElement.query(
+      By.css('[data-qe-id="add-comment-button"]')
+    );
+    addCommentBtn.nativeElement.click();
+    expect(addCommentSpy).toHaveBeenCalled();
+  });
+
+  it('should update a meta alert name or escape the input based on certain keyup events', () => {
+    component.alertSources = ['test1', 'test2'];
+    component.toggleNameEditor();
+    component.alertSource.name = 'test';
+    fixture.detectChanges();
+    const saveNameSpy = spyOn(component, 'saveName');
+    const toggleSpy = spyOn(component, 'toggleNameEditor');
+
+    const metaAlertNameInput = fixture.debugElement.query(
+      By.css('[data-qe-id="meta-alert-name-input"')
+    );
+    const enterEvent = new KeyboardEvent('keyup', {
+      code: 'Enter'
+    });
+    const escEvent = new KeyboardEvent('keyup', {
+      code: 'Escape'
+    });
+
+    metaAlertNameInput.nativeElement.value = 'test';
+    metaAlertNameInput.nativeElement.dispatchEvent(enterEvent);
+    expect(saveNameSpy).toHaveBeenCalled();
+
+    metaAlertNameInput.nativeElement.value = 'test';
+    metaAlertNameInput.nativeElement.dispatchEvent(escEvent);
+    expect(component.alertName).toBe(component.alertSource.name);
+    expect(toggleSpy).toHaveBeenCalled();
+  });
+
+  it('should restore the alert name if cancel is clicked', () => {
+    component.alertSources = ['test1', 'test2'];
+    component.toggleNameEditor();
+    component.alertSource.name = 'test';
+    fixture.detectChanges();
+    const toggleSpy = spyOn(component, 'toggleNameEditor');
+    const cancelInputBtn = fixture.debugElement.query(
+      By.css('[data-qe-id="cancel-name-input"]')
+    );
+    cancelInputBtn.nativeElement.click();
+
+    expect(component.alertName).toBe(component.alertSource.name);
+    expect(toggleSpy).toHaveBeenCalled();
+  });
+
 });
