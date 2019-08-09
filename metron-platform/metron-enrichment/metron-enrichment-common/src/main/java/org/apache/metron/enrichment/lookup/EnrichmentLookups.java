@@ -31,10 +31,6 @@ public enum EnrichmentLookups implements EnrichmentLookupFactory {
   TRACKED((connFactory, table, columnFamily, accessTracker) -> {
     EnrichmentLookup lookup = new HBaseEnrichmentLookup(connFactory, table, columnFamily);
     return new TrackedEnrichmentLookup(lookup, accessTracker);
-  }),
-
-  MEMORY((connFactory, table, columnFamily, accessTracker) -> {
-    return new InMemoryEnrichmentLookup();
   });
 
   private EnrichmentLookupFactory factory;

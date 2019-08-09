@@ -25,7 +25,7 @@ import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
-import org.apache.metron.enrichment.lookup.InMemoryEnrichmentLookup;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
 import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -89,7 +89,7 @@ public class SimpleHBaseAdapterTest {
   private SensorEnrichmentConfig enrichmentConfig;
   private SensorEnrichmentConfig enrichmentConfigWithColumnFamily;
   private SimpleHBaseAdapter adapter;
-  private InMemoryEnrichmentLookup lookup;
+  private FakeEnrichmentLookup lookup;
 
   @Before
   public void setup() throws Exception {
@@ -98,7 +98,7 @@ public class SimpleHBaseAdapterTest {
     enrichmentConfigWithColumnFamily = JSONUtils.INSTANCE.load(enrichmentJsonWithColumnFamily, SensorEnrichmentConfig.class);
 
     // the enrichments are retrieved from memory, rather than HBase for these tests
-    lookup = new InMemoryEnrichmentLookup();
+    lookup = new FakeEnrichmentLookup();
 
     // create a 'whitelist' enrichment where the indicator is the IP address
     lookup.withEnrichment(

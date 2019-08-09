@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
-import org.apache.metron.enrichment.lookup.InMemoryEnrichmentLookup;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
 import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
@@ -60,7 +60,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
             .build();
 
     // provides the enrichment data to the functions
-    InMemoryEnrichmentLookup lookup = new InMemoryEnrichmentLookup()
+    FakeEnrichmentLookup lookup = new FakeEnrichmentLookup()
             .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator0"), new EnrichmentValue(of("key0", "value0")))
             .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator1"), new EnrichmentValue(of("key1", "value1")))
             .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator2"), new EnrichmentValue(of("key2", "value2")))

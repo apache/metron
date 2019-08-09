@@ -23,7 +23,7 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.InMemoryEnrichmentLookup;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,7 +34,7 @@ import java.util.HashMap;
 
 public class ThreatIntelAdapterTest {
 
-  private InMemoryEnrichmentLookup lookup;
+  private FakeEnrichmentLookup lookup;
   private ThreatIntelAdapter adapter;
   private SensorEnrichmentConfig config;
 
@@ -61,7 +61,7 @@ public class ThreatIntelAdapterTest {
     config = JSONUtils.INSTANCE.load(configJson, SensorEnrichmentConfig.class);
 
     // create a 'blacklist' enrichment where the indicator is the IP address
-    lookup = new InMemoryEnrichmentLookup()
+    lookup = new FakeEnrichmentLookup()
             .withEnrichment(
                     new EnrichmentKey("blacklist", "10.0.2.3"),
                     new EnrichmentValue());
