@@ -18,7 +18,7 @@
 package org.apache.metron.enrichment.adapters.threatintel;
 
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
-import org.apache.metron.enrichment.lookup.EnrichmentLookups;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactories;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
 import java.io.Serializable;
@@ -33,7 +33,7 @@ public class ThreatIntelConfig implements Serializable {
   private String trackerHBaseCF;
   private long millisecondsBetweenPersists = 2*MS_IN_HOUR;
   private HBaseConnectionFactory connectionFactory = new HBaseConnectionFactory();
-  private EnrichmentLookupFactory enrichmentLookupFactory = EnrichmentLookups.HBASE;
+  private EnrichmentLookupFactory enrichmentLookupFactory = EnrichmentLookupFactories.HBASE;
 
   public String getHBaseTable() {
     return hBaseTable;
@@ -116,7 +116,7 @@ public class ThreatIntelConfig implements Serializable {
   }
 
   public ThreatIntelConfig withEnrichmentLookupFactory(String creatorImpl) {
-    this.enrichmentLookupFactory = EnrichmentLookupFactory.byName(creatorImpl);
+    this.enrichmentLookupFactory = EnrichmentLookupFactories.byName(creatorImpl);
     return this;
   }
 }

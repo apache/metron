@@ -206,6 +206,7 @@ HdfsResource = functools.partial(
 )
 
 # Metron HBase configuration
+enrichment_lookup_factory = HBASE
 enrichment_hbase_table = status_params.enrichment_hbase_table
 enrichment_hbase_cf = status_params.enrichment_hbase_cf
 # coprocessor config for enrichment list

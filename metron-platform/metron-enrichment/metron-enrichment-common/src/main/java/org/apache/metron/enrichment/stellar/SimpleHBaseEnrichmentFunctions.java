@@ -24,7 +24,7 @@ import com.google.common.cache.RemovalNotification;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
-import org.apache.metron.enrichment.lookup.EnrichmentLookups;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactories;
 import org.apache.metron.enrichment.lookup.EnrichmentResult;
 import org.apache.metron.enrichment.lookup.HBaseEnrichmentLookup;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
@@ -153,7 +153,7 @@ public class SimpleHBaseEnrichmentFunctions {
     private EnrichmentLookupFactory creator;
 
     public EnrichmentExists() {
-      this.creator = EnrichmentLookups.HBASE;
+      this.creator = EnrichmentLookupFactories.HBASE;
     }
 
     public EnrichmentExists withEnrichmentLookupCreator(EnrichmentLookupFactory creator) {
@@ -250,7 +250,7 @@ public class SimpleHBaseEnrichmentFunctions {
     private EnrichmentLookupFactory creator;
 
     public EnrichmentGet() {
-      this.creator = EnrichmentLookups.HBASE;
+      this.creator = EnrichmentLookupFactories.HBASE;
     }
 
     public EnrichmentGet withEnrichmentLookupCreator(EnrichmentLookupFactory creator) {

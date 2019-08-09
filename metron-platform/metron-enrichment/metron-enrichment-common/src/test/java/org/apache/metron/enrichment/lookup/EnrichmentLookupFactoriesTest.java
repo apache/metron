@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,22 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.enrichment.lookup;
 
-import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.junit.Test;
 
-import java.io.IOException;
-import java.io.Serializable;
+import static org.junit.Assert.assertNotNull;
 
-/**
- * Responsible for creating an {@link EnrichmentLookup}.
- */
-public interface EnrichmentLookupFactory extends Serializable {
+public class EnrichmentLookupFactoriesTest {
 
-  EnrichmentLookup create(HBaseConnectionFactory connectionFactory,
-                          String tableName,
-                          String columnFamily,
-                          AccessTracker accessTracker) throws IOException;
+  @Test
+  public void byEnumName() {
+    assertNotNull(EnrichmentLookupFactories.byName(EnrichmentLookupFactories.HBASE.name()));
+  }
+
+  @Test
+  public void byClassName() {
+    assertNotNull(EnrichmentLookupFactories.byName(FakeEnrichmentLookupFactory.class.getName()));
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void shouldFailWithInvalidName() {
+    EnrichmentLookupFactories.byName("this-is-an-invalid-name");
+  }
 }

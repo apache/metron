@@ -19,10 +19,17 @@ package org.apache.metron.enrichment.lookup;
 
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
 
-public enum EnrichmentLookups implements EnrichmentLookupFactory {
+/**
+ * Enumerates the available {@link EnrichmentLookupFactory} implementations.
+ */
+public enum EnrichmentLookupFactories implements EnrichmentLookupFactory {
 
   HBASE((connFactory, table, columnFamily, accessTracker) -> {
     return new HBaseEnrichmentLookup(connFactory, table, columnFamily);
@@ -33,9 +40,10 @@ public enum EnrichmentLookups implements EnrichmentLookupFactory {
     return new TrackedEnrichmentLookup(lookup, accessTracker);
   });
 
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private EnrichmentLookupFactory factory;
 
-  EnrichmentLookups(EnrichmentLookupFactory factory) {
+  EnrichmentLookupFactories(EnrichmentLookupFactory factory) {
     this.factory = factory;
   }
 
@@ -44,5 +52,28 @@ public enum EnrichmentLookups implements EnrichmentLookupFactory {
                                  String columnFamily,
                                  AccessTracker accessTracker) throws IOException {
     return factory.create(connFactory, tableName, columnFamily, accessTracker);
+  }
+
+  /**
+   * Creates an {@link EnrichmentLookupFactory}.
+   *
+   * @param name Either an enum value or a fully-qualified class name.
+   * @return A {@link EnrichmentLookupFactory}.
+   */
+  public static EnrichmentLookupFactory byName(String name) {
+    // is this an enum?
+    try {
+      return EnrichmentLookupFactories.valueOf(name);
+    } catch (IllegalArgumentException e) {
+      LOG.debug("Cannot find EnrichmentLookupFactory by enum name, assuming this is a class name; name={}", name);
+    }
+
+    // is this a class name? a class name may be used during testing
+    try {
+      Class<? extends EnrichmentLookupFactory> clazz = (Class<? extends EnrichmentLookupFactory>) Class.forName(name);
+      return clazz.getConstructor().newInstance();
+    } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | ClassNotFoundException | InvocationTargetException e) {
+      throw new IllegalStateException("Unable to instantiate EnrichmentLookupFactory.", e);
+    }
   }
 }

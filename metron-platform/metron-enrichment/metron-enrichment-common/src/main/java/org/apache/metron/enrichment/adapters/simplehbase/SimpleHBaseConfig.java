@@ -18,7 +18,7 @@
 package org.apache.metron.enrichment.adapters.simplehbase;
 
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
-import org.apache.metron.enrichment.lookup.EnrichmentLookups;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactories;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
 import java.io.Serializable;
@@ -30,7 +30,7 @@ public class SimpleHBaseConfig implements Serializable {
   private String hBaseTable;
   private String hBaseCF;
   private HBaseConnectionFactory connectionFactory = new HBaseConnectionFactory();
-  private EnrichmentLookupFactory enrichmentLookupFactory = EnrichmentLookups.HBASE;
+  private EnrichmentLookupFactory enrichmentLookupFactory = EnrichmentLookupFactories.HBASE;
 
   public String getHBaseTable() {
     return hBaseTable;
@@ -69,7 +69,7 @@ public class SimpleHBaseConfig implements Serializable {
   }
 
   public SimpleHBaseConfig withEnrichmentLookupFactory(String creatorImpl) {
-    this.enrichmentLookupFactory = EnrichmentLookupFactory.byName(creatorImpl);
+    this.enrichmentLookupFactory = EnrichmentLookupFactories.byName(creatorImpl);
     return this;
   }
 }
