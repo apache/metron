@@ -30,7 +30,7 @@ public class SimpleHBaseConfig implements Serializable {
   private String hBaseTable;
   private String hBaseCF;
   private HBaseConnectionFactory connectionFactory = new HBaseConnectionFactory();
-  private EnrichmentLookupFactory enrichmentLookupCreator = EnrichmentLookups.HBASE;
+  private EnrichmentLookupFactory enrichmentLookupFactory = EnrichmentLookups.HBASE;
 
   public String getHBaseTable() {
     return hBaseTable;
@@ -59,18 +59,17 @@ public class SimpleHBaseConfig implements Serializable {
     return this;
   }
 
-  public EnrichmentLookupFactory getEnrichmentLookupCreator() {
-    return enrichmentLookupCreator;
+  public EnrichmentLookupFactory getEnrichmentLookupFactory() {
+    return enrichmentLookupFactory;
   }
 
-  public SimpleHBaseConfig withEnrichmentLookupCreator(EnrichmentLookupFactory enrichmentLookupCreator) {
-    this.enrichmentLookupCreator = enrichmentLookupCreator;
+  public SimpleHBaseConfig withEnrichmentLookupFactory(EnrichmentLookupFactory enrichmentLookupFactory) {
+    this.enrichmentLookupFactory = enrichmentLookupFactory;
     return this;
   }
 
-  public SimpleHBaseConfig withEnrichmentLookupCreator(String creatorImpl) {
-    this.enrichmentLookupCreator = EnrichmentLookupFactory.byName(creatorImpl);
-    //this.enrichmentLookupCreator = EnrichmentLookups.valueOf(creatorImpl);
+  public SimpleHBaseConfig withEnrichmentLookupFactory(String creatorImpl) {
+    this.enrichmentLookupFactory = EnrichmentLookupFactory.byName(creatorImpl);
     return this;
   }
 }

@@ -33,7 +33,7 @@ public class ThreatIntelConfig implements Serializable {
   private String trackerHBaseCF;
   private long millisecondsBetweenPersists = 2*MS_IN_HOUR;
   private HBaseConnectionFactory connectionFactory = new HBaseConnectionFactory();
-  private EnrichmentLookupFactory enrichmentLookupCreator = EnrichmentLookups.HBASE;
+  private EnrichmentLookupFactory enrichmentLookupFactory = EnrichmentLookups.HBASE;
 
   public String getHBaseTable() {
     return hBaseTable;
@@ -67,8 +67,8 @@ public class ThreatIntelConfig implements Serializable {
     return connectionFactory;
   }
 
-  public EnrichmentLookupFactory getEnrichmentLookupCreator() {
-    return enrichmentLookupCreator;
+  public EnrichmentLookupFactory getEnrichmentLookupFactory() {
+    return enrichmentLookupFactory;
   }
 
   public ThreatIntelConfig withConnectionFactoryImpl(String connectorImpl) {
@@ -110,13 +110,13 @@ public class ThreatIntelConfig implements Serializable {
     return this;
   }
 
-  public ThreatIntelConfig withEnrichmentLookupCreator(EnrichmentLookupFactory enrichmentLookupCreator) {
-    this.enrichmentLookupCreator = enrichmentLookupCreator;
+  public ThreatIntelConfig withEnrichmentLookupFactory(EnrichmentLookupFactory enrichmentLookupFactory) {
+    this.enrichmentLookupFactory = enrichmentLookupFactory;
     return this;
   }
 
-  public ThreatIntelConfig withEnrichmentLookupCreator(String creatorImpl) {
-    this.enrichmentLookupCreator = EnrichmentLookupFactory.byName(creatorImpl);
+  public ThreatIntelConfig withEnrichmentLookupFactory(String creatorImpl) {
+    this.enrichmentLookupFactory = EnrichmentLookupFactory.byName(creatorImpl);
     return this;
   }
 }

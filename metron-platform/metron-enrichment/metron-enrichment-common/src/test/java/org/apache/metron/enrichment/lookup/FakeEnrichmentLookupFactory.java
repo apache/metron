@@ -23,7 +23,7 @@ import org.apache.metron.hbase.client.HBaseConnectionFactory;
 /**
  * Creates a {@link FakeEnrichmentLookup}.
  */
-public class FakeEnrichmentLookupCreator implements EnrichmentLookupFactory {
+public class FakeEnrichmentLookupFactory implements EnrichmentLookupFactory {
 
   @Override
   public EnrichmentLookup create(HBaseConnectionFactory connectionFactory,

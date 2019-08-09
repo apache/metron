@@ -33,7 +33,7 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
 import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
-import org.apache.metron.enrichment.lookup.FakeEnrichmentLookupCreator;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookupFactory;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTrackers;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.enrichment.utils.ThreatIntelUtils;
@@ -160,7 +160,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("threatintel_error_topic", ERROR_TOPIC);
 
       // enrichment
-      setProperty("enrichment_lookup_creator", FakeEnrichmentLookupCreator.class.getName());
+      setProperty("enrichment_lookup_factory", FakeEnrichmentLookupFactory.class.getName());
       setProperty("enrichment_hbase_table", enrichmentsTableName);
       setProperty("enrichment_hbase_cf", cf);
       setProperty("enrichment_host_known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"}," +

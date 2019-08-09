@@ -84,9 +84,9 @@ components:
             -   name: "withHBaseCF"
                 args:
                 - "${enrichment.simple.hbase.cf}"
-            -   name: "withEnrichmentLookupCreator"
+            -   name: "withEnrichmentLookupFactory"
                 args:
-                - "${enrichment.lookup.creator}"
+                - "${enrichment.lookup.factory}"
 
     -   id: "simpleHBaseEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.simplehbase.SimpleHBaseAdapter"
@@ -160,9 +160,9 @@ components:
             -   name: "withHBaseCF"
                 args:
                 - "${threat.intel.simple.hbase.cf}"
-            -   name: "withEnrichmentLookupCreator"
+            -   name: "withEnrichmentLookupFactory"
                 args:
-                - "${enrichment.lookup.creator}"
+                - "${enrichment.lookup.factory}"
 
     -   id: "simpleHBaseThreatIntelAdapter"
         className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelAdapter"

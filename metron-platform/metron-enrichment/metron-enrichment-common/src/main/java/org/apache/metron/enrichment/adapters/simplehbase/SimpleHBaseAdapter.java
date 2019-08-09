@@ -113,7 +113,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>, Serializ
   public boolean initializeAdapter(Map<String, Object> configuration) {
     try {
       if(lookup == null) {
-        EnrichmentLookupFactory factory = config.getEnrichmentLookupCreator();
+        EnrichmentLookupFactory factory = config.getEnrichmentLookupFactory();
         lookup = factory.create(config.getConnectionFactory(), config.getHBaseTable(), config.getHBaseCF(), null);
       }
     } catch (IOException e) {

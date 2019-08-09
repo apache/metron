@@ -41,9 +41,6 @@ public class FakeEnrichmentLookup implements EnrichmentLookup {
    */
   private static Map<EnrichmentKey, EnrichmentValue> enrichments = Collections.synchronizedMap(new HashMap<>());
 
-  public FakeEnrichmentLookup() {
-  }
-
   /**
    * Add an enrichment.
    * @param key The enrichment key.
@@ -58,8 +55,9 @@ public class FakeEnrichmentLookup implements EnrichmentLookup {
   /**
    * Deletes all enrichments.
    */
-  public void deleteAll() {
+  public FakeEnrichmentLookup deleteAll() {
     enrichments.clear();
+    return this;
   }
 
   @Override

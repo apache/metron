@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.simplehbase;
 
-import org.apache.metron.enrichment.lookup.EnrichmentLookups;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookupFactory;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,15 +28,17 @@ public class SimpleHBaseConfigTest {
 
     @Test
     public void test() {
+        FakeEnrichmentLookupFactory factory = new FakeEnrichmentLookupFactory();
+
         SimpleHBaseConfig shc = new SimpleHBaseConfig();
         shc.withHBaseCF(cf);
         shc.withHBaseTable(table);
         shc.withConnectionFactoryImpl(HBaseConnectionFactory.class.getName());
-        shc.withEnrichmentLookupCreator(EnrichmentLookups.MEMORY);
+        shc.withEnrichmentLookupFactory(factory);
 
         Assert.assertEquals(cf, shc.getHBaseCF());
         Assert.assertEquals(table, shc.getHBaseTable());
         Assert.assertTrue(shc.getConnectionFactory() instanceof HBaseConnectionFactory);
-        Assert.assertEquals(EnrichmentLookups.MEMORY, shc.getEnrichmentLookupCreator());
+        Assert.assertEquals(factory, shc.getEnrichmentLookupFactory());
     }
 }

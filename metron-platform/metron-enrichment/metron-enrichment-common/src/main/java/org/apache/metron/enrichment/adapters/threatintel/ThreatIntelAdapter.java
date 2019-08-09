@@ -116,7 +116,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   public boolean initializeAdapter(Map<String, Object> configuration) {
     if(lookup == null) {
       try {
-        EnrichmentLookupFactory creator = config.getEnrichmentLookupCreator();
+        EnrichmentLookupFactory creator = config.getEnrichmentLookupFactory();
         lookup = creator.create(config.getConnectionFactory(), config.getHBaseTable(), config.getHBaseCF(), null);
 
       } catch (IOException e) {

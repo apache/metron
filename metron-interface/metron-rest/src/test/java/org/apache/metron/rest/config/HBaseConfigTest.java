@@ -50,7 +50,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 public class HBaseConfigTest {
 
   private HBaseConnectionFactory hBaseConnectionFactory;
-  private HBaseClientFactory hBaseClientCreator;
+  private HBaseClientFactory hBaseClientFactory;
   private HBaseConfiguration hBaseConfiguration;
   private Configuration configuration;
   private GlobalConfigService globalConfigService;
@@ -65,7 +65,7 @@ public class HBaseConfigTest {
     hBaseConnectionFactory = mock(HBaseConnectionFactory.class);
     configuration = mock(Configuration.class);
     hBaseConfiguration = mock(HBaseConfiguration.class);
-    hBaseClientCreator = mock(FakeHBaseClientFactory.class);
+    hBaseClientFactory = mock(FakeHBaseClientFactory.class);
     globalConfigService = mock(GlobalConfigService.class);
     hBaseConfig = new HBaseConfig(globalConfigService);
     mockStatic(HBaseConfiguration.class);
@@ -91,7 +91,7 @@ public class HBaseConfigTest {
 
     UserSettingsClient client = hBaseConfig.userSettingsClient(
             globalConfigService,
-            hBaseClientCreator,
+            hBaseClientFactory,
             hBaseConnectionFactory,
             hBaseConfiguration);
     Assert.assertNotNull(client);

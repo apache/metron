@@ -104,13 +104,13 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
       tableName = HBASE_TABLE_NAME.get(properties, String.class);
       durability = HBASE_WRITE_DURABILITY.get(properties, Durability.class);
 
-      // connection factory
-      String factoryImpl = HBASE_CONNECTION_FACTORY.get(properties, String.class);
-      connectionFactory = createConnectionFactory(factoryImpl);
+      // hbase connection factory
+      String connectionFactoryImpl = HBASE_CONNECTION_FACTORY.get(properties, String.class);
+      connectionFactory = createConnectionFactory(connectionFactoryImpl);
 
-      // client creator
-      String creatorImpl = HBASE_CLIENT_FACTORY.get(properties, String.class);
-      hBaseClientFactory = HBaseClientFactory.byName(creatorImpl, () -> new HBaseTableClientFactory());
+      // hbase client factory
+      String hbaseClientFactoryImpl = HBASE_CLIENT_FACTORY.get(properties, String.class);
+      hBaseClientFactory = HBaseClientFactory.byName(hbaseClientFactoryImpl, () -> new HBaseTableClientFactory());
 
       return this;
     }
