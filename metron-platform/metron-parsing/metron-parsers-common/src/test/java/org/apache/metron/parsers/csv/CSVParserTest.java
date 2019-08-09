@@ -18,18 +18,22 @@
 
 package org.apache.metron.parsers.csv;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.List;
 
 public class CSVParserTest {
   /**
@@ -120,5 +124,24 @@ public class CSVParserTest {
       catch(IllegalStateException iae) {}
       UnitTestHelper.setLog4jLevel(CSVParser.class, Level.ERROR);
     }
+  }
+
+  @Test
+  public void getsReadCharsetFromConfig() throws IOException {
+    SensorParserConfig config = JSONUtils.INSTANCE.load(parserConfig, SensorParserConfig.class);
+    CSVParser parser = new CSVParser();
+    parser.init();
+    config.getParserConfig().put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    parser.configure(config.getParserConfig());
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() throws IOException {
+    SensorParserConfig config = JSONUtils.INSTANCE.load(parserConfig, SensorParserConfig.class);
+    CSVParser parser = new CSVParser();
+    parser.init();
+    parser.configure(config.getParserConfig());
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
   }
 }

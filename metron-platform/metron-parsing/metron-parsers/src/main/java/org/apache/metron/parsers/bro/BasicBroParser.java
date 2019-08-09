@@ -19,7 +19,6 @@
 package org.apache.metron.parsers.bro;
 
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -46,7 +45,7 @@ public class BasicBroParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
-
+    setReadCharset(parserConfig);
   }
 
   @Override
@@ -63,7 +62,7 @@ public class BasicBroParser extends BasicParser {
     String rawMessage = null;
     List<JSONObject> messages = new ArrayList<>();
     try {
-      rawMessage = new String(msg, StandardCharsets.UTF_8);
+      rawMessage = new String(msg, getReadCharset());
       _LOG.trace("[Metron] Received message: {}", rawMessage);
 
       JSONObject cleanedMessage = cleaner.clean(rawMessage);

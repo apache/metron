@@ -18,25 +18,25 @@
 
 package org.apache.metron.parsers;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertThat;
+
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.snort.BasicSnortParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.assertThat;
 
 public class SnortParserTest {
 
@@ -148,4 +148,20 @@ public class SnortParserTest {
     parser.configure(parserConfig);
   }
 
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    BasicSnortParser parser = new BasicSnortParser();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    BasicSnortParser parser = new BasicSnortParser();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
+  }
 }

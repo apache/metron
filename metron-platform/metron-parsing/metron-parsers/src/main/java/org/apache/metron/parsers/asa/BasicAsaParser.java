@@ -20,7 +20,6 @@ package org.apache.metron.parsers.asa;
 import com.google.common.collect.ImmutableMap;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
@@ -97,6 +96,7 @@ public class BasicAsaParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
     String timeZone = (String) parserConfig.get("deviceTimeZone");
     if (timeZone != null)
       deviceClock = Clock.system(ZoneId.of(timeZone));

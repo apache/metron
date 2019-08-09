@@ -20,14 +20,13 @@ package org.apache.metron.parsers.csv;
 
 import com.google.common.collect.ImmutableList;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.metron.common.csv.CSVConverter;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +89,7 @@ public class CSVParser extends BasicParser {
         return Collections.emptyList();
       }
     } catch (Throwable e) {
-      String message = "Unable to parse " + new String(rawMessage, StandardCharsets.UTF_8) + ": " + e.getMessage();
+      String message = "Unable to parse " + new String(rawMessage, getReadCharset()) + ": " + e.getMessage();
       LOG.error(message, e);
       throw new IllegalStateException(message, e);
     }

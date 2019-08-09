@@ -17,6 +17,11 @@
  */
 package org.apache.metron.parsers;
 
+import static org.apache.metron.common.Constants.Fields.DST_ADDR;
+import static org.apache.metron.common.Constants.Fields.ORIGINAL;
+import static org.apache.metron.common.Constants.Fields.SRC_ADDR;
+import static org.apache.metron.common.Constants.Fields.TIMESTAMP;
+
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
@@ -37,11 +42,12 @@ public abstract class BasicParser implements
   @Override
   public boolean validate(JSONObject message) {
     JSONObject value = message;
-    if (!(value.containsKey("original_string"))) {
-      LOG.trace("[Metron] Message does not have original_string: {}", message);
+    final String invalidMessageTemplate = "[Metron] Message does not have {}: {}";
+    if (!(value.containsKey(ORIGINAL.getName()))) {
+      LOG.trace(invalidMessageTemplate, ORIGINAL.getName(), message);
       return false;
-    } else if (!(value.containsKey("timestamp"))) {
-      LOG.trace("[Metron] Message does not have timestamp: {}", message);
+    } else if (!(value.containsKey(TIMESTAMP.getName()))) {
+      LOG.trace(invalidMessageTemplate, TIMESTAMP.getName(), message);
       return false;
     } else {
       LOG.trace("[Metron] Message conforms to schema: {}", message);
@@ -53,10 +59,10 @@ public abstract class BasicParser implements
     try {
       String ipSrcAddr = null;
       String ipDstAddr = null;
-      if (value.containsKey("ip_src_addr"))
-        ipSrcAddr = value.get("ip_src_addr").toString();
-      if (value.containsKey("ip_dst_addr"))
-        ipDstAddr = value.get("ip_dst_addr").toString();
+      if (value.containsKey(SRC_ADDR.getName()))
+        ipSrcAddr = value.get(SRC_ADDR.getName()).toString();
+      if (value.containsKey(DST_ADDR.getName()))
+        ipDstAddr = value.get(DST_ADDR.getName()).toString();
       if (ipSrcAddr == null && ipDstAddr == null)
         return "0";
       if (ipSrcAddr == null || ipSrcAddr.length() == 0)

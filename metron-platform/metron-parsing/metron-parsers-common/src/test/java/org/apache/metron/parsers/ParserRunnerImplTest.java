@@ -312,7 +312,7 @@ public class ParserRunnerImplTest {
     inputMessage.put("guid", "guid");
     inputMessage.put("ip_src_addr", "192.168.1.1");
     inputMessage.put("ip_dst_addr", "192.168.1.2");
-    RawMessage rawMessage = new RawMessage("raw_message".getBytes(StandardCharsets.UTF_8), new HashMap<>());
+    RawMessage rawMessage = new RawMessage("raw_message_for_testing".getBytes(StandardCharsets.UTF_8), new HashMap<>());
 
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");

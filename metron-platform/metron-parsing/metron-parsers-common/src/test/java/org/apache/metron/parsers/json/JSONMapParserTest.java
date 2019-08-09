@@ -17,18 +17,32 @@
  */
 package org.apache.metron.parsers.json;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import com.google.common.collect.ImmutableMap;
-import java.util.List;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class JSONMapParserTest {
+
+  private JSONMapParser parser;
+
+  @Before
+  public void setup() {
+    parser = new JSONMapParser();
+  }
 
   /**
    {
@@ -42,7 +56,6 @@ public class JSONMapParserTest {
 
   @Test
   public void testHappyPath() {
-    JSONMapParser parser = new JSONMapParser();
     List<JSONObject> output = parser.parse(happyPathJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
@@ -77,7 +90,6 @@ public class JSONMapParserTest {
 
   @Test
   public void testCollectionHandlingDrop() {
-    JSONMapParser parser = new JSONMapParser();
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 1);
     //don't forget the timestamp field!
@@ -89,7 +101,6 @@ public class JSONMapParserTest {
 
   @Test(expected=IllegalStateException.class)
   public void testCollectionHandlingError() {
-    JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ERROR.name()));
     UnitTestHelper.setLog4jLevel(BasicParser.class, Level.FATAL);
     parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
@@ -99,7 +110,6 @@ public class JSONMapParserTest {
 
   @Test
   public void testCollectionHandlingAllow() {
-    JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ALLOW.name()));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 1);
@@ -112,7 +122,6 @@ public class JSONMapParserTest {
 
   @Test
   public void testCollectionHandlingUnfold() {
-    JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.UNFOLD.name()));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
     Assert.assertEquals(output.size(), 1);
@@ -129,7 +138,6 @@ public class JSONMapParserTest {
 
   @Test
   public void testMixedCollectionHandlingUnfold() {
-    JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG,JSONMapParser.MapStrategy.UNFOLD.name()));
       List<JSONObject> output = parser.parse(mixCollectionHandlingJSON.getBytes(
               StandardCharsets.UTF_8));
@@ -139,5 +147,20 @@ public class JSONMapParserTest {
     Assert.assertEquals(message.get("key"),"value");
     Assert.assertNotNull(message.get("timestamp"));
     Assert.assertTrue(message.get("timestamp") instanceof Number );
+  }
+
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
   }
 }

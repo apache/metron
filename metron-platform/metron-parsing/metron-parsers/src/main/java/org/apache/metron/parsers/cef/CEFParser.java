@@ -19,8 +19,6 @@
 package org.apache.metron.parsers.cef;
 
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -144,7 +142,7 @@ public class CEFParser extends BasicParser {
 	public List<JSONObject> parse(byte[] rawMessage) {
 		List<JSONObject> messages = new ArrayList<>();
 
-		String cefString = new String(rawMessage, StandardCharsets.UTF_8);
+		String cefString = new String(rawMessage, getReadCharset());
 
 		Matcher matcher = p.matcher(cefString);
 
@@ -260,6 +258,7 @@ public class CEFParser extends BasicParser {
 
 	@Override
 	public void configure(Map<String, Object> config) {
+	  setReadCharset(config);
 	}
 
 	@SuppressWarnings("unchecked")

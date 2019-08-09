@@ -17,27 +17,34 @@
  */
 package org.apache.metron.parsers.leef;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
 import com.google.common.io.Resources;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.metron.common.Constants.Fields;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 public class LEEFParserTest {
   private LEEFParser parser;
@@ -236,5 +243,20 @@ public class LEEFParserTest {
     Optional<MessageParserResult<JSONObject>> parse = parser.parseOptionalResult(string.getBytes(StandardCharsets.UTF_8));
     Assert.assertTrue(parse.isPresent());
     return parse.get().getMessages();
+  }
+
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
   }
 }

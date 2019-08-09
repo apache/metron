@@ -18,6 +18,9 @@
 
 package org.apache.metron.parsers.cef;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,21 +29,22 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
 import com.google.common.io.Resources;
-import org.apache.metron.common.Constants.Fields;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.common.Constants.Fields;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class CEFParserTest {
 	private CEFParser parser;
@@ -275,5 +279,20 @@ public class CEFParserTest {
 		Assert.assertNotNull(parse);
 		return parse;
 	}
+
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
+  }
 
 }

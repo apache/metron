@@ -17,14 +17,18 @@
  */
 package org.apache.metron.parsers.fireeye;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.nio.charset.StandardCharsets;
+import java.time.Year;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.time.Year;
-import java.time.ZonedDateTime;
-import java.time.ZoneOffset;
-
 import org.apache.metron.parsers.AbstractParserConfigTest;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -73,5 +77,20 @@ public class BasicFireEyeParserTest extends AbstractParserConfigTest {
     Map json = (Map) parser.parse(parsed.toJSONString());
     long expectedTimestamp = ZonedDateTime.of(Year.now(ZoneOffset.UTC).getValue(), 3, 19, 5, 24, 39, 0, ZoneOffset.UTC).toInstant().toEpochMilli();
     Assert.assertEquals(expectedTimestamp, json.get("timestamp"));
+  }
+
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
   }
 }
