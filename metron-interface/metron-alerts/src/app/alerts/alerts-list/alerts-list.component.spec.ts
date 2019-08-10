@@ -28,11 +28,13 @@ import { SaveSearchService } from 'app/service/save-search.service';
 import { MetaAlertService } from 'app/service/meta-alert.service';
 import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
-import { Observable, of } from 'rxjs';
+import { SearchRequest } from 'app/model/search-request';
+import { Observable, of, Subject } from 'rxjs';
 import { Filter } from 'app/model/filter';
 import { QueryBuilder } from './query-builder';
+import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
+import { SearchResponse } from 'app/model/search-response';
 import { By } from '@angular/platform-browser';
-import { SearchRequest } from 'app/model/search-request';
 
 describe('AlertsListComponent', () => {
 
@@ -52,11 +54,15 @@ describe('AlertsListComponent', () => {
     addOrUpdateFilter() { return {} },
     clearSearch() { return {} },
     generateSelect() { return '*' },
+    isTimeStampFieldPresent() { return {} },
     filters: [{}],
     searchRequest: {
       from: 0
     }
   }
+
+  let queryBuilder: QueryBuilder;
+  let searchService: SearchService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -94,6 +100,9 @@ describe('AlertsListComponent', () => {
       ]
     })
     .compileComponents();
+
+    queryBuilder = TestBed.get(QueryBuilder);
+    searchService = TestBed.get(SearchService);
   }));
 
   beforeEach(() => {
@@ -161,7 +170,6 @@ describe('AlertsListComponent', () => {
   it('should build a new search request if hideQueryBuilder is true', () => {
     const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
     const el = input.nativeElement;
-    const searchService = fixture.debugElement.injector.get(SearchService);
     const searchServiceSpy = spyOn(searchService, 'search').and.returnValue(of());
     const newSearch = new SearchRequest();
 
@@ -178,7 +186,6 @@ describe('AlertsListComponent', () => {
   });
 
   it('should poll with new search request if isRefreshPaused is true and manualSearch is present', () => {
-    const searchService = fixture.debugElement.injector.get(SearchService);
     const searchServiceSpy = spyOn(searchService, 'pollSearch').and.returnValue(of());
     const newSearch = new SearchRequest();
 
@@ -187,5 +194,50 @@ describe('AlertsListComponent', () => {
     component.tryStartPolling(newSearch);
     expect(searchServiceSpy).toHaveBeenCalledWith(newSearch);
   });
+
+  describe('stale data state', () => {
+
+    it('should set staleDataState flag to true on filter change', () => {
+      expect(component.staleDataState).toBe(false);
+      component.onAddFilter(new Filter('ip_src_addr', '0.0.0.0'));
+      expect(component.staleDataState).toBe(true);
+    });
+
+    it('should set staleDataState flag to true on filter clearing', () => {
+      queryBuilder.clearSearch = jasmine.createSpy('clearSearch');
+
+      expect(component.staleDataState).toBe(false);
+      component.onClear();
+      expect(component.staleDataState).toBe(true);
+    });
+
+    it('should set staleDataState flag to true on timerange change', () => {
+      expect(component.staleDataState).toBe(false);
+      component.onTimeRangeChange(new Filter(TIMESTAMP_FIELD_NAME, 'this-year'));
+      expect(component.staleDataState).toBe(true);
+    });
+
+    it('should set staleDataState flag to false when the query resolves', () => {
+      spyOn(searchService, 'search').and.returnValue(of(new SearchResponse()));
+      spyOn(component, 'saveCurrentSearch');
+      spyOn(component, 'setSearchRequestSize');
+      spyOn(component, 'setSelectedTimeRange');
+      spyOn(component, 'createGroupFacets');
+
+      component.staleDataState = true;
+      component.search();
+      expect(component.staleDataState).toBe(false);
+    });
+
+    it('should show warning if data is in a stale state', () => {
+      expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBe(null);
+
+      component.staleDataState = true;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBeTruthy();
+    });
+
+  })
 
 });

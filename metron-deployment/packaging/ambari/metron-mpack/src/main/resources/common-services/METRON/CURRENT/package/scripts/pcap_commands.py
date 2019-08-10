@@ -19,17 +19,14 @@ limitations under the License.
 """
 
 import os
-import re
-import subprocess
+
 import time
 
-from datetime import datetime
+import metron_security
+import metron_service
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
-
-import metron_service
-import metron_security
+from resource_management.core.resources.system import Execute
 
 
 # Wrap major operations and functionality in this class

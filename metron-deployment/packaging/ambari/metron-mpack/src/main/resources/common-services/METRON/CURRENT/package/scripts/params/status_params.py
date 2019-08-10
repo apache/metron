@@ -18,10 +18,10 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.script import Script
-from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import default, format
+from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.script import Script
 
 config = Script.get_config()
 

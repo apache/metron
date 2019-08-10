@@ -16,21 +16,21 @@ limitations under the License.
 
 import json
 import os
-import subprocess
 
 from datetime import datetime
-from resource_management.core.logger import Logger
-from resource_management.core.exceptions import ComponentIsNotRunning
-from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Directory, File
-from resource_management.core.resources.system import Execute
-from resource_management.core.source import Template
-from resource_management.core.source import InlineTemplate
-from resource_management.libraries.functions import format as ambari_format
-from resource_management.libraries.functions.get_user_call_output import get_user_call_output
-from resource_management.libraries.script import Script
 
 from metron_security import kinit
+from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.resources.system import Execute
+from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
+from resource_management.libraries.functions import format as ambari_format
+from resource_management.libraries.functions.get_user_call_output import \
+  get_user_call_output
+from resource_management.libraries.script import Script
 
 
 def is_zk_configured(params):

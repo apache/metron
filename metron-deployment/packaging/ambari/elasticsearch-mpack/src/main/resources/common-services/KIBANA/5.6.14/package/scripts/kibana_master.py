@@ -21,10 +21,10 @@ from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
 from resource_management.core.source import InlineTemplate
-from resource_management.libraries.functions.format import format as ambari_format
 from resource_management.libraries.script import Script
 
 from common import service_check
+
 
 class Kibana(Script):
 

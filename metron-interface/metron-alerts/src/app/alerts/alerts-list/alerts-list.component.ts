@@ -87,6 +87,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   subgroupTotal = 0;
   hideQueryBuilder = false;
 
+  staleDataState = false;
+
   constructor(private router: Router,
               private searchService: SearchService,
               private updateService: UpdateService,
@@ -226,6 +228,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.queryBuilder.clearSearch();
     if (this.hideQueryBuilder) { this.manualQuery.nativeElement.value = '*'; }
     this.search();
+    this.staleDataState = true;
   }
 
   onSearch(query: string) {
@@ -265,7 +268,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onAddFilter(filter: Filter) {
     this.timeStampFilterPresent = this.queryBuilder.isTimeStampFieldPresent();
     this.queryBuilder.addOrUpdateFilter(filter);
-    this.search();
+    this.staleDataState = true;
   }
 
   onConfigRowsChange() {
@@ -295,7 +298,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onTimeRangeChange(filter: Filter) {
     this.updateQueryBuilder(filter);
-    this.search();
+    this.staleDataState = true;
   }
 
   private updateQueryBuilder(timeRangeFilter: Filter) {
@@ -391,6 +394,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
       this.searchService.search(newSearch).subscribe(results => {
         this.setData(results);
+        this.staleDataState = false;
       }, error => {
         this.setData(new SearchResponse());
         this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
@@ -400,6 +404,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     } else {
         this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
         this.setData(results);
+        this.staleDataState = false;
       }, error => {
         this.setData(new SearchResponse());
         this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);

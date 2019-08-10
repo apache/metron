@@ -19,16 +19,16 @@ limitations under the License.
 """
 from __future__ import print_function
 
-from resource_management.core.logger import Logger
-from resource_management.libraries.script import Script
-
-from parser_commands import ParserCommands
+from alerts_ui_commands import AlertsUICommands
 from enrichment_commands import EnrichmentCommands
 from indexing_commands import IndexingCommands
-from profiler_commands import ProfilerCommands
-from rest_commands import RestCommands
 from management_ui_commands import ManagementUICommands
-from alerts_ui_commands import AlertsUICommands
+from parser_commands import ParserCommands
+from profiler_commands import ProfilerCommands
+from resource_management.core.logger import Logger
+from resource_management.libraries.script import Script
+from rest_master import RestCommands
+
 
 class ServiceCheck(Script):
 
