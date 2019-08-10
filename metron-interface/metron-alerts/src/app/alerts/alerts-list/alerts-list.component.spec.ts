@@ -28,12 +28,12 @@ import { SaveSearchService } from 'app/service/save-search.service';
 import { MetaAlertService } from 'app/service/meta-alert.service';
 import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
-import { Observable, of, Subject } from 'rxjs';
+import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
+import { By } from '@angular/platform-browser';
+import { Observable, Subject, of, noop } from 'rxjs';
 import { Filter } from 'app/model/filter';
 import { QueryBuilder } from './query-builder';
-import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
 import { SearchResponse } from 'app/model/search-response';
-import { By } from '@angular/platform-browser';
 
 describe('AlertsListComponent', () => {
 
@@ -78,7 +78,8 @@ describe('AlertsListComponent', () => {
         } } },
         { provide: DialogService, useClass: () => { return {} } },
         { provide: QueryBuilder, useClass: () => { return {
-          addOrUpdateFilter: () => {}
+          addOrUpdateFilter: () => {},
+          query: '*'
         } } },
       ]
     })
@@ -122,18 +123,60 @@ describe('AlertsListComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]')).toBeNull();
   });
 
-  it('should set pendingSearch on search', () => {
-    component.search(false);
-    expect(component.pendingSearch)
-  });
+  describe('handling pending search requests', () => {
 
-  it('should clear pendingSearch on search success', () => {
+    it('should set pendingSearch on search', () => {
+      spyOn(searchService, 'search').and.returnValue(of(new SearchResponse()));
+      spyOn(component, 'saveCurrentSearch');
+      spyOn(component, 'setSearchRequestSize');
+      spyOn(component, 'setSelectedTimeRange');
+      spyOn(component, 'createGroupFacets');
 
-  });
+      component.search();
+      expect(component.pendingSearch).toBeTruthy();
+    });
 
-  it('should clear pendingSearch on search fail', () => {
+    it('should clear pendingSearch on search success', (done) => {
+      const fakeObservable = new Subject();
+      spyOn(searchService, 'search').and.returnValue(fakeObservable);
+      spyOn(component, 'saveCurrentSearch');
+      spyOn(component, 'setSearchRequestSize');
+      spyOn(component, 'setSelectedTimeRange');
+      spyOn(component, 'createGroupFacets');
 
-  });
+      component.search();
+
+      setTimeout(() => {
+        fakeObservable.next(new SearchResponse());
+      }, 0);
+
+      fakeObservable.subscribe(() => {
+        expect(component.pendingSearch).toBe(null);
+        done();
+      })
+    });
+
+    xit('should clear pendingSearch on search fail', (done) => {
+      const fakeObservable = new Subject();
+      spyOn(searchService, 'search').and.returnValue(fakeObservable);
+      spyOn(component, 'saveCurrentSearch');
+      spyOn(component, 'setSearchRequestSize');
+      spyOn(component, 'setSelectedTimeRange');
+      spyOn(component, 'createGroupFacets');
+
+      component.search();
+
+      setTimeout(() => {
+        fakeObservable.error(new Error());
+      }, 0);
+
+      fakeObservable.subscribe(noop, () => {
+        expect(component.pendingSearch).toBe(null);
+        done();
+      })
+    });
+
+  })
 
   describe('stale data state', () => {
 
@@ -158,7 +201,6 @@ describe('AlertsListComponent', () => {
     });
 
     it('should set staleDataState flag to false when the query resolves', () => {
-      const fakeObservable = new Subject();
       spyOn(searchService, 'search').and.returnValue(of(new SearchResponse()));
       spyOn(component, 'saveCurrentSearch');
       spyOn(component, 'setSearchRequestSize');
