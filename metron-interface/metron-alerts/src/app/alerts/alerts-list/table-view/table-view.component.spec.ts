@@ -33,6 +33,7 @@ import { MetaAlertService } from '../../../service/meta-alert.service';
 import { DialogService } from 'app/service/dialog.service';
 import { AppConfigService } from '../../../service/app-config.service';
 import { ContextMenuComponent } from 'app/shared/context-menu/context-menu.component';
+import { of } from 'rxjs';
 
 @Component({selector: 'metron-table-pagination', template: ''})
 class MetronTablePaginationComponent {
@@ -57,10 +58,12 @@ describe('TableViewComponent', () => {
       providers: [
         SearchService,
         UpdateService,
-        GlobalConfigService,
         MetaAlertService,
         DialogService,
-        { provide: AppConfigService, useClass: FakeAppConfigService }
+        { provide: AppConfigService, useClass: FakeAppConfigService },
+        { provide: GlobalConfigService, useValue: {
+          get: () => { return of({})}
+        }}
       ],
       declarations: [
         MetronTableDirective,

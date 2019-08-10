@@ -33,6 +33,7 @@ import { GlobalConfigService } from '../../../service/global-config.service';
 import { MetaAlertService } from '../../../service/meta-alert.service';
 import { DialogService } from 'app/service/dialog.service';
 import { AppConfigService } from '../../../service/app-config.service';
+import { of } from 'rxjs';
 
 class FakeAppConfigService {
 
@@ -51,10 +52,12 @@ describe('TreeViewComponent', () => {
       providers: [
         SearchService,
         UpdateService,
-        GlobalConfigService,
         MetaAlertService,
         DialogService,
-        { provide: AppConfigService, useClass: FakeAppConfigService }
+        { provide: AppConfigService, useClass: FakeAppConfigService },
+        { provide: GlobalConfigService, useValue: {
+          get: () => { return of({})}
+        }}
       ],
       declarations: [
         MetronTableDirective,
