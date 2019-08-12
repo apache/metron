@@ -18,6 +18,8 @@
 
 package org.apache.metron.writer.hbase;
 
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.MessageId;
 import com.google.common.collect.ImmutableList;
@@ -38,8 +40,6 @@ import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.writer.AbstractWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  */
 public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleHbaseEnrichmentWriter.class);
+  private static final LazyLogger LOG = LazyLoggerFactory.getLogger(SimpleHbaseEnrichmentWriter.class);
 
   public enum Configurations {
     HBASE_TABLE("shew.table")
@@ -136,7 +136,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     if(converter == null) {
       converter = new EnrichmentConverter();
     }
-    LOG.debug("Sensor: '{}': {Provider: '{}', Converter: '{}'}", sensorName, getClassName(provider), getClassName(converter));
+    LOG.debug("Sensor: '{}': {Provider: '{}', Converter: '{}'}", () -> sensorName, () -> getClassName(provider), () -> getClassName(converter));
   }
 
 
@@ -243,7 +243,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
         }
         keyCols.add(columnName);
       }
-      LOG.debug("Key columns: '{}'", String.join(",", keyCols));
+      LOG.debug("Key columns: '{}'", () -> String.join(",", keyCols));
       return keyCols;
     }
     else {
@@ -263,10 +263,11 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       List<String> keys = getColumns(o, false);
       Object delimObj = Configurations.KEY_DELIM.get(config);
       String delim = (delimObj == null || !(delimObj instanceof String))?null:delimObj.toString();
-      transformer = new KeyTransformer(keys, delim);
-      keyTransformer = new AbstractMap.SimpleEntry<>(o, transformer);
-      LOG.debug("Transformer found for keys '{}' and delimiter '{}': '{}'", String.join(",", keys), delim, transformer);
-      return transformer;
+      KeyTransformer newtransformer = new KeyTransformer(keys, delim);
+      keyTransformer = new AbstractMap.SimpleEntry<>(o, newtransformer);
+      LOG.debug("Transformer found for keys '{}' and delimiter '{}': '{}'", () -> String.join(",", keys),
+              () -> delim, () -> newtransformer);
+      return newtransformer;
     }
   }
 

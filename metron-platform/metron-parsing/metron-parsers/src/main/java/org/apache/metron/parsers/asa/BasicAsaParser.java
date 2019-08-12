@@ -33,16 +33,16 @@ import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.ParseException;
 import org.apache.metron.parsers.utils.SyslogUtils;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BasicAsaParser extends BasicParser {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected Clock deviceClock;
   private String syslogPattern = "%{CISCO_TAGGED_SYSLOG}";
@@ -157,7 +157,7 @@ public class BasicAsaParser extends BasicParser {
       syslogMatch.captures();
       if (!syslogMatch.isNull()) {
 	syslogJson = syslogMatch.toMap();
-	LOG.trace("[Metron] Grok CISCO ASA syslog matches: {}", syslogMatch.toJson());
+	LOG.trace("[Metron] Grok CISCO ASA syslog matches: {}", syslogMatch::toJson);
 
 	metronJson.put(Constants.Fields.ORIGINAL.getName(), logLine);
 	metronJson.put(Constants.Fields.TIMESTAMP.getName(),
@@ -197,7 +197,7 @@ public class BasicAsaParser extends BasicParser {
 	messageMatch.captures();
 	if (!messageMatch.isNull()) {
 	  Map<String, Object> messageJson = messageMatch.toMap();
-	  LOG.trace("[Metron] Grok CISCO ASA message matches: {}", messageMatch.toJson());
+	  LOG.trace("[Metron] Grok CISCO ASA message matches: {}", messageMatch::toJson);
 
 	  String src_ip = (String) messageJson.get("src_ip");
 	  if (src_ip != null)
@@ -227,7 +227,7 @@ public class BasicAsaParser extends BasicParser {
 	      syslogJson.get("CISCOTAG"));
       }
 
-      LOG.debug("[Metron] Final normalized message: {}", metronJson.toString());
+      LOG.debug("[Metron] Final normalized message: {}", metronJson::toString);
 
     } catch (RuntimeException e) {
       LOG.error(e.getMessage(), e);

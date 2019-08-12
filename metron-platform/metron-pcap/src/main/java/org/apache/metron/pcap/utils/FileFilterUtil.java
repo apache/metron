@@ -30,13 +30,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.pcap.PcapFilenameHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FileFilterUtil {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private FileFilterUtil() {
   }
@@ -49,9 +49,9 @@ public class FileFilterUtil {
       Iterable<Path> files) {
     Map<Integer, List<Path>> filesByPartition = getFilesByPartition(files);
     List<String> filteredFiles = filterByTimestampLT(beginTs, endTs, filesByPartition);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Including files {}", Joiner.on(",").join(filteredFiles));
-    }
+
+    LOG.debug("Including files {}", () -> Joiner.on(",").join(filteredFiles));
+
     return filteredFiles;
   }
 

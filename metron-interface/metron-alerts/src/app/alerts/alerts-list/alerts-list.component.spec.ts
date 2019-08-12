@@ -28,12 +28,21 @@ import { SaveSearchService } from 'app/service/save-search.service';
 import { MetaAlertService } from 'app/service/meta-alert.service';
 import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
+<<<<<<< HEAD
 import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
 import { By } from '@angular/platform-browser';
 import { Observable, Subject, of, noop } from 'rxjs';
 import { Filter } from 'app/model/filter';
 import { QueryBuilder } from './query-builder';
 import { SearchResponse } from 'app/model/search-response';
+=======
+import { Observable, of, Subject } from 'rxjs';
+import { Filter } from 'app/model/filter';
+import { QueryBuilder } from './query-builder';
+import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
+import { SearchResponse } from 'app/model/search-response';
+import { By } from '@angular/platform-browser';
+>>>>>>> master
 
 describe('AlertsListComponent', () => {
 
