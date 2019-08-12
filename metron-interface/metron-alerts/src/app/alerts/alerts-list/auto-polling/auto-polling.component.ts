@@ -24,4 +24,10 @@ import { Component, Input } from '@angular/core';
 })
 export class AutoPollingComponent {
   @Input() visible = false;
+
+  isRefreshPaused = false;
+
+  onPausePlay() {
+
+  }
 }

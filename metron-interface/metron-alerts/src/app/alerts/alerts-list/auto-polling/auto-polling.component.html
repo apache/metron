@@ -10,7 +10,11 @@
 	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
-  -->
+	-->
+	<div class="btn pause-play" (click)="onPausePlay()">
+		<i *ngIf="!isRefreshPaused" class="fa fa-pause" aria-hidden="true"></i>
+		<i *ngIf="isRefreshPaused" class="fa fa-play" aria-hidden="true"></i>
+	</div>
 	<i class="fa fa-sort-asc" aria-hidden="true"  *ngIf="visible"></i>
 	<div class="auto-polling card" *ngIf="visible">
 		<div class="card-body p-2">
