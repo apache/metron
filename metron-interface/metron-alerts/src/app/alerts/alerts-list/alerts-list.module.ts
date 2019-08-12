@@ -32,6 +32,7 @@ import { AlertFiltersComponent } from './alert-filters/alert-filters.component';
 import { TableViewComponent } from './table-view/table-view.component';
 import { TreeViewComponent } from './tree-view/tree-view.component';
 import { ModalLoadingIndicatorComponent } from 'app/shared/modal-loading-indicator/modal-loading-indicator.component';
+import { AutoPollingComponent } from 'app/alerts/alerts-list/auto-polling/auto-polling.component';
 
 @NgModule({
   imports: [
@@ -52,6 +53,7 @@ import { ModalLoadingIndicatorComponent } from 'app/shared/modal-loading-indicat
     TreeViewComponent,
     AlertFiltersComponent,
     ModalLoadingIndicatorComponent,
+    AutoPollingComponent,
   ],
   providers: [ DecimalPipe ]
 })

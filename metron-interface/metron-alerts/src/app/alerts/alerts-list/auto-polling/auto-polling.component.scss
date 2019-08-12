@@ -1,0 +1,52 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../../../vendor.scss";
+@import "../../../../variables.scss";
+
+.auto-polling {
+  font-size: 0.9rem;
+
+  button.btn-sm {
+    font-size: 0.75rem;
+  }
+
+  button.btn-light {
+    font-size: 0.75rem;
+    background-color: #e1e1e1;
+    border-color: #d2d2d2;
+  }
+}
+
+.card {
+  width: 270px;
+  position: absolute;
+  left: -34px;
+  z-index: 1;
+  top: 50px;
+  border-radius: 3;
+  background: $mine-shaft-2;
+}
+
+.fa-sort-asc {
+  position: absolute;
+  bottom: -40px;
+  left: 96px;
+  font-size: 42px;
+  color: #333333;
+  z-index: 2;
+}
