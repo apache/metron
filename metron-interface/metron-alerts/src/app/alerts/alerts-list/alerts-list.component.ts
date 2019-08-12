@@ -383,6 +383,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
     this.pendingSearch = this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
+      this.pendingSearch = null;
       this.staleDataState = false;
     }, error => {
       this.setData(new SearchResponse());
