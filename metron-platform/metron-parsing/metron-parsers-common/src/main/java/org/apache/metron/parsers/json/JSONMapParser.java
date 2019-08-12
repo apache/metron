@@ -29,7 +29,6 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -204,7 +203,7 @@ public class JSONMapParser extends BasicParser {
       }
       return Collections.unmodifiableList(parsedMessages);
     } catch (Throwable e) {
-      String message = "Unable to parse " + new String(rawMessage, StandardCharsets.UTF_8) + ": " + e.getMessage();
+      String message = "Unable to parse " + new String(rawMessage, getReadCharset()) + ": " + e.getMessage();
       LOG.error(message, e);
       throw new IllegalStateException(message, e);
     }
