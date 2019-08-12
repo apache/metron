@@ -18,6 +18,8 @@
 package org.apache.metron.rest.config;
 
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.hbase.client.HBaseClientFactory;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.apache.metron.hbase.client.HBaseTableClientFactory;
@@ -71,8 +73,7 @@ public class HBaseConfig {
   }
 
   @Bean(destroyMethod = "close")
-  public UserSettingsClient userSettingsClient(GlobalConfigService globalConfigService,
-                                               HBaseClientFactory hBaseClientFactory,
+  public UserSettingsClient userSettingsClient(HBaseClientFactory hBaseClientFactory,
                                                HBaseConnectionFactory hBaseConnectionFactory,
                                                org.apache.hadoop.conf.Configuration hBaseConfiguration) {
     UserSettingsClient userSettingsClient = new HBaseUserSettingsClient(
@@ -82,5 +83,20 @@ public class HBaseConfig {
             hBaseConfiguration);
     userSettingsClient.init();
     return userSettingsClient;
+  }
+
+  @Bean(destroyMethod = "close")
+  public HBaseClient hBaseClient(HBaseClientFactory hBaseClientFactory,
+                                 HBaseConnectionFactory hBaseConnectionFactory,
+                                 org.apache.hadoop.conf.Configuration hBaseConfiguration) {
+    String tableName;
+    try {
+      Map<String, Object> globals = globalConfigService.get();
+      tableName = (String) globals.get(EnrichmentConfigurations.TABLE_NAME);
+    } catch (RestException e) {
+      throw new IllegalStateException("Unable to retrieve the global config.", e);
+    }
+
+    return hBaseClientFactory.create(hBaseConnectionFactory, hBaseConfiguration, tableName);
   }
 }

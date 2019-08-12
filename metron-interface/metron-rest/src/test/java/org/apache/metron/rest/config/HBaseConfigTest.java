@@ -90,7 +90,6 @@ public class HBaseConfigTest {
             .thenReturn(table);
 
     UserSettingsClient client = hBaseConfig.userSettingsClient(
-            globalConfigService,
             hBaseClientFactory,
             hBaseConnectionFactory,
             hBaseConfiguration);
