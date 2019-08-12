@@ -19,6 +19,7 @@ package org.apache.metron.parsers;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -256,7 +257,9 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
     if (!message.containsKey(Constants.GUID)) {
       message.put(Constants.GUID, UUID.randomUUID().toString());
     }
-    message.putIfAbsent(Fields.ORIGINAL.getName(), new String(rawMessage.getMessage(), StandardCharsets.UTF_8));
+    message.putIfAbsent(Fields.ORIGINAL.getName(),
+        new String(rawMessage.getMessage(), getReadCharset(sensorParserConfig))
+    );
     MessageFilter<JSONObject> filter = sensorToParserComponentMap.get(sensorType).getFilter();
     if (filter == null || filter.emit(message, stellarContext)) {
       boolean isInvalid = !parser.validate(message);
@@ -283,6 +286,15 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
       }
     }
     return processResult;
+  }
+
+  /**
+   * Pulling this value from the sensor parserConfig - this was the only way to expose the configuration
+   * option to the underlying parser implementation while also exposing it to the runner implementation.
+   */
+  private Charset getReadCharset(SensorParserConfig sensorParserConfig) {
+    return Charset.forName((String) sensorParserConfig.getParserConfig()
+        .getOrDefault(MessageParser.READ_CHARSET, StandardCharsets.UTF_8.toString()));
   }
 
   /**
