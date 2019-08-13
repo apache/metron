@@ -17,7 +17,7 @@
  */
 import { AlertsListComponent } from './alerts-list.component';
 import { ComponentFixture, async, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { NO_ERRORS_SCHEMA, Component } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { SearchService } from 'app/service/search.service';
 import { UpdateService } from 'app/service/update.service';
@@ -35,6 +35,14 @@ import { Filter } from 'app/model/filter';
 import { QueryBuilder } from './query-builder';
 import { SearchResponse } from 'app/model/search-response';
 
+@Component({
+  selector: 'app-auto-polling',
+  template: '<div></div>',
+})
+class MockAutoPollingComponent {
+  tryStartPolling() {}
+}
+
 describe('AlertsListComponent', () => {
 
   let component: AlertsListComponent;
@@ -51,6 +59,7 @@ describe('AlertsListComponent', () => {
       ],
       declarations: [
         AlertsListComponent,
+        MockAutoPollingComponent,
       ],
       providers: [
         { provide: SearchService, useClass: () => { return {

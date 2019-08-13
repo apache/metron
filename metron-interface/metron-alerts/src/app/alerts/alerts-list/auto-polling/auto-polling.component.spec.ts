@@ -18,6 +18,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AutoPollingComponent } from './auto-polling.component';
+import { SearchService } from 'app/service/search.service';
+import { QueryBuilder } from '../query-builder';
 
 describe('AutoPollingComponent', () => {
   let component: AutoPollingComponent;
@@ -25,7 +27,15 @@ describe('AutoPollingComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ AutoPollingComponent ]
+      declarations: [ AutoPollingComponent ],
+      providers: [
+        { provide: SearchService, useClass: () => {
+          return {
+            search: () => {},
+          }}
+        },
+        { provide: QueryBuilder, useClass: () => {} },
+      ],
     })
     .compileComponents();
   }));
