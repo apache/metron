@@ -37,6 +37,7 @@ import { ConfirmationType } from 'app/model/confirmation-type';
 import {HttpErrorResponse} from '@angular/common/http';
 
 import { merge } from '../../../shared/context-menu/context-menu.util'
+import * as moment from 'moment/moment';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -67,6 +68,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   configSubscription: Subscription;
 
   merge: Function = merge;
+  localTime: boolean;
 
   @Input() alerts: Alert[] = [];
   @Input() pagination: Pagination;
@@ -187,9 +189,15 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   formatValue(column: ColumnMetadata, returnValue: string) {
+    this.localTime = localStorage.getItem('convertUTCtoLocal') === 'true';
     try {
-      if (column.name.endsWith(':ts') || column.name.endsWith('timestamp')) {
-        returnValue = new Date(parseInt(returnValue, 10)).toISOString().replace('T', ' ').slice(0, 19);
+      if ((column.name.endsWith(':ts') || column.name.endsWith('timestamp')) && this.localTime === true) {
+        // returnValue = new Date(parseInt(returnValue, 10)).toISOString().replace('T', ' ').slice(0, 19);
+        // returnValue = moment.utc(returnValue).format('YYYY-MM-DD H:mm:ss');
+        // const timestamp = moment.utc(returnValue);
+        returnValue = moment.utc(returnValue).local().format('YYYY-MM-DD H:mm:ss');
+      } else if ((column.name.endsWith(':ts') || column.name.endsWith('timestamp')) && this.localTime === false) {
+        returnValue = moment.utc(returnValue).format('YYYY-MM-DD H:mm:ss');
       }
     } catch (e) {}
 
