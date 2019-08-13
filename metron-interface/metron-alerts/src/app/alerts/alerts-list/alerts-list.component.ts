@@ -46,6 +46,7 @@ import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
 import { AlertSource } from '../../model/alert-source';
+import { AutoPollingComponent } from './auto-polling/auto-polling.component';
 
 @Component({
   selector: 'app-alerts-list',
@@ -61,7 +62,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   searchResponse: SearchResponse = new SearchResponse();
   colNumberTimerId: number;
   refreshInterval = RefreshInterval.TEN_MIN;
-  refreshTimer: Subscription;
   isRefreshPaused = POLLING_DEFAULT_STATE;
   lastIsRefreshPausedValue = false;
   isMetaAlertPresentInSelectedAlerts = false;
@@ -73,6 +73,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
+
+  @ViewChild(AutoPollingComponent) autoPoller: AutoPollingComponent;s
 
   tableMetaData = new TableMetadata();
   pagination: Pagination = new Pagination();
@@ -190,7 +192,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.tryStopPolling();
+    this.autoPoller.tryStopPolling();
     this.removeAlertChangedListner();
     this.configSubscription.unsubscribe();
   }
@@ -254,9 +256,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     );
 
     if (selectedAlerts.length > 0) {
-      this.pause();
+      this.autoPoller.pause();
     } else {
-      this.resume();
+      this.autoPoller.resume();
     }
   }
 
@@ -267,7 +269,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onConfigRowsChange() {
-    this.searchService.interval = this.refreshInterval;
+    // TODO make sure autopoller picks up the new intervals
+    this.autoPoller.interval = this.refreshInterval;
     this.search();
   }
 
@@ -277,21 +280,13 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.search();
   }
 
-  onPausePlay() {
-    this.isRefreshPaused = !this.isRefreshPaused;
-    if (this.isRefreshPaused) {
-      this.tryStopPolling();
-    } else {
-      this.search(false);
-    }
-  }
-
   onResize() {
     clearTimeout(this.colNumberTimerId);
     this.colNumberTimerId = window.setTimeout(() => { this.calcColumnsToDisplay(); }, 500);
   }
 
   onTimeRangeChange(filter: Filter) {
+    // TODO make sure time range change updates the autopoller too
     this.updateQueryBuilder(filter);
     this.staleDataState = true;
   }
@@ -370,7 +365,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   restoreRefreshState() {
     this.isRefreshPaused = this.lastIsRefreshPausedValue;
-    this.tryStartPolling();
+    this.autoPoller.tryStartPolling();
   }
 
   search(resetPaginationParams = true, savedSearch?: SaveSearch) {
@@ -391,7 +386,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.pendingSearch = null;
     });
 
-    this.tryStartPolling();
+    this.autoPoller.tryStartPolling();
   }
 
   setSearchRequestSize() {
@@ -455,17 +450,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   saveRefreshState() {
     this.lastIsRefreshPausedValue = this.isRefreshPaused;
-    this.tryStopPolling();
-  }
-
-  pause() {
-    this.isRefreshPaused = true;
-    this.tryStopPolling();
-  }
-
-  resume() {
-    this.isRefreshPaused = false;
-    this.tryStartPolling();
+    this.autoPoller.tryStopPolling();
   }
 
   showSavedSearches() {
@@ -477,21 +462,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.saveRefreshState();
     this.saveSearchService.setCurrentQueryBuilderAndTableColumns(this.queryBuilder, this.alertsColumns);
     this.router.navigateByUrl('/alerts-list(dialog:save-search)');
-  }
-
-  tryStartPolling() {
-    if (!this.isRefreshPaused) {
-      this.tryStopPolling();
-      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
-        this.setData(results);
-      });
-    }
-  }
-
-  tryStopPolling() {
-    if (this.refreshTimer && !this.refreshTimer.closed) {
-      this.refreshTimer.unsubscribe();
-    }
   }
 
   updateConfigRowsSettings() {
@@ -512,7 +482,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       selectedAlert.source['alert_status'] = status;
     }
     this.selectedAlerts = [];
-    this.resume();
+    this.autoPoller.resume();
   }
 
   removeAlertChangedListner() {

@@ -15,8 +15,8 @@
 		<i *ngIf="!isRefreshPaused" class="fa fa-pause" aria-hidden="true"></i>
 		<i *ngIf="isRefreshPaused" class="fa fa-play" aria-hidden="true"></i>
 	</div>
-	<i class="fa fa-sort-asc" aria-hidden="true"  *ngIf="visible"></i>
-	<div class="auto-polling card" *ngIf="visible">
+	<i class="fa fa-sort-asc" aria-hidden="true"  *ngIf="showNotification"></i>
+	<div class="auto-polling card" *ngIf="showNotification">
 		<div class="card-body p-2">
 			<span class="ml-2 mr-2">Updating alerts...</span>
 			<button type="button" class="btn btn-light btn-sm">Ok (4s)</button>

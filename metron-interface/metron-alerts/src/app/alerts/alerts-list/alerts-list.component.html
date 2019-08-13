@@ -53,7 +53,7 @@
                 </div>
                 <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="tableMetaData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
 
-                <app-auto-polling [visible]="true"></app-auto-polling>
+                <app-auto-polling (onRefresh)="setData($event)"></app-auto-polling>
 
                 <div id="table-actions" class="dropdown d-inline-block">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>
