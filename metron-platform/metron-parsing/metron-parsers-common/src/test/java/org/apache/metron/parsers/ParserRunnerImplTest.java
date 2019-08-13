@@ -133,6 +133,7 @@ public class ParserRunnerImplTest {
     stellarFilter = mock(StellarFilter.class);
     mockStatic(ReflectionUtils.class);
     mockStatic(Filters.class);
+    when(broParser.getReadCharset()).thenReturn(StandardCharsets.UTF_8);
 
     when(ReflectionUtils.createInstance("org.apache.metron.parsers.bro.BasicBroParser")).thenReturn(broParser);
     when(ReflectionUtils.createInstance("org.apache.metron.parsers.snort.BasicSnortParser")).thenReturn(snortParser);
