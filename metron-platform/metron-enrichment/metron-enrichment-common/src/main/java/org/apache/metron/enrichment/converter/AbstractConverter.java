@@ -31,7 +31,12 @@ import org.apache.metron.enrichment.lookup.LookupValue;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 
 
 public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends LookupValue> implements HbaseConverter<KEY_T,VALUE_T> {
@@ -40,17 +45,39 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     @Nullable
     @Override
     public Map.Entry<byte[], byte[]> apply(@Nullable Cell cell) {
-      return new AbstractMap.SimpleEntry<>(cell.getQualifier(), cell.getValue());
+      return new AbstractMap.SimpleEntry<>(getQualifier(cell), getValue(cell));
     }
   };
+
   @Override
   public Put toPut(String columnFamily, KEY_T key, VALUE_T values) throws IOException {
     Put put = new Put(key.toBytes());
     byte[] cf = Bytes.toBytes(columnFamily);
     for(Map.Entry<byte[], byte[]> kv : values.toColumns()) {
-      put.add(cf, kv.getKey(), kv.getValue());
+      put.addColumn(cf, kv.getKey(), kv.getValue());
     }
     return put;
+  }
+
+  private static byte[] getFamily(Cell cell) {
+    int length = cell.getFamilyLength();
+    int offset = cell.getFamilyOffset();
+    byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
+    return bytes;
+  }
+
+  private static byte[] getQualifier(Cell cell) {
+    int length = cell.getQualifierLength();
+    int offset = cell.getQualifierOffset();
+    byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
+    return bytes;
+  }
+
+  private static byte[] getValue(Cell cell) {
+    int length = cell.getValueLength();
+    int offset = cell.getValueOffset();
+    byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
+    return bytes;
   }
 
   public LookupKV<KEY_T, VALUE_T> fromPut(Put put, String columnFamily, KEY_T key, VALUE_T value) throws IOException {
@@ -76,6 +103,7 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     value.fromColumns(cols.entrySet());
     return new LookupKV<>(key, value);
   }
+
   @Override
   public Get toGet(String columnFamily, KEY_T key) {
     Get ret = new Get(key.toBytes());

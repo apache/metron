@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,13 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.lookup.accesstracker;
+package org.apache.metron.enrichment.lookup;
 
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.junit.Test;
 
-import java.io.IOException;
-import java.util.Map;
+import static org.junit.Assert.assertNotNull;
 
-public interface AccessTrackerCreator {
-  AccessTracker create(Map<String, Object> config, HBaseConnectionFactory connectionFactory) throws IOException;
+public class EnrichmentLookupFactoriesTest {
+
+  @Test
+  public void byEnumName() {
+    assertNotNull(EnrichmentLookupFactories.byName(EnrichmentLookupFactories.HBASE.name()));
+  }
+
+  @Test
+  public void byClassName() {
+    assertNotNull(EnrichmentLookupFactories.byName(FakeEnrichmentLookupFactory.class.getName()));
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void shouldFailWithInvalidName() {
+    EnrichmentLookupFactories.byName("this-is-an-invalid-name");
+  }
 }

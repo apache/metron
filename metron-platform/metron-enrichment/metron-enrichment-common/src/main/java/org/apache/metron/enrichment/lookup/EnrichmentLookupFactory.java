@@ -15,30 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.lookup.accesstracker;
 
+package org.apache.metron.enrichment.lookup;
+
+import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.Map;
+import java.io.Serializable;
 
-public enum AccessTrackers implements AccessTrackerCreator {
-  NOOP((config, provider) -> new NoopAccessTracker()),
-  PERSISTENT_BLOOM( new PersistentBloomTrackerCreator());
+/**
+ * Responsible for creating an {@link EnrichmentLookup}.
+ */
+public interface EnrichmentLookupFactory extends Serializable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private AccessTrackerCreator creator;
-
-  AccessTrackers(AccessTrackerCreator creator) {
-    this.creator = creator;
-  }
-
-  @Override
-  public AccessTracker create(Map<String, Object> config, HBaseConnectionFactory connectionFactory) throws IOException {
-    LOG.debug("Creating access tracker; name={}", name());
-    return creator.create(config, connectionFactory);
-  }
+  EnrichmentLookup create(HBaseConnectionFactory connectionFactory,
+                          String tableName,
+                          String columnFamily,
+                          AccessTracker accessTracker) throws IOException;
 }
