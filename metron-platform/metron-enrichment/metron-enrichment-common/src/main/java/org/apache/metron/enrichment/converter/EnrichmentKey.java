@@ -17,15 +17,14 @@
  */
 package org.apache.metron.enrichment.converter;
 
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.utils.KeyUtil;
 import org.apache.metron.enrichment.lookup.LookupKey;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class EnrichmentKey implements LookupKey {
   public String indicator;

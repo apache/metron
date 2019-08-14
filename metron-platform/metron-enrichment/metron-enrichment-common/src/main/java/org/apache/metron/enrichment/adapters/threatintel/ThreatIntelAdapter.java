@@ -23,14 +23,20 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
+import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
+import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,9 +121,26 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   @Override
   public boolean initializeAdapter(Map<String, Object> configuration) {
     if(lookup == null) {
+      String hbaseTable = config.getHBaseTable();
+      int expectedInsertions = config.getExpectedInsertions();
+      double falsePositives = config.getFalsePositiveRate();
+      String trackerHBaseTable = config.getTrackerHBaseTable();
+      String trackerHBaseCF = config.getTrackerHBaseCF();
+      long millisecondsBetweenPersist = config.getMillisecondsBetweenPersists();
+      BloomAccessTracker bat = new BloomAccessTracker(hbaseTable, expectedInsertions, falsePositives);
+      Configuration hbaseConfig = HBaseConfiguration.create();
       try {
-        EnrichmentLookupFactory creator = config.getEnrichmentLookupFactory();
-        lookup = creator.create(config.getConnectionFactory(), config.getHBaseTable(), config.getHBaseCF(), null);
+        HBaseConnectionFactory connectionFactory = config.getConnectionFactory();
+        PersistentAccessTracker accessTracker = new PersistentAccessTracker(hbaseTable
+                , UUID.randomUUID().toString()
+                , trackerHBaseTable
+                , trackerHBaseCF
+                , bat
+                , millisecondsBetweenPersist
+                , connectionFactory
+                , hbaseConfig);
+        EnrichmentLookupFactory lookupFactory = config.getEnrichmentLookupFactory();
+        lookup = lookupFactory.create(connectionFactory, hbaseTable, config.getHBaseCF(), accessTracker);
 
       } catch (IOException e) {
         LOG.error("Unable to initialize adapter", e);
