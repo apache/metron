@@ -32,7 +32,8 @@ import { AlertFiltersComponent } from './alert-filters/alert-filters.component';
 import { TableViewComponent } from './table-view/table-view.component';
 import { TreeViewComponent } from './tree-view/tree-view.component';
 import { ModalLoadingIndicatorComponent } from 'app/shared/modal-loading-indicator/modal-loading-indicator.component';
-import { AutoPollingComponent } from 'app/alerts/alerts-list/auto-polling/auto-polling.component';
+import { AutoPollingComponent } from './auto-polling/auto-polling.component';
+import { AutoPollingService } from './auto-polling/auto-polling.service';
 
 @NgModule({
   imports: [
@@ -55,6 +56,9 @@ import { AutoPollingComponent } from 'app/alerts/alerts-list/auto-polling/auto-p
     ModalLoadingIndicatorComponent,
     AutoPollingComponent,
   ],
-  providers: [ DecimalPipe ]
+  providers: [
+    DecimalPipe,
+    AutoPollingService,
+  ]
 })
 export class AlertsListModule {}

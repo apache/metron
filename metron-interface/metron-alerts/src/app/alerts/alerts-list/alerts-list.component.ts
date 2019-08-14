@@ -47,6 +47,7 @@ import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
 import { AlertSource } from '../../model/alert-source';
 import { AutoPollingComponent } from './auto-polling/auto-polling.component';
+import { AutoPollingService } from './auto-polling/auto-polling.service';
 
 @Component({
   selector: 'app-alerts-list',
@@ -86,7 +87,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   subgroupTotal = 0;
 
   pendingSearch: Subscription;
-  staleDataState = false;
+  staleDataState = false; // TODO: this has to be aligned to auto polling
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -98,7 +99,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private metaAlertsService: MetaAlertService,
               private globalConfigService: GlobalConfigService,
               private dialogService: DialogService,
-              public queryBuilder: QueryBuilder,
+              private queryBuilder: QueryBuilder,
+              private autoPollingSvc: AutoPollingService,
               private cdRef: ChangeDetectorRef) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
@@ -192,7 +194,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.autoPolling.tryStopPolling();
+    this.autoPollingSvc.tryStopPolling();
     this.removeAlertChangedListner();
     this.configSubscription.unsubscribe();
   }
@@ -256,9 +258,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     );
 
     if (selectedAlerts.length > 0) {
-      this.autoPolling.pause();
+      this.autoPollingSvc.pause();
     } else {
-      this.autoPolling.resume();
+      this.autoPollingSvc.resume();
     }
   }
 
@@ -270,7 +272,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onConfigRowsChange() {
     // TODO make sure autopoller picks up the new intervals
-    this.autoPolling.interval = this.refreshInterval;
+    this.autoPollingSvc.interval = this.refreshInterval;
     this.search();
   }
 
@@ -365,7 +367,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   restoreRefreshState() {
     this.isRefreshPaused = this.lastIsRefreshPausedValue;
-    this.autoPolling.tryStartPolling();
+    this.autoPollingSvc.tryStartPolling();
   }
 
   search(resetPaginationParams = true, savedSearch?: SaveSearch) {
@@ -386,7 +388,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.pendingSearch = null;
     });
 
-    this.autoPolling.tryStartPolling();
+    // TODO separate this from manual search
+    this.autoPollingSvc.tryStartPolling();
   }
 
   setSearchRequestSize() {
@@ -450,7 +453,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   saveRefreshState() {
     this.lastIsRefreshPausedValue = this.isRefreshPaused;
-    this.autoPolling.tryStopPolling();
+    this.autoPollingSvc.tryStopPolling();
   }
 
   showSavedSearches() {
@@ -466,7 +469,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   updateConfigRowsSettings() {
     // TODO make sure this aplies
-    this.autoPolling.interval = this.refreshInterval;
+    this.autoPollingSvc.interval = this.refreshInterval;
   }
 
   updateAlert(alertSource: AlertSource) {
@@ -483,7 +486,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       selectedAlert.source['alert_status'] = status;
     }
     this.selectedAlerts = [];
-    this.autoPolling.resume();
+    this.autoPollingSvc.resume();
   }
 
   removeAlertChangedListner() {
@@ -493,5 +496,16 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onTreeViewChange(subgroupTotal) {
     this.subgroupTotal = subgroupTotal;
     this.cdRef.detectChanges();
+  }
+
+  getStaleDataWarning() {
+    if (this.autoPollingSvc.isRefreshPaused) {
+      return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
+        Click <i class="fa fa-search" aria-hidden="true"></i> to update your view based
+        on your current filter and time-range configuration!`;
+    } else {
+      return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
+      Your filter and/or time-range changes will apply automatically on next refresh`;
+    }
   }
 }

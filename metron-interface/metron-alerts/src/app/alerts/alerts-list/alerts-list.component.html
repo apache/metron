@@ -76,10 +76,7 @@
         <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
       </div>
       <div class="col px-0 pl-4" style="overflow: auto;">
-        <div class="alert alert-warning" role="alert" *ngIf="staleDataState" data-qe-id="staleDataWarning">
-            <i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state! Click
-            <i class="fa fa-search" aria-hidden="true"></i> to update your view based on your current filter and time-range configuration!
-        </div>
+        <div class="alert alert-warning" role="alert" *ngIf="staleDataState" data-qe-id="staleDataWarning" [innerHTML]="getStaleDataWarning()"></div>
         <div class="col-xs-12 pl-0 pb-3">
           <app-group-by [facets]="groupFacets" (groupsChange)="onGroupsChange($event)"> </app-group-by>
         </div>

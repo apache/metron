@@ -15,14 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, NgZone, Output } from '@angular/core';
-import { SearchService } from 'app/service/search.service';
-import { QueryBuilder } from '../query-builder';
-import { Subscription, Observable, interval } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
-import { SearchRequest } from 'app/model/search-request';
+import { Component, Output } from '@angular/core';
 import { SearchResponse } from 'app/model/search-response';
 import { EventEmitter } from '@angular/core';
+import { AutoPollingService } from './auto-polling.service';
 
 @Component({
   selector: 'app-auto-polling',
@@ -34,64 +30,9 @@ export class AutoPollingComponent {
 
   showNotification = false;
 
-  interval = 8;
+  constructor(private autoPollingSvc: AutoPollingService) {}
 
-  refreshTimer: Subscription;
-  isRefreshPaused = true;
-
-  constructor(private ngZone: NgZone,
-              private searchService: SearchService,
-              private queryBuilder: QueryBuilder) {}
-
-  onPausePlay() {
-    this.isRefreshPaused = !this.isRefreshPaused;
-
-    if (this.isRefreshPaused) {
-      this.tryStopPolling();
-    } else {
-      // this.search(false);
-      this.tryStartPolling();
-    }
-  }
-
-  pause() {
-    this.isRefreshPaused = true;
-    this.tryStopPolling();
-  }
-
-  resume() {
-    this.isRefreshPaused = false;
-    this.tryStartPolling();
-  }
-
-  tryStartPolling() {
-    if (!this.isRefreshPaused) {
-      this.tryStopPolling();
-      this.refreshTimer = this.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
-        // this.setData(results);
-        this.onRefresh.emit(results);
-      });
-    }
-  }
-
-  pollSearch(searchRequest: SearchRequest): Observable<SearchResponse> {
-
-    return interval(this.interval * 1000).pipe(switchMap(() => {
-      return this.searchService.search(searchRequest);
-    }));
-
-    // return this.ngZone.runOutsideAngular(() => {
-    //   return this.ngZone.run(() => {
-    //     return interval(this.interval * 1000).pipe(switchMap(() => {
-    //       return this.searchService.search(searchRequest);
-    //     }));
-    //   });
-    // });
-  }
-
-  tryStopPolling() {
-    if (this.refreshTimer && !this.refreshTimer.closed) {
-      this.refreshTimer.unsubscribe();
-    }
+  onToggle() {
+    this.autoPollingSvc.toggle();
   }
 }
