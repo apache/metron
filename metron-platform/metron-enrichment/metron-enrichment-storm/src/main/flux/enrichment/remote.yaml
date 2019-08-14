@@ -78,15 +78,15 @@ components:
     -   id: "simpleHBaseEnrichmentConfig"
         className: "org.apache.metron.enrichment.adapters.simplehbase.SimpleHBaseConfig"
         configMethods:
-            -   name: "withProviderImpl"
-                args:
-                    - "${hbase.provider.impl}"
             -   name: "withHBaseTable"
                 args:
-                    - "${enrichment.simple.hbase.table}"
+                - "${enrichment.simple.hbase.table}"
             -   name: "withHBaseCF"
                 args:
-                    - "${enrichment.simple.hbase.cf}"
+                - "${enrichment.simple.hbase.cf}"
+            -   name: "withEnrichmentLookupFactory"
+                args:
+                - "${enrichment.lookup.factory}"
 
     -   id: "simpleHBaseEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.simplehbase.SimpleHBaseAdapter"
@@ -148,21 +148,21 @@ components:
     -   id: "simpleHBaseThreatIntelConfig"
         className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelConfig"
         configMethods:
-            -   name: "withProviderImpl"
-                args:
-                    - "${hbase.provider.impl}"
             -   name: "withTrackerHBaseTable"
                 args:
-                    - "${threat.intel.tracker.table}"
+                - "${threat.intel.tracker.table}"
             -   name: "withTrackerHBaseCF"
                 args:
-                    - "${threat.intel.tracker.cf}"
+                - "${threat.intel.tracker.cf}"
             -   name: "withHBaseTable"
                 args:
-                    - "${threat.intel.simple.hbase.table}"
+                - "${threat.intel.simple.hbase.table}"
             -   name: "withHBaseCF"
                 args:
-                    - "${threat.intel.simple.hbase.cf}"
+                - "${threat.intel.simple.hbase.cf}"
+            -   name: "withEnrichmentLookupFactory"
+                args:
+                - "${enrichment.lookup.factory}"
 
     -   id: "simpleHBaseThreatIntelAdapter"
         className: "org.apache.metron.enrichment.adapters.threatintel.ThreatIntelAdapter"

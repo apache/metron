@@ -20,24 +20,28 @@ package org.apache.metron.enrichment.adapters.simplehbase;
 
 
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.NoopAccessTracker;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
 
 public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -61,7 +65,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
 
 
   public boolean isInitialized() {
-    return lookup != null && lookup.getTable() != null;
+    return lookup != null;
   }
   @Override
   public JSONObject enrich(CacheKey value) {
@@ -105,17 +109,23 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
 
   @Override
   public boolean initializeAdapter(Map<String, Object> configuration) {
-    String hbaseTable = config.getHBaseTable();
-    Configuration hbaseConfig = HBaseConfiguration.create();
+    if(config == null) {
+      LOG.error("Unable to initialize adapter. No configuration provided");
+      return false;
+    }
+
     try {
-      lookup = new EnrichmentLookup( config.getProvider().getTable(hbaseConfig, hbaseTable)
-                                   , config.getHBaseCF()
-                                   , new NoopAccessTracker()
-                                   );
+      EnrichmentLookupFactory factory = config.getEnrichmentLookupFactory();
+      lookup = factory.create(config.getConnectionFactory(),
+              HBaseConfiguration.create(),
+              config.getHBaseTable(),
+              config.getHBaseCF(),
+              new NoopAccessTracker());
     } catch (IOException e) {
       LOG.error("Unable to initialize adapter: {}", e.getMessage(), e);
       return false;
     }
+
     return true;
   }
 

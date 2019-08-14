@@ -25,12 +25,9 @@ import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
-import org.apache.metron.enrichment.converter.EnrichmentHelper;
-import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
-import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
+import org.apache.metron.enrichment.lookup.FakeEnrichmentLookupFactory;
+import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
 import org.apache.metron.common.utils.JSONUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -38,17 +35,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SimpleHBaseAdapterTest {
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-  private String cf = "cf";
-  private String cf1 = "cf1";
-  private String atTableName = "tracker";
-  private final String hbaseTableName = "enrichments";
-  private EnrichmentLookup lookup;
+public class SimpleHBaseAdapterTest {
+  private SimpleHBaseConfig config;
+  private FakeEnrichmentLookup lookup;
   private static final String PLAYFUL_CLASSIFICATION_TYPE = "playful_classification";
   private static final String CF1_CLASSIFICATION_TYPE = "cf1";
   private static final Map<String, Object> CF1_ENRICHMENT = new HashMap<String, Object>() {{
@@ -101,33 +97,35 @@ public class SimpleHBaseAdapterTest {
   private String sourceConfigWithCFStr;
   private JSONObject expectedMessage;
 
+
+
+
   @Before
   public void setup() throws Exception {
-    final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(atTableName, cf);
-    final MockHTable hbaseTable = (MockHTable) MockHBaseTableProvider.addToCache(hbaseTableName, cf);
-    EnrichmentHelper.INSTANCE.load(hbaseTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
-      add(new LookupKV<>(new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3")
-                      , new EnrichmentValue(PLAYFUL_ENRICHMENT)
-              )
-      );
-    }});
-    EnrichmentHelper.INSTANCE.load(hbaseTable, cf1, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
-      add(new LookupKV<>(new EnrichmentKey(CF1_CLASSIFICATION_TYPE, "10.0.2.4")
-                      , new EnrichmentValue(CF1_ENRICHMENT)
-              )
-      );
-    }});
-    BloomAccessTracker bat = new BloomAccessTracker(hbaseTableName, 100, 0.03);
-    PersistentAccessTracker pat = new PersistentAccessTracker(hbaseTableName, "0", trackerTable, cf, bat, 0L);
-    lookup = new EnrichmentLookup(hbaseTable, cf, pat);
+    // the enrichments are retrieved from memory, rather than HBase for these tests
+    lookup = new FakeEnrichmentLookup();
+    lookup.deleteAll();
+    lookup.withEnrichment(
+            new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3"),
+            new EnrichmentValue(PLAYFUL_ENRICHMENT));
+    lookup.withEnrichment(
+            new EnrichmentKey(CF1_CLASSIFICATION_TYPE, "10.0.2.4"),
+            new EnrichmentValue(CF1_ENRICHMENT));
+
+    config = new SimpleHBaseConfig()
+            .withHBaseTable("enrichment")
+            .withHBaseCF("cf")
+            .withEnrichmentLookupFactory(new FakeEnrichmentLookupFactory(lookup));
+
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
   }
 
   @Test
   public void testEnrich() throws Exception {
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
+    SimpleHBaseAdapter sha = new SimpleHBaseAdapter(config);
     sha.lookup = lookup;
+    sha.initializeAdapter(new HashMap<>());
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
     Assert.assertEquals(actualMessage, new JSONObject());
@@ -138,8 +136,9 @@ public class SimpleHBaseAdapterTest {
 
   @Test
   public void testEnrichNonStringValue() throws Exception {
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
+    SimpleHBaseAdapter sha = new SimpleHBaseAdapter(config);
     sha.lookup = lookup;
+    sha.initializeAdapter(new HashMap<>());
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
     Assert.assertEquals(actualMessage, new JSONObject());
@@ -149,8 +148,9 @@ public class SimpleHBaseAdapterTest {
 
   @Test
   public void testMultiColumnFamilies() throws Exception {
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
+    SimpleHBaseAdapter sha = new SimpleHBaseAdapter(config);
     sha.lookup = lookup;
+    sha.initializeAdapter(new HashMap<>());
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigWithCFStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
     Assert.assertEquals(actualMessage, new JSONObject());
@@ -159,22 +159,25 @@ public class SimpleHBaseAdapterTest {
     Assert.assertEquals(new JSONObject(ImmutableMap.of("cf1.key", "value")), actualMessage);
   }
 
-  @Test
-  public void testMultiColumnFamiliesWrongCF() throws Exception {
-    SimpleHBaseAdapter sha = new SimpleHBaseAdapter();
-    sha.lookup = lookup;
-    SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
-    JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
-    actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.4", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(new JSONObject(new HashMap<String, Object>()), actualMessage);
-  }
   @Test(expected = Exception.class)
   public void testInitializeAdapter() {
     SimpleHBaseConfig config = new SimpleHBaseConfig();
+    config.withConnectionFactoryImpl(FakeHBaseConnectionFactory.class.getName());
     SimpleHBaseAdapter sha = new SimpleHBaseAdapter(config);
     sha.initializeAdapter(null);
+  }
+
+  @Test
+  public void testCleanup() throws Exception {
+    EnrichmentLookup mockLookup = mock(EnrichmentLookup.class);
+    config.withEnrichmentLookupFactory((v,w,x,y,z) -> mockLookup);
+
+    SimpleHBaseAdapter sha = new SimpleHBaseAdapter(config);
+    sha.initializeAdapter(new HashMap<>());
+    sha.cleanup();
+
+    // the adapter should close the EnrichmentLookup that it is using to free any resources
+    verify(mockLookup, times(1)).close();
   }
 
 }

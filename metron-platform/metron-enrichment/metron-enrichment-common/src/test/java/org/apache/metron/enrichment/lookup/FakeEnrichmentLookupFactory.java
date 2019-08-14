@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,13 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.lookup.accesstracker;
+package org.apache.metron.enrichment.lookup;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
-import java.io.IOException;
-import java.util.Map;
+/**
+ * Creates a {@link FakeEnrichmentLookup}.
+ */
+public class FakeEnrichmentLookupFactory implements EnrichmentLookupFactory {
 
-public interface AccessTrackerCreator {
-  AccessTracker create(Map<String, Object> config, HBaseConnectionFactory connectionFactory) throws IOException;
+  private FakeEnrichmentLookup lookup;
+
+  public FakeEnrichmentLookupFactory() {
+    this(new FakeEnrichmentLookup());
+  }
+
+  public FakeEnrichmentLookupFactory(FakeEnrichmentLookup lookup) {
+    this.lookup = lookup;
+  }
+
+  @Override
+  public EnrichmentLookup create(HBaseConnectionFactory connectionFactory,
+                                 Configuration configuration,
+                                 String tableName,
+                                 String columnFamily,
+                                 AccessTracker accessTracker) {
+    return lookup;
+  }
 }

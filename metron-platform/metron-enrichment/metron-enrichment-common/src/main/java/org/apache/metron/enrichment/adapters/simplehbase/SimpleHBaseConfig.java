@@ -17,39 +17,61 @@
  */
 package org.apache.metron.enrichment.adapters.simplehbase;
 
-import org.apache.metron.enrichment.utils.EnrichmentUtils;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactories;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
 import java.io.Serializable;
 
-
+/**
+ * Configures the {@link SimpleHBaseAdapter}.
+ */
 public class SimpleHBaseConfig implements Serializable {
   private String hBaseTable;
   private String hBaseCF;
-  private TableProvider provider = new HTableProvider();
+  private HBaseConnectionFactory connectionFactory = new HBaseConnectionFactory();
+  private EnrichmentLookupFactory enrichmentLookupFactory = EnrichmentLookupFactories.HBASE;
+
   public String getHBaseTable() {
     return hBaseTable;
   }
-  public String getHBaseCF() {
-    return hBaseCF;
-  }
 
-  public TableProvider getProvider() {
-    return provider;
-  }
-
-  public SimpleHBaseConfig withProviderImpl(String connectorImpl) {
-    provider = EnrichmentUtils.getTableProvider(connectorImpl, new HTableProvider());
-    return this;
-  }
   public SimpleHBaseConfig withHBaseTable(String hBaseTable) {
     this.hBaseTable = hBaseTable;
     return this;
   }
 
+  public String getHBaseCF() {
+    return hBaseCF;
+  }
+
   public SimpleHBaseConfig withHBaseCF(String cf) {
     this.hBaseCF= cf;
+    return this;
+  }
+
+  public HBaseConnectionFactory getConnectionFactory() {
+    return connectionFactory;
+  }
+
+  public SimpleHBaseConfig withConnectionFactoryImpl(String connectorImpl) {
+    connectionFactory = HBaseConnectionFactory.byName(connectorImpl);
+    return this;
+  }
+
+  public EnrichmentLookupFactory getEnrichmentLookupFactory() {
+    return enrichmentLookupFactory;
+  }
+
+  public SimpleHBaseConfig withEnrichmentLookupFactory(EnrichmentLookupFactory enrichmentLookupFactory) {
+    this.enrichmentLookupFactory = enrichmentLookupFactory;
+    return this;
+  }
+
+  public SimpleHBaseConfig withEnrichmentLookupFactory(String clazzName) {
+    this.enrichmentLookupFactory = EnrichmentLookupFactories.byName(clazzName);
     return this;
   }
 }

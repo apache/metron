@@ -30,9 +30,11 @@ import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
+import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +107,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   }
 
   public boolean isInitialized() {
-    return lookup != null && lookup.getTable() != null;
+    return lookup != null;
   }
 
   @Override
@@ -119,15 +121,19 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     long millisecondsBetweenPersist = config.getMillisecondsBetweenPersists();
     BloomAccessTracker bat = new BloomAccessTracker(hbaseTable, expectedInsertions, falsePositives);
     Configuration hbaseConfig = HBaseConfiguration.create();
+    HBaseConnectionFactory connectionFactory = config.getConnectionFactory();
+    EnrichmentLookupFactory lookupFactory = config.getEnrichmentLookupFactory();
     try {
       accessTracker = new PersistentAccessTracker( hbaseTable
               , UUID.randomUUID().toString()
-              , config.getProvider().getTable(hbaseConfig, trackerHBaseTable)
+              , trackerHBaseTable
               , trackerHBaseCF
               , bat
               , millisecondsBetweenPersist
-      );
-      lookup = new EnrichmentLookup(config.getProvider().getTable(hbaseConfig, hbaseTable), config.getHBaseCF(), accessTracker);
+              , connectionFactory
+              , hbaseConfig);
+
+      lookup = lookupFactory.create(connectionFactory, hbaseConfig, hbaseTable, config.getHBaseCF(), accessTracker);
     } catch (IOException e) {
       LOG.error("Unable to initialize ThreatIntelAdapter", e);
       return false;
