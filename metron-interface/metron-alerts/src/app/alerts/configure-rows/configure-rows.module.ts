@@ -23,15 +23,16 @@ import { SwitchModule } from 'app/shared/switch/switch.module';
 import { QueryBuilder } from '../alerts-list/query-builder';
 import { ShowHideService } from './show-hide/show-hide.service';
 import { TimezoneConfigComponent } from './timezone-config/timezone-config.component';
+import { TimezoneConfigService } from './timezone-config/timezone-config.service';
 
 @NgModule({
     imports: [ SharedModule, SwitchModule ],
     declarations: [ ConfigureRowsComponent, ShowHideAlertEntriesComponent, TimezoneConfigComponent ],
     exports: [ ConfigureRowsComponent ],
-    providers: [ QueryBuilder, ShowHideService ],
+    providers: [ QueryBuilder, ShowHideService, TimezoneConfigService, ],
 })
 export class ConfigureRowsModule {
 
-    constructor(private showHideService: ShowHideService) {}
+    constructor(private showHideService: ShowHideService, private timezoneConfigService: TimezoneConfigService) {}
 
 }

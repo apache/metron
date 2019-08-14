@@ -5,6 +5,7 @@ import { TimezoneConfigService } from './timezone-config.service';
   selector: 'app-timezone-config',
   template: `
     <app-switch
+      data-qe-id="UTCtoLocalToggle"
       [text]="'Convert timestamps to local time'"
       (onChange)="toggleTimezoneConfig($event)"
       [selected]="timezoneConfigService.showLocal"
@@ -16,7 +17,7 @@ export class TimezoneConfigComponent implements OnInit {
 
   ngOnInit() {}
 
-  toggleTimezoneConfig(e) {
-    this.timezoneConfigService.toggleUTCtoLocal(e);
+  toggleTimezoneConfig(isLocal) {
+    this.timezoneConfigService.toggleUTCtoLocal(isLocal);
   }
 }
