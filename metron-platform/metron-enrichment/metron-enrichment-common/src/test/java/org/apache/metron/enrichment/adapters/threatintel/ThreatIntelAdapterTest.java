@@ -91,6 +91,9 @@ public class ThreatIntelAdapterTest {
     threatIntelConfig = new ThreatIntelConfig()
             .withHBaseTable("enrichment")
             .withHBaseCF("cf")
+            .withTrackerHBaseTable("tracker")
+            .withTrackerHBaseCF("cf")
+            .withConnectionFactory(new FakeHBaseConnectionFactory())
             .withEnrichmentLookupFactory(new FakeEnrichmentLookupFactory(lookup));
 
     threatIntelAdapter = new ThreatIntelAdapter(threatIntelConfig);

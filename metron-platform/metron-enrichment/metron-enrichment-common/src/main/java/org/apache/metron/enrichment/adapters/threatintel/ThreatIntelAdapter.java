@@ -55,11 +55,6 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     return this;
   }
 
-  public ThreatIntelAdapter withLookup(EnrichmentLookup lookup) {
-    this.lookup = lookup;
-    return this;
-  }
-
   @Override
   public void logAccess(CacheKey value) {
     List<String> enrichmentTypes = value.getConfig().getThreatIntel().getFieldToTypeMap().get(value.getField());
@@ -117,33 +112,31 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
 
   @Override
   public boolean initializeAdapter(Map<String, Object> configuration) {
-    if(lookup == null) {
-      PersistentAccessTracker accessTracker;
-      String hbaseTable = config.getHBaseTable();
-      int expectedInsertions = config.getExpectedInsertions();
-      double falsePositives = config.getFalsePositiveRate();
-      String trackerHBaseTable = config.getTrackerHBaseTable();
-      String trackerHBaseCF = config.getTrackerHBaseCF();
-      long millisecondsBetweenPersist = config.getMillisecondsBetweenPersists();
-      BloomAccessTracker bat = new BloomAccessTracker(hbaseTable, expectedInsertions, falsePositives);
-      Configuration hbaseConfig = HBaseConfiguration.create();
-      try {
-        HBaseConnectionFactory connectionFactory = config.getConnectionFactory();
-        accessTracker = new PersistentAccessTracker(hbaseTable
-                , UUID.randomUUID().toString()
-                , trackerHBaseTable
-                , trackerHBaseCF
-                , bat
-                , millisecondsBetweenPersist
-                , connectionFactory
-                , hbaseConfig);
-        EnrichmentLookupFactory lookupFactory = config.getEnrichmentLookupFactory();
-        lookup = lookupFactory.create(connectionFactory, hbaseConfig, hbaseTable, config.getHBaseCF(), accessTracker);
+    PersistentAccessTracker accessTracker;
+    String hbaseTable = config.getHBaseTable();
+    int expectedInsertions = config.getExpectedInsertions();
+    double falsePositives = config.getFalsePositiveRate();
+    String trackerHBaseTable = config.getTrackerHBaseTable();
+    String trackerHBaseCF = config.getTrackerHBaseCF();
+    long millisecondsBetweenPersist = config.getMillisecondsBetweenPersists();
+    BloomAccessTracker bat = new BloomAccessTracker(hbaseTable, expectedInsertions, falsePositives);
+    Configuration hbaseConfig = HBaseConfiguration.create();
+    HBaseConnectionFactory connectionFactory = config.getConnectionFactory();
+    EnrichmentLookupFactory lookupFactory = config.getEnrichmentLookupFactory();
+    try {
+      accessTracker = new PersistentAccessTracker( hbaseTable
+              , UUID.randomUUID().toString()
+              , trackerHBaseTable
+              , trackerHBaseCF
+              , bat
+              , millisecondsBetweenPersist
+              , connectionFactory
+              , hbaseConfig);
 
-      } catch (IOException e) {
-        LOG.error("Unable to initialize ThreatIntelAdapter", e);
-        return false;
-      }
+      lookup = lookupFactory.create(connectionFactory, hbaseConfig, hbaseTable, config.getHBaseCF(), accessTracker);
+    } catch (IOException e) {
+      LOG.error("Unable to initialize ThreatIntelAdapter", e);
+      return false;
     }
 
     return true;
