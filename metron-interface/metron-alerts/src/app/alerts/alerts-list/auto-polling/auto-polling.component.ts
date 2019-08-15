@@ -30,7 +30,7 @@ export class AutoPollingComponent {
 
   showNotification = false;
 
-  constructor(private autoPollingSvc: AutoPollingService) {}
+  constructor(public autoPollingSvc: AutoPollingService) {}
 
   onToggle() {
     this.autoPollingSvc.toggle();

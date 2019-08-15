@@ -108,6 +108,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.restoreRefreshState();
       }
     });
+
+    autoPollingSvc.data.subscribe((result: SearchResponse) => {
+      this.setData(result);
+      this.staleDataState = false;
+    })
   }
 
   addAlertChangedListner() {
@@ -258,9 +263,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     );
 
     if (selectedAlerts.length > 0) {
-      this.autoPollingSvc.pause();
+      this.autoPollingSvc.silentPause();
     } else {
-      this.autoPollingSvc.resume();
+      this.autoPollingSvc.silentResume();
     }
   }
 
@@ -486,7 +491,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       selectedAlert.source['alert_status'] = status;
     }
     this.selectedAlerts = [];
-    this.autoPollingSvc.resume();
+    this.autoPollingSvc.silentResume();
   }
 
   removeAlertChangedListner() {

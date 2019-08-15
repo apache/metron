@@ -23,7 +23,7 @@
   padding: 0px;
   border: 1px solid #0F6F9E;
   width: 38px;
-  line-height: 39px;
+  line-height: 35px;
   border-radius: 12px;
   margin-left: 15px;
   background: $mine-shaft-2;
@@ -36,6 +36,10 @@
 
   .fa-play {
     padding-left: 3px;
+  }
+
+  .fa-pause {
+    padding-left: 1px;
   }
 }
 
