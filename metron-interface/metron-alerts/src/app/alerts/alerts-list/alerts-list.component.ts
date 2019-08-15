@@ -99,9 +99,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private metaAlertsService: MetaAlertService,
               private globalConfigService: GlobalConfigService,
               private dialogService: DialogService,
-              private queryBuilder: QueryBuilder,
-              private autoPollingSvc: AutoPollingService,
-              private cdRef: ChangeDetectorRef) {
+              private cdRef: ChangeDetectorRef,
+              public queryBuilder: QueryBuilder,
+              public autoPollingSvc: AutoPollingService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -505,7 +505,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         on your current filter and time-range configuration!`;
     } else {
       return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
-      Your filter and/or time-range changes will apply automatically on next refresh`;
+        Automatic refresh is turned on. Your filter and/or time-range changes will apply automatically on next refresh.`;
     }
   }
 }
