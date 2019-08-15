@@ -117,6 +117,11 @@ def build_global_config_patch(params, patch_file):
     },
     {
         "op": "add",
+        "path": "/enrichment.list.hbase.provider.impl",
+        "value": "{{enrichment_list_hbase_provider_impl}}"
+    },
+    {
+        "op": "add",
         "path": "/enrichment.list.hbase.table",
         "value": "{{enrichment_list_hbase_table}}"
     },

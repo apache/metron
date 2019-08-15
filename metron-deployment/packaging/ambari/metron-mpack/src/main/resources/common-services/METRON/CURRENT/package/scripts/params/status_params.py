@@ -58,6 +58,7 @@ enrichment_maxmind_configured_flag_file = metron_zookeeper_config_path + '/../me
 
 enrichment_hbase_table = config['configurations']['metron-enrichment-env']['enrichment_hbase_table']
 enrichment_hbase_cf = config['configurations']['metron-enrichment-env']['enrichment_hbase_cf']
+enrichment_list_hbase_provider_impl = config['configurations']['metron-enrichment-env']['enrichment_list_hbase_provider_impl']
 enrichment_list_hbase_coprocessor_impl = config['configurations']['metron-enrichment-env']['enrichment_list_hbase_coprocessor_impl']
 enrichment_list_hbase_table = config['configurations']['metron-enrichment-env']['enrichment_list_hbase_table']
 enrichment_list_hbase_cf = config['configurations']['metron-enrichment-env']['enrichment_list_hbase_cf']
