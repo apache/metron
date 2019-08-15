@@ -45,7 +45,7 @@ public class EnrichmentConverterTest {
     }});
     Put serialized = converter.toPut("cf", k1, v1);
     LookupKV<EnrichmentKey, EnrichmentValue> kv = converter.fromPut(serialized,"cf");
-    Assert.assertEquals("v1", kv.getValue().getMetadata().get("k1"));
-    Assert.assertEquals("v2", kv.getValue().getMetadata().get("k2"));
+    Assert.assertEquals(k1, kv.getKey());
+    Assert.assertEquals(v1, kv.getValue());
   }
 }
