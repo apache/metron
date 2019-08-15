@@ -534,7 +534,7 @@ describe('sensors: selectors', () => {
     expect(merged[1].status).toEqual(state.sensors.statuses.items[1]);
     expect(merged[2].status).toEqual(state.sensors.statuses.items[2]);
 
-    // no status belongs to it but got a status instance witn no name
+    // no status belongs to it but got a status instance with no name
     expect(merged[3].status).toBeTruthy();
     expect(merged[3].status.name).toBeFalsy();
   });
