@@ -23,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.HBaseTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.rest.RestException;
@@ -55,7 +55,7 @@ public class HBaseConfig {
         } catch (RestException e) {
           throw new IllegalStateException("Unable to retrieve the global config.", e);
         }
-      }, new HTableProvider());
+      }, new HBaseTableProvider());
       return userSettingsClient;
     }
 
@@ -71,7 +71,7 @@ public class HBaseConfig {
       try {
         provider = TableProvider
             .create((String) restConfig.get(EnrichmentConfigurations.TABLE_PROVIDER),
-                HTableProvider::new);
+                HBaseTableProvider::new);
       } catch (ClassNotFoundException | InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
         throw new IllegalStateException("Unable to create table provider", e);
       }

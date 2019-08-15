@@ -15,39 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.hbase.mock;
+package org.apache.metron.hbase;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.metron.hbase.TableProvider;
 
-public class MockHBaseTableProvider implements Serializable, TableProvider {
-  private static Map<String, Table> _cache = new HashMap<>();
-  public Table getTable(Configuration configuration, String tableName) throws IOException {
-    Table ret = _cache.get(tableName);
-    return ret;
+public class HBaseTableProvider implements TableProvider {
+
+  private ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<>();
+
+  @Override
+  public Table getTable(Configuration config, String tableName)
+      throws IOException {
+    return getConnection(config).getTable(TableName.valueOf(tableName));
   }
 
-  public static Table getFromCache(String tableName) {
-    return _cache.get(tableName);
-  }
-
-  public static Table addToCache(String tableName, String... columnFamilies) {
-    MockHTable ret =  new MockHTable(tableName, columnFamilies);
-    _cache.put(tableName, ret);
-    return ret;
-  }
-
-  public static void clear() {
-    _cache.clear();
+  private Connection getConnection(Configuration config) throws IOException {
+    Connection connection = connectionThreadLocal.get();
+    if (null == connection || connection.isClosed()) {
+      connectionThreadLocal.set(ConnectionFactory.createConnection(config));
+    }
+    return connectionThreadLocal.get();
   }
 
   @Override
   public void close() throws IOException {
-
+    Connection connection = connectionThreadLocal.get();
+    if (null != connection) {
+      connection.close();
+    }
   }
+
 }

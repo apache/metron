@@ -19,7 +19,7 @@ package org.apache.metron.enrichment.adapters.threatintel;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.enrichment.cache.CacheKey;
@@ -53,8 +53,13 @@ public class ThreatIntelAdapterTest {
     public ExceptionProvider() {};
 
     @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
+    public Table getTable(Configuration config, String tableName) throws IOException {
       throw new IOException();
+    }
+
+    @Override
+    public void close() throws IOException {
+
     }
   }
 

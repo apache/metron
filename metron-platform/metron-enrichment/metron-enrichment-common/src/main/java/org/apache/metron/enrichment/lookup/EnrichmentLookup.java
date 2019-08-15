@@ -19,7 +19,7 @@ package org.apache.metron.enrichment.lookup;
 
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
@@ -38,14 +38,14 @@ import java.util.List;
 public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, EnrichmentKey, LookupKV<EnrichmentKey,EnrichmentValue>> implements AutoCloseable {
 
   public static class HBaseContext {
-    private HTableInterface table;
+    private Table table;
     private String columnFamily;
-    public HBaseContext(HTableInterface table, String columnFamily) {
+    public HBaseContext(Table table, String columnFamily) {
       this.table = table;
       this.columnFamily = columnFamily;
     }
 
-    public HTableInterface getTable() { return table; }
+    public Table getTable() { return table; }
     public String getColumnFamily() { return columnFamily; }
   }
 
@@ -84,7 +84,7 @@ public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, Enri
       if(Iterables.isEmpty(key)) {
         return Collections.emptyList();
       }
-      HTableInterface table = Iterables.getFirst(key, null).getContext().getTable();
+      Table table = Iterables.getFirst(key, null).getContext().getTable();
       for(boolean b : table.existsAll(keysToGets(key))) {
         ret.add(b);
       }
@@ -99,7 +99,7 @@ public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, Enri
       if(Iterables.isEmpty(keys)) {
         return Collections.emptyList();
       }
-      HTableInterface table = Iterables.getFirst(keys, null).getContext().getTable();
+      Table table = Iterables.getFirst(keys, null).getContext().getTable();
       List<LookupKV<EnrichmentKey, EnrichmentValue>> ret = new ArrayList<>();
       Iterator<KeyWithContext<EnrichmentKey, HBaseContext>> keyWithContextIterator = keys.iterator();
       for(Result result : table.get(keysToGets(keys))) {
@@ -115,14 +115,14 @@ public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, Enri
 
     }
   }
-  private HTableInterface table;
-  public EnrichmentLookup(HTableInterface table, String columnFamily, AccessTracker tracker) {
+  private Table table;
+  public EnrichmentLookup(Table table, String columnFamily, AccessTracker tracker) {
     this.table = table;
     this.setLookupHandler(new Handler(columnFamily));
     this.setAccessTracker(tracker);
   }
 
-  public HTableInterface getTable() {
+  public Table getTable() {
     return table;
   }
 

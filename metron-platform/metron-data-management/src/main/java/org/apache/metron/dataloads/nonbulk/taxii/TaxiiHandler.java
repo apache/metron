@@ -45,7 +45,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -116,7 +116,7 @@ public class TaxiiHandler extends TimerTask {
   private Extractor extractor;
   private String hbaseTable;
   private String columnFamily;
-  private Map<String, HTableInterface> connectionCache = new HashMap<>();
+  private Map<String, Table> connectionCache = new HashMap<>();
   private HttpClientContext context;
   private String collection;
   private String subscriptionId;
@@ -147,8 +147,8 @@ public class TaxiiHandler extends TimerTask {
     LOG.info("Configured, starting polling {} for {}", endpoint, collection);
   }
 
-  protected synchronized HTableInterface getTable(String table) throws IOException {
-    HTableInterface ret = connectionCache.get(table);
+  protected synchronized Table getTable(String table) throws IOException {
+    Table ret = connectionCache.get(table);
     if(ret == null) {
       ret = createHTable(table);
       connectionCache.put(table, ret);
@@ -156,7 +156,7 @@ public class TaxiiHandler extends TimerTask {
     return ret;
   }
 
-  protected synchronized HTableInterface createHTable(String tableInfo) throws IOException {
+  protected synchronized Table createHTable(String tableInfo) throws IOException {
     return new HTable(config, tableInfo);
   }
   /**
@@ -222,7 +222,7 @@ public class TaxiiHandler extends TimerTask {
                   kv.getValue().getMetadata().put("taxii_url", endpoint.toString());
                   kv.getValue().getMetadata().put("taxii_collection", collection);
                   Put p = converter.toPut(columnFamily, kv.getKey(), kv.getValue());
-                  HTableInterface table = getTable(hbaseTable);
+                  Table table = getTable(hbaseTable);
                   table.put(p);
                   LOG.info("Found Threat Intel: {} => ", kv.getKey(), kv.getValue());
                 }

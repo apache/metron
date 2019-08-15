@@ -17,7 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.simplehbase;
 
-import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.HBaseTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class SimpleHBaseConfigTest {
         SimpleHBaseConfig shc = new SimpleHBaseConfig();
         shc.withHBaseCF(cf);
         shc.withHBaseTable(table);
-        provider = new HTableProvider();
+        provider = new HBaseTableProvider();
         Assert.assertEquals(cf, shc.getHBaseCF());
         Assert.assertEquals(table, shc.getHBaseTable());
     }

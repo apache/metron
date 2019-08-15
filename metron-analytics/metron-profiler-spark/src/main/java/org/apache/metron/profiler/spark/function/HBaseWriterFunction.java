@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
-import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.HBaseTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -155,7 +155,7 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
 
     // if class name not defined, use a reasonable default
     if(StringUtils.isEmpty(providerImpl) || providerImpl.charAt(0) == '$') {
-      return new HTableProvider();
+      return new HBaseTableProvider();
     }
 
     // instantiate the table provider
