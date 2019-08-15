@@ -146,7 +146,6 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   public void cleanup() {
     try {
       lookup.close();
-      config.getProvider().close();
     } catch (Exception e) {
       throw new RuntimeException("Unable to cleanup access tracker", e);
     }

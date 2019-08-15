@@ -46,8 +46,4 @@ public class MockHBaseTableProvider implements Serializable, TableProvider {
     _cache.clear();
   }
 
-  @Override
-  public void close() throws IOException {
-
-  }
 }

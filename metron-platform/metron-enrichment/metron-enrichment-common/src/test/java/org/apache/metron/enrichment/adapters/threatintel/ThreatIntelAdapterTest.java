@@ -56,11 +56,6 @@ public class ThreatIntelAdapterTest {
     public Table getTable(Configuration config, String tableName) throws IOException {
       throw new IOException();
     }
-
-    @Override
-    public void close() throws IOException {
-
-    }
   }
 
   private String cf = "cf";

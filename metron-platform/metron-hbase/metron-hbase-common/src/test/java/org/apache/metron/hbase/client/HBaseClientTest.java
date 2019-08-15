@@ -90,11 +90,6 @@ public class HBaseClientTest {
       public Table getTable(Configuration config, String tableName) throws IOException {
         return table;
       }
-
-      @Override
-      public void close() throws IOException {
-
-      }
     };
     // setup the client
     client = new HBaseClient(provider, table.getConfiguration(), tableName);

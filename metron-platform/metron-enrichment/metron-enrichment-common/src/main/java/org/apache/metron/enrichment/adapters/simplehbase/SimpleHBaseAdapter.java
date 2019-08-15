@@ -129,7 +129,6 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   public void cleanup() {
     try {
       lookup.close();
-      config.getProvider().close();
     } catch (Exception e) {
       LOG.error("Unable to cleanup access tracker", e);
     }
