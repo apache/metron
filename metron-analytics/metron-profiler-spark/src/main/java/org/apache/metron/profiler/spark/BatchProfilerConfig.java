@@ -24,7 +24,7 @@ import static org.apache.metron.profiler.spark.reader.TelemetryReaders.JSON;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.hadoop.hbase.client.Durability;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 /**
@@ -38,7 +38,7 @@ public enum BatchProfilerConfig {
 
   HBASE_SALT_DIVISOR("profiler.hbase.salt.divisor", 1000, Integer.class),
 
-  HBASE_TABLE_PROVIDER("profiler.hbase.table.provider", HBaseTableProvider.class.getName(), String.class),
+  HBASE_TABLE_PROVIDER("profiler.hbase.table.provider", HTableProvider.class.getName(), String.class),
 
   HBASE_TABLE_NAME("profiler.hbase.table", "profiler", String.class),
 

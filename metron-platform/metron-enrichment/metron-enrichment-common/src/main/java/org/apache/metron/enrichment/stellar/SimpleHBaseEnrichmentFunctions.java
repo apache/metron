@@ -33,7 +33,7 @@ import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTrackers;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
@@ -105,7 +105,7 @@ public class SimpleHBaseEnrichmentFunctions {
       Class<? extends TableProvider> providerClazz = (Class<? extends TableProvider>) Class.forName(tableProviderClass);
       return providerClazz.getConstructor().newInstance();
     } catch (Exception e) {
-      return new HBaseTableProvider();
+      return new HTableProvider();
     }
   }
 
@@ -114,7 +114,7 @@ public class SimpleHBaseEnrichmentFunctions {
       return ;
     }
     else {
-      String tableProviderClass = (String) config.getOrDefault(TABLE_PROVIDER_TYPE_CONF, HBaseTableProvider.class.getName());
+      String tableProviderClass = (String) config.getOrDefault(TABLE_PROVIDER_TYPE_CONF, HTableProvider.class.getName());
       provider = createProvider(tableProviderClass);
     }
   }

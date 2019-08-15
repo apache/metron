@@ -27,7 +27,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
@@ -213,7 +213,7 @@ public class HBaseBolt extends BaseRichBolt {
 
     // if class name not defined, use a reasonable default
     if(StringUtils.isEmpty(connectorImpl) || connectorImpl.charAt(0) == '$') {
-      return new HBaseTableProvider();
+      return new HTableProvider();
     }
 
     // instantiate the table provider

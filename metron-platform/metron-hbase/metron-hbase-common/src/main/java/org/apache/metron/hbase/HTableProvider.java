@@ -24,9 +24,10 @@ import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Table;
 
-public class HBaseTableProvider implements TableProvider {
+public class HTableProvider implements TableProvider {
 
-  private ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<>();
+  // not serializable with Storm
+  private transient ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<>();
 
   @Override
   public Table getTable(Configuration config, String tableName)

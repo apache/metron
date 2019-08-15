@@ -30,7 +30,7 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
@@ -186,7 +186,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   protected synchronized TableProvider getProvider() {
     if(provider == null) {
 
-      provider = new HBaseTableProvider();
+      provider = new HTableProvider();
     }
     return provider;
   }

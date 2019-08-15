@@ -32,12 +32,12 @@ import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 
 public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtractorState> {
 
   public interface HTableProviderRetriever {
-    HBaseTableProvider retrieve();
+    HTableProvider retrieve();
   }
 
   HTableProviderRetriever provider;
@@ -47,7 +47,7 @@ public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtra
   }
 
   public LocalImporter() {
-    this(() -> new HBaseTableProvider());
+    this(() -> new HTableProvider());
   }
 
 

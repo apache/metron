@@ -21,7 +21,7 @@
 package org.apache.metron.profiler.client.stellar;
 
 import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 
 import java.util.Map;
 
@@ -39,7 +39,7 @@ public enum ProfilerClientConfig {
   /**
    * A global property that defines the name of the HBaseTableProvider implementation class.
    */
-  PROFILER_HBASE_TABLE_PROVIDER("hbase.provider.impl", HBaseTableProvider.class.getName(), String.class),
+  PROFILER_HBASE_TABLE_PROVIDER("hbase.provider.impl", HTableProvider.class.getName(), String.class),
 
   /**
    * A global property that defines the duration of each profile period.  This value

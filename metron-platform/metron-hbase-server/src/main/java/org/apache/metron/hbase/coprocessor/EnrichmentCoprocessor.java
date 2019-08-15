@@ -38,7 +38,7 @@ import org.apache.hadoop.hbase.regionserver.wal.WALEdit;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,7 +125,7 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
         String tableName = (String) globalConfig.get(EnrichmentConfigurations.TABLE_NAME);
         String columnFamily = (String) globalConfig.get(EnrichmentConfigurations.COLUMN_FAMILY);
         cacheWriter = new HBaseCacheWriter(config, TableProvider
-            .create(hbaseTableProviderName, HBaseTableProvider::new), tableName, columnFamily,
+            .create(hbaseTableProviderName, HTableProvider::new), tableName, columnFamily,
             COLUMN_QUALIFIER);
       } catch (ClassNotFoundException | InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
         throw new IOException("Unable to instantiate cache writer", e);

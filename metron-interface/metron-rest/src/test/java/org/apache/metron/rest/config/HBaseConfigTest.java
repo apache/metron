@@ -30,7 +30,7 @@ import java.util.HashMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.junit.Assert;
@@ -41,7 +41,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({HBaseTableProvider.class, HBaseConfiguration.class, HBaseConfig.class})
+@PrepareForTest({HTableProvider.class, HBaseConfiguration.class, HBaseConfig.class})
 public class HBaseConfigTest {
 
   private GlobalConfigService globalConfigService;
@@ -60,8 +60,8 @@ public class HBaseConfigTest {
       put(USER_SETTINGS_HBASE_TABLE, "global_config_user_settings_table");
       put(USER_SETTINGS_HBASE_CF, "global_config_user_settings_cf");
     }});
-    HBaseTableProvider htableProvider = mock(HBaseTableProvider.class);
-    whenNew(HBaseTableProvider.class).withNoArguments().thenReturn(htableProvider);
+    HTableProvider htableProvider = mock(HTableProvider.class);
+    whenNew(HTableProvider.class).withNoArguments().thenReturn(htableProvider);
     Configuration configuration = mock(Configuration.class);
     when(HBaseConfiguration.create()).thenReturn(configuration);
 

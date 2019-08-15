@@ -44,7 +44,7 @@ import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.dataloads.hbase.mr.HBaseUtil;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.helper.HelperDao;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
@@ -90,7 +90,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
     // don't need the properties for anything else now, but could extract var if desired.
     startZookeeper(new Properties());
     globalConfig = globalConfig.replace("%TABLE_NAME%", ENRICHMENT_LIST_TABLE)
-        .replace("%COLUMN_FAMILY%", COLUMN_FAMILY).replace("%PROVIDER_NAME%", HBaseTableProvider.class.getName());
+        .replace("%COLUMN_FAMILY%", COLUMN_FAMILY).replace("%PROVIDER_NAME%", HTableProvider.class.getName());
     uploadGlobalConfigToZK(globalConfig);
     configureAndStartHBase();
     addCoprocessor(enrichmentTable.getName());

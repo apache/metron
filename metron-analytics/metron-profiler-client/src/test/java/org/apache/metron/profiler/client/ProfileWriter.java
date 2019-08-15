@@ -29,7 +29,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.metron.hbase.ColumnList;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -108,7 +108,7 @@ public class ProfileWriter {
     config.set("hbase.regionserver.hostname", "node1");
     config.set("hbase.zookeeper.quorum", "node1");
 
-    HBaseTableProvider provider = new HBaseTableProvider();
+    HTableProvider provider = new HTableProvider();
     String tableName = "profiler";
 
     long periodDurationMillis = TimeUnit.MINUTES.toMillis(15);

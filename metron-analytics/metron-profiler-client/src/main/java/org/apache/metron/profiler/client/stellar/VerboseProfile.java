@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.metron.hbase.HBaseTableProvider;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
@@ -199,7 +199,7 @@ public class VerboseProfile implements StellarFunction {
       provider = clazz.getConstructor().newInstance();
 
     } catch (Exception e) {
-      provider = new HBaseTableProvider();
+      provider = new HTableProvider();
     }
 
     return provider;
