@@ -24,6 +24,8 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -221,12 +223,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withEnrichment(
                     new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3"),
                     new EnrichmentValue(PLAYFUL_ENRICHMENT));
-    EnrichmentLookupFactory lookupCreator = (w, x, y, z) -> lookup;
+    EnrichmentLookupFactory lookupCreator = (v, w, x, y, z) -> lookup;
 
     // the enrichment stellar functions need to access the same global, static enrichment values
+    Configuration conf = HBaseConfiguration.create();
     StellarFunctions.FUNCTION_RESOLVER()
-            .withInstance(new EnrichmentGet().withEnrichmentLookupCreator(lookupCreator))
-            .withInstance(new EnrichmentExists().withEnrichmentLookupCreator(lookupCreator));
+            .withInstance(new EnrichmentGet(lookupCreator, conf))
+            .withInstance(new EnrichmentExists(lookupCreator, conf));
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath()))

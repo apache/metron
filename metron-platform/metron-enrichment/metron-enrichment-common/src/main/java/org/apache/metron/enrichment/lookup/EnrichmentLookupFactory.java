@@ -18,6 +18,7 @@
 
 package org.apache.metron.enrichment.lookup;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
@@ -30,6 +31,7 @@ import java.io.Serializable;
 public interface EnrichmentLookupFactory extends Serializable {
 
   EnrichmentLookup create(HBaseConnectionFactory connectionFactory,
+                          Configuration configuration,
                           String tableName,
                           String columnFamily,
                           AccessTracker accessTracker) throws IOException;

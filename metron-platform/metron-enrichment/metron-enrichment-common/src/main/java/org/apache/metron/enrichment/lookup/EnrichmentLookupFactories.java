@@ -17,7 +17,10 @@
  */
 package org.apache.metron.enrichment.lookup;
 
-import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.slf4j.Logger;
@@ -32,13 +35,10 @@ import java.lang.reflect.InvocationTargetException;
  */
 public enum EnrichmentLookupFactories implements EnrichmentLookupFactory {
 
-  HBASE((connFactory, table, columnFamily, accessTracker) -> {
-    return new HBaseEnrichmentLookup(connFactory, HBaseConfiguration.create(), table, columnFamily);
-  }),
-
-  TRACKED((connFactory, table, columnFamily, accessTracker) -> {
-    EnrichmentLookup lookup = new HBaseEnrichmentLookup(connFactory, HBaseConfiguration.create(), table, columnFamily);
-    return new TrackedEnrichmentLookup(lookup, accessTracker);
+  HBASE((connFactory, conf, tableName, columnFamily, accessTracker) -> {
+    Connection connection = connFactory.createConnection(conf);
+    Table table = connection.getTable(TableName.valueOf(tableName));
+    return new EnrichmentLookup(table, columnFamily, accessTracker);
   });
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -48,11 +48,13 @@ public enum EnrichmentLookupFactories implements EnrichmentLookupFactory {
     this.factory = factory;
   }
 
-  public EnrichmentLookup create(HBaseConnectionFactory connFactory,
+  @Override
+  public EnrichmentLookup create(HBaseConnectionFactory connectionFactory,
+                                 Configuration configuration,
                                  String tableName,
                                  String columnFamily,
                                  AccessTracker accessTracker) throws IOException {
-    return factory.create(connFactory, tableName, columnFamily, accessTracker);
+    return factory.create(connectionFactory, configuration, tableName, columnFamily, accessTracker);
   }
 
   /**

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.lookup;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
@@ -25,11 +26,22 @@ import org.apache.metron.hbase.client.HBaseConnectionFactory;
  */
 public class FakeEnrichmentLookupFactory implements EnrichmentLookupFactory {
 
+  private FakeEnrichmentLookup lookup;
+
+  public FakeEnrichmentLookupFactory() {
+    this(new FakeEnrichmentLookup());
+  }
+
+  public FakeEnrichmentLookupFactory(FakeEnrichmentLookup lookup) {
+    this.lookup = lookup;
+  }
+
   @Override
   public EnrichmentLookup create(HBaseConnectionFactory connectionFactory,
+                                 Configuration configuration,
                                  String tableName,
                                  String columnFamily,
                                  AccessTracker accessTracker) {
-    return new FakeEnrichmentLookup();
+    return lookup;
   }
 }

@@ -19,14 +19,22 @@ package org.apache.metron.enrichment.stellar;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactories;
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
-import org.apache.metron.enrichment.lookup.HBaseEnrichmentLookup;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTrackers;
@@ -37,13 +45,6 @@ import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 public class SimpleHBaseEnrichmentFunctions {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -93,6 +94,7 @@ public class SimpleHBaseEnrichmentFunctions {
     }
   }
 
+
   private static Map<String, Object> getConfig(Context context) {
     return (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG).orElse(new HashMap<>());
   }
@@ -100,7 +102,6 @@ public class SimpleHBaseEnrichmentFunctions {
   private static synchronized void initializeTracker(Map<String, Object> config, HBaseConnectionFactory connectionFactory) throws IOException {
     if(tracker == null) {
       String accessTrackerType = (String) config.getOrDefault(ACCESS_TRACKER_TYPE_CONF, AccessTrackers.NOOP.toString());
-      LOG.debug("Initializing tracker; type={}", accessTrackerType);
       AccessTrackers trackers = AccessTrackers.valueOf(accessTrackerType);
       tracker = trackers.create(config, connectionFactory);
     }
@@ -113,15 +114,8 @@ public class SimpleHBaseEnrichmentFunctions {
     }
   }
 
-  private static Cache<Table, EnrichmentLookup> createCache() {
-    return CacheBuilder
-            .newBuilder()
-            .removalListener(new CloseEnrichmentLookup())
-            .build();
-  }
-
   /**
-   * Closes the {@link HBaseEnrichmentLookup} after it has been removed from the cache.  This
+   * Closes the {@link EnrichmentLookup} after it has been removed from the cache.  This
    * ensures that the underlying resources are cleaned up.
    */
   private static class CloseEnrichmentLookup implements RemovalListener<Table, EnrichmentLookup> {
@@ -148,62 +142,55 @@ public class SimpleHBaseEnrichmentFunctions {
           ,returns = "True if the enrichment indicator exists and false otherwise"
           )
   public static class EnrichmentExists implements StellarFunction {
-
     boolean initialized = false;
-    private static Cache<Table, EnrichmentLookup> lookupCache = createCache();
-    private EnrichmentLookupFactory creator;
+    private EnrichmentLookupFactory factory;
+    private Configuration configuration;
+    private static Cache<Table, EnrichmentLookup> enrichmentCollateralCache = CacheBuilder.newBuilder()
+            .removalListener(new CloseEnrichmentLookup())
+            .build();
 
     public EnrichmentExists() {
-      this.creator = EnrichmentLookupFactories.HBASE;
+      this(EnrichmentLookupFactories.HBASE, HBaseConfiguration.create());
     }
 
-    public EnrichmentExists withEnrichmentLookupCreator(EnrichmentLookupFactory creator) {
-      this.creator = creator;
-      return this;
+    public EnrichmentExists(EnrichmentLookupFactory factory, Configuration configuration) {
+      this.factory = factory;
+      this.configuration = configuration;
     }
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      if (!initialized) {
-        LOG.debug("ENRICHMENT_EXISTS not initialized");
+      if(!initialized) {
         return false;
       }
-      if (args.size() != 4) {
+      if(args.size() != 4) {
         throw new IllegalStateException("All parameters are mandatory, submit 'enrichment type', 'indicator', 'nosql_table' and 'column_family'");
       }
       int i = 0;
       String enrichmentType = (String) args.get(i++);
       String indicator = (String) args.get(i++);
       String table = (String) args.get(i++);
-      String columnFamily = (String) args.get(i++);
-
-      if (enrichmentType == null || indicator == null || table == null || columnFamily == null) {
-        LOG.error("ENRICHMENT_EXISTS; got null for required argument");
+      String cf = (String) args.get(i++);
+      if (enrichmentType == null || indicator == null || table == null || cf == null) {
         return false;
       }
-
-      EnrichmentLookup lookup = fromCache(table, columnFamily);
+      final Table key = new Table(table, cf);
+      EnrichmentLookup lookup = null;
       try {
-        EnrichmentKey enrichmentKey = new EnrichmentKey(enrichmentType, indicator);
-        return lookup.exists(enrichmentKey);
+        lookup = enrichmentCollateralCache.get(key, () ->
+                factory.create(connectionFactory, configuration, table, cf, tracker));
 
+      } catch (ExecutionException e) {
+        LOG.error("Unable to retrieve enrichmentLookup: {}", e.getMessage(), e);
+        return false;
+      }
+      EnrichmentLookup.HBaseContext hbaseContext = new EnrichmentLookup.HBaseContext(lookup.getTable(), cf);
+      try {
+        return lookup.exists(new EnrichmentKey(enrichmentType, indicator), hbaseContext, true);
       } catch (IOException e) {
         LOG.error("Unable to call exists: {}", e.getMessage(), e);
         return false;
       }
-    }
-
-    private EnrichmentLookup fromCache(String table, String columnFamily) {
-      EnrichmentLookup lookup = null;
-      try {
-        Table cacheKey = new Table(table, columnFamily);
-        lookup = lookupCache.get(cacheKey,
-                () -> creator.create(connectionFactory, table, columnFamily, tracker));
-
-      } catch (ExecutionException e) {
-        LOG.error("Unable to initialize an enrichment lookup: {}", e.getMessage(), e);
-      }
-      return lookup;
     }
 
     @Override
@@ -212,13 +199,12 @@ public class SimpleHBaseEnrichmentFunctions {
         Map<String, Object> config = getConfig(context);
         initializeConnectionFactory(config);
         initializeTracker(config, connectionFactory);
-
       } catch (IOException e) {
         LOG.error("Unable to initialize ENRICHMENT_EXISTS: {}", e.getMessage(), e);
-
       } finally{
         initialized = true;
       }
+
     }
 
     @Override
@@ -228,10 +214,12 @@ public class SimpleHBaseEnrichmentFunctions {
 
     @Override
     public void close() {
-      lookupCache.invalidateAll();
-      lookupCache.cleanUp();
+      enrichmentCollateralCache.invalidateAll();
+      enrichmentCollateralCache.cleanUp();
     }
   }
+
+
 
   @Stellar(name="GET"
           ,namespace="ENRICHMENT"
@@ -247,16 +235,23 @@ public class SimpleHBaseEnrichmentFunctions {
           )
   public static class EnrichmentGet implements StellarFunction {
     boolean initialized = false;
-    private static Cache<Table, EnrichmentLookup> lookupCache = createCache();
-    private EnrichmentLookupFactory creator;
+    private EnrichmentLookupFactory factory;
+    private Configuration configuration;
+    private static Cache<Table, EnrichmentLookup> enrichmentCollateralCache = CacheBuilder
+            .newBuilder()
+            .removalListener(new CloseEnrichmentLookup())
+            .build();
 
+    /**
+     * The constructor used during Stellar function resolution.
+     */
     public EnrichmentGet() {
-      this.creator = EnrichmentLookupFactories.HBASE;
+      this(EnrichmentLookupFactories.HBASE, HBaseConfiguration.create());
     }
 
-    public EnrichmentGet withEnrichmentLookupCreator(EnrichmentLookupFactory creator) {
-      this.creator = creator;
-      return this;
+    public EnrichmentGet(EnrichmentLookupFactory factory, Configuration configuration) {
+      this.factory = factory;
+      this.configuration = configuration;
     }
 
     @Override
@@ -272,37 +267,30 @@ public class SimpleHBaseEnrichmentFunctions {
       String enrichmentType = (String) args.get(i++);
       String indicator = (String) args.get(i++);
       String table = (String) args.get(i++);
-      String columnFamily = (String) args.get(i++);
+      String cf = (String) args.get(i++);
       if(enrichmentType == null || indicator == null) {
-        LOG.error("ENRICHMENT_EXISTS; got null for required argument");
         return new HashMap<String, Object>();
       }
-
-      EnrichmentLookup lookup = fromCache(table, columnFamily);
+      final Table key = new Table(table, cf);
+      EnrichmentLookup lookup = null;
       try {
-        LookupKV<EnrichmentKey, EnrichmentValue> result = lookup.get(new EnrichmentKey(enrichmentType, indicator));
-        if(result != null && result.getValue() != null && result.getValue().getMetadata() != null) {
-          return result.getValue().getMetadata();
-        } else {
-          return new HashMap<>();
+        lookup = enrichmentCollateralCache.get(key, () ->
+                factory.create(connectionFactory, configuration, table, cf, tracker));
+      } catch (ExecutionException e) {
+        LOG.error("Unable to retrieve enrichmentLookup: {}", e.getMessage(), e);
+        return new HashMap<String, Object>();
+      }
+      EnrichmentLookup.HBaseContext hbaseContext = new EnrichmentLookup.HBaseContext(lookup.getTable(), cf);
+      try {
+        LookupKV<EnrichmentKey, EnrichmentValue> kv = lookup.get(new EnrichmentKey(enrichmentType, indicator), hbaseContext, true);
+        if (kv != null && kv.getValue() != null && kv.getValue().getMetadata() != null) {
+          return kv.getValue().getMetadata();
         }
+        return new HashMap<String, Object>();
       } catch (IOException e) {
         LOG.error("Unable to call exists: {}", e.getMessage(), e);
         return new HashMap<String, Object>();
       }
-    }
-
-    private EnrichmentLookup fromCache(String table, String columnFamily) {
-      EnrichmentLookup lookup = null;
-      try {
-        Table cacheKey = new Table(table, columnFamily);
-        lookup = lookupCache.get(cacheKey,
-                () -> creator.create(connectionFactory, table, columnFamily, tracker));
-
-      } catch (ExecutionException e) {
-        LOG.error("Unable to initialize an enrichment lookup: {}", e.getMessage(), e);
-      }
-      return lookup;
     }
 
     @Override
@@ -322,8 +310,8 @@ public class SimpleHBaseEnrichmentFunctions {
 
     @Override
     public void close() {
-      lookupCache.invalidateAll();
-      lookupCache.cleanUp();
+      enrichmentCollateralCache.invalidateAll();
+      enrichmentCollateralCache.cleanUp();
     }
 
     @Override

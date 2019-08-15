@@ -23,7 +23,7 @@ import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
 
 import java.io.IOException;
 
-public class Lookup<CONTEXT_T, KEY_T extends LookupKey, RESULT_T> implements Handler<CONTEXT_T, KEY_T, RESULT_T> {
+public abstract class Lookup<CONTEXT_T, KEY_T extends LookupKey, RESULT_T> implements Handler<CONTEXT_T, KEY_T, RESULT_T> {
   private String name;
   private AccessTracker accessTracker;
   private Handler<CONTEXT_T, KEY_T, RESULT_T> lookupHandler;

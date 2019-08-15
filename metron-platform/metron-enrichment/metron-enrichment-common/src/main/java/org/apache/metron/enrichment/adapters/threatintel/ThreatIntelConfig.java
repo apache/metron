@@ -71,11 +71,6 @@ public class ThreatIntelConfig implements Serializable {
     return enrichmentLookupFactory;
   }
 
-  public ThreatIntelConfig withConnectionFactoryImpl(String connectorImpl) {
-    connectionFactory = HBaseConnectionFactory.byName(connectorImpl);
-    return this;
-  }
-
   public ThreatIntelConfig withTrackerHBaseTable(String hBaseTable) {
     this.trackerHBaseTable = hBaseTable;
     return this;
@@ -110,13 +105,18 @@ public class ThreatIntelConfig implements Serializable {
     return this;
   }
 
+  public ThreatIntelConfig withConnectionFactory(HBaseConnectionFactory connectionFactory) {
+    this.connectionFactory = connectionFactory;
+    return this;
+  }
+
   public ThreatIntelConfig withEnrichmentLookupFactory(EnrichmentLookupFactory enrichmentLookupFactory) {
     this.enrichmentLookupFactory = enrichmentLookupFactory;
     return this;
   }
 
-  public ThreatIntelConfig withEnrichmentLookupFactory(String creatorImpl) {
-    this.enrichmentLookupFactory = EnrichmentLookupFactories.byName(creatorImpl);
+  public ThreatIntelConfig withEnrichmentLookupFactory(String clazzName) {
+    this.enrichmentLookupFactory = EnrichmentLookupFactories.byName(clazzName);
     return this;
   }
 }

@@ -19,28 +19,31 @@
 package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
 import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
 import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
-import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.common.StellarProcessor;
+
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.stellar.dsl.VariableResolver;
+import org.apache.metron.stellar.dsl.functions.FunctionalFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.ImmutableMap.of;
-import static org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions.CONNECTION_FACTORY_IMPL_CONF;
 import static org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions.EnrichmentExists;
 import static org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions.EnrichmentGet;
 
@@ -52,13 +55,6 @@ public class SimpleHBaseEnrichmentFunctionsTest {
 
   @Before
   public void setup() throws Exception {
-    Map<String, Object> globals = of(CONNECTION_FACTORY_IMPL_CONF, FakeHBaseConnectionFactory.class.getName());
-
-    // execution context for the functions
-    context = new Context.Builder()
-            .with( Context.Capabilities.GLOBAL_CONFIG, () -> globals)
-            .build();
-
     // provides the enrichment data to the functions
     FakeEnrichmentLookup lookup = new FakeEnrichmentLookup()
             .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator0"), new EnrichmentValue(of("key0", "value0")))
@@ -67,16 +63,23 @@ public class SimpleHBaseEnrichmentFunctionsTest {
             .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator3"), new EnrichmentValue(of("key3", "value3")))
             .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator4"), new EnrichmentValue(of("key4", "value4")));
 
-    EnrichmentLookupFactory lookupCreator = (connFactory, tableName, columnFamily, accessTracker) -> lookup;
+    context = new Context.Builder()
+            .with( Context.Capabilities.GLOBAL_CONFIG
+                 , () -> ImmutableMap.of( SimpleHBaseEnrichmentFunctions.CONNECTION_FACTORY_IMPL_CONF
+                                        , FakeHBaseConnectionFactory.class.getName()
+                                        )
+                 )
+            .build();
+
+    EnrichmentLookupFactory factory = (connFact, conf, tableName, colFam, accessTracker) -> lookup;
+    Configuration configuration = HBaseConfiguration.create();
 
     // the ENRICHMENT_EXIST function to test
-    existsFunction = new EnrichmentExists()
-            .withEnrichmentLookupCreator(lookupCreator);
+    existsFunction = new EnrichmentExists(factory, configuration);
     existsFunction.initialize(context);
 
     // the ENRICHMENT_GET function to test
-    getFunction = new EnrichmentGet()
-            .withEnrichmentLookupCreator(lookupCreator);
+    getFunction = new EnrichmentGet(factory, configuration);
     getFunction.initialize(context);
   }
 
@@ -89,46 +92,62 @@ public class SimpleHBaseEnrichmentFunctionsTest {
             x -> variables.containsKey(x));
     FunctionResolver functionResolver = new SimpleFunctionResolver()
             .withClass(EnrichmentGet.class)
-            .withClass(EnrichmentExists.class);
+            .withClass(EnrichmentExists.class)
+            .withClass(FunctionalFunctions.Map.class)
+            .withInstance(existsFunction)
+            .withInstance(getFunction);
     return processor.parse(rule, variableResolver, functionResolver, context);
   }
 
   @Test
-  public void testExists() {
-    // 'indicator0' exists, so ENRICHMENT_EXISTS('et','indicator0','enrichments','cf') == true
-    List<Object> args = Arrays.asList("et", "indicator0", "enrichments", "cf");
-    Object result = existsFunction.apply(args, context);
-    Assert.assertEquals(true, result);
+  public void testExists() throws Exception {
+    String stellar = "ENRICHMENT_EXISTS('et', indicator, 'enrichments', 'cf')";
+    Object result = run(stellar, ImmutableMap.of("indicator", "indicator0"));
+    Assert.assertTrue(result instanceof Boolean);
+    Assert.assertTrue((Boolean)result);
   }
 
   @Test
-  public void testNotExists() {
-    // 'indicator99' does not exist, so ENRICHMENT_EXISTS('et','indicator99','enrichments','cf') == false
-    List<Object> args = Arrays.asList("et", "indicator99", "enrichments", "cf");
-    Object result = existsFunction.apply(args, context);
-    Assert.assertEquals(false, result);
+  public void testNotExists() throws Exception {
+    String stellar = "ENRICHMENT_EXISTS('et', indicator, 'enrichments', 'cf')";
+    Object result = run(stellar, ImmutableMap.of("indicator", "indicator7"));
+    Assert.assertTrue(result instanceof Boolean);
+    Assert.assertFalse((Boolean)result);
   }
 
   @Test
-  public void testSuccessfulGet() {
-    // 'indicator0' exists, so ENRICHMENT_GET('et','indicator0','enrichments','cf') == { "key0": "value0" }
-    List<Object> args = Arrays.asList("et", "indicator0", "enrichments", "cf");
-    Object result = getFunction.apply(args, context);
+  public void testSuccessfulGet() throws Exception {
+    String stellar = "ENRICHMENT_GET('et', indicator, 'enrichments', 'cf')";
+    Object result = run(stellar, ImmutableMap.of("indicator", "indicator0"));
+    Assert.assertTrue(result instanceof Map);
     Map<String, Object> out = (Map<String, Object>) result;
     Assert.assertEquals("value0", out.get("key0"));
   }
 
   @Test
-  public void testUnsuccessfulGet() {
-    // 'indicator99' does not exist, so ENRICHMENT_GET('et','indicator99','enrichments','cf') == { }
-    List<Object> args = Arrays.asList("et", "indicator99", "enrichments", "cf");
-    Object result = getFunction.apply(args, context);
+  public void testMultiGet() throws Exception {
+    String stellar = "MAP([ 'indicator0', 'indicator1' ], indicator -> ENRICHMENT_GET('et', indicator, 'enrichments', 'cf') )";
+    Object result = run(stellar, new HashMap<>());
+    Assert.assertTrue(result instanceof List);
+    List<Map<String, Object>> out = (List<Map<String, Object>>) result;
+    Assert.assertEquals(2, out.size());
+    for(int i = 0;i < 2;++i) {
+      Map<String, Object> map = out.get(i);
+      Assert.assertEquals("value" +i, map.get("key" + i));
+    }
+  }
+  @Test
+  public void testUnsuccessfulGet() throws Exception {
+    String stellar = "ENRICHMENT_GET('et', indicator, 'enrichments', 'cf')";
+    Object result = run(stellar, ImmutableMap.of("indicator", "indicator7"));
+    Assert.assertTrue(result instanceof Map);
     Map<String, Object> out = (Map<String, Object>) result;
     Assert.assertTrue(out.isEmpty());
   }
 
   @Test(expected = ParseException.class)
-  public void testMissingRequiredParameters() {
-    run("ENRICHMENT_GET('et', indicator)", ImmutableMap.of("indicator", "indicator7"));
+  public void testProvidedParameters() throws Exception {
+    String stellar = "ENRICHMENT_GET('et', indicator)";
+    Object result = run(stellar, ImmutableMap.of("indicator", "indicator7"));
   }
 }

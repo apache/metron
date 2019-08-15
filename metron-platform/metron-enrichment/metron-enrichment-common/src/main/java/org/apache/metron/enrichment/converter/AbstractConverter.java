@@ -59,13 +59,6 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     return put;
   }
 
-  private static byte[] getFamily(Cell cell) {
-    int length = cell.getFamilyLength();
-    int offset = cell.getFamilyOffset();
-    byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
-    return bytes;
-  }
-
   private static byte[] getQualifier(Cell cell) {
     int length = cell.getQualifierLength();
     int offset = cell.getQualifierOffset();
@@ -103,7 +96,6 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     value.fromColumns(cols.entrySet());
     return new LookupKV<>(key, value);
   }
-
   @Override
   public Get toGet(String columnFamily, KEY_T key) {
     Get ret = new Get(key.toBytes());
