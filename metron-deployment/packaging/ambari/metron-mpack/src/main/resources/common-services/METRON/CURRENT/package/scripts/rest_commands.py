@@ -19,15 +19,13 @@ limitations under the License.
 """
 import os
 
-from datetime import datetime
+import metron_service
+from metron_security import kinit
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.show_logs import show_logs
-
-import metron_service
-from metron_security import kinit
 
 
 # Wrap major operations and functionality in this class

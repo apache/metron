@@ -20,6 +20,8 @@
 package org.apache.metron.profiler.spark.function;
 
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.profiler.DefaultMessageRouter;
 import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.MessageRouter;
@@ -27,12 +29,9 @@ import org.apache.metron.profiler.clock.Clock;
 import org.apache.metron.profiler.clock.ClockFactory;
 import org.apache.metron.profiler.clock.EventTimeOnlyClockFactory;
 import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
@@ -46,7 +45,7 @@ import java.util.Optional;
  */
 public class MessageRouterFunction implements FlatMapFunction<String, MessageRoute> {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The global configuration used for the execution of Stellar.
@@ -112,7 +111,7 @@ public class MessageRouterFunction implements FlatMapFunction<String, MessageRou
           LOG.trace("Found {} route(s) for a message", routes.size());
 
         } else {
-          LOG.trace("Ignoring message; timestamp={} not in [{},{}]", timestamp, prettyPrint(begin), prettyPrint(end));
+          LOG.trace("Ignoring message; timestamp={} not in [{},{}]", () -> timestamp, () -> prettyPrint(begin), () -> prettyPrint(end));
         }
 
       } else {

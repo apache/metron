@@ -18,20 +18,18 @@ limitations under the License.
 
 """
 
-import os
-
 from ambari_commons.os_check import OSCheck
-from resource_management.core.exceptions import ExecutionFailed
 from resource_management.core.exceptions import ComponentIsNotRunning
-from resource_management.core.resources.system import Execute
+from resource_management.core.exceptions import ExecutionFailed
+from resource_management.core.logger import Logger
+from resource_management.core.resources import User
 from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
-from resource_management.core.resources import User
-from resource_management.core.logger import Logger
-from resource_management.libraries.functions import format as ambari_format
-from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.functions.get_user_call_output import \
+  get_user_call_output
 
 
 def service_check(cmd, user, label):

@@ -51,8 +51,8 @@ describe('model.Filter', () => {
 
   it('getQueryString for time range filter for display', () => {
     const filter = new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]', true);
-    expect(filter.getQueryString()).toBe('(timestamp:\\[1552863600000\\ TO\\ 1552950000000\\] OR ' +
-      'metron_alert.timestamp:\\[1552863600000\\ TO\\ 1552950000000\\])');
+    expect(filter.getQueryString()).toBe('(timestamp:[1552863600000 TO 1552950000000] OR ' +
+      'metron_alert.timestamp:[1552863600000 TO 1552950000000])');
   });
 
   /**
@@ -66,5 +66,43 @@ describe('model.Filter', () => {
 
     filter.getQueryString();
     expect(Utils.timeRangeToDateObj).toHaveBeenCalledWith(timeRange);
+  });
+
+  describe('equal function', () => {
+    it('should return false if field not equals', () => {
+      const filterA = new Filter('testField', 'someValue', false);
+      const filterB = new Filter('otherField', 'someValue', false);
+
+      expect(filterA.equals(filterB)).toBe(false);
+    });
+
+    it('should return false if value not equals', () => {
+      const filterA = new Filter('testField', 'someValue', false);
+      const filterB = new Filter('testField', 'otherValue', false);
+
+      expect(filterA.equals(filterB)).toBe(false);
+    });
+
+    it('should return true if both field and value are equals', () => {
+      const filterA = new Filter('testField', 'someValue', false);
+      const filterB = new Filter('testField', 'someValue', false);
+
+      expect(filterA.equals(filterB)).toBe(true);
+    });
+  })
+
+  it('excluding filtering', () => {
+    const filter = new Filter('-testField', 'someValue', false);
+    expect(filter.getQueryString()).toBe('-(testField:someValue OR metron_alert.testField:someValue)');
+  });
+
+  it('toJSON should return with a JSON representation of a Filter', () => {
+    const filter = new Filter('testField', 'someValue', false);
+    expect(filter.toJSON()).toEqual({ field: 'testField', value: 'someValue', display: false });
+  });
+
+  it('toJSON should return with a JSON representation of a Filter, including exclude operator in field value', () => {
+    const filter = new Filter('-testField', 'someValue', false);
+    expect(filter.toJSON()).toEqual({ field: '-testField', value: 'someValue', display: false });
   });
 });

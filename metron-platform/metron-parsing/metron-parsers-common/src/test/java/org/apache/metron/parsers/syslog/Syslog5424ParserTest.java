@@ -41,17 +41,17 @@ public class Syslog5424ParserTest {
   private static final String SYSLOG_LINE_ALL = "<14>1 2014-06-20T09:14:07+00:00 loggregator"
           + " d0602076-b14a-4c55-852a-981e7afeed38 DEA MSG-01"
           + " [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]"
-          + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
+          + "[exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
 
   private static final String SYSLOG_LINE_MISSING = "<14>1 2014-06-20T09:14:07+00:00 loggregator"
           + " d0602076-b14a-4c55-852a-981e7afeed38 DEA -"
           + " [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]"
-          + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
+          + "[exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
 
   private static final String SYSLOG_LINE_MISSING_DATE = "<14>1 - loggregator"
           + " d0602076-b14a-4c55-852a-981e7afeed38 DEA -"
           + " [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]"
-          + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
+          + "[exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
 
   private static final String expectedVersion = "1";
   private static final String expectedMessage = "Removing instance";

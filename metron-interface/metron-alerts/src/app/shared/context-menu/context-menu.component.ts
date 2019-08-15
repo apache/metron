@@ -54,6 +54,10 @@ export class ContextMenuComponent implements OnInit, AfterContentInit, OnDestroy
 
   private popper: Popper;
 
+  private excludedDomElements = [
+    'label', 'input', 'button'
+  ];
+
   constructor(
     private contextMenuSvc: ContextMenuService,
     private host: ElementRef
@@ -100,10 +104,14 @@ export class ContextMenuComponent implements OnInit, AfterContentInit, OnDestroy
   }
 
   private toggle($event: MouseEvent) {
+    if (this.isElementExcluded($event)) {
+      return;
+    }
+
     $event.stopPropagation();
 
     if (!this.isEnabled) {
-      this.host.nativeElement.dispatchEvent(new Event(this.ctxMenuItems[0].event));
+      this.dispatchDefaultEvent($event);
       return;
     }
 
@@ -132,6 +140,14 @@ export class ContextMenuComponent implements OnInit, AfterContentInit, OnDestroy
       characterData: false,
       subtree: true}
     );
+  }
+
+  private dispatchDefaultEvent($event: MouseEvent) {
+    this.host.nativeElement.dispatchEvent(new Event(this.ctxMenuItems[0].event));
+  }
+
+  private isElementExcluded($event: MouseEvent) {
+    return this.excludedDomElements.find(element => element === ($event.target as HTMLElement).nodeName.toLowerCase());
   }
 
   private getContextMenuOrigin($event: MouseEvent): HTMLElement {
