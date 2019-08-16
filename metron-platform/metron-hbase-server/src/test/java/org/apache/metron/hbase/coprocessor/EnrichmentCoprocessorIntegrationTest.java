@@ -75,7 +75,6 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
   /**
    * {
-   *    "enrichment.list.hbase.provider.impl" : "org.apache.metron.hbase.HTableProvider",
    *    "enrichment.list.hbase.table" : "%TABLE_NAME%",
    *    "enrichment.list.hbase.cf" : "%COLUMN_FAMILY%"
    * }
