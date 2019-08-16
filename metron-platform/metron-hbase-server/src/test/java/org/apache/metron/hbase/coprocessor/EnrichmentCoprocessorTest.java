@@ -123,10 +123,7 @@ public class EnrichmentCoprocessorTest {
     public Table getTable(Configuration config, String tableName) throws IOException {
       return null; // not used for instantiation test
     }
-
-    @Override
-    public void close() throws IOException {
-    }
+    
   }
 
   @Test
