@@ -18,39 +18,43 @@
 
 package org.apache.metron.writer.hbase;
 
-import org.apache.metron.common.writer.BulkMessage;
-import org.apache.metron.common.writer.MessageId;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.common.utils.ReflectionUtils;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.ColumnList;
+import org.apache.metron.hbase.client.HBaseClient;
+import org.apache.metron.hbase.client.HBaseClientFactory;
+import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.client.HBaseTableClientFactory;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.writer.AbstractWriter;
-import org.apache.metron.common.writer.BulkWriterResponse;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Used primarily for streaming enrichments.
+ * Writes streaming enrichment data to HBase.
  */
 public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
-
   private static final Logger LOG = LoggerFactory.getLogger(SimpleHbaseEnrichmentWriter.class);
 
   public enum Configurations {
@@ -60,7 +64,8 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     ,KEY_DELIM("shew.keyDelim")
     ,ENRICHMENT_TYPE("shew.enrichmentType")
     ,VALUE_COLUMNS("shew.valueColumns")
-    ,HBASE_PROVIDER("shew.hbaseProvider")
+    ,HBASE_CONNECTION_FACTORY("shew.hBaseConnectionFactory")
+    ,HBASE_CLIENT_FACTORY("shew.hBaseClientFactory")
     ;
     String key;
     Configurations(String key) {
@@ -115,30 +120,58 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       return transformedMessage;
     }
   }
-  private transient EnrichmentConverter converter;
+  private transient HBaseClient hBaseClient;
   private String tableName;
   private String cf;
-  private HTableInterface table;
-  private TableProvider provider;
+  private HBaseConnectionFactory hBaseConnectionFactory;
+  private HBaseClientFactory hBaseClientFactory;
   private Map.Entry<Object, KeyTransformer> keyTransformer;
 
   public SimpleHbaseEnrichmentWriter() {
+    this(new HBaseTableClientFactory(), new HBaseConnectionFactory());
   }
+
+  public SimpleHbaseEnrichmentWriter(HBaseClientFactory hBaseClientFactory,
+                                     HBaseConnectionFactory hBaseConnectionFactory) {
+    this.hBaseConnectionFactory = hBaseConnectionFactory;
+    this.hBaseClientFactory = hBaseClientFactory;
+  }
+
 
   @Override
   public void configure(String sensorName, WriterConfiguration configuration) {
     validateEnrichmentType(sensorName, configuration);
     validateKeyColumns(sensorName, configuration);
-    String hbaseProviderImpl = Configurations.HBASE_PROVIDER.getAndConvert(configuration.getSensorConfig(sensorName),String.class);
-    if(hbaseProviderImpl != null) {
-      provider = ReflectionUtils.createInstance(hbaseProviderImpl);
-    }
-    if(converter == null) {
-      converter = new EnrichmentConverter();
-    }
-    LOG.debug("Sensor: '{}': {Provider: '{}', Converter: '{}'}", sensorName, getClassName(provider), getClassName(converter));
-  }
+    Map<String, Object> sensorConfig = configuration.getSensorConfig(sensorName);
 
+    // hbase table
+    tableName = Configurations.HBASE_TABLE.getAndConvert(sensorConfig, String.class);
+    if(tableName == null) {
+      String msg = String.format("Missing configuration: %s", Configurations.HBASE_TABLE.getKey());
+      throw new IllegalArgumentException(msg);
+    }
+
+    // hbase column family
+    cf = Configurations.HBASE_CF.getAndConvert(sensorConfig, String.class);
+    if(cf == null) {
+      String msg = String.format("Missing configuration: %s", Configurations.HBASE_CF.getKey());
+      throw new IllegalArgumentException(msg);
+    }
+
+    // hbase connection factory
+    String connectionFactoryImpl = Configurations.HBASE_CONNECTION_FACTORY.getAndConvert(sensorConfig, String.class);
+    if(connectionFactoryImpl != null) {
+      hBaseConnectionFactory = HBaseConnectionFactory.byName(connectionFactoryImpl);
+    }
+
+    // hbase client factory
+    String clientImpl = Configurations.HBASE_CLIENT_FACTORY.getAndConvert(sensorConfig, String.class);
+    if(clientImpl != null) {
+      hBaseClientFactory = HBaseClientFactory.byName(clientImpl, () -> new HBaseTableClientFactory());
+    }
+
+    LOG.debug("Sensor: '{}': {table: '{}', family: '{}'}", sensorName, tableName, cf);
+  }
 
   private void validateEnrichmentType(String sensorName, WriterConfiguration configuration) {
     Map<String, Object> sensorConfig = configuration.getSensorConfig(sensorName);
@@ -177,49 +210,12 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   }
 
   @Override
-  public void init(Map stormConf, WriterConfiguration configuration) throws Exception {
-    if(converter == null) {
-      converter = new EnrichmentConverter();
+  public void init(Map stormConf, WriterConfiguration configuration) {
+    if(hBaseClient == null) {
+      // establish a connection to HBase
+      hBaseClient = hBaseClientFactory.create(hBaseConnectionFactory, HBaseConfiguration.create(), tableName);
     }
   }
-
-  protected synchronized TableProvider getProvider() {
-    if(provider == null) {
-
-      provider = new HTableProvider();
-    }
-    return provider;
-  }
-
-  public HTableInterface getTable(String tableName, String cf) throws IOException {
-    synchronized(this) {
-      boolean isInitial = this.tableName == null || this.cf == null;
-      boolean isValid = tableName != null && cf != null;
-
-      if( isInitial || (isValid && (!this.tableName.equals(tableName) || !this.cf.equals(cf)) )
-        )
-      {
-        Configuration conf = HBaseConfiguration.create();
-        //new table connection
-        if(table != null) {
-          table.close();
-        }
-        LOG.debug("Fetching table '{}', column family: '{}'", tableName, cf);
-        table = getProvider().getTable(conf, tableName);
-        this.tableName = tableName;
-        this.cf = cf;
-      }
-      return table;
-    }
-  }
-
-  public HTableInterface getTable(Map<String, Object> config) throws IOException {
-    return getTable(Configurations.HBASE_TABLE.getAndConvert(config, String.class)
-                   ,Configurations.HBASE_CF.getAndConvert(config, String.class)
-                   );
-
-  }
-
 
   private List<String> getColumns(Object keyColumnsObj, boolean allowNull) {
     Object o = keyColumnsObj;
@@ -320,28 +316,23 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
                     ) throws Exception
   {
     Map<String, Object> sensorConfig = configurations.getSensorConfig(sensorType);
-    HTableInterface table = getTable(sensorConfig);
     KeyTransformer transformer = getTransformer(sensorConfig);
     Object enrichmentTypeObj = Configurations.ENRICHMENT_TYPE.get(sensorConfig);
     String enrichmentType = enrichmentTypeObj == null?null:enrichmentTypeObj.toString();
     Set<String> valueColumns = new HashSet<>(getColumns(Configurations.VALUE_COLUMNS.get(sensorConfig), true));
-    List<Put> puts = new ArrayList<>();
+
     for(BulkMessage<JSONObject> bulkWriterMessage : messages) {
       EnrichmentKey key = getKey(bulkWriterMessage.getMessage(), transformer, enrichmentType);
       EnrichmentValue value = getValue(bulkWriterMessage.getMessage(), transformer.keySet, valueColumns);
       if(key == null || value == null) {
         continue;
       }
-      Put put = converter.toPut(this.cf, key, value);
-      if(put != null) {
-        LOG.debug("Put: {Column Family: '{}', Key: '{}', Value: '{}'}", this.cf, key, value);
-        puts.add(put);
-      }
+      write(key, value);
     }
     Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
     BulkWriterResponse response = new BulkWriterResponse();
     try {
-      table.put(puts);
+      hBaseClient.mutate();
     } catch (Exception e) {
       response.addAllErrors(e, ids);
       return response;
@@ -352,6 +343,15 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     return response;
   }
 
+  private void write(EnrichmentKey key, EnrichmentValue value) {
+    final byte[] columnFamily = Bytes.toBytes(cf);
+    ColumnList columns = new ColumnList();
+    for(Map.Entry<byte[], byte[]> kv : value.toColumns()) {
+      columns.addColumn(columnFamily, kv.getKey(), kv.getValue());
+    }
+    hBaseClient.addMutation(key.toBytes(), columns);
+  }
+
   @Override
   public String getName() {
     return "hbaseEnrichment";
@@ -360,8 +360,8 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   @Override
   public void close() throws Exception {
     synchronized(this) {
-      if(table != null) {
-        table.close();
+      if(hBaseClient != null) {
+        hBaseClient.close();
       }
     }
   }

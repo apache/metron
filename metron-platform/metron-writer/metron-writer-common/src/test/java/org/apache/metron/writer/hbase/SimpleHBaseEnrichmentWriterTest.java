@@ -20,26 +20,24 @@ package org.apache.metron.writer.hbase;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.hbase.ColumnList;
+import org.apache.metron.hbase.client.FakeHBaseClient;
+import org.apache.metron.hbase.client.FakeHBaseClientFactory;
+import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
+import org.json.simple.JSONObject;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.BulkMessage;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
-import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 public class SimpleHBaseEnrichmentWriterTest {
   private static final String SENSOR_TYPE= "dummy";
@@ -50,17 +48,25 @@ public class SimpleHBaseEnrichmentWriterTest {
     put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_TABLE.getKey(), TABLE_NAME);
     put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_CF.getKey(), TABLE_CF);
     put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), ENRICHMENT_TYPE);
-    put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
   }};
 
+  private List<BulkMessage<JSONObject>> messages;
+  private FakeHBaseClient hBaseClient;
+
   @Before
-  public void setupMockTable() {
-    MockHBaseTableProvider.addToCache(TABLE_NAME, TABLE_CF);
+  public void setup() {
+    messages = new ArrayList<>();
+    messages.add(new BulkMessage<>("1", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
+    hBaseClient = new FakeHBaseClient();
+    hBaseClient.deleteAll();
   }
+
   @Test
   public void testBatchOneNormalPath() throws Exception {
     final String sensorType = "dummy";
-    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter(
+            new FakeHBaseClientFactory(hBaseClient),
+            new FakeHBaseConnectionFactory());
 
     WriterConfiguration configuration = createConfig(1,
             new HashMap<String, Object>(BASE_WRITER_CONFIG) {{
@@ -68,25 +74,43 @@ public class SimpleHBaseEnrichmentWriterTest {
             }}
     );
     writer.configure(sensorType,configuration);
-
+    writer.init(new HashMap(), configuration);
     writer.write( SENSOR_TYPE
             , configuration
             , new ArrayList<BulkMessage<JSONObject>>() {{
               add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
             }}
     );
-    List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
-    Assert.assertEquals(1, values.size());
-    Assert.assertEquals("localhost", values.get(0).getKey().indicator);
-    Assert.assertEquals("cstella", values.get(0).getValue().getMetadata().get("user"));
-    Assert.assertEquals("bar", values.get(0).getValue().getMetadata().get("foo"));
-    Assert.assertEquals(2, values.get(0).getValue().getMetadata().size());
+
+    // get the mutation
+    List<FakeHBaseClient.Mutation> mutations = hBaseClient.getAllPersisted();
+    Assert.assertEquals(1, mutations.size());
+    FakeHBaseClient.Mutation actual = mutations.get(0);
+
+    // validate the enrichment key
+    EnrichmentKey actualKey = new EnrichmentKey(SENSOR_TYPE, ENRICHMENT_TYPE);
+    actualKey.fromBytes(actual.rowKey);
+    Assert.assertEquals("localhost", actualKey.getIndicator());
+
+    Assert.assertEquals(ENRICHMENT_TYPE, actualKey.type);
+
+    // validate the enrichment value
+    List<ColumnList.Column> columns = actual.columnList.getColumns();
+    Assert.assertEquals(1, columns.size());
+    ColumnList.Column column = columns.get(0);
+
+    EnrichmentValue value = new EnrichmentValue();
+    value.fromColumn(column.getQualifier(), column.getValue());
+    Assert.assertEquals("cstella", value.getMetadata().get("user"));
+    Assert.assertEquals("bar", value.getMetadata().get("foo"));
   }
 
   @Test
   public void testFilteredKey() throws Exception {
     final String sensorType = "dummy";
-    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter(
+            new FakeHBaseClientFactory(hBaseClient),
+            new FakeHBaseConnectionFactory());
 
     WriterConfiguration configuration = createConfig(1,
             new HashMap<String, Object>(BASE_WRITER_CONFIG) {{
@@ -95,25 +119,43 @@ public class SimpleHBaseEnrichmentWriterTest {
             }}
     );
     writer.configure(sensorType,configuration);
-
+    writer.init(new HashMap(), configuration);
     writer.write( SENSOR_TYPE
             , configuration
             , new ArrayList<BulkMessage<JSONObject>>() {{
               add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
             }}
     );
-    List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
-    Assert.assertEquals(1, values.size());
-    Assert.assertEquals("localhost", values.get(0).getKey().indicator);
-    Assert.assertEquals("cstella", values.get(0).getValue().getMetadata().get("user"));
-    Assert.assertNull(values.get(0).getValue().getMetadata().get("foo"));
-    Assert.assertEquals(1, values.get(0).getValue().getMetadata().size());
+
+    // get the mutation
+    List<FakeHBaseClient.Mutation> mutations = hBaseClient.getAllPersisted();
+    Assert.assertEquals(1, mutations.size());
+    FakeHBaseClient.Mutation actual = mutations.get(0);
+
+    // validate the enrichment key
+    EnrichmentKey actualKey = new EnrichmentKey(SENSOR_TYPE, ENRICHMENT_TYPE);
+    actualKey.fromBytes(actual.rowKey);
+    Assert.assertEquals("localhost", actualKey.getIndicator());
+
+    Assert.assertEquals(ENRICHMENT_TYPE, actualKey.type);
+
+    // validate the enrichment value
+    List<ColumnList.Column> columns = actual.columnList.getColumns();
+    Assert.assertEquals(1, columns.size());
+    ColumnList.Column column = columns.get(0);
+
+    EnrichmentValue value = new EnrichmentValue();
+    value.fromColumn(column.getQualifier(), column.getValue());
+    Assert.assertEquals("cstella", value.getMetadata().get("user"));
+    Assert.assertNull(value.getMetadata().get("foo"));
   }
 
   @Test
   public void testFilteredKeys() throws Exception {
     final String sensorType = "dummy";
-    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter(
+            new FakeHBaseClientFactory(hBaseClient),
+            new FakeHBaseConnectionFactory());
 
     WriterConfiguration configuration = createConfig(1,
             new HashMap<String, Object>(BASE_WRITER_CONFIG) {{
@@ -122,20 +164,36 @@ public class SimpleHBaseEnrichmentWriterTest {
             }}
     );
     writer.configure(sensorType,configuration);
-
+    writer.init(new HashMap(), configuration);
     writer.write( SENSOR_TYPE
             , configuration
             , new ArrayList<BulkMessage<JSONObject>>() {{
               add(new BulkMessage<>("messageId", new JSONObject(ImmutableMap.of("ip", "localhost", "user", "cstella", "foo", "bar"))));
             }}
     );
-    List<LookupKV<EnrichmentKey, EnrichmentValue>> values = getValues();
-    Assert.assertEquals(1, values.size());
-    Assert.assertEquals("localhost", values.get(0).getKey().indicator);
-    Assert.assertEquals("cstella", values.get(0).getValue().getMetadata().get("user"));
-    Assert.assertEquals("localhost", values.get(0).getValue().getMetadata().get("ip"));
-    Assert.assertNull(values.get(0).getValue().getMetadata().get("foo"));
-    Assert.assertEquals(2, values.get(0).getValue().getMetadata().size());
+
+    // get the mutation
+    List<FakeHBaseClient.Mutation> mutations = hBaseClient.getAllPersisted();
+    Assert.assertEquals(1, mutations.size());
+    FakeHBaseClient.Mutation actual = mutations.get(0);
+
+    // validate the enrichment key
+    EnrichmentKey actualKey = new EnrichmentKey(SENSOR_TYPE, ENRICHMENT_TYPE);
+    actualKey.fromBytes(actual.rowKey);
+    Assert.assertEquals("localhost", actualKey.getIndicator());
+
+    Assert.assertEquals(ENRICHMENT_TYPE, actualKey.type);
+
+    // validate the enrichment value
+    List<ColumnList.Column> columns = actual.columnList.getColumns();
+    Assert.assertEquals(1, columns.size());
+    ColumnList.Column column = columns.get(0);
+
+    EnrichmentValue value = new EnrichmentValue();
+    value.fromColumn(column.getQualifier(), column.getValue());
+    Assert.assertEquals("cstella", value.getMetadata().get("user"));
+    Assert.assertEquals("localhost", value.getMetadata().get("ip"));
+    Assert.assertNull(value.getMetadata().get("foo"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -254,18 +312,7 @@ public class SimpleHBaseEnrichmentWriterTest {
     }
   }
 
-  public static List<LookupKV<EnrichmentKey, EnrichmentValue>> getValues() throws IOException {
-    MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE_NAME);
-    Assert.assertNotNull(table);
-    List<LookupKV<EnrichmentKey, EnrichmentValue>> ret = new ArrayList<>();
-    EnrichmentConverter converter = new EnrichmentConverter();
-    for(Result r : table.getScanner(Bytes.toBytes(TABLE_CF))) {
-      ret.add(converter.fromResult(r, TABLE_CF));
-    }
-    return ret;
-  }
-  public static WriterConfiguration createConfig(final int batchSize, final Map<String, Object> sensorConfig)
-  {
+  public static WriterConfiguration createConfig(final int batchSize, final Map<String, Object> sensorConfig) {
     return new WriterConfiguration() {
       @Override
       public int getBatchSize(String sensorName) {

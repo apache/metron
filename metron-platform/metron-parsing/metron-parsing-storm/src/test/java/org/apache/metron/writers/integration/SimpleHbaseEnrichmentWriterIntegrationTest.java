@@ -19,6 +19,29 @@
 package org.apache.metron.writers.integration;
 
 import com.google.common.collect.ImmutableList;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.TestConstants;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.hbase.ColumnList;
+import org.apache.metron.hbase.client.FakeHBaseClient;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.UnableToStartException;
+import org.apache.metron.integration.components.ConfigUploadComponent;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,30 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.TestConstants;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.integration.components.ConfigUploadComponent;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.ReadinessState;
-import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
-import org.junit.Assert;
-import org.junit.Test;
 
 public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationTest {
 
@@ -67,7 +66,8 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
    *        "shew.cf": "cf",
    *        "shew.keyColumns": "col2",
    *        "shew.enrichmentType": "et",
-   *        "shew.hbaseProvider": "org.apache.metron.hbase.mock.MockHBaseTableProvider",
+   *        "shew.hBaseConnectionFactory": "org.apache.metron.hbase.client.FakeHBaseConnectionFactory",
+   *        "shew.hBaseClientFactory": "org.apache.metron.hbase.client.FakeHBaseClientFactory",
    *        "columns" : {
    *             "col1": 0,
    *             "col2": 1,
@@ -91,7 +91,6 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     }};
 
     // setup external components; kafka, zookeeper
-    MockHBaseTableProvider.addToCache(sensorType, "cf");
     final Properties topologyProperties = new Properties();
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
@@ -125,6 +124,9 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
             .withNumRetries(10)
             .build();
     try {
+      FakeHBaseClient client = new FakeHBaseClient();
+      client.deleteAll();
+
       runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
       ProcessorResult<List<LookupKV<EnrichmentKey, EnrichmentValue>>> result =
@@ -133,16 +135,8 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
 
                 @Override
                 public ReadinessState process(ComponentRunner runner) {
-                  MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(sensorType);
-                  if (table != null && table.size() == inputMessages.size()) {
-                    EnrichmentConverter converter = new EnrichmentConverter();
-                    messages = new ArrayList<>();
-                    try {
-                      for (Result r : table.getScanner(Bytes.toBytes("cf"))) {
-                        messages.add(converter.fromResult(r, "cf"));
-                      }
-                    } catch (IOException e) {
-                    }
+                  if(client.getAllPersisted().size() == inputMessages.size()) {
+                    // all of the records have been written to HBase
                     return ReadinessState.READY;
                   }
                   return ReadinessState.NOT_READY;
@@ -150,10 +144,32 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
 
                 @Override
                 public ProcessorResult<List<LookupKV<EnrichmentKey, EnrichmentValue>>> getResult() {
-                  ProcessorResult.Builder<List<LookupKV<EnrichmentKey,EnrichmentValue>>> builder = new ProcessorResult.Builder();
-                  return builder.withResult(messages).build();
+                  List<LookupKV<EnrichmentKey, EnrichmentValue>> results = new ArrayList<>();
+                  List<FakeHBaseClient.Mutation> mutations = client.getAllPersisted();
+                  for(FakeHBaseClient.Mutation mutation: mutations) {
+
+                    // build the enrichment key
+                    EnrichmentKey key = new EnrichmentKey(sensorType, "et");
+                    key.fromBytes(mutation.rowKey);
+
+                    // expect only 1 column
+                    List<ColumnList.Column> columns = mutation.columnList.getColumns();
+                    Assert.assertEquals(1, columns.size());
+                    ColumnList.Column column = columns.get(0);
+
+                    // build the enrichment value
+                    EnrichmentValue value = new EnrichmentValue();
+                    value.fromColumn(column.getQualifier(), column.getValue());
+
+                    results.add(new LookupKV<>(key, value));
+                  }
+
+                  return new ProcessorResult.Builder()
+                          .withResult(results)
+                          .build();
                 }
               });
+
       Set<String> validIndicators = new HashSet<>(ImmutableList.of("col12", "col22", "col32"));
       Map<String, Map<String, String>> validMetadata = new HashMap<String, Map<String, String>>() {{
         put("col12", new HashMap<String, String>() {{
