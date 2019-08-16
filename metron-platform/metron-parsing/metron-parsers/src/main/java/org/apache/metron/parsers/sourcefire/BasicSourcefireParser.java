@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.sourcefire;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class BasicSourcefireParser extends BasicParser {
 		List<JSONObject> messages = new ArrayList<>();
 		try {
 
-			toParse = new String(msg, "UTF-8");
+			toParse = new String(msg, StandardCharsets.UTF_8);
 			_LOG.debug("Received message: {}", toParse);
 
 			String tmp = toParse.substring(toParse.lastIndexOf("{"));

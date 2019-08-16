@@ -33,6 +33,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -320,7 +321,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     bolt.prepare(stormConf, topologyContext, outputCollector, clock);
 
     // execute a tuple that contains an invalid message
-    byte[] invalidJSON = "this is not valid JSON".getBytes();
+    byte[] invalidJSON = "this is not valid JSON".getBytes(StandardCharsets.UTF_8);
     when(tuple.getBinary(0)).thenReturn(invalidJSON);
     bolt.execute(tuple);
 

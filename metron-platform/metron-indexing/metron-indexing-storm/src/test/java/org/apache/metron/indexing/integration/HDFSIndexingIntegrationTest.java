@@ -20,6 +20,7 @@ package org.apache.metron.indexing.integration;
 
 import com.google.common.collect.Iterables;
 import org.apache.metron.TestConstants;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.*;
@@ -70,7 +71,7 @@ public class HDFSIndexingIntegrationTest extends IndexingIntegrationTest {
           if (f.getName().startsWith("enrichment") || f.getName().endsWith(".json")) {
             List<byte[]> data = TestUtils.readSampleData(f.getPath());
             Iterables.addAll(ret, Iterables.transform(data, bytes -> {
-                String s = new String(bytes);
+                String s = new String(bytes, StandardCharsets.UTF_8);
                 try {
                   return JSONUtils.INSTANCE.load(s,JSONUtils.MAP_SUPPLIER);
                 } catch (IOException e) {

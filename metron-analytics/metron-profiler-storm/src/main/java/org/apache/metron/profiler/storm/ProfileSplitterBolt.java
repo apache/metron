@@ -20,12 +20,12 @@
 
 package org.apache.metron.profiler.storm;
 
-import org.apache.metron.storm.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.DefaultMessageRouter;
 import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.MessageRouter;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.storm.common.bolt.ConfiguredProfilerBolt;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -40,14 +40,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.OFFSET;
-import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.PARTITION;
-import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.TIMESTAMP;
-import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.TOPIC;
-import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.VALUE;
+import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.*;
 
 /**
  * The Storm bolt responsible for filtering incoming messages and directing
@@ -170,7 +167,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
       return;
     }
 
-    JSONObject message = (JSONObject) parser.parse(new String(data, "UTF8"));
+    JSONObject message = (JSONObject) parser.parse(new String(data, StandardCharsets.UTF_8));
     routeMessage(input, message, config);
   }
 

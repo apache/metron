@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
@@ -61,7 +62,7 @@ public class MultiLineWithErrorsGrokParserTest {
     JSONParser jsonParser = new JSONParser();
     Map<String, String> testData = getTestData();
     for (Map.Entry<String, String> e : testData.entrySet()) {
-      byte[] rawMessage = e.getKey().getBytes();
+      byte[] rawMessage = e.getKey().getBytes(StandardCharsets.UTF_8);
       List<JSONObject> parsedList = grokParser.parse(rawMessage);
     }
   }
@@ -92,7 +93,7 @@ public class MultiLineWithErrorsGrokParserTest {
     JSONParser jsonParser = new JSONParser();
     Map<String, String> testData = getTestData();
     for (Map.Entry<String, String> e : testData.entrySet()) {
-      byte[] rawMessage = e.getKey().getBytes();
+      byte[] rawMessage = e.getKey().getBytes(StandardCharsets.UTF_8);
       Optional<MessageParserResult<JSONObject>> resultOptional = grokParser.parseOptionalResult(rawMessage);
       Assert.assertTrue(resultOptional.isPresent());
       Optional<Throwable> throwableOptional = resultOptional.get().getMasterThrowable();

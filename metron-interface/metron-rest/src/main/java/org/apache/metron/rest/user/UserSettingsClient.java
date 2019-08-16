@@ -76,7 +76,7 @@ public class UserSettingsClient {
       }
       try {
         userSettingsTable = tableProvider.getTable(HBaseConfiguration.create(), table);
-        this.cf = cf.getBytes();
+        this.cf = cf.getBytes(StandardCharsets.UTF_8);
       } catch (IOException e) {
         throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
       }
@@ -106,7 +106,7 @@ public class UserSettingsClient {
     ResultScanner results = getTableInterface().getScanner(scan);
     Map<String, Map<String, String>> allUserSettings = new HashMap<>();
     for (Result result : results) {
-      allUserSettings.put(new String(result.getRow()), getAllUserSettings(result));
+      allUserSettings.put(new String(result.getRow(), StandardCharsets.UTF_8), getAllUserSettings(result));
     }
     return allUserSettings;
   }
@@ -116,7 +116,7 @@ public class UserSettingsClient {
     ResultScanner results = getTableInterface().getScanner(scan);
     Map<String, Optional<String>> allUserSettings = new HashMap<>();
     for (Result result : results) {
-      allUserSettings.put(new String(result.getRow()), getUserSettings(result, type));
+      allUserSettings.put(new String(result.getRow(), StandardCharsets.UTF_8), getUserSettings(result, type));
     }
     return allUserSettings;
   }

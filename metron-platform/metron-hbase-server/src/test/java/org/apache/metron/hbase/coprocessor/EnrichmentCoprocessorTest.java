@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.benmanes.caffeine.cache.CacheWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,7 +146,7 @@ public class EnrichmentCoprocessorTest {
     thrown.expectMessage("Error occurred while processing enrichment Put.");
     thrown.expectCause(instanceOf(RuntimeException.class));
     cop.start(copEnv);
-    cop.postPut(observerContext, new Put("foo".getBytes()), null, null);
+    cop.postPut(observerContext, new Put("foo".getBytes(StandardCharsets.UTF_8)), null, null);
   }
 
   @Test

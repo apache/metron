@@ -18,27 +18,13 @@
 
 package org.apache.metron.indexing.integration;
 
-import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.field.FieldNameConverter;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
@@ -47,6 +33,13 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
 
 public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected static final String ERROR_TOPIC = "indexing_error";
@@ -82,7 +75,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     }});
     List<Map<String, Object>> inputDocs = new ArrayList<>();
     for(byte[] b : inputMessages) {
-      Map<String, Object> m = JSONUtils.INSTANCE.load(new String(b), JSONUtils.MAP_SUPPLIER);
+      Map<String, Object> m = JSONUtils.INSTANCE.load(new String(b, StandardCharsets.UTF_8), JSONUtils.MAP_SUPPLIER);
       inputDocs.add(m);
 
     }

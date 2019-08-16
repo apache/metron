@@ -20,9 +20,14 @@ package org.apache.metron.elasticsearch.bulk;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -66,7 +71,8 @@ public class ElasticsearchImportExport {
    */
   public void bulkify(Path input, Path output) throws IOException {
     List<String> outRecs = new ArrayList<String>();
-    try (BufferedReader br = new BufferedReader(new FileReader(input.toFile()))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(input.toFile()),
+        StandardCharsets.UTF_8))) {
       String line;
       while ((line = br.readLine()) != null) {
         Map<String, Object> inDoc = JSONUtils.INSTANCE
@@ -80,7 +86,7 @@ public class ElasticsearchImportExport {
         outRecs.add(outData);
       }
     }
-    try (BufferedWriter br = new BufferedWriter(new FileWriter(output.toFile()))) {
+    try (BufferedWriter br = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output.toFile()), StandardCharsets.UTF_8))) {
       for (String line : outRecs) {
         br.write(line);
         br.write(System.lineSeparator());

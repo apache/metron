@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.logstash;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,7 @@ public class BasicLogstashParser extends BasicParser {
 			 * node, then transfered to the workers.
 			 */
 			JSONParser jsonParser = new JSONParser();
-			String rawString = new String(raw_message, "UTF-8");
+			String rawString = new String(raw_message, StandardCharsets.UTF_8);
 			JSONObject rawJson = (JSONObject) jsonParser.parse(rawString);
 			
 			// remove logstash meta fields

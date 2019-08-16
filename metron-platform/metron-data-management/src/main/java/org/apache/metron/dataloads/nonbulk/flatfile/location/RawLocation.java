@@ -18,6 +18,7 @@
 package org.apache.metron.dataloads.nonbulk.flatfile.location;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
@@ -38,20 +39,22 @@ public interface RawLocation<T> {
   default BufferedReader openReader(String loc) throws IOException {
     InputStream is = openInputStream(loc);
     if(loc.endsWith(".gz")) {
-      return new BufferedReader(new InputStreamReader(new GZIPInputStream(is)));
+      return new BufferedReader(new InputStreamReader(new GZIPInputStream(is),
+          StandardCharsets.UTF_8));
     }
     else if(loc.endsWith(".zip")) {
       ZipInputStream zis = new ZipInputStream(is);
       ZipEntry entry = zis.getNextEntry();
       if(entry != null) {
-        return new BufferedReader(new InputStreamReader(zis));
+        return new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8));
       }
       else {
-        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(new byte[] {})));
+        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(new byte[] {}),
+            StandardCharsets.UTF_8));
       }
     }
     else {
-      return new BufferedReader(new InputStreamReader(is));
+      return new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
     }
   }
 }

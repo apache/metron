@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -132,8 +133,6 @@ public class RegularExpressionsParser extends BasicParser {
     protected static final Logger LOG =
         LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
-
     private List<Map<String, Object>> fields;
     private Map<String, Object> parserConfig;
     private final Pattern namedGroupPattern = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
@@ -155,7 +154,7 @@ public class RegularExpressionsParser extends BasicParser {
     public List<JSONObject> parse(byte[] rawMessage) {
         String originalMessage = null;
         try {
-            originalMessage = new String(rawMessage, UTF_8).trim();
+            originalMessage = new String(rawMessage, StandardCharsets.UTF_8).trim();
             LOG.debug(" raw message. {}", originalMessage);
             if (originalMessage.isEmpty()) {
                 LOG.warn("Message is empty.");

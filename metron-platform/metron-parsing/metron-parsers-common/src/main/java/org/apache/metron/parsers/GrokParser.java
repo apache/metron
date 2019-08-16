@@ -116,7 +116,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
                 "Unable to initialize grok parser: Unable to load " + patternsCommonDir + " from either classpath or HDFS");
       }
 
-      grok.addPatternFromReader(new InputStreamReader(commonInputStream));
+      grok.addPatternFromReader(new InputStreamReader(commonInputStream, StandardCharsets.UTF_8));
       LOG.info("Loading parser-specific patterns from: {}", grokPath);
 
       InputStream patterInputStream = openInputStream(grokPath);
@@ -124,7 +124,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         throw new RuntimeException("Grok parser unable to initialize grok parser: Unable to load " + grokPath
                 + " from either classpath or HDFS");
       }
-      grok.addPatternFromReader(new InputStreamReader(patterInputStream));
+      grok.addPatternFromReader(new InputStreamReader(patterInputStream, StandardCharsets.UTF_8));
 
       LOG.info("Grok parser set the following grok expression for '{}': {}", () ->patternLabel,
               () -> grok.getPatterns().get(patternLabel));
@@ -211,7 +211,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     Map<Object,Throwable> errors = new HashMap<>();
     String originalMessage = null;
     try {
-      originalMessage = new String(rawMessage, "UTF-8");
+      originalMessage = new String(rawMessage, StandardCharsets.UTF_8);
       LOG.debug("Grok parser parsing message: {}",originalMessage);
       Match gm = grok.match(originalMessage);
       gm.captures();

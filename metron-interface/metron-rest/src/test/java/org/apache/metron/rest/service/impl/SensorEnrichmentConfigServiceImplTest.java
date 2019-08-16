@@ -17,21 +17,8 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
@@ -51,6 +38,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("ALL")
 public class SensorEnrichmentConfigServiceImplTest {
@@ -189,7 +186,8 @@ public class SensorEnrichmentConfigServiceImplTest {
     exception.expect(RestException.class);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes())).thenThrow(Exception.class);
+    when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes(
+        StandardCharsets.UTF_8))).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
@@ -203,11 +201,11 @@ public class SensorEnrichmentConfigServiceImplTest {
     when(objectMapper.writeValueAsString(sensorEnrichmentConfig)).thenReturn(broJson);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes())).thenReturn(new Stat());
+    when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes(StandardCharsets.UTF_8))).thenReturn(new Stat());
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
     assertEquals(sensorEnrichmentConfig, sensorEnrichmentConfigService.save("bro", sensorEnrichmentConfig));
-    verify(setDataBuilder).forPath(eq(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro"), eq(broJson.getBytes()));
+    verify(setDataBuilder).forPath(eq(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro"), eq(broJson.getBytes(StandardCharsets.UTF_8)));
   }
 
   @Test

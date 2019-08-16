@@ -335,7 +335,9 @@ public class RestFunctionsTest {
     HttpEntity httpEntity = mock(HttpEntity.class);
 
     // return successfully parsed response
-    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes()));
+    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes(
+            StandardCharsets.UTF_8
+    )));
     Optional<Object> actual = RestFunctions.parseResponse(restConfig, httpGet, httpEntity);
     assertTrue(actual.isPresent());
     assertEquals("success", ((Map<String, Object>) actual.get()).get("get"));
@@ -368,7 +370,7 @@ public class RestFunctionsTest {
     HttpEntity httpEntity = mock(HttpEntity.class);
 
     // return empty on empty input stream
-    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("".getBytes()));
+    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)));
     assertEquals(Optional.empty(), RestFunctions.parseResponse(restConfig, httpGet, httpEntity));
   }
 
@@ -384,7 +386,8 @@ public class RestFunctionsTest {
 
     restConfig.put(VERIFY_CONTENT_LENGTH, true);
     when(httpGet.getURI()).thenReturn(new URI("uri"));
-    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes()));
+    when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes(
+        StandardCharsets.UTF_8)));
     when(httpEntity.getContentLength()).thenReturn(-1L);
     RestFunctions.parseResponse(restConfig, httpGet, httpEntity);
   }

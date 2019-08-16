@@ -18,6 +18,7 @@
 package org.apache.metron.management;
 
 import com.google.common.collect.ImmutableMap;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
@@ -110,7 +111,7 @@ public class ConfigurationFunctionsTest {
     // push configs to zookeeper
     pushConfigs(SAMPLE_CONFIG_PATH, zookeeperUrl);
     pushConfigs(PARSER_CONFIGS_PATH, zookeeperUrl);
-    writeProfilerConfigToZookeeper(goodProfilerConfig.getBytes(), client);
+    writeProfilerConfigToZookeeper(goodProfilerConfig.getBytes(StandardCharsets.UTF_8), client);
   }
 
   /**
@@ -167,8 +168,9 @@ public class ConfigurationFunctionsTest {
 
     String out = (String) run("CONFIG_GET('PARSER', 'bro')", context);
 
-    SensorParserConfig actual = SensorParserConfig.fromBytes(out.getBytes());
-    SensorParserConfig expected = SensorParserConfig.fromBytes(goodBroParserConfig.getBytes());
+    SensorParserConfig actual = SensorParserConfig.fromBytes(out.getBytes(StandardCharsets.UTF_8));
+    SensorParserConfig expected = SensorParserConfig.fromBytes(goodBroParserConfig.getBytes(
+        StandardCharsets.UTF_8));
     assertEquals(expected, actual);
   }
 
@@ -194,12 +196,14 @@ public class ConfigurationFunctionsTest {
     SensorParserConfig expected = new SensorParserConfig();
     {
       Object out = run("CONFIG_GET('PARSER', 'sensor')", context);
-      SensorParserConfig actual = SensorParserConfig.fromBytes(out.toString().getBytes());
+      SensorParserConfig actual = SensorParserConfig.fromBytes(out.toString().getBytes(
+          StandardCharsets.UTF_8));
       assertEquals(expected, actual);
     }
     {
       Object out = run("CONFIG_GET('PARSER', 'sensor', true)", context);
-      SensorParserConfig actual = SensorParserConfig.fromBytes(out.toString().getBytes());
+      SensorParserConfig actual = SensorParserConfig.fromBytes(out.toString().getBytes(
+          StandardCharsets.UTF_8));
       assertEquals(expected, actual);
     }
   }
@@ -213,8 +217,10 @@ public class ConfigurationFunctionsTest {
 
     String out = (String) run("CONFIG_GET('ENRICHMENT', 'test')", context);
 
-    SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes());
-    SensorEnrichmentConfig expected = SensorEnrichmentConfig.fromBytes(goodTestEnrichmentConfig.getBytes());
+    SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes(
+        StandardCharsets.UTF_8));
+    SensorEnrichmentConfig expected = SensorEnrichmentConfig.fromBytes(goodTestEnrichmentConfig.getBytes(
+        StandardCharsets.UTF_8));
     assertEquals(expected, actual);
   }
 
@@ -239,12 +245,14 @@ public class ConfigurationFunctionsTest {
     SensorEnrichmentConfig expected = new SensorEnrichmentConfig();
     {
       String out = (String) run("CONFIG_GET('ENRICHMENT', 'missing-sensor')", context);
-      SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes());
+      SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes(
+          StandardCharsets.UTF_8));
       assertEquals(expected, actual);
     }
     {
       String out = (String) run("CONFIG_GET('ENRICHMENT', 'missing-sensor', true)", context);
-      SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes());
+      SensorEnrichmentConfig actual = SensorEnrichmentConfig.fromBytes(out.getBytes(
+          StandardCharsets.UTF_8));
       assertEquals(expected, actual);
     }
   }
@@ -302,8 +310,9 @@ public class ConfigurationFunctionsTest {
 
     String out = (String) run("CONFIG_GET('PROFILER')", context);
 
-    ProfilerConfig actual = ProfilerConfig.fromBytes(out.getBytes());
-    ProfilerConfig expected = ProfilerConfig.fromBytes(goodProfilerConfig.getBytes());
+    ProfilerConfig actual = ProfilerConfig.fromBytes(out.getBytes(StandardCharsets.UTF_8));
+    ProfilerConfig expected = ProfilerConfig.fromBytes(goodProfilerConfig.getBytes(
+        StandardCharsets.UTF_8));
     assertEquals(expected, actual);
   }
 

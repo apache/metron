@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.field;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
@@ -34,7 +35,7 @@ public class FieldNameConvertersTest {
   private WriterConfiguration createConfig(String writer, String sensor, String json) throws Exception {
 
     IndexingConfigurations indexingConfig = new IndexingConfigurations();
-    indexingConfig.updateSensorIndexingConfig(sensor, json.getBytes());
+    indexingConfig.updateSensorIndexingConfig(sensor, json.getBytes(StandardCharsets.UTF_8));
     return new IndexingWriterConfiguration(writer, indexingConfig);
   }
 

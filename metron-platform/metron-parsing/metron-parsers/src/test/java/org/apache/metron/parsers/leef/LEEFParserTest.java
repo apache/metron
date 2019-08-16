@@ -17,12 +17,12 @@
  */
 package org.apache.metron.parsers.leef;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.github.fge.jsonschema.main.JsonValidator;
+import com.google.common.io.Resources;
 import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
@@ -31,18 +31,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jackson.JsonLoader;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import com.github.fge.jsonschema.main.JsonValidator;
-import com.google.common.io.Resources;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 public class LEEFParserTest {
-  private static final Charset UTF_8 = StandardCharsets.UTF_8;
   private LEEFParser parser;
 
   @Before
@@ -137,8 +134,8 @@ public class LEEFParserTest {
 
   @Test
   public void testLEEFParserSample() throws Exception {
-    runTest("sample", Resources.readLines(Resources.getResource(getClass(), "sample.leef"), UTF_8),
-        Resources.toString(Resources.getResource(getClass(), "sample.schema"), UTF_8));
+    runTest("sample", Resources.readLines(Resources.getResource(getClass(), "sample.leef"), StandardCharsets.UTF_8),
+        Resources.toString(Resources.getResource(getClass(), "sample.schema"), StandardCharsets.UTF_8));
   }
 
   private void runTest(String name, List<String> lines, String schema) throws Exception {
@@ -236,7 +233,7 @@ public class LEEFParserTest {
   }
 
   private List<JSONObject> parse(String string) {
-    Optional<MessageParserResult<JSONObject>> parse = parser.parseOptionalResult(string.getBytes(UTF_8));
+    Optional<MessageParserResult<JSONObject>> parse = parser.parseOptionalResult(string.getBytes(StandardCharsets.UTF_8));
     Assert.assertTrue(parse.isPresent());
     return parse.get().getMessages();
   }

@@ -19,6 +19,7 @@ package org.apache.metron.parsers.integration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
@@ -53,7 +54,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
   protected String readGlobalConfig() throws IOException {
     File configsRoot = new File("../" + TestConstants.SAMPLE_CONFIG_PATH);
-    return new String(Files.readAllBytes(new File(configsRoot, "global.json").toPath()));
+    return new String(Files.readAllBytes(new File(configsRoot, "global.json").toPath()),
+        StandardCharsets.UTF_8);
   }
 
   protected String readSensorConfig(String sensorType) throws IOException {
@@ -67,7 +69,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
       configsRoot = new File("../" + TestConstants.PARSER_CONFIGS_PATH);
       parsersRoot = new File(configsRoot, "parsers");
     }
-    return new String(Files.readAllBytes(new File(parsersRoot, sensorType + ".json").toPath()));
+    return new String(Files.readAllBytes(new File(parsersRoot, sensorType + ".json").toPath()),
+        StandardCharsets.UTF_8);
   }
 
   public void runTest(ParserDriver driver) throws Exception {
@@ -99,7 +102,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
   public void dumpParsedMessages(List<byte[]> outputMessages, StringBuffer buffer) {
     for (byte[] outputMessage : outputMessages) {
-      buffer.append(new String(outputMessage)).append("\n");
+      buffer.append(new String(outputMessage, StandardCharsets.UTF_8)).append("\n");
     }
   }
 

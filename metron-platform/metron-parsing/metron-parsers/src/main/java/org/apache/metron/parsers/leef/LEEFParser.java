@@ -81,7 +81,6 @@ public class LEEFParser extends BasicParser {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String HEADER_CAPTURE_PATTERN = "[^\\|]*";
-  private static final Charset UTF_8 = StandardCharsets.UTF_8;
 
   private Pattern pattern;
 

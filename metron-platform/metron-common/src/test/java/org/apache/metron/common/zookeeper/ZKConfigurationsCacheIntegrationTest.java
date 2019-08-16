@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.zookeeper;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.IOUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -217,11 +218,15 @@ public class ZKConfigurationsCacheIntegrationTest {
 
   @Test
   public void validateUpdate() throws Exception {
-    ConfigurationsUtils.writeSensorIndexingConfigToZookeeper("test", testIndexingConfig.getBytes(), client);
-    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), client);
-    ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper("test", testEnrichmentConfig.getBytes(), client);
-    ConfigurationsUtils.writeSensorParserConfigToZookeeper("bro", testParserConfig.getBytes(), client);
-    ConfigurationsUtils.writeProfilerConfigToZookeeper( profilerConfig.getBytes(), client);
+    ConfigurationsUtils.writeSensorIndexingConfigToZookeeper("test", testIndexingConfig.getBytes(
+        StandardCharsets.UTF_8), client);
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(StandardCharsets.UTF_8), client);
+    ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper("test", testEnrichmentConfig.getBytes(
+        StandardCharsets.UTF_8), client);
+    ConfigurationsUtils.writeSensorParserConfigToZookeeper("bro", testParserConfig.getBytes(
+        StandardCharsets.UTF_8), client);
+    ConfigurationsUtils.writeProfilerConfigToZookeeper( profilerConfig.getBytes(
+        StandardCharsets.UTF_8), client);
     //indexing
     {
       Map<String, Object> expectedConfig = JSONUtils.INSTANCE.load(testIndexingConfig, JSONUtils.MAP_SUPPLIER);

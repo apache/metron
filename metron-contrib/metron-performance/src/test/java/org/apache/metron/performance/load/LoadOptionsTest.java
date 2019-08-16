@@ -17,6 +17,9 @@
  */
 package org.apache.metron.performance.load;
 
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.io.IOUtils;
@@ -75,7 +78,7 @@ public class LoadOptionsTest {
   public void testTemplatePresent() throws Exception {
     File templateFile= new File("target/template");
     String template = "test template1";
-    try(BufferedWriter w = new BufferedWriter(new FileWriter(templateFile))) {
+    try(BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(templateFile), StandardCharsets.UTF_8))) {
       IOUtils.write(template, w );
     }
     templateFile.deleteOnExit();

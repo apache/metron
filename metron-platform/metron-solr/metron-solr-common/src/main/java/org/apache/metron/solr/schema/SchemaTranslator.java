@@ -19,6 +19,7 @@ package org.apache.metron.solr.schema;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.File;
@@ -187,7 +188,7 @@ public class SchemaTranslator {
     String templateFile = argv[0];
     String schemaFile = argv[1];
     Map<String, Object> template = JSONUtils.INSTANCE.load(new File(templateFile), JSONUtils.MAP_SUPPLIER);
-    try(PrintWriter pw = new PrintWriter(new File(schemaFile))) {
+    try(PrintWriter pw = new PrintWriter(new File(schemaFile), StandardCharsets.UTF_8.name())) {
       translate(pw, template);
     }
   }

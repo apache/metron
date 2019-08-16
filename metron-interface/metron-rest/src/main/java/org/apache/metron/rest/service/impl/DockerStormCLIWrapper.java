@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,8 @@ public class DockerStormCLIWrapper extends StormCLIWrapper {
     final ProcessBuilder pb = getDockerEnvironmentProcessBuilder();
     try {
       final Process process = pb.start();
-      final BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      final BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream(),
+          StandardCharsets.UTF_8));
       String line;
       while ((line = inputStream.readLine()) != null) {
         if (line.startsWith("export")) {

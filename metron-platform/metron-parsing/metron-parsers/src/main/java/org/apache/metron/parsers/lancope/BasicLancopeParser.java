@@ -19,6 +19,7 @@
 package org.apache.metron.parsers.lancope;
 
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,7 +56,7 @@ public class BasicLancopeParser extends BasicParser {
 		List<JSONObject> messages = new ArrayList<>();
 		try {
 			
-			String raw_message = new String(msg, "UTF-8");
+			String raw_message = new String(msg, StandardCharsets.UTF_8);
 			
 			payload = (JSONObject) JSONValue.parse(raw_message);
 			

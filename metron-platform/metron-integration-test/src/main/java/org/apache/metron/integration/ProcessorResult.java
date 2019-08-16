@@ -17,6 +17,7 @@
  */
 package org.apache.metron.integration;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +70,7 @@ public class ProcessorResult<T> {
         }
         buffer.append(String.format("%d Errors", processErrors.size()));
         for (byte[] outputMessage : processErrors) {
-            buffer.append(new String(outputMessage));
+            buffer.append(new String(outputMessage, StandardCharsets.UTF_8));
         }
         buffer.append("\n");
     }

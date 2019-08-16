@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.fireeye;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.time.Year;
@@ -43,7 +44,7 @@ public class BasicFireEyeParserTest extends AbstractParserConfigTest {
   @Test
   public void testParse() throws ParseException {
     for (String inputString : inputStrings) {
-      JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+      JSONObject parsed = parser.parse(inputString.getBytes(StandardCharsets.UTF_8)).get(0);
       Assert.assertNotNull(parsed);
 
       JSONParser parser = new JSONParser();
@@ -67,7 +68,7 @@ public class BasicFireEyeParserTest extends AbstractParserConfigTest {
   @SuppressWarnings("rawtypes")
   @Test
   public void testTimestampParsing() throws ParseException {
-    JSONObject parsed = parser.parse(fireeyeMessage.getBytes()).get(0);
+    JSONObject parsed = parser.parse(fireeyeMessage.getBytes(StandardCharsets.UTF_8)).get(0);
     JSONParser parser = new JSONParser();
     Map json = (Map) parser.parse(parsed.toJSONString());
     long expectedTimestamp = ZonedDateTime.of(Year.now(ZoneOffset.UTC).getValue(), 3, 19, 5, 24, 39, 0, ZoneOffset.UTC).toInstant().toEpochMilli();
