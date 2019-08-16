@@ -29,7 +29,6 @@ import org.apache.metron.dataloads.nonbulk.flatfile.SummarizeOptions;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.Writer;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.Writers;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,7 +43,6 @@ public class LocalSummarizer extends AbstractLocalImporter<SummarizeOptions, Loc
   List<SummarizationState> stateList;
 
   public LocalSummarizer() {
-    super(new HBaseConnectionFactory());
     stateList = Collections.synchronizedList(new ArrayList<>());
   }
 

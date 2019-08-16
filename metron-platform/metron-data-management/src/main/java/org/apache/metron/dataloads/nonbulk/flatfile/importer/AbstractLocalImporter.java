@@ -19,15 +19,14 @@ package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.metron.common.utils.cli.CLIOptions;
 import org.apache.metron.common.utils.file.ReaderSpliterator;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.extractor.inputformat.WholeFileFormat;
+import org.apache.metron.common.utils.cli.CLIOptions;
+import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
 import org.apache.metron.dataloads.nonbulk.flatfile.location.Location;
 import org.apache.metron.dataloads.nonbulk.flatfile.location.LocationStrategy;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,21 +40,11 @@ import java.util.stream.Stream;
 
 public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & CLIOptions, STATE_T>  implements Importer<OPTIONS_T> {
 
-  private HBaseConnectionFactory connectionFactory;
-  private Connection connection;
-
-  public AbstractLocalImporter(HBaseConnectionFactory connectionFactory) {
-    this.connectionFactory = connectionFactory;
-  }
-
   @Override
   public void importData( final EnumMap<OPTIONS_T, Optional<Object>> config
                         , final ExtractorHandler handler
                         , final Configuration hadoopConfig
                          ) throws IOException, InvalidWriterOutput {
-
-    connection = connectionFactory.createConnection(hadoopConfig);
-
     validateState(config, handler);
     ThreadLocal<STATE_T> state = createState(config, hadoopConfig, handler);
     boolean quiet = isQuiet(config);
@@ -72,17 +61,6 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
     }
     if(!quiet) {
       System.out.println();
-    }
-  }
-
-  protected Connection getConnection() {
-    return connection;
-  }
-
-  @Override
-  public void close() throws IOException {
-    if(connection != null) {
-      connection.close();
     }
   }
 

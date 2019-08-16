@@ -19,20 +19,20 @@ package org.apache.metron.dataloads.nonbulk.flatfile;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.enrichment.converter.HbaseConverter;
 
 import java.io.IOException;
 
 public class HBaseExtractorState {
-  private Table table;
+  private HTableInterface table;
   private Extractor extractor;
   private HbaseConverter converter;
   private FileSystem fs;
   private String cf;
 
-  public HBaseExtractorState(Table table, String cf, Extractor extractor, HbaseConverter converter, Configuration config) {
+  public HBaseExtractorState(HTableInterface table, String cf, Extractor extractor, HbaseConverter converter, Configuration config) {
     this.table = table;
     this.extractor = extractor;
     this.converter = converter;
@@ -48,7 +48,7 @@ public class HBaseExtractorState {
     return cf;
   }
 
-  public Table getTable() {
+  public HTableInterface getTable() {
     return table;
   }
 

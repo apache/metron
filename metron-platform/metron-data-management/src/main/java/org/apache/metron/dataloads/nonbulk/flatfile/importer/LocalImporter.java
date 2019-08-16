@@ -18,9 +18,8 @@
 package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.nonbulk.flatfile.HBaseExtractorState;
@@ -28,22 +27,25 @@ import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.HTableProvider;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Optional;
+import java.io.*;
+import java.util.*;
 
 public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtractorState> {
 
-  public LocalImporter(HBaseConnectionFactory connectionFactory) {
-    super(connectionFactory);
+  public interface HTableProviderRetriever {
+    HTableProvider retrieve();
+  }
+
+  HTableProviderRetriever provider;
+
+  public LocalImporter(HTableProviderRetriever provider) {
+    this.provider = provider;
   }
 
   public LocalImporter() {
-    this(new HBaseConnectionFactory());
+    this(() -> new HTableProvider());
   }
 
 
@@ -84,9 +86,8 @@ public class LocalImporter extends AbstractLocalImporter<LoadOptions, HBaseExtra
       @Override
       protected HBaseExtractorState initialValue() {
         try {
-          String tableName = (String) config.get(LoadOptions.HBASE_TABLE).get();
           String cf = (String) config.get(LoadOptions.HBASE_CF).get();
-          Table table = getConnection().getTable(TableName.valueOf(tableName));
+          HTableInterface table = provider.retrieve().getTable(hadoopConfig, (String) config.get(LoadOptions.HBASE_TABLE).get());
           return new HBaseExtractorState(table, cf, handler.getExtractor(), new EnrichmentConverter(), hadoopConfig);
         } catch (IOException e1) {
           throw new IllegalStateException("Unable to get table: " + e1);

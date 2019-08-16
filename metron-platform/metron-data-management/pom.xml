@@ -120,6 +120,12 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase-common</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -127,6 +133,12 @@
             <version>${project.parent.version}</version>
             <scope>test</scope>
             <type>test-jar</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mitre.taxii</groupId>

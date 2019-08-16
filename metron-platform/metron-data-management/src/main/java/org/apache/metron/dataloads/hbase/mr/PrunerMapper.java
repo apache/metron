@@ -17,14 +17,12 @@
  */
 package org.apache.metron.dataloads.hbase.mr;
 
-import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTrackerUtil;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
 
 import java.io.IOException;
 
@@ -33,32 +31,22 @@ public class PrunerMapper extends TableMapper<ImmutableBytesWritable, Delete> {
     public static final String ACCESS_TRACKER_CF_CONF = "access_tracker_cf";
     public static final String TIMESTAMP_CONF = "access_tracker_timestamp";
     public static final String ACCESS_TRACKER_NAME_CONF = "access_tracker_name";
-    private AccessTracker tracker;
-    private HBaseConnectionFactory connectionFactory;
-
-    public PrunerMapper() {
-        this.connectionFactory = new HBaseConnectionFactory();
-    }
-
+    AccessTracker tracker;
     @Override
-    public void setup(Context context) throws IOException {
+    public void setup(Context context) throws IOException
+    {
         String atTable = context.getConfiguration().get(ACCESS_TRACKER_TABLE_CONF);
         String atCF = context.getConfiguration().get(ACCESS_TRACKER_CF_CONF);
         String atName = context.getConfiguration().get(ACCESS_TRACKER_NAME_CONF);
-
-        // setup the HBase connection
-        try(Connection connection = connectionFactory.createConnection(context.getConfiguration());
-            Table table = connection.getTable(TableName.valueOf(atTable))) {
-
-            long timestamp = context.getConfiguration().getLong(TIMESTAMP_CONF, -1);
-            if(timestamp < 0) {
-                throw new IllegalStateException("Must specify a timestamp that is positive.");
-            }
-            try {
-                tracker = AccessTrackerUtil.INSTANCE.loadAll(AccessTrackerUtil.INSTANCE.loadAll(table, atCF, atName, timestamp));
-            } catch (Throwable e) {
-                throw new IllegalStateException("Unable to load the accesstrackers from the directory", e);
-            }
+        HTable table = new HTable(context.getConfiguration(), atTable);
+        long timestamp = context.getConfiguration().getLong(TIMESTAMP_CONF, -1);
+        if(timestamp < 0) {
+            throw new IllegalStateException("Must specify a timestamp that is positive.");
+        }
+        try {
+            tracker = AccessTrackerUtil.INSTANCE.loadAll(AccessTrackerUtil.INSTANCE.loadAll(table, atCF, atName, timestamp));
+        } catch (Throwable e) {
+            throw new IllegalStateException("Unable to load the accesstrackers from the directory", e);
         }
     }
 

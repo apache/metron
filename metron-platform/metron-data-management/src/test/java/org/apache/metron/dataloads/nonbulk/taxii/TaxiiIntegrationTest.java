@@ -18,29 +18,29 @@
 
 package org.apache.metron.dataloads.nonbulk.taxii;
 
+import com.google.common.base.Splitter;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
+import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.hbase.ColumnList;
-import org.apache.metron.hbase.client.FakeHBaseClient;
-import org.apache.metron.hbase.client.FakeHBaseClientFactory;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.junit.*;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TaxiiIntegrationTest {
 
@@ -52,17 +52,18 @@ public class TaxiiIntegrationTest {
     @AfterClass
     public static void teardown() {
         MockTaxiiService.shutdown();
+        MockHBaseTableProvider.clear();
     }
 
     /**
-     * {
-     *   "endpoint": "http://localhost:8282/taxii-discovery-service",
-     *   "type": "DISCOVER",
-     *   "collection": "guest.Abuse_ch",
-     *   "table": "threat_intel",
-     *   "columnFamily": "cf",
-     *   "allowedIndicatorTypes": [ "domainname:FQDN", "address:IPV_4_ADDR" ]
-     * }
+         {
+            "endpoint" : "http://localhost:8282/taxii-discovery-service"
+           ,"type" : "DISCOVER"
+           ,"collection" : "guest.Abuse_ch"
+           ,"table" : "threat_intel"
+           ,"columnFamily" : "cf"
+           ,"allowedIndicatorTypes" : [ "domainname:FQDN", "address:IPV_4_ADDR" ]
+         }
     */
     @Multiline
     static String taxiiConnectionConfig;
@@ -92,66 +93,57 @@ public class TaxiiIntegrationTest {
 
     @Test
     public void testTaxii() throws Exception {
-        // delete any existing records
-        FakeHBaseClient fakeHBaseClient = new FakeHBaseClient();
-        fakeHBaseClient.deleteAll();
 
-        // setup the handler
+        final MockHBaseTableProvider provider = new MockHBaseTableProvider();
         final Configuration config = HBaseConfiguration.create();
         Extractor extractor = new TransformFilterExtractorDecorator(new StixExtractor());
-        TaxiiHandler handler = new TaxiiHandler(
-                TaxiiConnectionConfig.load(taxiiConnectionConfig),
-                extractor,
-                new FakeHBaseClientFactory(),
-                config);
+        TaxiiHandler handler = new TaxiiHandler(TaxiiConnectionConfig.load(taxiiConnectionConfig), extractor, config ) {
+            @Override
+            protected synchronized HTableInterface createHTable(String tableInfo) throws IOException {
+                return provider.addToCache("threat_intel", "cf");
+            }
+        };
+        //UnitTestHelper.verboseLogging();
         handler.run();
-
-        // retrieve the data written to HBase by the taxii handler
-        Map<EnrichmentKey, EnrichmentValue> results = new HashMap<>();
-        List<FakeHBaseClient.Mutation> mutations = fakeHBaseClient.getAllPersisted();
-        for(FakeHBaseClient.Mutation mutation: mutations) {
-
-            // build the enrichment key
-            EnrichmentKey key = new EnrichmentKey("taxii", "et");
-            key.fromBytes(mutation.rowKey);
-
-            // expect only 1 column
-            List<ColumnList.Column> columns = mutation.columnList.getColumns();
-            Assert.assertEquals(1, columns.size());
-            ColumnList.Column column = columns.get(0);
-
-            // build the enrichment value
-            EnrichmentValue value = new EnrichmentValue();
-            value.fromColumn(column.getQualifier(), column.getValue());
-            results.put(key, value);
-        }
-
-        // validate the extracted taxii data
-        Assert.assertEquals(2, results.size());
+        Set<String> maliciousDomains;
         {
-            EnrichmentKey key = new EnrichmentKey("address:IPV_4_ADDR", "94.102.53.142");
-            Assert.assertTrue(results.containsKey(key));
-            EnrichmentValue value = results.get(key);
-            Assert.assertEquals(6, value.getMetadata().size());
-            Assert.assertEquals("guest.Abuse_ch", value.getMetadata().get("taxii_collection"));
-            Assert.assertEquals("STIX", value.getMetadata().get("source-type"));
-            Assert.assertEquals("address:IPV_4_ADDR", value.getMetadata().get("indicator-type"));
-            Assert.assertEquals("taxii", value.getMetadata().get("source_type"));
-            Assert.assertEquals("http://localhost:8282/taxii-data", value.getMetadata().get("taxii_url"));
+            MockHTable table = (MockHTable) provider.getTable(config, "threat_intel");
+            maliciousDomains = getIndicators("domainname:FQDN", table.getPutLog(), "cf");
         }
+        Assert.assertTrue(maliciousDomains.contains("www.office-112.com"));
+        Assert.assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "DomainNameObj:Value condition=\"Equals\""), maliciousDomains.size());
+        Set<String> maliciousAddresses;
         {
-            EnrichmentKey key = new EnrichmentKey("domainname:FQDN", "www.office-112.com");
-            Assert.assertTrue(results.containsKey(key));
-            EnrichmentValue value = results.get(key);
-            Assert.assertEquals(6, value.getMetadata().size());
-            Assert.assertEquals("guest.Abuse_ch", value.getMetadata().get("taxii_collection"));
-            Assert.assertEquals("STIX", value.getMetadata().get("source-type"));
-            Assert.assertEquals("domainname:FQDN", value.getMetadata().get("indicator-type"));
-            Assert.assertEquals("taxii", value.getMetadata().get("source_type"));
-            Assert.assertEquals("http://localhost:8282/taxii-data", value.getMetadata().get("taxii_url"));
+            MockHTable table = (MockHTable) provider.getTable(config, "threat_intel");
+            maliciousAddresses= getIndicators("address:IPV_4_ADDR", table.getPutLog(), "cf");
         }
+        Assert.assertTrue(maliciousAddresses.contains("94.102.53.142"));
+        Assert.assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "AddressObj:Address_Value condition=\"Equal\""), maliciousAddresses.size());
+        MockHBaseTableProvider.clear();
 
         // Ensure that the handler can be run multiple times without connection issues.
         handler.run();
+    }
+
+    private static int numStringsMatch(String xmlBundle, String text) {
+        int cnt = 0;
+        for(String line : Splitter.on("\n").split(xmlBundle)) {
+            if(line.contains(text)) {
+                cnt++;
+            }
+        }
+        return cnt;
+    }
+
+    private static Set<String> getIndicators(String indicatorType, Iterable<Put> puts, String cf) throws IOException {
+        EnrichmentConverter converter = new EnrichmentConverter();
+        Set<String> ret = new HashSet<>();
+        for(Put p : puts) {
+            LookupKV<EnrichmentKey, EnrichmentValue> kv = converter.fromPut(p, cf);
+            if (kv.getKey().type.equals(indicatorType)) {
+                ret.add(kv.getKey().indicator);
+            }
+        }
+        return ret;
     }
 }

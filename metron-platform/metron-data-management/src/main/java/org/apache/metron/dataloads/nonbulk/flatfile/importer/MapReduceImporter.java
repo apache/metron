@@ -75,9 +75,4 @@ public enum MapReduceImporter implements Importer<LoadOptions> {
       throw new IllegalStateException("Unable to complete job: " + e.getMessage(), e);
     }
   }
-
-  @Override
-  public void close() {
-    // nothing to do
-  }
 }
