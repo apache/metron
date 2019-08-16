@@ -69,6 +69,14 @@ public class EnrichmentValue implements LookupValue {
             }
         }
     }
+
+    public void fromColumn(byte[] columnQualifier, byte[] value) {
+      String columnValue = Bytes.toString(value);
+      if(Bytes.equals(columnQualifier, VALUE_COLUMN_NAME_B)) {
+        metadata = stringToValue(columnValue);
+      }
+    }
+
     public Map<String, Object> stringToValue(String s){
         try {
             return _mapper.get().readValue(s, new TypeReference<Map<String, Object>>(){});

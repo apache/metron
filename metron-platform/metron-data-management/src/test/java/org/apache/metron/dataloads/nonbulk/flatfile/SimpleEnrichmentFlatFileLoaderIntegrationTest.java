@@ -26,10 +26,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -66,7 +67,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
   private static HBaseTestingUtility testUtil;
 
   /** The test table. */
-  private static HTable testTable;
+  private static Table testTable;
   private static Configuration config = null;
   private static TestingServer testZkServer;
   private static String zookeeperUrl;
@@ -190,7 +191,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
     config = kv.getValue();
     testUtil = kv.getKey();
-    testTable = testUtil.createTable(Bytes.toBytes(tableName), Bytes.toBytes(cf));
+    testTable = testUtil.createTable(TableName.valueOf(tableName), cf);
     zookeeperUrl = getZookeeperUrl(config.get("hbase.zookeeper.quorum"), testUtil.getZkCluster().getClientPort());
     setupGlobalConfig(zookeeperUrl);
 
