@@ -62,6 +62,7 @@ export class AutoPollingService {
   }
 
   onDestroy() {
+    this.isPollingActive = false;
     this.pollingIntervalSubs.unsubscribe();
   }
 }
