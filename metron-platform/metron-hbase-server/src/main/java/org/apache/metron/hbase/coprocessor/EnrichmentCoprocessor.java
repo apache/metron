@@ -21,10 +21,6 @@ package org.apache.metron.hbase.coprocessor;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.CacheWriter;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.CoprocessorEnvironment;
@@ -38,10 +34,12 @@ import org.apache.hadoop.hbase.regionserver.wal.WALEdit;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
 
 /**
  * Handle collecting a list of enrichment coprocessors.
@@ -118,18 +116,10 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
       }
       globalConfig = globalConfigService.get();
       Configuration config = this.coprocessorEnv.getConfiguration();
-      CacheWriter<String, String> cacheWriter = null;
-      try {
-        String hbaseTableProviderName = (String) globalConfig
-            .get(EnrichmentConfigurations.TABLE_PROVIDER);
-        String tableName = (String) globalConfig.get(EnrichmentConfigurations.TABLE_NAME);
-        String columnFamily = (String) globalConfig.get(EnrichmentConfigurations.COLUMN_FAMILY);
-        cacheWriter = new HBaseCacheWriter(config, TableProvider
-            .create(hbaseTableProviderName, HTableProvider::new), tableName, columnFamily,
-            COLUMN_QUALIFIER);
-      } catch (ClassNotFoundException | InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-        throw new IOException("Unable to instantiate cache writer", e);
-      }
+      String tableName = (String) globalConfig.get(EnrichmentConfigurations.TABLE_NAME);
+      String columnFamily = (String) globalConfig.get(EnrichmentConfigurations.COLUMN_FAMILY);
+      CacheWriter<String, String> cacheWriter = new HBaseCacheWriter(config, tableName, columnFamily, COLUMN_QUALIFIER);
+
       this.cache = Caffeine.newBuilder().writer(cacheWriter).build();
       LOG.info("Finished initializing cache");
     }

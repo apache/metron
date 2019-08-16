@@ -18,13 +18,6 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.configuration.ConfigurationType;
@@ -32,12 +25,20 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfigService {
@@ -48,12 +49,12 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     private ConfigurationsCache cache;
 
-    private LegacyHBaseClient hBaseClient;
+    private HBaseClient hBaseClient;
 
     @Autowired
     public SensorEnrichmentConfigServiceImpl(final ObjectMapper objectMapper,
         final CuratorFramework client, final ConfigurationsCache cache,
-        final LegacyHBaseClient hBaseClient) {
+        final HBaseClient hBaseClient) {
       this.objectMapper = objectMapper;
       this.client = client;
       this.cache = cache;
@@ -113,7 +114,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
     @Override
     public List<String> getAvailableEnrichments() throws RestException {
       try {
-        List<String> enrichments = hBaseClient.readRecords();
+        List<String> enrichments = hBaseClient.scanRowKeys();
         enrichments.sort(Comparator.naturalOrder());
         return enrichments;
       } catch (IOException e) {
