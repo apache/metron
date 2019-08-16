@@ -1,76 +1,67 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Subscription, Subject, Observable, interval } from 'rxjs';
 import { SearchService } from 'app/service/search.service';
 import { QueryBuilder } from '../query-builder';
 import { SearchResponse } from 'app/model/search-response';
 import { SearchRequest } from 'app/model/search-request';
-import { switchMap, filter } from 'rxjs/operators';
+import { switchMap, filter, takeWhile } from 'rxjs/operators';
 
 @Injectable()
 export class AutoPollingService {
+  isPollingActive = false;
   data = new Subject<SearchResponse>();
 
-  interval = 8;
+  private interval = 8;
+  private isPollingSuppressed = false;
+  private pollingIntervalSubs: Subscription;
 
-  refreshTimer: Subscription;
-  isRefreshPaused = true; // TODO rename this to isPollingActive, be avare of the logic turned
+  // TODO implement congestion handling
+  private isCongestion = false;
 
-  private isPollingSupressed = false;
-
-  constructor(private ngZone: NgZone,
-    private searchService: SearchService,
-    private queryBuilder: QueryBuilder) {}
+  constructor(private searchService: SearchService,
+              private queryBuilder: QueryBuilder) {}
 
   toggle() {
-    this.isRefreshPaused = !this.isRefreshPaused;
+    if (!this.isPollingActive) {
+      this.activate();
+    }
 
-    if (this.isRefreshPaused) {
-      this.tryStopPolling();
-    } else {
-      // this.search(false);
-      this.tryStartPolling();
+    this.isPollingActive = !this.isPollingActive;
+  }
+
+  setSuppression(value: boolean) {
+    this.isPollingSuppressed = true;
+  }
+
+  setInterval(seconds: number) {
+    this.interval = seconds;
+
+    if (this.isPollingActive) {
+      this.reset();
     }
   }
 
-  silentPause() {
-    this.isPollingSupressed = true;
+  private reset() {
+    this.pollingIntervalSubs.unsubscribe();
+    this.activate();
   }
 
-  silentResume() {
-    this.isPollingSupressed = false;
+  private activate() {
+    this.pollingIntervalSubs = this.pollData(this.queryBuilder.searchRequest).subscribe(results => {
+      this.data.next(results);
+    });
   }
 
-  tryStartPolling() {
-    if (!this.isRefreshPaused) {
-      this.tryStopPolling();
-      // TODO rename refreshTimer bc it's not a timer
-      this.refreshTimer = this.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
-        this.data.next(results);
-      });
-    }
-  }
-
-  pollSearch(searchRequest: SearchRequest): Observable<SearchResponse> {
-
+  private pollData(searchRequest: SearchRequest): Observable<SearchResponse> {
     return interval(this.interval * 1000).pipe(
-      filter(() => !this.isPollingSupressed),
+      filter(() => !this.isPollingSuppressed),
+      takeWhile(() => this.isPollingActive),
       switchMap(() => {
         return this.searchService.search(this.queryBuilder.searchRequest);
       }));
-
-    // TODO choose which way to go
-    // return this.ngZone.runOutsideAngular(() => {
-    //   return this.ngZone.run(() => {
-    //     return interval(this.interval * 1000).pipe(switchMap(() => {
-    //       return this.searchService.search(searchRequest);
-    //     }));
-    //   });
-    // });
   }
 
-  tryStopPolling() {
-    if (this.refreshTimer && !this.refreshTimer.closed) {
-      this.refreshTimer.unsubscribe();
-    }
+  onDestroy() {
+    this.pollingIntervalSubs.unsubscribe();
   }
 }

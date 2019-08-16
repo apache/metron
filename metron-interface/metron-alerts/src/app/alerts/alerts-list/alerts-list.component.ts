@@ -46,7 +46,6 @@ import { DialogService } from 'app/service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
 import { AlertSource } from '../../model/alert-source';
-import { AutoPollingComponent } from './auto-polling/auto-polling.component';
 import { AutoPollingService } from './auto-polling/auto-polling.service';
 
 @Component({
@@ -74,8 +73,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
-
-  @ViewChild('autoPolling') autoPolling: AutoPollingComponent;
 
   tableMetaData = new TableMetadata();
   pagination: Pagination = new Pagination();
@@ -105,7 +102,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
-        this.restoreRefreshState();
+        this.restoreAutoPollingState();
       }
     });
 
@@ -199,7 +196,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.autoPollingSvc.tryStopPolling();
+    this.autoPollingSvc.onDestroy();
     this.removeAlertChangedListner();
     this.configSubscription.unsubscribe();
   }
@@ -263,9 +260,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     );
 
     if (selectedAlerts.length > 0) {
-      this.autoPollingSvc.silentPause();
+      this.autoPollingSvc.setSuppression(true);
     } else {
-      this.autoPollingSvc.silentResume();
+      this.autoPollingSvc.setSuppression(false);
     }
   }
 
@@ -276,8 +273,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onConfigRowsChange() {
-    // TODO make sure autopoller picks up the new intervals
-    this.autoPollingSvc.interval = this.refreshInterval;
+    this.autoPollingSvc.setInterval(this.refreshInterval);
     this.search();
   }
 
@@ -313,11 +309,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[]) {
-    this.tableMetaData = tableMetaData;
-    this.refreshInterval = this.tableMetaData.refreshInterval;
-
-    this.updateConfigRowsSettings();
+    this.updatePollingInterval(tableMetaData.refreshInterval);
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
+
+    this.tableMetaData = tableMetaData;
   }
 
   preventDropdownOptionIfDisabled(event: Event): boolean {
@@ -370,11 +365,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  restoreRefreshState() {
-    this.isRefreshPaused = this.lastIsRefreshPausedValue;
-    this.autoPollingSvc.tryStartPolling();
-  }
-
   search(resetPaginationParams = true, savedSearch?: SaveSearch) {
     this.saveCurrentSearch(savedSearch);
     if (resetPaginationParams) {
@@ -392,9 +382,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
       this.pendingSearch = null;
     });
-
-    // TODO separate this from manual search
-    this.autoPollingSvc.tryStartPolling();
   }
 
   setSearchRequestSize() {
@@ -443,38 +430,28 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   showConfigureTable() {
-    this.saveRefreshState();
+    this.autoPollingSvc.setSuppression(true);
     this.router.navigateByUrl('/alerts-list(dialog:configure-table)');
   }
 
   showDetails(alert: Alert) {
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
-    this.saveRefreshState();
+    this.autoPollingSvc.setSuppression(true);
     let sourceType = alert.source[this.globalConfig['source.type.field']];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }
 
-  saveRefreshState() {
-    this.lastIsRefreshPausedValue = this.isRefreshPaused;
-    this.autoPollingSvc.tryStopPolling();
-  }
-
   showSavedSearches() {
-    this.saveRefreshState();
+    this.autoPollingSvc.setSuppression(true);
     this.router.navigateByUrl('/alerts-list(dialog:saved-searches)');
   }
 
   showSaveSearch() {
-    this.saveRefreshState();
+    this.autoPollingSvc.setSuppression(true);
     this.saveSearchService.setCurrentQueryBuilderAndTableColumns(this.queryBuilder, this.alertsColumns);
     this.router.navigateByUrl('/alerts-list(dialog:save-search)');
-  }
-
-  updateConfigRowsSettings() {
-    // TODO make sure this aplies
-    this.autoPollingSvc.interval = this.refreshInterval;
   }
 
   updateAlert(alertSource: AlertSource) {
@@ -491,7 +468,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       selectedAlert.source['alert_status'] = status;
     }
     this.selectedAlerts = [];
-    this.autoPollingSvc.silentResume();
+    this.autoPollingSvc.setSuppression(false);
   }
 
   removeAlertChangedListner() {
@@ -504,13 +481,24 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   getStaleDataWarning() {
-    if (this.autoPollingSvc.isRefreshPaused) {
+    if (this.autoPollingSvc.isPollingActive) {
       return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
         Click <i class="fa fa-search" aria-hidden="true"></i> to update your view based
         on your current filter and time-range configuration!`;
     } else {
       return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
         Automatic refresh is turned on. Your filter and/or time-range changes will apply automatically on next refresh.`;
+    }
+  }
+
+  private updatePollingInterval(refreshInterval: number): void {
+    this.refreshInterval = refreshInterval;
+    this.autoPollingSvc.setInterval(refreshInterval);
+  }
+
+  private restoreAutoPollingState() {
+    if (this.autoPollingSvc.isPollingActive) {
+      this.autoPollingSvc.setSuppression(false);
     }
   }
 }

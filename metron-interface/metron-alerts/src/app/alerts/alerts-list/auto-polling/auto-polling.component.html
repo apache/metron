@@ -12,8 +12,8 @@
   the specific language governing permissions and limitations under the License.
 	-->
 	<div class="btn pause-play" (click)="onToggle()">
-		<i *ngIf="!autoPollingSvc.isRefreshPaused" class="fa fa-pause" aria-hidden="true"></i>
-		<i *ngIf="autoPollingSvc.isRefreshPaused" class="fa fa-play" aria-hidden="true"></i>
+		<i *ngIf="autoPollingSvc.isPollingActive" class="fa fa-pause" aria-hidden="true"></i>
+		<i *ngIf="!autoPollingSvc.isPollingActive" class="fa fa-play" aria-hidden="true"></i>
 	</div>
 	<i class="fa fa-sort-asc" aria-hidden="true"  *ngIf="showNotification"></i>
 	<div class="auto-polling card" *ngIf="showNotification">
