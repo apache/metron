@@ -17,29 +17,37 @@
  */
 package org.apache.metron.parsers.asa;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.log4j.Level;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.time.*;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.*;
-
 public class BasicAsaParserTest {
 
     private static BasicAsaParser asaParser;
+    private Map<String, Object> parserConfig;
 
-    @BeforeClass
-    public static void setUpOnce() throws Exception {
-        Map<String, Object> parserConfig = new HashMap<>();
+    @Before
+    public void setUp() throws Exception {
+        parserConfig = new HashMap<>();
         asaParser = new BasicAsaParser();
         asaParser.configure(parserConfig);
         asaParser.init();
@@ -47,7 +55,6 @@ public class BasicAsaParserTest {
 
     @Test
     public void testConfigureDefault() {
-        Map<String, Object> parserConfig = new HashMap<>();
         BasicAsaParser testParser = new BasicAsaParser();
         testParser.configure(parserConfig);
         testParser.init();
@@ -56,7 +63,6 @@ public class BasicAsaParserTest {
 
     @Test
     public void testConfigureTimeZoneOffset() {
-        Map<String, Object> parserConfig = new HashMap<>();
         parserConfig.put("deviceTimeZone", "UTC-05:00");
         BasicAsaParser testParser = new BasicAsaParser();
         testParser.configure(parserConfig);
@@ -68,7 +74,6 @@ public class BasicAsaParserTest {
 
     @Test
     public void testConfigureTimeZoneText() {
-        Map<String, Object> parserConfig = new HashMap<>();
         parserConfig.put("deviceTimeZone", "America/New_York");
         BasicAsaParser testParser = new BasicAsaParser();
         testParser.configure(parserConfig);
@@ -185,5 +190,18 @@ public class BasicAsaParserTest {
         thrown.expectMessage(startsWith("[Metron] Message '-- MARK --'"));
         JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
         UnitTestHelper.setLog4jLevel(BasicAsaParser.class, Level.ERROR);
+    }
+
+    @Test
+    public void getsReadCharsetFromConfig() {
+      parserConfig.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+      asaParser.configure(parserConfig);
+      assertThat(asaParser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+    }
+
+    @Test
+    public void getsReadCharsetFromDefault() {
+      asaParser.configure(parserConfig);
+      assertThat(asaParser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
     }
 }

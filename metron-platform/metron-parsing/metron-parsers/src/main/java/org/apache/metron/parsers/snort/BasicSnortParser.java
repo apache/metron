@@ -91,6 +91,7 @@ public class BasicSnortParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
     dateTimeFormatter = getDateFormatter(parserConfig);
     dateTimeFormatter = getDateFormatterWithZone(dateTimeFormatter, parserConfig);
     init();
@@ -140,7 +141,7 @@ public class BasicSnortParser extends BasicParser {
     List<JSONObject> messages = new ArrayList<>();
     try {
       // snort alerts expected as csv records
-      String csvMessage = new String(rawMessage, StandardCharsets.UTF_8);
+      String csvMessage = new String(rawMessage, getReadCharset());
       Map<String, String> records = null;
       try {
          records = converter.toMap(csvMessage);

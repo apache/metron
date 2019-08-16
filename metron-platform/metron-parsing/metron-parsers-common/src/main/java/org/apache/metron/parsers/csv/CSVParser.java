@@ -20,14 +20,13 @@ package org.apache.metron.parsers.csv;
 
 import com.google.common.collect.ImmutableList;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.metron.common.csv.CSVConverter;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.parsers.BasicParser;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +36,10 @@ public class CSVParser extends BasicParser {
   public static final String TIMESTAMP_FORMAT_CONF = "timestampFormat";
   private transient CSVConverter converter;
   private SimpleDateFormat timestampFormat;
+
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
     converter = new CSVConverter();
     converter.initialize(parserConfig);
     Object tsFormatObj = parserConfig.get(TIMESTAMP_FORMAT_CONF);
@@ -56,7 +57,7 @@ public class CSVParser extends BasicParser {
   @Override
   public List<JSONObject> parse(byte[] rawMessage) {
     try {
-      String msg = new String(rawMessage, StandardCharsets.UTF_8);
+      String msg = new String(rawMessage, getReadCharset());
       Map<String, String> value = converter.toMap(msg);
       if(value != null) {
         value.put("original_string", msg);
@@ -88,7 +89,7 @@ public class CSVParser extends BasicParser {
         return Collections.emptyList();
       }
     } catch (Throwable e) {
-      String message = "Unable to parse " + new String(rawMessage, StandardCharsets.UTF_8) + ": " + e.getMessage();
+      String message = "Unable to parse " + new String(rawMessage, getReadCharset()) + ": " + e.getMessage();
       LOG.error(message, e);
       throw new IllegalStateException(message, e);
     }

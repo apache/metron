@@ -20,7 +20,24 @@ package org.apache.metron.parsers.syslog;
 
 import com.github.palindromicity.syslog.SyslogParser;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Serializable;
+import java.io.StringReader;
+import java.lang.invoke.MethodHandles;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.parsers.DefaultMessageParserResult;
 import org.apache.metron.parsers.ParseException;
@@ -31,36 +48,18 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.StringReader;
-import java.lang.invoke.MethodHandles;
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-
 
 /**
  * Parser for well structured RFC 5424 messages.
  */
 public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Serializable {
+
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private Charset readCharset;
   private Optional<Consumer<JSONObject>> messageProcessorOptional = Optional.empty();
   private transient SyslogParser syslogParser;
-
   protected Clock deviceClock;
-
 
   protected void setSyslogParser(SyslogParser syslogParser) {
     this.syslogParser = syslogParser;
@@ -74,6 +73,7 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
     // we'll pull out the clock stuff ourselves
     String timeZone = (String) parserConfig.get("deviceTimeZone");
     if (timeZone != null)
@@ -110,7 +110,7 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
         return Optional.empty();
       }
 
-      String originalString = new String(rawMessage, StandardCharsets.UTF_8);
+      String originalString = new String(rawMessage, getReadCharset());
       final List<JSONObject> returnList = new ArrayList<>();
       Map<Object,Throwable> errorMap = new HashMap<>();
       try (Reader reader = new BufferedReader(new StringReader(originalString))) {
@@ -149,5 +149,18 @@ public abstract class BaseSyslogParser implements MessageParser<JSONObject>, Ser
           LocalDateTime.now()
               .toEpochSecond(ZoneOffset.UTC));
     }
+  }
+
+  public void setReadCharset(Map<String, Object> config) {
+    if (config.containsKey(READ_CHARSET)) {
+      readCharset = Charset.forName((String) config.get(READ_CHARSET));
+    } else {
+      readCharset = MessageParser.super.getReadCharset();
+    }
+  }
+
+  @Override
+  public Charset getReadCharset() {
+    return null == this.readCharset ? MessageParser.super.getReadCharset() : this.readCharset;
   }
 }

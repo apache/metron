@@ -17,17 +17,21 @@
  */
 package org.apache.metron.parsers.paloalto;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.parsers.AbstractParserConfigTest;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.List;
 
 public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
@@ -752,5 +756,20 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
     JSONObject actual = parser.parse(invalidLengthMessage.getBytes(StandardCharsets.UTF_8)).get(0);
     String expectedParserVersion = actual.get(BasicPaloAltoFirewallParser.ParserVersion).toString();
     assertEquals(expectedParserVersion, "0");
+  }
+
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
   }
 }

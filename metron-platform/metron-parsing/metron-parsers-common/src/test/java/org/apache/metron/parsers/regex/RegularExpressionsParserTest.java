@@ -14,17 +14,21 @@
  */
 package org.apache.metron.parsers.regex;
 
-import java.nio.charset.StandardCharsets;
-import org.adrianwalker.multilinestring.Multiline;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class RegularExpressionsParserTest {
 
@@ -274,4 +278,20 @@ public class RegularExpressionsParserTest {
         }
         throw new Exception("Could not parse : " + message);
     }
+
+    @Test
+    public void getsReadCharsetFromConfig() throws ParseException {
+        JSONObject config = (JSONObject) new JSONParser().parse(parserConfig1);
+        config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+        regularExpressionsParser.configure(config);
+        assertThat(regularExpressionsParser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+    }
+
+    @Test
+    public void getsReadCharsetFromDefault() throws ParseException {
+      JSONObject config = (JSONObject) new JSONParser().parse(parserConfig1);
+      regularExpressionsParser.configure(config);
+      assertThat(regularExpressionsParser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
+    }
+
 }

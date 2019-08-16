@@ -29,7 +29,6 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -106,6 +105,7 @@ public class JSONMapParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> config) {
+    setReadCharset(config);
     String strategyStr = (String) config.getOrDefault(MAP_STRATEGY_CONFIG, MapStrategy.DROP.name());
     mapStrategy = MapStrategy.valueOf(strategyStr);
     overrideOriginalString = (Boolean) config.getOrDefault(OVERRIDE_ORIGINAL_STRING, false);
@@ -170,7 +170,7 @@ public class JSONMapParser extends BasicParser {
   @SuppressWarnings("unchecked")
   public List<JSONObject> parse(byte[] rawMessage) {
     try {
-      String rawString = new String(rawMessage, StandardCharsets.UTF_8);
+      String rawString = new String(rawMessage, getReadCharset());
       List<Map<String, Object>> messages = new ArrayList<>();
 
       // if configured, wrap the json in an entity and array
@@ -203,7 +203,7 @@ public class JSONMapParser extends BasicParser {
       }
       return Collections.unmodifiableList(parsedMessages);
     } catch (Throwable e) {
-      String message = "Unable to parse " + new String(rawMessage, StandardCharsets.UTF_8) + ": " + e.getMessage();
+      String message = "Unable to parse " + new String(rawMessage, getReadCharset()) + ": " + e.getMessage();
       LOG.error(message, e);
       throw new IllegalStateException(message, e);
     }

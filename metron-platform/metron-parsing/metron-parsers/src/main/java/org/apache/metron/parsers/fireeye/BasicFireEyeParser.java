@@ -55,7 +55,9 @@ public class BasicFireEyeParser extends BasicParser {
   private static final Pattern nvPattern = Pattern.compile(nvRegex);
 
   @Override
-  public void configure(Map<String, Object> parserConfig) {}
+  public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
+  }
 
   @Override
   public void init() {}
@@ -68,7 +70,7 @@ public class BasicFireEyeParser extends BasicParser {
     List<JSONObject> messages = new ArrayList<>();
     try {
 
-      toParse = new String(rawMessage, StandardCharsets.UTF_8);
+      toParse = new String(rawMessage, getReadCharset());
 
       // because we support what is basically a malformed syslog 3164 message having
       // some form of text before the PRIORITY, we need to use the priority as
