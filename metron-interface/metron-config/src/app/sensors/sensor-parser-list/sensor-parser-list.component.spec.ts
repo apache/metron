@@ -544,21 +544,6 @@ describe('Component: SensorParserList', () => {
     let sensor: ParserMetaInfoModel = { config: sensorParserConfig1, status: new TopologyStatus() };
 
     sensor.status.status = 'KILLED';
-    expect(component.isStartable(sensor)).toBe(true);
-
-    sensor.status.status = 'ACTIVE';
-    expect(component.isStartable(sensor)).toBe(false);
-
-    sensor.status.status = 'INACTIVE';
-    expect(component.isStartable(sensor)).toBe(false);
-  }));
-
-  it('isEnableable() should return true only when a parser is ACTIVE', async(() => {
-    const component = Object.create( SensorParserListComponent.prototype );
-    const sensorParserConfig1 = new ParserConfigModel('TestConfigId01');
-    let sensor: ParserMetaInfoModel = { config: sensorParserConfig1, status: new TopologyStatus() };
-
-    sensor.status.status = 'KILLED';
     expect(component.isEnableable(sensor)).toBe(false);
 
     sensor.status.status = 'ACTIVE';

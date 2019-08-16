@@ -220,6 +220,10 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
     this.store.dispatch(new fromActions.DisableSensor({
       parser: sensor,
     }));
+
+    if (event !== null) {
+      event.stopPropagation();
+    }
   }
 
   onEnableSensors() {
