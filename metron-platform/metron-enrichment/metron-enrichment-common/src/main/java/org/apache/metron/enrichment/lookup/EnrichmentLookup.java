@@ -19,8 +19,8 @@ package org.apache.metron.enrichment.lookup;
 
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -38,14 +38,14 @@ import java.util.List;
 public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, EnrichmentKey, LookupKV<EnrichmentKey,EnrichmentValue>> implements AutoCloseable {
 
   public static class HBaseContext {
-    private Table table;
+    private HTableInterface table;
     private String columnFamily;
-    public HBaseContext(Table table, String columnFamily) {
+    public HBaseContext(HTableInterface table, String columnFamily) {
       this.table = table;
       this.columnFamily = columnFamily;
     }
 
-    public Table getTable() { return table; }
+    public HTableInterface getTable() { return table; }
     public String getColumnFamily() { return columnFamily; }
   }
 
@@ -84,7 +84,7 @@ public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, Enri
       if(Iterables.isEmpty(key)) {
         return Collections.emptyList();
       }
-      Table table = Iterables.getFirst(key, null).getContext().getTable();
+      HTableInterface table = Iterables.getFirst(key, null).getContext().getTable();
       for(boolean b : table.existsAll(keysToGets(key))) {
         ret.add(b);
       }
@@ -99,7 +99,7 @@ public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, Enri
       if(Iterables.isEmpty(keys)) {
         return Collections.emptyList();
       }
-      Table table = Iterables.getFirst(keys, null).getContext().getTable();
+      HTableInterface table = Iterables.getFirst(keys, null).getContext().getTable();
       List<LookupKV<EnrichmentKey, EnrichmentValue>> ret = new ArrayList<>();
       Iterator<KeyWithContext<EnrichmentKey, HBaseContext>> keyWithContextIterator = keys.iterator();
       for(Result result : table.get(keysToGets(keys))) {
@@ -115,22 +115,14 @@ public class EnrichmentLookup extends Lookup<EnrichmentLookup.HBaseContext, Enri
 
     }
   }
-  private Table table;
-  public EnrichmentLookup(Table table, String columnFamily, AccessTracker tracker) {
+  private HTableInterface table;
+  public EnrichmentLookup(HTableInterface table, String columnFamily, AccessTracker tracker) {
     this.table = table;
     this.setLookupHandler(new Handler(columnFamily));
     this.setAccessTracker(tracker);
   }
 
-  protected EnrichmentLookup() {
-    /*
-     * A default constructor is required to allow the FakeEnrichmentLookup
-     * to be serialized by Storm during the integration tests.  This is because
-     * FakeEnrichmentLookup inherits from EnrichmentLookup.
-     */
-  }
-
-  public Table getTable() {
+  public HTableInterface getTable() {
     return table;
   }
 

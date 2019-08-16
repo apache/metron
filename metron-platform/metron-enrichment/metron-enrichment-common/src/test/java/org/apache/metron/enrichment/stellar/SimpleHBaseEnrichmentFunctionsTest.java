@@ -19,84 +19,59 @@
 package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
-import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
-import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
 
+import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.apache.metron.stellar.dsl.functions.FunctionalFunctions;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.metron.enrichment.lookup.LookupKV;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.collect.ImmutableMap.of;
-import static org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions.EnrichmentExists;
-import static org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions.EnrichmentGet;
-
 public class SimpleHBaseEnrichmentFunctionsTest {
+  private final String hbaseTableName = "enrichments";
   private static final String ENRICHMENT_TYPE = "et";
+  private String cf = "cf";
   private static Context context;
-  private EnrichmentExists existsFunction;
-  private EnrichmentGet getFunction;
+
+
 
   @Before
   public void setup() throws Exception {
-    // provides the enrichment data to the functions
-    FakeEnrichmentLookup lookup = new FakeEnrichmentLookup()
-            .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator0"), new EnrichmentValue(of("key0", "value0")))
-            .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator1"), new EnrichmentValue(of("key1", "value1")))
-            .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator2"), new EnrichmentValue(of("key2", "value2")))
-            .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator3"), new EnrichmentValue(of("key3", "value3")))
-            .withEnrichment(new EnrichmentKey(ENRICHMENT_TYPE, "indicator4"), new EnrichmentValue(of("key4", "value4")));
 
+    final MockHTable hbaseTable = (MockHTable) MockHBaseTableProvider.addToCache(hbaseTableName, cf);
+    EnrichmentHelper.INSTANCE.load(hbaseTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
+      for(int i = 0;i < 5;++i) {
+        add(new LookupKV<>(new EnrichmentKey(ENRICHMENT_TYPE, "indicator" + i)
+                        , new EnrichmentValue(ImmutableMap.of("key" + i, "value" + i))
+                )
+        );
+      }
+    }});
     context = new Context.Builder()
             .with( Context.Capabilities.GLOBAL_CONFIG
-                 , () -> ImmutableMap.of( SimpleHBaseEnrichmentFunctions.CONNECTION_FACTORY_IMPL_CONF
-                                        , FakeHBaseConnectionFactory.class.getName()
+                 , () -> ImmutableMap.of( SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF
+                                        , MockHBaseTableProvider.class.getName()
                                         )
                  )
             .build();
-
-    EnrichmentLookupFactory factory = (connFact, conf, tableName, colFam, accessTracker) -> lookup;
-    Configuration configuration = HBaseConfiguration.create();
-
-    // the ENRICHMENT_EXIST function to test
-    existsFunction = new EnrichmentExists(factory, configuration);
-    existsFunction.initialize(context);
-
-    // the ENRICHMENT_GET function to test
-    getFunction = new EnrichmentGet(factory, configuration);
-    getFunction.initialize(context);
   }
-
-  public Object run(String rule, Map<String, Object> variables) {
+  public Object run(String rule, Map<String, Object> variables) throws Exception {
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-
-    VariableResolver variableResolver = new DefaultVariableResolver(
-            x -> variables.get(x),
-            x -> variables.containsKey(x));
-    FunctionResolver functionResolver = new SimpleFunctionResolver()
-            .withClass(EnrichmentGet.class)
-            .withClass(EnrichmentExists.class)
-            .withClass(FunctionalFunctions.Map.class)
-            .withInstance(existsFunction)
-            .withInstance(getFunction);
-    return processor.parse(rule, variableResolver, functionResolver, context);
+    return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test

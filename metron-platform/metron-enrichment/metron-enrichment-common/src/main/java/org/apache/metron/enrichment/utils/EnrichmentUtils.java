@@ -21,15 +21,17 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
+import org.apache.metron.hbase.TableProvider;
 import org.json.simple.JSONObject;
 
 public class EnrichmentUtils {
@@ -43,8 +45,8 @@ public class EnrichmentUtils {
   public static class TypeToKey implements Function<String, KeyWithContext<EnrichmentKey, EnrichmentLookup.HBaseContext>> {
     private final String indicator;
     private final EnrichmentConfig config;
-    private final Table table;
-    public TypeToKey(String indicator, Table table, EnrichmentConfig config) {
+    private final HTableInterface table;
+    public TypeToKey(String indicator, HTableInterface table, EnrichmentConfig config) {
       this.indicator = indicator;
       this.config = config;
       this.table = table;
@@ -91,6 +93,28 @@ public class EnrichmentUtils {
       return null;
     }
     return Iterables.getLast(Splitter.on('.').split(field));
+  }
+
+  public static TableProvider getTableProvider(String connectorImpl, TableProvider defaultImpl) {
+    if(connectorImpl == null || connectorImpl.length() == 0 || connectorImpl.charAt(0) == '$') {
+      return defaultImpl;
+    }
+    else {
+      try {
+        Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(connectorImpl);
+        return clazz.getConstructor().newInstance();
+      } catch (InstantiationException e) {
+        throw new IllegalStateException("Unable to instantiate connector.", e);
+      } catch (IllegalAccessException e) {
+        throw new IllegalStateException("Unable to instantiate connector: illegal access", e);
+      } catch (InvocationTargetException e) {
+        throw new IllegalStateException("Unable to instantiate connector", e);
+      } catch (NoSuchMethodException e) {
+        throw new IllegalStateException("Unable to instantiate connector: no such method", e);
+      } catch (ClassNotFoundException e) {
+        throw new IllegalStateException("Unable to instantiate connector: class not found", e);
+      }
+    }
   }
 
   public static JSONObject adjustKeys(JSONObject enrichedMessage, JSONObject enrichedField, String field, String prefix) {

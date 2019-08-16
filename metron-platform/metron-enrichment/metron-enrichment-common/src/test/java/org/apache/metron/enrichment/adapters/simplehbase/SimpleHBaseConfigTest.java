@@ -17,28 +17,26 @@
  */
 package org.apache.metron.enrichment.adapters.simplehbase;
 
-import org.apache.metron.enrichment.lookup.FakeEnrichmentLookupFactory;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class SimpleHBaseConfigTest {
-    private final String cf ="cf";
-    private final String table = "threatintel";
+
+
+    private String cf ="cf";
+    private String table = "threatintel";
+    private TableProvider provider;
 
     @Test
-    public void test() {
-        FakeEnrichmentLookupFactory factory = new FakeEnrichmentLookupFactory();
-
+    public void test(){
         SimpleHBaseConfig shc = new SimpleHBaseConfig();
         shc.withHBaseCF(cf);
         shc.withHBaseTable(table);
-        shc.withConnectionFactoryImpl(HBaseConnectionFactory.class.getName());
-        shc.withEnrichmentLookupFactory(factory);
-
+        provider = new HTableProvider();
         Assert.assertEquals(cf, shc.getHBaseCF());
         Assert.assertEquals(table, shc.getHBaseTable());
-        Assert.assertTrue(shc.getConnectionFactory() instanceof HBaseConnectionFactory);
-        Assert.assertEquals(factory, shc.getEnrichmentLookupFactory());
     }
+
 }

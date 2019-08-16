@@ -17,9 +17,9 @@
  */
 package org.apache.metron.enrichment.adapters.threatintel;
 
-import org.apache.metron.enrichment.lookup.EnrichmentLookupFactory;
-import org.apache.metron.enrichment.lookup.EnrichmentLookupFactories;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
+import org.apache.metron.enrichment.utils.EnrichmentUtils;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
 
 import java.io.Serializable;
 
@@ -32,8 +32,7 @@ public class ThreatIntelConfig implements Serializable {
   private String trackerHBaseTable;
   private String trackerHBaseCF;
   private long millisecondsBetweenPersists = 2*MS_IN_HOUR;
-  private HBaseConnectionFactory connectionFactory = new HBaseConnectionFactory();
-  private EnrichmentLookupFactory enrichmentLookupFactory = EnrichmentLookupFactories.HBASE;
+  private TableProvider provider = new HTableProvider();
 
   public String getHBaseTable() {
     return hBaseTable;
@@ -63,12 +62,13 @@ public class ThreatIntelConfig implements Serializable {
     return hBaseCF;
   }
 
-  public HBaseConnectionFactory getConnectionFactory() {
-    return connectionFactory;
+  public TableProvider getProvider() {
+    return provider;
   }
 
-  public EnrichmentLookupFactory getEnrichmentLookupFactory() {
-    return enrichmentLookupFactory;
+  public ThreatIntelConfig withProviderImpl(String connectorImpl) {
+    provider = EnrichmentUtils.getTableProvider(connectorImpl, new HTableProvider());
+    return this;
   }
 
   public ThreatIntelConfig withTrackerHBaseTable(String hBaseTable) {
@@ -102,21 +102,6 @@ public class ThreatIntelConfig implements Serializable {
 
   public ThreatIntelConfig withMillisecondsBetweenPersists(long millisecondsBetweenPersists) {
     this.millisecondsBetweenPersists = millisecondsBetweenPersists;
-    return this;
-  }
-
-  public ThreatIntelConfig withConnectionFactory(HBaseConnectionFactory connectionFactory) {
-    this.connectionFactory = connectionFactory;
-    return this;
-  }
-
-  public ThreatIntelConfig withEnrichmentLookupFactory(EnrichmentLookupFactory enrichmentLookupFactory) {
-    this.enrichmentLookupFactory = enrichmentLookupFactory;
-    return this;
-  }
-
-  public ThreatIntelConfig withEnrichmentLookupFactory(String clazzName) {
-    this.enrichmentLookupFactory = EnrichmentLookupFactories.byName(clazzName);
     return this;
   }
 }

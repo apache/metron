@@ -23,8 +23,8 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.bulk.LeastRecentlyUsedPruner;
@@ -35,12 +35,8 @@ import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,8 +49,8 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
     private static HBaseTestingUtility testUtil;
 
     /** The test table. */
-    private static Table testTable;
-    private static Table atTable;
+    private static HTable testTable;
+    private static HTable atTable;
     private static final String tableName = "malicious_domains";
     private static final String cf = "cf";
     private static final String atTableName = "access_trackers";
@@ -69,8 +65,8 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
         config = kv.getValue();
         testUtil = kv.getKey();
-        testTable = testUtil.createTable(TableName.valueOf(tableName), cf);
-        atTable = testUtil.createTable(TableName.valueOf(atTableName), atCF);
+        testTable = testUtil.createTable(Bytes.toBytes(tableName), Bytes.toBytes(cf));
+        atTable = testUtil.createTable(Bytes.toBytes(atTableName), Bytes.toBytes(atCF));
     }
 
     @AfterClass
@@ -106,8 +102,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
     public void test() throws Exception {
         long ts = System.currentTimeMillis();
         BloomAccessTracker bat = new BloomAccessTracker("tracker1", 100, 0.03);
-        PersistentAccessTracker pat = new PersistentAccessTracker(tableName, "0", atTable.getName().getNameAsString(),
-                atCF, bat, 0L, new HBaseConnectionFactory(), testUtil.getConfiguration());
+        PersistentAccessTracker pat = new PersistentAccessTracker(tableName, "0", atTable, atCF, bat, 0L);
         EnrichmentLookup lookup = new EnrichmentLookup(testTable, cf, pat);
         List<LookupKey> goodKeysHalf = getKeys(0, 5);
         List<LookupKey> goodKeysOtherHalf = getKeys(5, 10);

@@ -18,15 +18,22 @@
 package org.apache.metron.enrichment.adapters.threatintel;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.cache.CacheKey;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.FakeEnrichmentLookup;
-import org.apache.metron.enrichment.lookup.FakeEnrichmentLookupFactory;
-import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
+import org.apache.metron.enrichment.lookup.EnrichmentLookup;
+import org.apache.metron.enrichment.converter.EnrichmentHelper;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
+import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -34,16 +41,28 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
 public class ThreatIntelAdapterTest {
 
-  private SensorEnrichmentConfig config;
+  public static class ExceptionProvider implements TableProvider {
+
+    public ExceptionProvider() {};
+
+    @Override
+    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
+      throw new IOException();
+    }
+  }
+
+  private String cf = "cf";
+  private String atTableName = "tracker";
   private static final String MALICIOUS_IP_TYPE = "malicious_ip";
-  private FakeEnrichmentLookup lookup;
-  private ThreatIntelAdapter threatIntelAdapter;
-  private ThreatIntelConfig threatIntelConfig;
+  private final String threatIntelTableName = "threat_intel";
+  private EnrichmentLookup lookup;
 
   /**
     {
@@ -79,75 +98,42 @@ public class ThreatIntelAdapterTest {
 
   @Before
   public void setup() throws Exception {
-    // deserialize the enrichment configuration
-    config = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
 
-    // create an enrichment where the indicator is the IP address
-    lookup = new FakeEnrichmentLookup()
-            .withEnrichment(
-                    new EnrichmentKey("10.0.2.3", "10.0.2.3"),
-                    new EnrichmentValue());
+    final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(atTableName, cf);
+    final MockHTable threatIntelTable = (MockHTable) MockHBaseTableProvider.addToCache(threatIntelTableName, cf);
+    EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
+      add(new LookupKV<>(new EnrichmentKey("10.0.2.3", "10.0.2.3"), new EnrichmentValue(new HashMap<>())));
+    }});
 
-    threatIntelConfig = new ThreatIntelConfig()
-            .withHBaseTable("enrichment")
-            .withHBaseCF("cf")
-            .withTrackerHBaseTable("tracker")
-            .withTrackerHBaseCF("cf")
-            .withConnectionFactory(new FakeHBaseConnectionFactory())
-            .withEnrichmentLookupFactory(new FakeEnrichmentLookupFactory(lookup));
-
-    threatIntelAdapter = new ThreatIntelAdapter(threatIntelConfig);
-    threatIntelAdapter.lookup = lookup;
-    threatIntelAdapter.initializeAdapter(new HashMap<>());
-
+    BloomAccessTracker bat = new BloomAccessTracker(threatIntelTableName, 100, 0.03);
+    PersistentAccessTracker pat = new PersistentAccessTracker(threatIntelTableName, "0", trackerTable, cf, bat, 0L);
+    lookup = new EnrichmentLookup(threatIntelTable, cf, pat);
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
   }
 
+
   @Test
   public void testEnrich() throws Exception {
+    ThreatIntelAdapter tia = new ThreatIntelAdapter();
+    tia.lookup = lookup;
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
-    JSONObject actualMessage = threatIntelAdapter.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
+    JSONObject actualMessage = tia.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
     Assert.assertNotNull(actualMessage);
     Assert.assertEquals(expectedMessage, actualMessage);
   }
 
   @Test
   public void testEnrichNonString() throws Exception {
+    ThreatIntelAdapter tia = new ThreatIntelAdapter();
+    tia.lookup = lookup;
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
-    JSONObject actualMessage = threatIntelAdapter.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
+    JSONObject actualMessage = tia.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
     Assert.assertNotNull(actualMessage);
     Assert.assertEquals(expectedMessage, actualMessage);
 
-    actualMessage = threatIntelAdapter.enrich(new CacheKey("ip_dst_addr", 10L, broSc));
+    actualMessage = tia.enrich(new CacheKey("ip_dst_addr", 10L, broSc));
     Assert.assertEquals(actualMessage,new JSONObject());
-  }
-
-  @Test
-  public void testMiss() {
-    JSONObject actual = threatIntelAdapter.enrich(new CacheKey("ip_dst_addr", "4.4.4.4", config));
-
-    // not a known IP in either the enrichment data
-    JSONObject expected = new JSONObject();
-    Assert.assertEquals(expected, actual);
-  }
-
-  @Test
-  public void testMissWithNonStringValue() {
-    JSONObject actual = threatIntelAdapter.enrich(new CacheKey("ip_dst_addr", 10L, config));
-
-    // not a known IP in either the enrichment data
-    JSONObject expected = new JSONObject();
-    Assert.assertEquals(expected, actual);
-  }
-
-  @Test
-  public void testNoEnrichmentDefined() {
-    JSONObject actual = threatIntelAdapter.enrich(new CacheKey("username", "ada_lovelace", config));
-
-    // no enrichment defined for the field 'username'
-    JSONObject expected = new JSONObject();
-    Assert.assertEquals(expected, actual);
   }
 
   @Test
@@ -169,14 +155,12 @@ public class ThreatIntelAdapterTest {
     config.withMillisecondsBetweenPersists(millionseconds);
     config.withTrackerHBaseCF(trackCf);
     config.withTrackerHBaseTable(trackTable);
-    config.withEnrichmentLookupFactory(new FakeEnrichmentLookupFactory(lookup));
-    config.withConnectionFactory(new FakeHBaseConnectionFactory());
-
+    config.withProviderImpl(ExceptionProvider.class.getName());
     ThreatIntelAdapter tia = new ThreatIntelAdapter(config);
     UnitTestHelper.setLog4jLevel(ThreatIntelAdapter.class, Level.FATAL);
     tia.initializeAdapter(null);
     UnitTestHelper.setLog4jLevel(ThreatIntelAdapter.class, Level.ERROR);
-    Assert.assertTrue(tia.isInitialized());
+    Assert.assertFalse(tia.isInitialized());
   }
 
 

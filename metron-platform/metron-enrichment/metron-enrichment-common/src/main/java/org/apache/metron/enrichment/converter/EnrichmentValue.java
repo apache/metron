@@ -23,7 +23,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class EnrichmentValue implements LookupValue {
@@ -36,20 +35,18 @@ public class EnrichmentValue implements LookupValue {
     public static final String VALUE_COLUMN_NAME = "v";
     public static final byte[] VALUE_COLUMN_NAME_B = Bytes.toBytes(VALUE_COLUMN_NAME);
 
-    private Map<String, Object> metadata;
+    private Map<String, Object> metadata = null;
 
-    public EnrichmentValue() {
-      metadata = new HashMap<>();
+    public EnrichmentValue()
+    {
+
     }
 
     public EnrichmentValue(Map<String, Object> metadata) {
         this.metadata = metadata;
     }
 
-    public EnrichmentValue withValue(String key, Object value) {
-        metadata.put(key, value);
-        return this;
-    }
+
 
     public Map<String, Object> getMetadata() {
         return metadata;

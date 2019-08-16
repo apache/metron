@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,26 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.enrichment.lookup;
+package org.apache.metron.enrichment.converter;
 
-import org.junit.Test;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.metron.enrichment.lookup.LookupKV;
 
-import static org.junit.Assert.assertNotNull;
+import java.io.IOException;
 
-public class EnrichmentLookupFactoriesTest {
+public enum EnrichmentHelper {
+    INSTANCE;
+    EnrichmentConverter converter = new EnrichmentConverter();
 
-  @Test
-  public void byEnumName() {
-    assertNotNull(EnrichmentLookupFactories.byName(EnrichmentLookupFactories.HBASE.name()));
-  }
-
-  @Test
-  public void byClassName() {
-    assertNotNull(EnrichmentLookupFactories.byName(FakeEnrichmentLookupFactory.class.getName()));
-  }
-
-  @Test(expected=IllegalStateException.class)
-  public void shouldFailWithInvalidName() {
-    EnrichmentLookupFactories.byName("this-is-an-invalid-name");
-  }
+    public void load(HTableInterface table, String cf, Iterable<LookupKV<EnrichmentKey, EnrichmentValue>> results) throws IOException {
+        for(LookupKV<EnrichmentKey, EnrichmentValue> result : results) {
+            Put put = converter.toPut(cf, result.getKey(), result.getValue());
+            table.put(put);
+        }
+    }
 }
