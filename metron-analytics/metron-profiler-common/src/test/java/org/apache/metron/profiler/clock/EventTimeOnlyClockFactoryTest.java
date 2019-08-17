@@ -25,8 +25,9 @@ import org.junit.Test;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 
 /**
  * Tests the {@link EventTimeOnlyClockFactory}.
