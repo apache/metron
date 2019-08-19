@@ -36,7 +36,7 @@ export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 export HADOOP_OPTS="$HADOOP_OPTS $METRON_JVMFLAGS"
 if [ $(which hadoop) ]
 then
-  HADOOP_CLASSPATH=$METRON_HOME/lib/$STELLAR_JAR:${HBASE_HOME}/lib/hbase-server.jar:`${HBASE_HOME}/bin/hbase classpath`
+  HADOOP_CLASSPATH=$METRON_HOME/lib/$DM_JAR:$METRON_HOME/lib/$STELLAR_JAR:${HBASE_HOME}/lib/hbase-server.jar:`${HBASE_HOME}/bin/hbase classpath`
   for jar in $(echo $HADOOP_CLASSPATH | sed 's/:/ /g');do
     if [ -f $jar ];then
       LIBJARS="$jar,$LIBJARS"

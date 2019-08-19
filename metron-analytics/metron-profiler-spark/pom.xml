@@ -63,6 +63,7 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>stellar-common</artifactId>
             <version>${project.parent.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
