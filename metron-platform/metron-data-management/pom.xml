@@ -457,6 +457,9 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- This plugin changes the integration tests in this module to use an external dependency jar for stellar-common.  This is necessary because conflicting versions of
+                    guava is required by code in both this module and the stellar-common module.  -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
