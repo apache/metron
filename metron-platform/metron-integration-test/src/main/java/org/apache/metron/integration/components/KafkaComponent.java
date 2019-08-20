@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
 public class KafkaComponent implements InMemoryComponent {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int POLL_SECONDS = 1;
 
   public static class Topic {
     public int numPartitions;
@@ -214,6 +215,7 @@ public class KafkaComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
+    shutdownConsumer();
     shutdownProducers();
 
     if(kafkaServer != null) {
@@ -262,12 +264,18 @@ public class KafkaComponent implements InMemoryComponent {
     consumer.assign(Arrays.asList(new TopicPartition(topic, 0)));
     consumer.seek(new TopicPartition(topic, 0), 0);
     List<byte[]> messages = new ArrayList<>();
-    ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(1));
+    ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(POLL_SECONDS));
     for(ConsumerRecord<byte[], byte[]> record: records) {
       messages.add(record.value());
     }
 
     return messages;
+  }
+
+  public void shutdownConsumer() {
+    if(consumer != null) {
+      consumer.close();
+    }
   }
 
   public void shutdownProducers() {

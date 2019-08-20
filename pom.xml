@@ -104,7 +104,7 @@
         <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
-        <global_kafka_version>0.10.0.1</global_kafka_version>
+        <global_kafka_version>2.0.0</global_kafka_version>
         <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
         <global_hbase_version>${base_hbase_version}</global_hbase_version>
         <global_flume_version>${base_flume_version}</global_flume_version>
@@ -142,24 +142,12 @@
 
     <profiles>
         <profile>
-            <id>HDP-3.1.0.0</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <hdp_version>3.1.0.0</hdp_version>
-                <global_storm_version>1.2.1</global_storm_version>
-                <global_kafka_version>2.0.0</global_kafka_version>
-            </properties>
-        </profile>
-        <profile>
             <id>HDP-2.5.0.0</id>
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
                 <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
-                <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
             </properties>
         </profile>
     </profiles>
