@@ -34,11 +34,13 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.TopicExistsException;
 import kafka.server.KafkaConfig;
@@ -141,7 +143,7 @@ public class KafkaComponent implements InMemoryComponent {
 
   public AdminClient createAdminClient() {
     Map<String, Object> adminConfig = new HashMap<>();
-    adminConfig.put("bootstrap.servers", getBrokerList());
+    adminConfig.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerList());
     AdminClient adminClient = KafkaAdminClient.create(adminConfig);
     return adminClient;
   }
@@ -149,10 +151,10 @@ public class KafkaComponent implements InMemoryComponent {
   public <K,V> KafkaProducer<K,V> createProducer(Map<String, Object> properties, Class<K> keyClass, Class<V> valueClass)
   {
     Map<String, Object> producerConfig = new HashMap<>();
-    producerConfig.put("bootstrap.servers", getBrokerList());
-    producerConfig.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-    producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-    producerConfig.put("request.required.acks", "-1");
+    producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerList());
+    producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
+    producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
+    producerConfig.put(ProducerConfig.ACKS_CONFIG, "-1");
     producerConfig.put("fetch.message.max.bytes", ""+ 1024*1024*10);
     producerConfig.put("replica.fetch.max.bytes", "" + 1024*1024*10);
     producerConfig.put("message.max.bytes", "" + 1024*1024*10);
@@ -165,11 +167,11 @@ public class KafkaComponent implements InMemoryComponent {
 
   public <K,V> KafkaConsumer<K, V> createConsumer(Map<String, Object> properties) {
     Properties consumerConfig = new Properties();
-    consumerConfig.put("bootstrap.servers", getBrokerList());
-    consumerConfig.put("group.id", "consumer");
+    consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerList());
+    consumerConfig.put(ConsumerConfig.GROUP_ID_CONFIG, "consumer");
     consumerConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-    consumerConfig.put("key.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-    consumerConfig.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
     consumerConfig.putAll(properties);
     KafkaConsumer consumer = new KafkaConsumer<>(consumerConfig);
     return consumer;
