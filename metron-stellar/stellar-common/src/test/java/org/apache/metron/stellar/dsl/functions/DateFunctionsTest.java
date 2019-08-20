@@ -260,7 +260,7 @@ public class DateFunctionsTest {
     Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzzz', epoch)");
 
     boolean inDaylightSavings = ZoneId.of( TimeZone.getDefault().getID() )
-            .getRules().isDaylightSavings(Instant.now() );
+            .getRules().isDaylightSavings(Instant.ofEpochMilli(AUG2016) );
     assertTrue(result.toString().endsWith(TimeZone.getDefault().getDisplayName(inDaylightSavings, 1)));
   }
 
