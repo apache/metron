@@ -28,7 +28,9 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -256,7 +258,10 @@ public class DateFunctionsTest {
   @Test
   public void testDateFormatDefaultTimezone() {
     Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzzz', epoch)");
-    assertTrue(result.toString().endsWith(TimeZone.getDefault().getDisplayName(true, 1)));
+
+    boolean inDaylightSavings = ZoneId.of( TimeZone.getDefault().getID() )
+            .getRules().isDaylightSavings(Instant.now() );
+    assertTrue(result.toString().endsWith(TimeZone.getDefault().getDisplayName(inDaylightSavings, 1)));
   }
 
   /**
