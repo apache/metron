@@ -8,12 +8,12 @@ import { POLLING_DEFAULT_STATE } from 'app/utils/constants';
 
 @Injectable()
 export class AutoPollingService {
-  isPollingActive = POLLING_DEFAULT_STATE;
   data = new Subject<SearchResponse>();
-  isCongestion = false;
-  isPending = false;
 
+  private isCongestion = false;
   private interval = 10;
+  private isPollingActive = POLLING_DEFAULT_STATE;
+  private isPending = false;
   private isPollingSuppressed = false;
   private pollingIntervalSubs: Subscription;
 
@@ -32,6 +32,10 @@ export class AutoPollingService {
     this.isPollingSuppressed = value;
   }
 
+  dropNextAndContinue() {
+    this.reset();
+  }
+
   setInterval(seconds: number) {
     this.interval = seconds;
 
@@ -40,9 +44,18 @@ export class AutoPollingService {
     }
   }
 
+  getIsPollingActive() {
+    return this.isPollingActive;
+  }
+
+  getIsCongestion() {
+    return this.isCongestion
+  }
+
   private reset() {
     if (this.pollingIntervalSubs) {
-      this.pollingIntervalSubs.unsubscribe();  
+      this.pollingIntervalSubs.unsubscribe();
+      this.isPending = false;
     }
     this.activate();
   }

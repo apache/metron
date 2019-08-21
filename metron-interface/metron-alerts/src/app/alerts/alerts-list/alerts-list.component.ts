@@ -397,6 +397,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
       this.pendingSearch = null;
     });
+
+    if (this.autoPollingSvc.getIsPollingActive()) {
+      this.autoPollingSvc.dropNextAndContinue();
+    }
   }
 
   setSearchRequestSize() {
@@ -496,7 +500,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   getStaleDataWarning() {
-    if (this.autoPollingSvc.isPollingActive) {
+    if (this.autoPollingSvc.getIsPollingActive()) {
       return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
         Click <i class="fa fa-search" aria-hidden="true"></i> to update your view based
         on your current filter and time-range configuration!`;
@@ -517,7 +521,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   private restoreAutoPollingState() {
-    if (this.autoPollingSvc.isPollingActive) {
+    if (this.autoPollingSvc.getIsPollingActive()) {
       this.autoPollingSvc.setSuppression(false);
     }
   }
