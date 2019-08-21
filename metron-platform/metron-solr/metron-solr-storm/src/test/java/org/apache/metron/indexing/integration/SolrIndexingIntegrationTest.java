@@ -18,6 +18,8 @@
 package org.apache.metron.indexing.integration;
 
 import com.google.common.base.Function;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -39,6 +41,7 @@ import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.solr.SolrConstants;
 import org.apache.metron.solr.integration.components.SolrComponent;
+import org.apache.solr.client.solrj.SolrServerException;
 
 
 public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
@@ -85,18 +88,22 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
       public ReadinessState process(ComponentRunner runner) {
         SolrComponent solrComponent = runner.getComponent("search", SolrComponent.class);
         KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
-        if (solrComponent.hasCollection(collection)) {
-          docs = solrComponent.getAllIndexedDocs(collection);
-          if (docs.size() < inputMessages.size() ) {
-            errors = kafkaComponent.readMessages(ERROR_TOPIC);
-            if(errors.size() > 0 && errors.size() + docs.size() == inputMessages.size()){
+        try {
+          if (solrComponent.hasCollection(collection)) {
+            docs = solrComponent.getAllIndexedDocs(collection);
+            if (docs.size() < inputMessages.size() ) {
+              errors = kafkaComponent.readMessages(ERROR_TOPIC);
+              if(errors.size() > 0 && errors.size() + docs.size() == inputMessages.size()){
+                return ReadinessState.READY;
+              }
+              return ReadinessState.NOT_READY;
+            } else {
               return ReadinessState.READY;
             }
-            return ReadinessState.NOT_READY;
           } else {
-            return ReadinessState.READY;
+            return ReadinessState.NOT_READY;
           }
-        } else {
+        } catch (IOException | SolrServerException e) {
           return ReadinessState.NOT_READY;
         }
       }

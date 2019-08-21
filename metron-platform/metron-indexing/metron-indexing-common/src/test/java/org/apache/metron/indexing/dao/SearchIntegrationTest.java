@@ -710,14 +710,6 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void different_type_facet_query() throws Exception {
-    thrown.expect(Exception.class);
-    SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
-    SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(3, response.getTotal());
-  }
-
-  @Test
   public void exceeding_max_results_throws_exception() throws Exception {
     thrown.expect(InvalidSearchException.class);
     thrown.expectMessage("Search result size must be less than 100");
@@ -934,8 +926,13 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public abstract void returns_column_data_for_multiple_indices() throws Exception;
+
   @Test
   public abstract void returns_column_metadata_for_specified_indices() throws Exception;
+
+  @Test
+  public abstract void different_type_facet_query() throws Exception;
+
   @Test
   public abstract void different_type_filter_query() throws Exception;
 

@@ -271,6 +271,14 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   }
 
   @Test
+  public void different_type_facet_query() throws Exception {
+    thrown.expect(Exception.class);
+    SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
+    SearchResponse response = getIndexDao().search(request);
+    Assert.assertEquals(3, response.getTotal());
+  }
+
+  @Test
   public void different_type_filter_query() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFilterQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);

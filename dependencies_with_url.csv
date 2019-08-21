@@ -127,7 +127,7 @@ org.slf4j:slf4j-simple:jar:1.7.7:compile,MIT,http://www.slf4j.org
 org.slf4j:jcl-over-slf4j:jar:1.7.7:compile,MIT,http://www.slf4j.org
 org.slf4j:jcl-over-slf4j:jar:1.7.16:compile,MIT,http://www.slf4j.org
 org.slf4j:jcl-over-slf4j:jar:1.7.21:compile,MIT,http://www.slf4j.org
-org.slf4j:jcl-over-slf4j:jar:1.7.21:compile,MIT,http://www.slf4j.org
+org.slf4j:jcl-over-slf4j:jar:1.7.24:compile,MIT,http://www.slf4j.org
 org.slf4j:jul-to-slf4j:jar:1.7.16:compile,MIT,http://www.slf4j.org
 org.slf4j:jul-to-slf4j:jar:1.7.21:compile,MIT,http://www.slf4j.org
 org.slf4j:jul-to-slf4j:jar:1.7.25:compile,MIT,http://www.slf4j.org
@@ -188,6 +188,7 @@ com.google.code.gson:gson:jar:2.7:compile,The Apache Software License, Version 2
 com.google.guava:guava:jar:11.0.2:compile,ASLv2,
 com.google.guava:guava:jar:12.0.1:compile,ASLv2,
 com.google.guava:guava:jar:12.0:compile,ASLv2,
+com.google.guava:guava:jar:14.0.1:compile,ASLv2,
 com.google.guava:guava:jar:16.0.1:compile,ASLv2,
 com.google.guava:guava:jar:17.0:compile,ASLv2,
 com.google.guava:guava:jar:18.0:compile,ASLv2,
@@ -307,6 +308,7 @@ org.mortbay.jetty:jsp-2.1:jar:6.1.14:compile,ASLv2,
 org.mortbay.jetty:jsp-api-2.1:jar:6.1.14:compile,ASLv2,
 org.mortbay.jetty:servlet-api-2.5:jar:6.1.14:compile,ASLv2,
 org.noggit:noggit:jar:0.6:compile,Apache License, Version 2.0,http://github.com/yonik/noggit
+org.noggit:noggit:jar:0.8:compile,Apache License, Version 2.0,http://github.com/yonik/noggit
 org.scannotation:scannotation:jar:1.0.3:compile,Apache License V2.0,http://scannotation.sf.net
 org.slf4j:log4j-over-slf4j:jar:1.6.6:compile,Apache Software Licenses,http://www.slf4j.org
 org.springframework.integration:spring-integration-core:jar:3.0.0.RELEASE:compile,The Apache Software License, Version 2.0,http://www.springintegration.org/
@@ -430,6 +432,7 @@ org.springframework.kafka:spring-kafka:jar:1.1.1.RELEASE:compile,ASLv2,https://g
 org.springframework.kafka:spring-kafka:jar:2.0.4.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-kafka
 ch.hsr:geohash:jar:1.3.0:compile,ASLv2,https://github.com/kungfoo/geohash-java
 org.locationtech.spatial4j:spatial4j:jar:0.6:compile,ASLv2,https://github.com/locationtech/spatial4j
+org.locationtech.spatial4j:spatial4j:jar:0.7:compile,ASLv2,https://github.com/locationtech/spatial4j
 com.github.luben:zstd-jni:jar:1.3.2-2:compile,BSD,https://github.com/luben/zstd-jni
 com.github.spullara.mustache.java:compiler:jar:0.9.3:compile,ASLv2,https://github.com/spullara/mustache.java/blob/master/LICENSE
 io.netty:netty-buffer:jar:4.1.13.Final:compile,ASLv2,http://netty.io/

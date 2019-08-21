@@ -34,6 +34,7 @@ import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.enrichment.integration.utils.SampleUtil;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.hamcrest.Description;
@@ -119,8 +120,8 @@ public class SolrWriterTest {
     messages.add(new BulkMessage<>("message2", message2));
 
     String collection = "metron";
-    MetronSolrClient solr = Mockito.mock(MetronSolrClient.class);
-    SolrWriter writer = new SolrWriter().withMetronSolrClient(solr);
+    CloudSolrClient solr = Mockito.mock(CloudSolrClient.class);
+    SolrWriter writer = new SolrWriter().withCloudSolrClient(solr);
     writer.init(null,new IndexingWriterConfiguration("solr", configurations));
     verify(solr, times(1)).setDefaultCollection(collection);
 
@@ -128,7 +129,7 @@ public class SolrWriterTest {
     Map<String, Object> globalConfig = configurations.getGlobalConfig();
     globalConfig.put("solr.collection", collection);
     configurations.updateGlobalConfig(globalConfig);
-    writer = new SolrWriter().withMetronSolrClient(solr);
+    writer = new SolrWriter().withCloudSolrClient(solr);
     writer.init(null, new IndexingWriterConfiguration("solr", configurations));
     verify(solr, times(1)).setDefaultCollection(collection);
 
