@@ -143,6 +143,7 @@
                 <global_hbase_guava_version>17.0</global_hbase_guava_version>
                 <global_kafka_version>2.0.0</global_kafka_version>
                 <global_slf4j_version>1.7.25</global_slf4j_version>
+                <global_storm_version>1.2.1</global_storm_version>
             </properties>
         </profile>
         <profile>
@@ -154,8 +155,11 @@
                 <hdp_version>2.6.5.0</hdp_version>
                 <global_hbase_version>1.1.1</global_hbase_version>
                 <global_hbase_guava_version>12.0</global_hbase_guava_version>
-                <global_kafka_version>0.10.0.1</global_kafka_version>
-                <global_slf4j_version>1.7.7</global_slf4j_version>
+                <!--<global_kafka_version>0.10.0.1</global_kafka_version>-->
+                <!--<global_slf4j_version>1.7.7</global_slf4j_version>-->
+                <global_kafka_version>2.0.0</global_kafka_version>
+                <global_slf4j_version>1.7.25</global_slf4j_version>
+                <global_storm_version>1.2.1</global_storm_version>
             </properties>
         </profile>
         <profile>
@@ -163,10 +167,13 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
-                <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
-                <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
-                <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
-                <global_slf4j_version>1.7.7</global_slf4j_version>
+                <!--<global_storm_kafka_version>1.2.2</global_storm_kafka_version>-->
+                <!--<global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>-->
+                <!--global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version-->
+                <!--global_slf4j_version>1.7.7</global_slf4j_version-->
+                <global_kafka_version>2.0.0</global_kafka_version>
+                <global_slf4j_version>1.7.25</global_slf4j_version>
+                <global_storm_version>1.2.1</global_storm_version>
                 <global_hbase_version>1.1.1</global_hbase_version>
                 <global_hbase_guava_version>12.0</global_hbase_guava_version>
             </properties>
