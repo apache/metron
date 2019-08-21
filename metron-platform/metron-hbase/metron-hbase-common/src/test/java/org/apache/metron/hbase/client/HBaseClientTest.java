@@ -85,14 +85,8 @@ public class HBaseClientTest {
     // create the table
     table = util.createTable(Bytes.toBytes(tableName), cf);
     util.waitTableEnabled(table.getName());
-    TableProvider provider = new TableProvider() {
-      @Override
-      public Table getTable(Configuration config, String tableName) throws IOException {
-        return table;
-      }
-    };
     // setup the client
-    client = new HBaseClient(provider, table.getConfiguration(), tableName);
+    client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
   }
 
   @AfterClass
