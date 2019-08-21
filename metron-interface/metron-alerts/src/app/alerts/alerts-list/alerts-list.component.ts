@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {forkJoin as observableForkJoin} from 'rxjs';
+import {forkJoin as observableForkJoin, noop} from 'rxjs';
 import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Subscription} from 'rxjs';
@@ -29,7 +29,6 @@ import {AlertsService} from '../../service/alerts.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
 import {ColumnMetadata} from '../../model/column-metadata';
 import {SaveSearchService} from '../../service/save-search.service';
-import {RefreshInterval} from '../configure-rows/configure-rows-enums';
 import {SaveSearch} from '../../model/save-search';
 import {TableMetadata} from '../../model/table-metadata';
 import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
@@ -47,6 +46,7 @@ import { DialogType } from 'app/model/dialog-type';
 import { Utils } from 'app/utils/utils';
 import { AlertSource } from '../../model/alert-source';
 import { AutoPollingService } from './auto-polling/auto-polling.service';
+import { ConfigureRowsModel } from '../configure-rows/configure-rows.component';
 
 @Component({
   selector: 'app-alerts-list',
@@ -61,8 +61,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   alerts: Alert[] = [];
   searchResponse: SearchResponse = new SearchResponse();
   colNumberTimerId: number;
-
-  refreshInterval = RefreshInterval.TEN_MIN;
 
   isMetaAlertPresentInSelectedAlerts = false;
   timeStampFilterPresent = false;
@@ -272,9 +270,27 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.staleDataState = true;
   }
 
-  onConfigRowsChange() {
-    this.autoPollingSvc.setInterval(this.refreshInterval);
-    this.search();
+  onConfigRowsChange(config: ConfigureRowsModel) {
+    const { values, triggerQuery } = config;
+
+    this.tableMetaData.refreshInterval = values.refreshInterval;
+    this.tableMetaData.size = values.pageSize;
+
+    this.updatePollingInterval(values.refreshInterval);
+
+    this.saveSaveRowsConfig();
+
+    if (triggerQuery) {
+      this.search();
+    }
+  }
+
+  private saveSaveRowsConfig() {
+    this.configureTableService
+      .saveTableMetaData(this.tableMetaData).subscribe(
+        noop,
+        () => console.log('Unable to save settings ....')
+      );
   }
 
   onGroupsChange(groups) {
@@ -497,7 +513,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   private updatePollingInterval(refreshInterval: number): void {
-    this.refreshInterval = refreshInterval;
     this.autoPollingSvc.setInterval(refreshInterval);
   }
 

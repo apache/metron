@@ -51,7 +51,12 @@
                 <div #settingsIcon class="btn settings">
                     <i class="fa fa-sliders" aria-hidden="true"></i>
                 </div>
-                <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="tableMetaData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
+                <app-configure-rows
+                    [srcElement]="settingsIcon"
+                    [refreshInterval]="tableMetaData.refreshInterval"
+                    [pageSize]="tableMetaData.size"
+                    (configRowsChange)="onConfigRowsChange($event)"
+                    ></app-configure-rows>
 
                 <app-auto-polling #autoPolling (onRefresh)="setData($event)"></app-auto-polling>
 

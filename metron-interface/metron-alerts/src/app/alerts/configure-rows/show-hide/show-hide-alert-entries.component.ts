@@ -18,14 +18,9 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { ShowHideService } from './show-hide.service';
 
-export class ShowHideChanged {
-  value: string;
-  isHide: boolean;
-
-  constructor(value: string, isHide: boolean) {
-    this.value = value;
-    this.isHide = isHide;
-  }
+export interface ShowHideModel {
+  hideResolved: boolean,
+  hideDismissed: boolean,
 }
 
 @Component({
@@ -39,13 +34,16 @@ export class ShowHideChanged {
 })
 export class ShowHideAlertEntriesComponent {
 
-  @Output() changed = new EventEmitter<ShowHideChanged>();
+  @Output() changed = new EventEmitter<ShowHideModel>();
 
   constructor(public showHideService: ShowHideService) {}
 
-  onVisibilityChanged(alertStatus, isHide) {
+  onVisibilityChanged(alertStatus: string, isHide: boolean): void {
     this.showHideService.setFilterFor(alertStatus, isHide);
-    this.changed.emit(new ShowHideChanged(alertStatus, isHide));
+    this.changed.emit({
+      hideResolved: this.showHideService.hideResolved,
+      hideDismissed: this.showHideService.hideDismissed,
+    });
   }
 
 }

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ShowHideAlertEntriesComponent, ShowHideChanged } from './show-hide-alert-entries.component';
+import { ShowHideAlertEntriesComponent, ShowHideModel } from './show-hide-alert-entries.component';
 import { ComponentFixture, async, TestBed } from '@angular/core/testing';
 import { SwitchComponent } from 'app/shared/switch/switch.component';
 import { By } from '@angular/platform-browser';
