@@ -16,7 +16,7 @@
   <div class="card-body p-3">
     <h6 class="card-title">Settings</h6>
     <form>
-      <label> REFRESH RATE </label>{{ refreshInterval }}
+      <label> REFRESH RATE </label>
       <div #refreshIntervalEl class="preset-row refresh-interval" (click)="onRefreshIntervalChange($event, refreshIntervalEl)">
           <div class="preset-cell" [class.is-active]="refreshInterval===5" [attr.value]="5">  5s   </div>
           <div class="preset-cell" [class.is-active]="refreshInterval===10" [attr.value]="10">  10s  </div>
@@ -26,7 +26,7 @@
           <div class="preset-cell" [class.is-active]="refreshInterval===600" [attr.value]="600">   10m  </div>
           <div class="preset-cell" [class.is-active]="refreshInterval===3600" [attr.value]="3600">  1h   </div>
       </div>
-      <label> ROWS PER PAGE </label>{{ pageSize }}
+      <label> ROWS PER PAGE </label>
       <div #pageSizeEl class="preset-row page-size" (click)="onPageSizeChange($event, pageSizeEl)">
         <div class="preset-cell" [class.is-active]="pageSize===10">  10   </div>
         <div class="preset-cell" [class.is-active]="pageSize===25">  25   </div>

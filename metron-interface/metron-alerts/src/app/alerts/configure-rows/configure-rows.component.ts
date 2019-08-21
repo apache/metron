@@ -62,7 +62,7 @@ export class ConfigureRowsComponent  {
     $event.target.classList.add('is-active');
 
     this.pageSize = parseInt($event.target.textContent.trim(), 10);
-    this.propagateChanges();
+    this.propagateChanges(true);
   }
 
   onRefreshIntervalChange($event, parentElement) {
