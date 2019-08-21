@@ -143,6 +143,7 @@
                 <hdp_version>3.1.0.0</hdp_version>
                 <global_hbase_version>2.0.2</global_hbase_version>
                 <global_hbase_guava_version>17.0</global_hbase_guava_version>
+                <global_zeppelin_version>0.8.0</global_zeppelin_version>
             </properties>
         </profile>
         <profile>
@@ -154,6 +155,7 @@
                 <hdp_version>2.6.5.0</hdp_version>
                 <global_hbase_version>1.1.1</global_hbase_version>
                 <global_hbase_guava_version>12.0</global_hbase_guava_version>
+                <global_zeppelin_version>0.8.0</global_zeppelin_version>
             </properties>
         </profile>
         <profile>
@@ -166,6 +168,7 @@
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
                 <global_hbase_version>1.1.1</global_hbase_version>
                 <global_hbase_guava_version>12.0</global_hbase_guava_version>
+                <global_zeppelin_version>0.8.0</global_zeppelin_version>
             </properties>
         </profile>
     </profiles>
