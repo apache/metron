@@ -3,20 +3,19 @@ import { Subscription, Subject, Observable, interval } from 'rxjs';
 import { SearchService } from 'app/service/search.service';
 import { QueryBuilder } from '../query-builder';
 import { SearchResponse } from 'app/model/search-response';
-import { SearchRequest } from 'app/model/search-request';
-import { switchMap, filter, takeWhile } from 'rxjs/operators';
+import { switchMap, filter, takeWhile, tap } from 'rxjs/operators';
+import { POLLING_DEFAULT_STATE } from 'app/utils/constants';
 
 @Injectable()
 export class AutoPollingService {
-  isPollingActive = false;
+  isPollingActive = POLLING_DEFAULT_STATE;
   data = new Subject<SearchResponse>();
+  isCongestion = false;
+  isPending = false;
 
-  private interval = 8;
+  private interval = 10;
   private isPollingSuppressed = false;
   private pollingIntervalSubs: Subscription;
-
-  // TODO implement congestion handling
-  private isCongestion = false;
 
   constructor(private searchService: SearchService,
               private queryBuilder: QueryBuilder) {}
@@ -30,7 +29,7 @@ export class AutoPollingService {
   }
 
   setSuppression(value: boolean) {
-    this.isPollingSuppressed = true;
+    this.isPollingSuppressed = value;
   }
 
   setInterval(seconds: number) {
@@ -42,23 +41,36 @@ export class AutoPollingService {
   }
 
   private reset() {
-    this.pollingIntervalSubs.unsubscribe();
+    if (this.pollingIntervalSubs) {
+      this.pollingIntervalSubs.unsubscribe();  
+    }
     this.activate();
   }
 
   private activate() {
-    this.pollingIntervalSubs = this.pollData(this.queryBuilder.searchRequest).subscribe(results => {
+    this.pollingIntervalSubs = this.pollData().subscribe(results => {
       this.data.next(results);
+      this.isPending = false;
     });
   }
 
-  private pollData(searchRequest: SearchRequest): Observable<SearchResponse> {
+  private pollData(): Observable<SearchResponse> {
     return interval(this.interval * 1000).pipe(
-      filter(() => !this.isPollingSuppressed),
+      tap(() => this.checkCongestionOnTick()),
+      filter(() => !this.isPollingSuppressed && !this.isCongestion),
       takeWhile(() => this.isPollingActive),
       switchMap(() => {
+        this.isPending = true;
         return this.searchService.search(this.queryBuilder.searchRequest);
       }));
+  }
+
+  private checkCongestionOnTick() {
+    if (this.isPending) {
+      this.isCongestion = true;
+    } else {
+      this.isCongestion = false;
+    }
   }
 
   onDestroy() {

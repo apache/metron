@@ -36,7 +36,7 @@ import {AlertSearchDirective} from '../../shared/directives/alert-search.directi
 import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {Filter} from '../../model/filter';
-import { TIMESTAMP_FIELD_NAME, ALL_TIME, POLLING_DEFAULT_STATE } from '../../utils/constants';
+import { TIMESTAMP_FIELD_NAME, ALL_TIME } from '../../utils/constants';
 import {TableViewComponent, PageChangedEvent, SortChangedEvent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
 import {MetaAlertService} from '../../service/meta-alert.service';
@@ -61,9 +61,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   alerts: Alert[] = [];
   searchResponse: SearchResponse = new SearchResponse();
   colNumberTimerId: number;
+
   refreshInterval = RefreshInterval.TEN_MIN;
-  isRefreshPaused = POLLING_DEFAULT_STATE;
-  lastIsRefreshPausedValue = false;
+
   isMetaAlertPresentInSelectedAlerts = false;
   timeStampFilterPresent = false;
 
@@ -84,7 +84,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   subgroupTotal = 0;
 
   pendingSearch: Subscription;
-  staleDataState = false; // TODO: this has to be aligned to auto polling
+  staleDataState = false;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -289,7 +289,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onTimeRangeChange(filter: Filter) {
-    // TODO make sure time range change updates the autopoller too
     this.updateQueryBuilder(filter);
     this.staleDataState = true;
   }
@@ -489,6 +488,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
         Automatic refresh is turned on. Your filter and/or time-range changes will apply automatically on next refresh.`;
     }
+  }
+
+  getPollingCongestionWarning() {
+    return `<i class="fa fa-warning" aria-hidden="true"></i> Refresh interval is shorter then the response time.
+      Please increase the refresh interval in the <i class="fa fa-sliders" aria-hidden="true"></i> menu above,
+      or try to simplefy your query filter.`;
   }
 
   private updatePollingInterval(refreshInterval: number): void {
