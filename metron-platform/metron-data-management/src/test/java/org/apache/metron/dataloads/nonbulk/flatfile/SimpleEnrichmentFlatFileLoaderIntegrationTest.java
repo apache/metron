@@ -43,6 +43,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
@@ -191,7 +192,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
     config = kv.getValue();
     testUtil = kv.getKey();
-    testTable = testUtil.createTable(Bytes.toBytes(tableName), Bytes.toBytes(cf));
+    testTable = testUtil.createTable(TableName.valueOf(tableName), cf);
     zookeeperUrl = getZookeeperUrl(config.get("hbase.zookeeper.quorum"), testUtil.getZkCluster().getClientPort());
     setupGlobalConfig(zookeeperUrl);
 

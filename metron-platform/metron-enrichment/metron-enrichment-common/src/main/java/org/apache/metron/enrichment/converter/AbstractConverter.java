@@ -40,7 +40,7 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     @Nullable
     @Override
     public Map.Entry<byte[], byte[]> apply(@Nullable Cell cell) {
-      return new AbstractMap.SimpleEntry<>(cell.getQualifier(), cell.getValue());
+      return new AbstractMap.SimpleEntry<>(getQualifier(cell), getValue(cell));
     }
   };
   @Override
@@ -48,10 +48,25 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     Put put = new Put(key.toBytes());
     byte[] cf = Bytes.toBytes(columnFamily);
     for(Map.Entry<byte[], byte[]> kv : values.toColumns()) {
-      put.add(cf, kv.getKey(), kv.getValue());
+      put.addColumn(cf, kv.getKey(), kv.getValue());
     }
     return put;
   }
+
+  private static byte[] getQualifier(Cell cell) {
+    int length = cell.getQualifierLength();
+    int offset = cell.getQualifierOffset();
+    byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
+    return bytes;
+  }
+
+  private static byte[] getValue(Cell cell) {
+    int length = cell.getValueLength();
+    int offset = cell.getValueOffset();
+    byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
+    return bytes;
+  }
+
 
   public LookupKV<KEY_T, VALUE_T> fromPut(Put put, String columnFamily, KEY_T key, VALUE_T value) throws IOException {
     key.fromBytes(put.getRow());

@@ -134,6 +134,10 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
         metaAlertIndex, MetaAlertControllerIntegrationTest.metaAlertData
     );
     loadTestData(testData);
+    MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE);
+    if(table != null) {
+      table.clear();
+    }
   }
 
   @Test

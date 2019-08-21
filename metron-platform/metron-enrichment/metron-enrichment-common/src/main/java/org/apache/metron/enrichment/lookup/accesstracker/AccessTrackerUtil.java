@@ -46,7 +46,7 @@ public enum AccessTrackerUtil {
 
     public void persistTracker(Table accessTrackerTable, String columnFamily, PersistentAccessTracker.AccessTrackerKey key, AccessTracker underlyingTracker) throws IOException {
         Put put = new Put(key.toRowKey());
-        put.add(Bytes.toBytes(columnFamily), COLUMN, serializeTracker(underlyingTracker));
+        put.addColumn(Bytes.toBytes(columnFamily), COLUMN, serializeTracker(underlyingTracker));
         accessTrackerTable.put(put);
     }
 

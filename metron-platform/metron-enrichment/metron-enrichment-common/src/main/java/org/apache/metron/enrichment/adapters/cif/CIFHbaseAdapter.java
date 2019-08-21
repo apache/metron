@@ -22,9 +22,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.TableName;
@@ -82,14 +84,22 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 		try {
 			rs = table.get(get);
 
-			for (KeyValue kv : rs.raw())
-				output.put(new String(kv.getQualifier(), StandardCharsets.UTF_8), "Y");
+			for (Cell cell : rs.rawCells()) {
+				output.put(new String(getQualifier(cell), StandardCharsets.UTF_8), "Y");
+			}
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return output;
+	}
+
+	private static byte[] getQualifier(Cell cell) {
+		int length = cell.getQualifierLength();
+		int offset = cell.getQualifierOffset();
+		byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
+		return bytes;
 	}
 
 	@Override

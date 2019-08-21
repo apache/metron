@@ -81,7 +81,9 @@ org.json4s:json4s-ast_2.11:jar:3.2.11:compile,ASLv2,https://github.com/json4s/js
 org.json4s:json4s-core_2.11:jar:3.2.11:compile,ASLv2,https://github.com/json4s/json4s
 org.json4s:json4s-jackson_2.11:jar:3.2.11:compile,ASLv2,https://github.com/json4s/json4s
 org.jruby.jcodings:jcodings:jar:1.0.8:compile,MIT License,https://github.com/jruby/jcodings
+org.jruby.jcodings:jcodings:jar:1.0.18:compile,MIT License,https://github.com/jruby/jcodings
 org.jruby.joni:joni:jar:2.1.2:compile,MIT License,https://github.com/jruby/joni
+org.jruby.joni:joni:jar:2.1.11:compile,MIT License,https://github.com/jruby/joni
 org.lz4:lz4-java:jar:1.4.0:compile,ASLv2,https://github.com/lz4/lz4-java
 org.mitre.taxii:taxii:jar:1.1.0.1:compile,The BSD 3-Clause License,https://github.com/TAXIIProject/java-taxii
 org.mitre:stix:jar:1.2.0.2:compile,The BSD 3-Clause License,https://github.com/STIXProject/java-stix
@@ -107,9 +109,11 @@ com.sun.jersey:jersey-server:jar:1.9:compile,CDDL 1.1,https://jersey.java.net/
 com.thoughtworks.paranamer:paranamer:jar:2.3:compile,BSD,https://github.com/paul-hammant/paranamer
 javax.servlet.jsp:jsp-api:jar:2.1:runtime,CDDL,http://oracle.com
 javax.servlet.jsp:jsp-api:jar:2.1:compile,CDDL,http://oracle.com
+javax.servlet.jsp:javax.servlet.jsp-api:jar:2.3.1:compile,CDDL,http://oracle.com
 javax.servlet:servlet-api:jar:2.5:compile,CDDL,http://oracle.com
 net.jcip:jcip-annotations:jar:1.0:compile,Public,http://jcip.net/
 org.codehaus.jettison:jettison:jar:1.1:compile,ASLv2,https://github.com/codehaus/jettison
+org.codehaus.jettison:jettison:jar:1.3.8:compile,ASLv2,https://github.com/codehaus/jettison
 org.fusesource.leveldbjni:leveldbjni-all:jar:1.8:compile,BSD 3-clause,https://github.com/fusesource/leveldbjni
 org.hamcrest:hamcrest-core:jar:1.1:runtime,BSD 2-clause,http://hamcrest.org/JavaHamcrest/
 org.hamcrest:hamcrest-core:jar:1.3:compile,BSD 2-clause,http://hamcrest.org/JavaHamcrest/
@@ -146,6 +150,7 @@ com.101tec:zkclient:jar:0.10:compile,The Apache Software License, Version 2.0,ht
 com.github.stephenc.findbugs:findbugs-annotations:jar:1.3.9-1:compile,Apache License, Version 2.0,http://stephenc.github.com/findbugs-annotations
 com.github.tony19:named-regexp:jar:0.2.3:compile,Apache License, Version 2.0,
 com.google.code.findbugs:jsr305:jar:1.3.9:compile,The Apache Software License, Version 2.0,http://findbugs.sourceforge.net/
+com.google.code.findbugs:jsr305:jar:2.0.1:compile,The Apache Software License, Version 2.0,http://findbugs.sourceforge.net/
 com.google.code.findbugs:jsr305:jar:3.0.0:compile,The Apache Software License, Version 2.0,http://findbugs.sourceforge.net/
 com.google.code.findbugs:annotations:jar:2.0.1:compile,The Apache Software License, Version 2.0,http://findbugs.sourceforge.net/
 com.carrotsearch:hppc:jar:0.7.1:compile,ASLv2,https://github.com/carrotsearch/hppc
@@ -165,6 +170,7 @@ com.fasterxml.jackson.core:jackson-core:jar:2.6.3:compile,ASLv2,https://github.c
 com.fasterxml.jackson.core:jackson-core:jar:2.6.6:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.7.4:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.8.3:compile,ASLv2,https://github.com/FasterXML/jackson-core
+com.fasterxml.jackson.core:jackson-core:jar:2.9.2:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.9.4:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.9.5:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-databind:jar:2.2.3:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
@@ -172,6 +178,7 @@ com.fasterxml.jackson.core:jackson-databind:jar:2.4.3:compile,ASLv2,http://githu
 com.fasterxml.jackson.core:jackson-databind:jar:2.6.7.1:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.7.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.8.3:compile,ASLv2,http://github.com/FasterXML/jackson
+com.fasterxml.jackson.core:jackson-databind:jar:2.9.2:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.9.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.9.5:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.9.6:compile,ASLv2,http://github.com/FasterXML/jackson
@@ -209,6 +216,7 @@ com.google.inject:guice:jar:3.0:compile,ASLv2,
 com.googlecode.disruptor:disruptor:jar:2.10.4:compile,The Apache Software License, Version 2.0,http://code.google.com/p/disruptor/
 com.lmax:disruptor:jar:3.3.0:compile,The Apache Software License, Version 2.0,https://github.com/LMAX-Exchange/disruptor/
 com.lmax:disruptor:jar:3.3.2:compile,The Apache Software License, Version 2.0,https://github.com/LMAX-Exchange/disruptor/
+com.lmax:disruptor:jar:3.3.6:compile,The Apache Software License, Version 2.0,https://github.com/LMAX-Exchange/disruptor/
 com.googlecode.json-simple:json-simple:jar:1.1:compile,The Apache Software License, Version 2.0,http://code.google.com/p/json-simple/
 com.googlecode.json-simple:json-simple:jar:1.1.1:compile,The Apache Software License, Version 2.0,http://code.google.com/p/json-simple/
 com.jamesmurty.utils:java-xmlbuilder:jar:0.4:compile,Apache License, Version 2.0,http://code.google.com/p/java-xmlbuilder/
@@ -272,6 +280,9 @@ io.confluent:kafka-avro-serializer:jar:1.0:compile,ASLv2,https://github.com/conf
 io.confluent:kafka-schema-registry-client:jar:1.0:compile,ASLv2,https://github.com/confluentinc/schema-registry/
 io.dropwizard.metrics:metrics-core:jar:3.1.0:compile,ASLv2,https://github.com/dropwizard/metrics
 io.dropwizard.metrics:metrics-core:jar:3.1.5:compile,ASLv2,https://github.com/dropwizard/metrics
+io.dropwizard.metrics:metrics-core:jar:3.2.1:compile,ASLv2,https://github.com/dropwizard/metrics
+io.dropwizard.metrics:metrics-core:jar:3.2.2:compile,ASLv2,https://github.com/dropwizard/metrics
+io.dropwizard.metrics:metrics-core:jar:3.2.6:compile,ASLv2,https://github.com/dropwizard/metrics
 io.dropwizard.metrics:metrics-ganglia:jar:3.1.0:compile,ASLv2,https://github.com/dropwizard/metrics
 io.dropwizard.metrics:metrics-graphite:jar:3.1.0:compile,ASLv2,https://github.com/dropwizard/metrics
 io.dropwizard.metrics:metrics-graphite:jar:3.1.5:compile,ASLv2,https://github.com/dropwizard/metrics
@@ -305,11 +316,20 @@ org.codehaus.jackson:jackson-mapper-asl:jar:1.9.13:compile,The Apache Software L
 org.codehaus.woodstox:stax2-api:jar:3.1.4:compile,The BSD License,http://wiki.fasterxml.com/WoodstoxStax2
 org.codehaus.woodstox:woodstox-core-asl:jar:4.4.1:compile,ASLv2,http://woodstox.codehaus.org
 org.eclipse.jetty:jetty-http:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-http:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
 org.eclipse.jetty:jetty-io:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-io:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
 org.eclipse.jetty:jetty-security:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-security:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
 org.eclipse.jetty:jetty-server:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-server:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
 org.eclipse.jetty:jetty-servlet:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-servlet:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
 org.eclipse.jetty:jetty-util:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-util:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-util-ajax:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-webapp:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
+org.eclipse.jetty:jetty-xml:jar:9.3.19.v20170502:compile,ASLv2,http://www.eclipse.org/jetty
 org.eclipse.jetty.aggregate:jetty-all:jar:7.6.0.v20120127:compile,ASLv2,http://www.eclipse.org/jetty
 org.elasticsearch:elasticsearch:jar:2.3.3:compile,ASLv2,
 org.elasticsearch:elasticsearch:jar:2.3.3:import,ASLv2,
@@ -543,3 +563,24 @@ org.datanucleus:datanucleus-rdbms:jar:3.2.9:compile,ASLv2,http://www.datanucleus
 org.lz4:lz4-java:jar:1.4.1:compile,ASLv2,https://github.com/lz4/lz4-java
 com.jolbox:bonecp:jar:0.8.0.RELEASE:compile,ASLv2
 stax:stax-api:jar:1.0.1:compile,ASLv2
+org.glassfish.hk2.external:aopalliance-repackaged:jar:2.5.0-b32:compile,Common Development and Distribution License (CDDL) v1.0,https://javaee.github.io/hk2/
+org.glassfish.hk2.external:javax.inject:jar:2.5.0-b32:compile,Common Development and Distribution License (CDDL) v1.0,https://javaee.github.io/hk2/
+org.glassfish.hk2:hk2-api:jar:2.5.0-b32:compile,Common Development and Distribution License (CDDL) v1.0,https://javaee.github.io/hk2/
+org.glassfish.hk2:hk2-locator:jar:2.5.0-b32:compile,Common Development and Distribution License (CDDL) v1.0,https://javaee.github.io/hk2/
+org.glassfish.hk2:hk2-utils:jar:2.5.0-b32:compile,Common Development and Distribution License (CDDL) v1.0,https://javaee.github.io/hk2/
+org.glassfish.jersey.bundles.repackaged:jersey-guava:jar:2.25.1:compile,Eclipse Public License 2.0,https://jersey.github.io/
+org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.25.1:compile,Eclipse Public License 2.0,https://jersey.github.io/
+org.glassfish.jersey.core:jersey-client:jar:2.25.1:compile,Eclipse Public License 2.0,https://jersey.github.io/
+org.glassfish.jersey.core:jersey-common:jar:2.25.1:compile,Eclipse Public License 2.0,https://jersey.github.io/
+org.glassfish.jersey.core:jersey-server:jar:2.25.1:compile,Eclipse Public License 2.0,https://jersey.github.io/
+org.glassfish.jersey.media:jersey-media-jaxb:jar:2.25.1:compile,Eclipse Public License 2.0,https://jersey.github.io/
+org.glassfish.web:javax.servlet.jsp:jar:2.3.2:compile,Eclipse Public License 2.0,https://jersey.github.io/
+org.glassfish:javax.el:jar:3.0.1-b11:compile,Eclipse Public License 2.0,https://jersey.github.io/
+
+
+
+
+
+
+
+
