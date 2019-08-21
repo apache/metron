@@ -39,6 +39,23 @@ In order to do create a custom parser, we need to do one of the following:
 * Write a class which extends `org.apache.metron.parsers.BasicParser`
   * Provides convenience implementations to `validate` which ensures `timestamp` and `original_string` fields exist.
 
+Also note that it is possible to specify a configuration option for the charset you would like your parser to use to read data. In order to do so,
+you would call the `setReadCharset` method in your `configure` method when extending `BasicParser`. And then when you're specifying the charset
+to use in the `parse` method, you would use `getReadCharset` as follows `rawMessage = new String(msg, getReadCharset());`. The common configuration
+option key is "`readCharset`" and is passed via a key/value pair in the `parserConfig` JSON section of your overall parser configuration file, e.g.
+```
+{
+  ...
+  "parserConfig" : {
+    "readCharset" : "UTF_8"
+    ...
+  }
+  ...
+} 
+```
+
+If implementing the MessageParser interface directly, you would need to handle reading and setting the configuration on your own. Override the `default Charset getReadCharset()` method provided in the `MessageParser` interface.
+
 ## Example
 
 In order to illustrate how this might be done, let's create a very

@@ -18,24 +18,25 @@
 
 package org.apache.metron.parsers;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertThat;
+
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.snort.BasicSnortParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.assertThat;
 
 public class SnortParserTest {
 
@@ -53,7 +54,7 @@ public class SnortParserTest {
   public void testGoodMessage() {
     BasicSnortParser parser = new BasicSnortParser();
     parser.configure(new HashMap());
-    Map out = parser.parse(goodMessage.getBytes()).get(0);
+    Map out = parser.parse(goodMessage.getBytes(StandardCharsets.UTF_8)).get(0);
     Assert.assertEquals(out.get("msg"), "Consecutive TCP small segments, exceeding threshold");
     Assert.assertEquals(out.get("sig_rev"), "1");
     Assert.assertEquals(out.get("ip_dst_addr"), "10.0.2.15");
@@ -89,7 +90,7 @@ public class SnortParserTest {
     BasicSnortParser parser = new BasicSnortParser();
     parser.init();
     UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.FATAL);
-    parser.parse("foo bar".getBytes());
+    parser.parse("foo bar".getBytes(StandardCharsets.UTF_8));
     UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.ERROR);
   }
 
@@ -101,7 +102,7 @@ public class SnortParserTest {
       TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("America/New_York")));
       BasicSnortParser parser = new BasicSnortParser();
       parser.configure(new HashMap());
-      Map out = parser.parse(goodMessage.getBytes()).get(0);
+      Map out = parser.parse(goodMessage.getBytes(StandardCharsets.UTF_8)).get(0);
       Assert.assertEquals(out.get("timestamp"), 1453928464877L);
     } finally {
       // make sure we don't mess with other tests
@@ -122,7 +123,7 @@ public class SnortParserTest {
     parserConfig.put("timeZone", "America/New_York");
     BasicSnortParser parser = new BasicSnortParser();
     parser.configure(parserConfig);
-    Map result = parser.parse(dateFormattedMessage.getBytes()).get(0);
+    Map result = parser.parse(dateFormattedMessage.getBytes(StandardCharsets.UTF_8)).get(0);
     assertThat("timestamp should match", result.get(Constants.Fields.TIMESTAMP.getName()), equalTo(1453928464877L));
   }
 
@@ -147,4 +148,20 @@ public class SnortParserTest {
     parser.configure(parserConfig);
   }
 
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    BasicSnortParser parser = new BasicSnortParser();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    BasicSnortParser parser = new BasicSnortParser();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
+  }
 }

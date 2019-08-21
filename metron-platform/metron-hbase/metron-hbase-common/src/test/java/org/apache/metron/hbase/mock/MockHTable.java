@@ -24,6 +24,7 @@ import com.google.protobuf.Message;
 import com.google.protobuf.Service;
 import com.google.protobuf.ServiceException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -258,7 +259,7 @@ public class MockHTable implements Table {
           qualifiers = data.get(row).get(family).navigableKeySet();
         for (byte[] qualifier : qualifiers){
           if (qualifier == null)
-            qualifier = "".getBytes();
+            qualifier = "".getBytes(StandardCharsets.UTF_8);
           if (!data.get(row).containsKey(family) ||
                   !data.get(row).get(family).containsKey(qualifier) ||
                   data.get(row).get(family).get(qualifier).isEmpty())

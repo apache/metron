@@ -21,6 +21,7 @@ package org.apache.metron.enrichment.adapters.cif;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
@@ -74,7 +75,7 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 
 		LOGGER.debug("=======Pinging HBase For: {}", key);
 
-		Get get = new Get(key.getBytes());
+		Get get = new Get(key.getBytes(StandardCharsets.UTF_8));
 		Result rs;
 		Map output = new HashMap();
 
@@ -82,7 +83,7 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 			rs = table.get(get);
 
 			for (KeyValue kv : rs.raw())
-				output.put(new String(kv.getQualifier()), "Y");
+				output.put(new String(kv.getQualifier(), StandardCharsets.UTF_8), "Y");
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -19,6 +19,8 @@
 /* JavaCCOptions:STATIC=false,SUPPORT_CLASS_VISIBILITY_PUBLIC=false */
 package org.apache.metron.parsers.ise;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * An implementation of interface CharStream, where the stream is assumed to
  * contain only ASCII characters (with java-like unicode escape processing).
@@ -473,14 +475,14 @@ class JavaCharStream
   public JavaCharStream(java.io.InputStream dstream, String encoding, int startline,
   int startcolumn, int buffersize) throws java.io.UnsupportedEncodingException
   {
-    this(encoding == null ? new java.io.InputStreamReader(dstream) : new java.io.InputStreamReader(dstream, encoding), startline, startcolumn, buffersize);
+    this(encoding == null ? new java.io.InputStreamReader(dstream, StandardCharsets.UTF_8) : new java.io.InputStreamReader(dstream, encoding), startline, startcolumn, buffersize);
   }
 
 /** Constructor. */
   public JavaCharStream(java.io.InputStream dstream, int startline,
   int startcolumn, int buffersize)
   {
-    this(new java.io.InputStreamReader(dstream), startline, startcolumn, buffersize);
+    this(new java.io.InputStreamReader(dstream, StandardCharsets.UTF_8), startline, startcolumn, buffersize);
   }
 
 /** Constructor. */
@@ -513,14 +515,14 @@ class JavaCharStream
   public void ReInit(java.io.InputStream dstream, String encoding, int startline,
   int startcolumn, int buffersize) throws java.io.UnsupportedEncodingException
   {
-    ReInit(encoding == null ? new java.io.InputStreamReader(dstream) : new java.io.InputStreamReader(dstream, encoding), startline, startcolumn, buffersize);
+    ReInit(encoding == null ? new java.io.InputStreamReader(dstream, StandardCharsets.UTF_8) : new java.io.InputStreamReader(dstream, encoding), startline, startcolumn, buffersize);
   }
 
 /** Reinitialise. */
   public void ReInit(java.io.InputStream dstream, int startline,
   int startcolumn, int buffersize)
   {
-    ReInit(new java.io.InputStreamReader(dstream), startline, startcolumn, buffersize);
+    ReInit(new java.io.InputStreamReader(dstream, StandardCharsets.UTF_8), startline, startcolumn, buffersize);
   }
 /** Reinitialise. */
   public void ReInit(java.io.InputStream dstream, String encoding, int startline,

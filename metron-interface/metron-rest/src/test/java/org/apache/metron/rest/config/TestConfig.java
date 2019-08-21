@@ -17,18 +17,6 @@
  */
 package org.apache.metron.rest.config;
 
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import kafka.admin.AdminUtils$;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
@@ -55,11 +43,7 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.job.manager.InMemoryJobManager;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.mock.MockPcapJob;
-import org.apache.metron.rest.mock.MockPcapJobSupplier;
-import org.apache.metron.rest.mock.MockPcapToPdmlScriptWrapper;
-import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
-import org.apache.metron.rest.mock.MockStormRestTemplate;
+import org.apache.metron.rest.mock.*;
 import org.apache.metron.rest.service.StormStatusService;
 import org.apache.metron.rest.service.impl.CachedStormStatusServiceImpl;
 import org.apache.metron.rest.service.impl.PcapToPdmlScriptWrapper;
@@ -73,6 +57,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 @Configuration
 @Profile(TEST_PROFILE)
@@ -116,9 +106,10 @@ public class TestConfig {
     try {
       runner.start();
       File globalConfigFile = new File("src/test/resources/zookeeper/global.json");
-      try(BufferedReader r = new BufferedReader(new FileReader(globalConfigFile))){
+      try(BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(globalConfigFile), StandardCharsets.UTF_8))){
         String globalConfig = IOUtils.toString(r);
-        ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), zkServerComponent.getConnectionString());
+        ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(
+            StandardCharsets.UTF_8), zkServerComponent.getConnectionString());
       } catch (Exception e) {
         throw new IllegalStateException("Unable to upload global config", e);
       }

@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.common.collect.Sets;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -97,7 +98,7 @@ public class MetronErrorTest {
     assertEquals("{\"value\":\"message1\"}", errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName() + "_0"));
     assertEquals("{\"value\":\"message2\"}", errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName() + "_1"));
 
-    error = new MetronError().addRawMessage("raw message".getBytes());
+    error = new MetronError().addRawMessage("raw message".getBytes(StandardCharsets.UTF_8));
     errorJSON = error.getJSONObject();
     assertEquals("raw message", errorJSON.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     // It's unclear if we need a rawMessageBytes field so commenting out for now

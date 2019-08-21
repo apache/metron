@@ -18,6 +18,7 @@
 
 package org.apache.metron.test.spouts;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -114,7 +115,7 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 			if (_converter != null) {
 			  value = _converter.convert(jsons.get(cnt));
 			} else {
-				value = jsons.get(cnt).getBytes();
+				value = jsons.get(cnt).getBytes(StandardCharsets.UTF_8);
 			}
 			_collector.emit(new Values(value));
 		}

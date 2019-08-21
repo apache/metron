@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
@@ -84,7 +85,8 @@ public class MessageParserTest {
         return Collections.singletonList(message);
       }
     };
-    Optional<MessageParserResult<JSONObject>> ret = parser.parseOptionalResult("message".getBytes());
+    Optional<MessageParserResult<JSONObject>> ret = parser.parseOptionalResult("message".getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertTrue(ret.isPresent());
     Assert.assertEquals(1, ret.get().getMessages().size());
     Assert.assertEquals(message, ret.get().getMessages().get(0));
@@ -99,7 +101,8 @@ public class MessageParserTest {
         return Optional.of(Collections.singletonList(message));
       }
     };
-    Optional<MessageParserResult<JSONObject>> ret = parser.parseOptionalResult("message".getBytes());
+    Optional<MessageParserResult<JSONObject>> ret = parser.parseOptionalResult("message".getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertTrue(ret.isPresent());
     Assert.assertEquals(1, ret.get().getMessages().size());
     Assert.assertEquals(message, ret.get().getMessages().get(0));
@@ -113,7 +116,8 @@ public class MessageParserTest {
         throw new RuntimeException("parse exception");
       }
     };
-    Optional<MessageParserResult<JSONObject>> ret = parser.parseOptionalResult("message".getBytes());
+    Optional<MessageParserResult<JSONObject>> ret = parser.parseOptionalResult("message".getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertTrue(ret.isPresent());
     Assert.assertTrue(ret.get().getMasterThrowable().isPresent());
     Assert.assertEquals("parse exception", ret.get().getMasterThrowable().get().getMessage());
@@ -127,7 +131,8 @@ public class MessageParserTest {
         throw new RuntimeException("parse exception");
       }
     };
-    Optional<MessageParserResult<JSONObject>> ret = parser.parseOptionalResult("message".getBytes());
+    Optional<MessageParserResult<JSONObject>> ret = parser.parseOptionalResult("message".getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertTrue(ret.isPresent());
     Assert.assertTrue(ret.get().getMasterThrowable().isPresent());
     Assert.assertEquals("parse exception", ret.get().getMasterThrowable().get().getMessage());

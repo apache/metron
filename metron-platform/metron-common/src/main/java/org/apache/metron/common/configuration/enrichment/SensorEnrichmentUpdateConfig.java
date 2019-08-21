@@ -20,6 +20,7 @@ package org.apache.metron.common.configuration.enrichment;
 
 import com.google.common.base.Joiner;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -114,7 +115,8 @@ public class SensorEnrichmentUpdateConfig {
 
     @Override
     public void persistConfig(String sensor, SensorEnrichmentConfig config) throws Exception {
-      ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensor, config.toJSON().getBytes(), client);
+      ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensor, config.toJSON().getBytes(
+          StandardCharsets.UTF_8), client);
     }
   }
 

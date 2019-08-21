@@ -19,7 +19,6 @@
 package org.apache.metron.parsers.cef;
 
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.Charset;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,7 +41,6 @@ public class CEFParser extends BasicParser {
 	protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private static final String HEADER_CAPTURE_PATTERN = "[^\\|]*";
 	private static final String EXTENSION_CAPTURE_PATTERN = "(?<!\\\\)=";
-	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
 	private Pattern p;
 	private static final Pattern patternExtensions = Pattern.compile(EXTENSION_CAPTURE_PATTERN);
@@ -144,7 +142,7 @@ public class CEFParser extends BasicParser {
 	public List<JSONObject> parse(byte[] rawMessage) {
 		List<JSONObject> messages = new ArrayList<>();
 
-		String cefString = new String(rawMessage, UTF_8);
+		String cefString = new String(rawMessage, getReadCharset());
 
 		Matcher matcher = p.matcher(cefString);
 
@@ -260,6 +258,7 @@ public class CEFParser extends BasicParser {
 
 	@Override
 	public void configure(Map<String, Object> config) {
+	  setReadCharset(config);
 	}
 
 	@SuppressWarnings("unchecked")

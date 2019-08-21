@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -144,11 +145,13 @@ public class ConfigurationManagerIntegrationTest {
   private void validateConfigsOnDisk(File configDir) throws IOException {
     File globalConfigFile = new File(configDir, "global.json");
     Assert.assertTrue("Global config does not exist", globalConfigFile.exists());
-    validateConfig("global", GLOBAL, new String(Files.readAllBytes(Paths.get(globalConfigFile.toURI()))));
+    validateConfig("global", GLOBAL, new String(Files.readAllBytes(Paths.get(globalConfigFile.toURI())),
+        StandardCharsets.UTF_8));
     for(String sensor : sensors) {
       File sensorFile = new File(configDir, ENRICHMENT.getDirectory() + "/" + sensor + ".json");
       Assert.assertTrue(sensor + " config does not exist", sensorFile.exists());
-      validateConfig(sensor, ENRICHMENT, new String(Files.readAllBytes(Paths.get(sensorFile.toURI()))));
+      validateConfig(sensor, ENRICHMENT, new String(Files.readAllBytes(Paths.get(sensorFile.toURI())),
+          StandardCharsets.UTF_8));
     }
   }
 
@@ -305,7 +308,7 @@ public class ConfigurationManagerIntegrationTest {
 
   private String redirectSystemOut(final String[] args, RedirectCallback callback) throws Exception {
     PrintStream os = System.out;
-    try (OutputStream baos = new ByteArrayOutputStream(); PrintStream ps = new PrintStream(baos)) {
+    try (OutputStream baos = new ByteArrayOutputStream(); PrintStream ps = new PrintStream(baos, false, StandardCharsets.UTF_8.name())) {
       System.setOut(ps);
       callback.call(args);
       System.out.flush();

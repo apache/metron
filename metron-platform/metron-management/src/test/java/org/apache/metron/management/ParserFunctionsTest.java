@@ -19,6 +19,7 @@
 
 package org.apache.metron.management;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.GetDataBuilder;
@@ -220,7 +221,7 @@ public class ParserFunctionsTest {
 
     String config = execute("PARSER_CONFIG(parser)", String.class);
     Assert.assertNotNull(config);
-    Assert.assertNotNull(SensorParserConfig.fromBytes(config.getBytes()));
+    Assert.assertNotNull(SensorParserConfig.fromBytes(config.getBytes(StandardCharsets.UTF_8)));
   }
 
   @Test
@@ -230,7 +231,8 @@ public class ParserFunctionsTest {
 
     Assert.assertNotNull(runner);
     SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
-    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes());
+    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertEquals(expected, actual);
   }
 
@@ -242,7 +244,8 @@ public class ParserFunctionsTest {
 
     Assert.assertNotNull(runner);
     SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
-    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes());
+    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertEquals(expected, actual);
   }
 
@@ -254,7 +257,7 @@ public class ParserFunctionsTest {
 
   @Test
   public void testInitFromZookeeper() throws Exception {
-    byte[] configAsBytes = broParserConfig.getBytes();
+    byte[] configAsBytes = broParserConfig.getBytes(StandardCharsets.UTF_8);
     CuratorFramework zkClient = zkClientForPath("/metron/topology/parsers/bro", configAsBytes);
     context.addCapability(Context.Capabilities.ZOOKEEPER_CLIENT, () -> zkClient);
 
@@ -262,7 +265,8 @@ public class ParserFunctionsTest {
 
     Assert.assertNotNull(runner);
     SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
-    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes());
+    SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertEquals(expected, actual);
   }
 

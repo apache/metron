@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,7 @@ public class GrokFunctions {
 
     InputStream input = GrokFunctions.class.getResourceAsStream("/patterns/common");
     if(input != null) {
-      grok.addPatternFromReader(new InputStreamReader(input));
+      grok.addPatternFromReader(new InputStreamReader(input, StandardCharsets.UTF_8));
     }
 
     if(grokExpr != null) {

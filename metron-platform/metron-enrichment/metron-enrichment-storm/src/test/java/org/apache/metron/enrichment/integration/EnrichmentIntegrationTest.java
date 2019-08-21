@@ -17,11 +17,7 @@
  */
 package org.apache.metron.enrichment.integration;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
+import com.google.common.base.*;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.TestConstants;
@@ -57,14 +53,9 @@ import org.junit.Test;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -104,7 +95,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       List<byte[]> ret = TestUtils.readSampleData(path);
       {
         //we want one of the fields without a destination IP to ensure that enrichments can function
-        Map<String, Object> sansDestinationIp = JSONUtils.INSTANCE.load(new String(ret.get(ret.size() -1))
+        Map<String, Object> sansDestinationIp = JSONUtils.INSTANCE.load(new String(ret.get(ret.size() -1),
+                StandardCharsets.UTF_8)
                                                                        , JSONUtils.MAP_SUPPLIER);
         sansDestinationIp.remove(Constants.Fields.DST_ADDR.getName());
         ret.add(JSONUtils.INSTANCE.toJSONPretty(sansDestinationIp));
@@ -567,7 +559,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             , Iterables.transform(outputMessages
                     , message -> {
                       try {
-                        return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
+                        return new HashMap<>(JSONUtils.INSTANCE.load(new String(message,
+                                StandardCharsets.UTF_8)
                                 , JSONUtils.MAP_SUPPLIER
                         )
                         );

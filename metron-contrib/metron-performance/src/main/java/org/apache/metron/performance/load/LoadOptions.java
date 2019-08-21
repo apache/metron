@@ -18,6 +18,9 @@
 package org.apache.metron.performance.load;
 
 import com.google.common.base.Joiner;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.cli.*;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.common.utils.cli.CLIOptions;
@@ -122,7 +125,8 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
       }
       File discreteDistributionFile  = new File(option.get(cli));
       if(discreteDistributionFile.exists()) {
-        try (BufferedReader br = new BufferedReader(new FileReader(discreteDistributionFile))){
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(discreteDistributionFile),
+            StandardCharsets.UTF_8))){
           return Optional.ofNullable(BiasedSampler.readDistribution(br));
         } catch (IOException e) {
           throw new IllegalStateException("Unable to read distribution file: " + option.get(cli), e);
@@ -180,7 +184,7 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
       File templateFile = new File(option.get(cli));
       if(templateFile.exists()) {
         List<String> templates = new ArrayList<>();
-        try(BufferedReader br = new BufferedReader(new FileReader(templateFile))) {
+        try(BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(templateFile), StandardCharsets.UTF_8))) {
           for(String line = null;(line = br.readLine()) != null;) {
             templates.add(line);
           }

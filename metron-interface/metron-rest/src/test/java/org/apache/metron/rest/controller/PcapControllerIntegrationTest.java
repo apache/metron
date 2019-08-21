@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.controller;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
@@ -407,14 +408,14 @@ public class PcapControllerIntegrationTest {
             .andExpect(header().string("Content-Disposition", "attachment; filename=\"pcap_jobId_1.pcap\""))
             .andExpect(header().string("Content-Length", Integer.toString(pcapFileContents.length())))
             .andExpect(content().contentType(MediaType.parseMediaType("application/octet-stream")))
-            .andExpect(content().bytes(pcapFileContents.getBytes()));
+            .andExpect(content().bytes(pcapFileContents.getBytes(StandardCharsets.UTF_8)));
 
     this.mockMvc.perform(get(pcapUrl + "/jobId/raw?page=1&fileName=pcapFile.pcap").with(httpBasic(user, password)))
             .andExpect(status().isOk())
             .andExpect(header().string("Content-Disposition", "attachment; filename=\"pcapFile.pcap\""))
             .andExpect(header().string("Content-Length", Integer.toString(pcapFileContents.length())))
             .andExpect(content().contentType(MediaType.parseMediaType("application/octet-stream")))
-            .andExpect(content().bytes(pcapFileContents.getBytes()));
+            .andExpect(content().bytes(pcapFileContents.getBytes(StandardCharsets.UTF_8)));
 
     this.mockMvc.perform(get(pcapUrl + "/jobId/raw?page=2").with(httpBasic(user, password)))
             .andExpect(status().isNotFound());

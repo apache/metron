@@ -22,6 +22,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -56,7 +58,7 @@ public class TyposquattingStrategiesTest {
   @BeforeClass
   public static void setup() throws Exception {
     for(Map.Entry<String, EnumMap<TyposquattingStrategies, Set<String>>> kv : expected.entrySet()) {
-      try(BufferedReader br = new BufferedReader(new FileReader( "src/test/resources/typosquat/" + kv.getKey() + ".csv") ) )
+      try(BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("src/test/resources/typosquat/" + kv.getKey() + ".csv"), StandardCharsets.UTF_8) ) )
       {
         for(String line = null;(line = br.readLine()) != null;) {
           if(line.startsWith("#")) {

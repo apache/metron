@@ -34,6 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -547,13 +548,13 @@ public class PcapServiceImplTest {
     doReturn(fileSystem).when(pcapService).getFileSystem();
     when(fileSystem.exists(path)).thenReturn(true);
     doReturn(path).when(pcapService).getPath("user", "jobId", 1);
-    doReturn(new ByteArrayInputStream(pdmlXml.getBytes())).when(pcapToPdmlScriptWrapper).getRawInputStream(fileSystem, path);
+    doReturn(new ByteArrayInputStream(pdmlXml.getBytes(StandardCharsets.UTF_8))).when(pcapToPdmlScriptWrapper).getRawInputStream(fileSystem, path);
     ProcessBuilder pb = PowerMockito.mock(ProcessBuilder.class);
     Process p = PowerMockito.mock(Process.class);
     OutputStream outputStream = new ByteArrayOutputStream();
     when(p.getOutputStream()).thenReturn(outputStream);
     when(p.isAlive()).thenReturn(true);
-    when(p.getInputStream()).thenReturn(new ByteArrayInputStream(pdmlXml.getBytes()));
+    when(p.getInputStream()).thenReturn(new ByteArrayInputStream(pdmlXml.getBytes(StandardCharsets.UTF_8)));
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(pb);
     PowerMockito.when(pb.start()).thenReturn(p);
 
