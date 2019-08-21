@@ -38,6 +38,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 
 import { merge } from '../../../shared/context-menu/context-menu.util'
 import * as moment from 'moment/moment';
+import { TimezoneConfigService } from 'app/alerts/configure-rows/timezone-config/timezone-config.service';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -87,7 +88,8 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
               public updateService: UpdateService,
               public metaAlertService: MetaAlertService,
               public globalConfigService: GlobalConfigService,
-              public dialogService: DialogService) {
+              public dialogService: DialogService,
+              public timezoneConfigService: TimezoneConfigService, ) {
   }
 
   ngOnInit() {
@@ -189,12 +191,9 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   formatValue(column: ColumnMetadata, returnValue: string) {
-    this.localTime = localStorage.getItem('convertUTCtoLocal') === 'true';
+    this.localTime = this.timezoneConfigService.getTimezoneConfig();
     try {
       if ((column.name.endsWith(':ts') || column.name.endsWith('timestamp')) && this.localTime === true) {
-        // returnValue = new Date(parseInt(returnValue, 10)).toISOString().replace('T', ' ').slice(0, 19);
-        // returnValue = moment.utc(returnValue).format('YYYY-MM-DD H:mm:ss');
-        // const timestamp = moment.utc(returnValue);
         returnValue = moment.utc(returnValue).local().format('YYYY-MM-DD H:mm:ss');
       } else if ((column.name.endsWith(':ts') || column.name.endsWith('timestamp')) && this.localTime === false) {
         returnValue = moment.utc(returnValue).format('YYYY-MM-DD H:mm:ss');
