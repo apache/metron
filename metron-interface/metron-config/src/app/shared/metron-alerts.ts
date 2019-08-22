@@ -20,7 +20,7 @@ import { Injectable } from "@angular/core";
 @Injectable()
 export class MetronAlerts {
 
-  public static SUCCESS_MESSAGE_DISPALY_TIME = 5000;
+  public static SUCCESS_MESSAGE_DISPLAY_TIME = 5000;
 
   private createMessage(message: string, type: string): Node {
     let element = document.createElement('div');
@@ -50,6 +50,6 @@ export class MetronAlerts {
 
       document.body.removeChild(element);
 
-    }, MetronAlerts.SUCCESS_MESSAGE_DISPALY_TIME);
+    }, MetronAlerts.SUCCESS_MESSAGE_DISPLAY_TIME);
   }
 }

@@ -31,7 +31,7 @@ import { SensorParserConfigService } from '../service/sensor-parser-config.servi
 import { KafkaService } from '../service/kafka.service';
 import { StormService } from '../service/storm.service';
 import { EffectsModule } from '@ngrx/effects';
-import { effects } from './effects';
+import { SensorsEffects } from './effects/sensors.effects';
 import { StoreModule } from '@ngrx/store';
 import { reducers } from './reducers';
 
@@ -41,7 +41,7 @@ import { reducers } from './reducers';
     SensorParserConfigReadonlyModule,
     SensorParserConfigModule,
     SensorParserAggregateSidebarModule,
-    EffectsModule.forFeature(effects),
+    EffectsModule.forFeature([SensorsEffects]),
     StoreModule.forFeature('sensors', reducers),
   ],
   declarations: [],
