@@ -29,4 +29,10 @@ describe('TimezoneConfigService', () => {
   it('should set initial switch state', () => {
     expect(service.toggleUTCtoLocal).toHaveBeenCalledWith(true);
   });
+
+  it('should return the current timezone configuration with getTimezoneConfig()', () => {
+    expect(service.getTimezoneConfig()).toBe(true);
+    service.showLocal = false;
+    expect(service.getTimezoneConfig()).toBe(false);
+  });
 });
