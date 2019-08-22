@@ -20,12 +20,16 @@ export class AutoPollingService {
   constructor(private searchService: SearchService,
               private queryBuilder: QueryBuilder) {}
 
-  toggle() {
+  start() {
     if (!this.isPollingActive) {
       this.activate();
     }
 
-    this.isPollingActive = !this.isPollingActive;
+    this.isPollingActive = true;
+  }
+
+  stop() {
+    this.isPollingActive = false;
   }
 
   setSuppression(value: boolean) {
@@ -89,5 +93,6 @@ export class AutoPollingService {
   onDestroy() {
     this.isPollingActive = false;
     this.pollingIntervalSubs.unsubscribe();
+    this.pollingIntervalSubs = null;
   }
 }

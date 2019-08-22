@@ -511,9 +511,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   getPollingCongestionWarning() {
-    return `<i class="fa fa-warning" aria-hidden="true"></i> Refresh interval is shorter then the response time.
+    return `<i class="fa fa-warning" aria-hidden="true"></i> Refresh interval is shorter than the response time.
       Please increase the refresh interval in the <i class="fa fa-sliders" aria-hidden="true"></i> menu above,
-      or try to simplefy your query filter.`;
+      or try to simplify your query filter.`;
   }
 
   private updatePollingInterval(refreshInterval: number): void {

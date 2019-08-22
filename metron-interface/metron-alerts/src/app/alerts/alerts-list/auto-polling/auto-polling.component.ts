@@ -33,6 +33,10 @@ export class AutoPollingComponent {
   constructor(public autoPollingSvc: AutoPollingService) {}
 
   onToggle() {
-    this.autoPollingSvc.toggle();
+    if (!this.autoPollingSvc.getIsPollingActive()) {
+      this.autoPollingSvc.start();
+    } else {
+      this.autoPollingSvc.stop();
+    }
   }
 }
