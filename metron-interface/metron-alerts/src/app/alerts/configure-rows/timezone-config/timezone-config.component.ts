@@ -12,10 +12,8 @@ import { TimezoneConfigService } from './timezone-config.service';
     ></app-switch>
   `,
 })
-export class TimezoneConfigComponent implements OnInit {
+export class TimezoneConfigComponent {
   constructor(public timezoneConfigService: TimezoneConfigService) {}
-
-  ngOnInit() {}
 
   toggleTimezoneConfig(isLocal) {
     this.timezoneConfigService.toggleUTCtoLocal(isLocal);
