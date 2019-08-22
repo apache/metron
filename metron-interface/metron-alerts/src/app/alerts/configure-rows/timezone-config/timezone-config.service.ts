@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { QueryBuilder } from 'app/alerts/alerts-list/query-builder';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +9,7 @@ export class TimezoneConfigService {
 
   showLocal = false;
 
-  constructor(public queryBuilder: QueryBuilder) {
+  constructor() {
     this.showLocal = localStorage.getItem(this.CONVERT_UTC_TO_LOCAL_KEY) === 'true';
     this.toggleUTCtoLocal(this.showLocal);
   }
