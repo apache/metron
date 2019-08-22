@@ -31,6 +31,7 @@ export class AutoPollingService {
 
   start() {
     if (!this.isPollingActive) {
+      this.sendInitial();
       this.activate();
     }
     this.isPollingActive = true;
@@ -75,6 +76,11 @@ export class AutoPollingService {
     return this.isCongestion
   }
 
+  private sendInitial() {
+    this.isPending = true;
+    this.searchService.search(this.queryBuilder.searchRequest).subscribe(this.onResult.bind(this));
+  }
+
   private persistState(key = this.AUTO_POLLING_STORAGE_KEY): void {
     localStorage.setItem(key, JSON.stringify(this.getStateModel()));
   }
@@ -107,13 +113,15 @@ export class AutoPollingService {
   }
 
   private activate() {
-    this.pollingIntervalSubs = this.pollData().subscribe(results => {
-      this.data.next(results);
-      this.isPending = false;
-    });
+    this.pollingIntervalSubs = this.startPolling().subscribe(this.onResult.bind(this));
   }
 
-  private pollData(): Observable<SearchResponse> {
+  private onResult(result: SearchResponse) {
+    this.data.next(result);
+    this.isPending = false;
+  }
+
+  private startPolling(): Observable<SearchResponse> {
     return interval(this.refreshInterval * 1000).pipe(
       tap(() => this.checkCongestionOnTick()),
       filter(() => !this.isPollingSuppressed && !this.isCongestion),
