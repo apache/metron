@@ -17,7 +17,7 @@
  */
 import { AlertsListComponent } from './alerts-list.component';
 import { ComponentFixture, async, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA, Component } from '@angular/core';
+import { NO_ERRORS_SCHEMA, Component, Input, Directive } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { SearchService } from 'app/service/search.service';
 import { UpdateService } from 'app/service/update.service';
@@ -34,16 +34,91 @@ import { Observable, Subject, of, noop } from 'rxjs';
 import { Filter } from 'app/model/filter';
 import { QueryBuilder } from './query-builder';
 import { SearchResponse } from 'app/model/search-response';
+import { AutoPollingService } from './auto-polling/auto-polling.service';
 
 @Component({
   selector: 'app-auto-polling',
   template: '<div></div>',
 })
-class MockAutoPollingComponent {
-  tryStartPolling() {}
+class MockAutoPollingComponent {}
+
+@Component({
+  selector: 'app-configure-rows',
+  template: '<div></div>',
+})
+class MockConfigureRowsComponent {
+  @Input() refreshInterval = 0;
+  @Input() srcElement = {};
+  @Input() pageSize = 0;
 }
 
-describe('AlertsListComponent', () => {
+@Component({
+  selector: 'app-modal-loading-indicator',
+  template: '<div></div>',
+})
+class MockModalLoadingIndicatorComponent {
+  @Input() show = false;
+}
+
+@Component({
+  selector: 'app-time-range',
+  template: '<div></div>',
+})
+class MockTimeRangeComponent {
+  @Input() disabled = false;
+  @Input() selectedTimeRange = {};
+}
+
+@Directive({
+  selector: '[appAceEditor]',
+})
+class MockAceEditorDirective {
+  @Input() text = '';
+}
+
+@Component({
+  selector: 'app-alert-filters',
+  template: '<div></div>',
+})
+class MockAlertFilterComponent {
+  @Input() facets = [];
+}
+
+@Component({
+  selector: 'app-group-by',
+  template: '<div></div>',
+})
+class MockGroupByComponent {
+  @Input() facets = [];
+}
+
+@Component({
+  selector: 'app-table-view',
+  template: '<div></div>',
+})
+class MockTableViewComponent {
+  @Input() alerts = [];
+  @Input() pagination = {};
+  @Input() alertsColumnsToDisplay = [];
+  @Input() selectedAlerts = [];
+}
+
+@Component({
+  selector: 'app-tree-view',
+  template: '<div></div>',
+})
+class MockTreeViewComponent {
+  @Input() alerts = [];
+  @Input() pagination = {};
+  @Input() alertsColumnsToDisplay = [];
+  @Input() selectedAlerts = [];
+  @Input() globalConfig = {};
+  @Input() query = '';
+  @Input() groups = [];
+}
+
+
+fdescribe('AlertsListComponent', () => {
 
   let component: AlertsListComponent;
   let fixture: ComponentFixture<AlertsListComponent>;
@@ -53,13 +128,20 @@ describe('AlertsListComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      schemas: [ NO_ERRORS_SCHEMA ],
       imports: [
         RouterTestingModule.withRoutes([]),
       ],
       declarations: [
         AlertsListComponent,
         MockAutoPollingComponent,
+        MockModalLoadingIndicatorComponent,
+        MockTimeRangeComponent,
+        MockAceEditorDirective,
+        MockConfigureRowsComponent,
+        MockAlertFilterComponent,
+        MockGroupByComponent,
+        MockTableViewComponent,
+        MockTreeViewComponent,
       ],
       providers: [
         { provide: SearchService, useClass: () => { return {
@@ -89,6 +171,13 @@ describe('AlertsListComponent', () => {
         { provide: QueryBuilder, useClass: () => { return {
           addOrUpdateFilter: () => {},
           query: '*'
+        } } },
+        { provide: AutoPollingService, useClass: () => { return {
+          data: new Subject<SearchResponse>(),
+          getIsCongestion: () => {},
+          getInterval: () => {},
+          getIsPollingActive: () => {},
+          onDestroy: () => {},
         } } },
       ]
     })
@@ -207,6 +296,53 @@ describe('AlertsListComponent', () => {
       fixture.detectChanges();
 
       expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBeTruthy();
+    });
+
+  })
+
+  describe('auto polling', () => {
+
+    it('should refresh view on data emit', () => {
+      const fakeResponse = new SearchResponse();
+      spyOn(component, 'setData');
+
+      TestBed.get(AutoPollingService).data.next(fakeResponse);
+
+      expect(component.setData).toHaveBeenCalledWith(fakeResponse);
+    });
+
+    it('should set staleDataState false on auto polling refresh', () => {
+      spyOn(component, 'setData');
+      component.staleDataState = true;
+
+      TestBed.get(AutoPollingService).data.next(new SearchResponse());
+
+      expect(component.staleDataState).toBe(false);
+    });
+
+    it('should show warning on auto polling congestion', () => {
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeFalsy();
+
+      TestBed.get(AutoPollingService).getIsCongestion = () => true;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeTruthy();
+
+      TestBed.get(AutoPollingService).getIsCongestion = () => false;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeFalsy();
+    });
+
+    it('should pass refresh interval to row config component', () => {
+      TestBed.get(AutoPollingService).getInterval = () => 44;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.directive(MockConfigureRowsComponent)).componentInstance.refreshInterval).toBe(44);
+    });
+
+    xit('test getIsPollingActive scennarios', () => {
+
     });
 
   })

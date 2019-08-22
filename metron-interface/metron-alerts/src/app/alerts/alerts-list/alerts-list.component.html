@@ -81,8 +81,16 @@
         <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
       </div>
       <div class="col px-0 pl-4" style="overflow: auto;">
-        <div class="alert alert-warning" role="alert" *ngIf="staleDataState" data-qe-id="staleDataWarning" [innerHTML]="getStaleDataWarning()"></div>
-        <div class="alert alert-warning" role="alert" *ngIf="autoPollingSvc.getIsCongestion()" data-qe-id="staleDataWarning" [innerHTML]="getPollingCongestionWarning()"></div>
+        <div class="alert alert-warning" role="alert"
+            *ngIf="staleDataState"
+            [innerHTML]="getStaleDataWarning()"
+            data-qe-id="staleDataWarning"
+            ></div>
+        <div class="alert alert-warning" role="alert"
+            *ngIf="autoPollingSvc.getIsCongestion()"
+            [innerHTML]="getPollingCongestionWarning()"
+            data-qe-id="pollingCongestionWarning"
+            ></div>
         <div class="col-xs-12 pl-0 pb-3">
           <app-group-by [facets]="groupFacets" (groupsChange)="onGroupsChange($event)"> </app-group-by>
         </div>

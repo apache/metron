@@ -18,7 +18,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { ShowHideService } from './show-hide.service';
 
-export interface ShowHideModel {
+export interface ShowHideStateModel {
   hideResolved: boolean,
   hideDismissed: boolean,
 }
@@ -34,7 +34,7 @@ export interface ShowHideModel {
 })
 export class ShowHideAlertEntriesComponent {
 
-  @Output() changed = new EventEmitter<ShowHideModel>();
+  @Output() changed = new EventEmitter<ShowHideStateModel>();
 
   constructor(public showHideService: ShowHideService) {}
 
