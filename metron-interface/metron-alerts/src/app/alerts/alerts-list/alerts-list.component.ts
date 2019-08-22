@@ -273,11 +273,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onConfigRowsChange(config: ConfigureRowsModel) {
     const { values, triggerQuery } = config;
 
-    this.tableMetaData.refreshInterval = values.refreshInterval;
     this.tableMetaData.size = values.pageSize;
-
     this.updatePollingInterval(values.refreshInterval);
-
     this.saveSaveRowsConfig();
 
     if (triggerQuery) {
@@ -324,9 +321,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[]) {
-    this.updatePollingInterval(tableMetaData.refreshInterval);
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
-
     this.tableMetaData = tableMetaData;
   }
 

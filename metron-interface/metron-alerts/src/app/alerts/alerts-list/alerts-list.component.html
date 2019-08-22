@@ -53,7 +53,7 @@
                 </div>
                 <app-configure-rows
                     [srcElement]="settingsIcon"
-                    [refreshInterval]="tableMetaData.refreshInterval"
+                    [refreshInterval]="autoPollingSvc.getInterval()"
                     [pageSize]="tableMetaData.size"
                     (configRowsChange)="onConfigRowsChange($event)"
                     ></app-configure-rows>
