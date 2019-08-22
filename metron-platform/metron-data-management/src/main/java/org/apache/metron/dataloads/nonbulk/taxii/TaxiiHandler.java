@@ -44,9 +44,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -72,6 +71,7 @@ import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.hbase.HTableProvider;
 import org.mitre.taxii.client.HttpClient;
 import org.mitre.taxii.messages.xml11.AnyMixedContentType;
 import org.mitre.taxii.messages.xml11.CollectionInformationRequest;
@@ -157,7 +157,7 @@ public class TaxiiHandler extends TimerTask {
   }
 
   protected synchronized Table createHTable(String tableInfo) throws IOException {
-    return new HTable(config, tableInfo);
+    return new HTableProvider().getTable(config, tableInfo);
   }
   /**
    * The action to be performed by this timer task.

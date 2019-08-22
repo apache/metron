@@ -37,8 +37,8 @@ import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -66,8 +66,8 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
   private static ZKServerComponent zookeeperComponent;
   private static ComponentRunner componentRunner;
   private static HBaseTestingUtility testUtil;
-  private static HTable enrichmentTable;
-  private static HTable enrichmentListTable;
+  private static Table enrichmentTable;
+  private static Table enrichmentListTable;
   private static Configuration hBaseConfig;
 
   /*

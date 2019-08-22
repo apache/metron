@@ -18,12 +18,17 @@
 package org.apache.metron.dataloads.hbase.mr;
 
 import com.google.common.collect.Iterables;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.GenericOptionsParser;
@@ -36,21 +41,18 @@ import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class LeastRecentlyUsedPrunerIntegrationTest {
     /** The test util. */
     private static HBaseTestingUtility testUtil;
 
     /** The test table. */
-    private static HTable testTable;
-    private static HTable atTable;
+    private static Table testTable;
+    private static Table atTable;
     private static final String tableName = "malicious_domains";
     private static final String cf = "cf";
     private static final String atTableName = "access_trackers";
