@@ -216,7 +216,6 @@ public class KafkaComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
-    shutdownConsumer();
     shutdownProducers();
 
     if(kafkaServer != null) {
