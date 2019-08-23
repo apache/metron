@@ -17,7 +17,7 @@
  */
 import { AlertsListComponent } from './alerts-list.component';
 import { ComponentFixture, async, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA, Component, Input, Directive } from '@angular/core';
+import { Component, Input, Directive } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { SearchService } from 'app/service/search.service';
 import { UpdateService } from 'app/service/update.service';
@@ -30,11 +30,14 @@ import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
 import { By } from '@angular/platform-browser';
-import { Observable, Subject, of, noop } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
 import { Filter } from 'app/model/filter';
 import { QueryBuilder } from './query-builder';
 import { SearchResponse } from 'app/model/search-response';
 import { AutoPollingService } from './auto-polling/auto-polling.service';
+import { Router } from '@angular/router';
+import { Alert } from 'app/model/alert';
+import { AlertSource } from 'app/model/alert-source';
 
 @Component({
   selector: 'app-auto-polling',
@@ -118,7 +121,7 @@ class MockTreeViewComponent {
 }
 
 
-fdescribe('AlertsListComponent', () => {
+describe('AlertsListComponent', () => {
 
   let component: AlertsListComponent;
   let fixture: ComponentFixture<AlertsListComponent>;
@@ -129,7 +132,7 @@ fdescribe('AlertsListComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule.withRoutes([]),
+        RouterTestingModule.withRoutes([{path: 'alerts-list', component: AlertsListComponent}]),
       ],
       declarations: [
         AlertsListComponent,
@@ -145,7 +148,7 @@ fdescribe('AlertsListComponent', () => {
       ],
       providers: [
         { provide: SearchService, useClass: () => { return {
-          search: () => {},
+          search: () => new Observable(),
         } } },
         { provide: UpdateService, useClass: () => { return {
           alertChanged$: new Observable(),
@@ -160,6 +163,7 @@ fdescribe('AlertsListComponent', () => {
         } } },
         { provide: SaveSearchService, useClass: () => { return {
           loadSavedSearch$: new Observable(),
+          setCurrentQueryBuilderAndTableColumns: () => {},
         } } },
         { provide: MetaAlertService, useClass: () => { return {
           alertChanged$: new Observable(),
@@ -177,7 +181,9 @@ fdescribe('AlertsListComponent', () => {
           getIsCongestion: () => {},
           getInterval: () => {},
           getIsPollingActive: () => {},
+          dropNextAndContinue: () => {},
           onDestroy: () => {},
+          setSuppression: () => {},
         } } },
       ]
     })
@@ -341,8 +347,128 @@ fdescribe('AlertsListComponent', () => {
       expect(fixture.debugElement.query(By.directive(MockConfigureRowsComponent)).componentInstance.refreshInterval).toBe(44);
     });
 
-    xit('test getIsPollingActive scennarios', () => {
+    it('should drop pending auto polling result if user trigger search request manually', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'dropNextAndContinue');
+      spyOn(component, 'setSearchRequestSize');
 
+      autoPollingSvc.getIsPollingActive = () => false;
+      component.search()
+
+      expect(autoPollingSvc.dropNextAndContinue).not.toHaveBeenCalled();
+
+      autoPollingSvc.getIsPollingActive = () => true;
+      component.search()
+
+      expect(autoPollingSvc.dropNextAndContinue).toHaveBeenCalled();
+    });
+
+    it('should show different stale data warning when polling is active', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+
+      autoPollingSvc.getIsPollingActive = () => false;
+      const warning = component.getStaleDataWarning();
+
+      autoPollingSvc.getIsPollingActive = () => true;
+      const warningWhenPolling = component.getStaleDataWarning();
+
+      expect(warning).not.toEqual(warningWhenPolling);
+    });
+
+    it('should show getIsCongestion scennarios', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+
+      autoPollingSvc.getIsCongestion = () => false;
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeFalsy();
+
+      autoPollingSvc.getIsCongestion = () => true;
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeTruthy();
+
+    });
+
+    it('should suppress polling when user select alerts', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.onSelectedAlertsChange([{ source: { metron_alert: [] } }]);
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should restore polling from suppression when user deselect alerts', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.onSelectedAlertsChange([]);
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(false);
+    });
+
+    it('should suppress polling when open details pane', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.showConfigureTable();
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should suppress polling when open column config pane', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      const fakeAlert = new Alert();
+      fakeAlert.source = new AlertSource();
+
+      component.showDetails(fakeAlert);
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should suppress polling when open Saved Searches pane', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.showSavedSearches();
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should suppress polling when open Save Search dialogue pane', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+      spyOn(autoPollingSvc, 'setSuppression');
+      spyOn(saveSearchSvc, 'setCurrentQueryBuilderAndTableColumns');
+
+      component.showSaveSearch();
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should restore the polling supression on bulk status update (other scenario of deselecting alerts)', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.updateSelectedAlertStatus('fakeState');
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(false);
+    });
+
+    it('should restore the polling supression when returning from a subroute', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      autoPollingSvc.getIsPollingActive = () => false;
+      TestBed.get(Router).navigate(['/alerts-list']);
+
+      expect(autoPollingSvc.setSuppression).not.toHaveBeenCalled();
+
+      autoPollingSvc.getIsPollingActive = () => true;
+      TestBed.get(Router).navigate(['/alerts-list']);
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(false);
     });
 
   })

@@ -20,6 +20,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { AutoPollingComponent } from './auto-polling.component';
 import { SearchService } from 'app/service/search.service';
 import { QueryBuilder } from '../query-builder';
+import { AutoPollingService } from './auto-polling.service';
 
 describe('AutoPollingComponent', () => {
   let component: AutoPollingComponent;
@@ -35,6 +36,9 @@ describe('AutoPollingComponent', () => {
           }}
         },
         { provide: QueryBuilder, useClass: () => {} },
+        { provide: AutoPollingService, useClass: () => { return {
+          getIsPollingActive: () => {}
+        } } },
       ],
     })
     .compileComponents();
