@@ -50,6 +50,7 @@ javax.xml.bind:jaxb-api:jar:2.2.2:compile,CDDL,https://jaxb.dev.java.net/
 javax.xml.bind:jaxb-api:jar:2.3.0:compile,CDDL,https://jaxb.dev.java.net/
 javax.xml.stream:stax-api:jar:1.0-2:compile,COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0,https://docs.oracle.com/javase/7/docs/api/javax/xml/stream/package-summary.html
 jline:jline:jar:0.9.94:compile,BSD,http://jline.sourceforge.net
+jline:jline:jar:2.12.1:compile,BSD,http://jline.sourceforge.net
 junit:junit:jar:4.12:compile,Eclipse Public License 1.0,http://junit.org
 junit:junit:jar:4.4:compile,Common Public License Version 1.0,http://junit.org
 net.razorvine:pyrolite:jar:4.13:compile,MIT,https://github.com/irmen/Pyrolite
@@ -61,6 +62,7 @@ org.abego.treelayout:org.abego.treelayout.core:jar:1.0.1:compile,BSD 3-Clause "N
 org.adrianwalker:multiline-string:jar:0.1.2:compile,Common Public License Version 1.0,https://github.com/benelog/multiline
 org.antlr:antlr4-runtime:jar:4.5:compile,BSD 3-Clause License,http://www.antlr.org
 org.bouncycastle:bcprov-jdk15on:jar:1.52:compile,MIT,https://www.bouncycastle.org/license.html
+org.bouncycastle:bcpkix-jdk15on:jar:1.52:compile,MIT,https://www.bouncycastle.org/license.html
 org.clojure:clojure:jar:1.6.0:compile,Eclipse Public License 1.0,http://clojure.org/
 org.clojure:clojure:jar:1.7.0:compile,Eclipse Public License 1.0,http://clojure.org/
 org.codehaus.jackson:jackson-jaxrs:jar:1.8.3:compile,Apache v2,http://jackson.codehaus.org
@@ -185,6 +187,7 @@ com.fasterxml:classmate:jar:1.3.4:compile,ASLv2,http://github.com/cowtowncoder/j
 com.google.code.gson:gson:jar:2.2.2:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
 com.google.code.gson:gson:jar:2.2.4:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
 com.google.code.gson:gson:jar:2.7:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
+com.google.code.gson:gson:jar:2.8.5:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
 com.google.guava:guava:jar:11.0.2:compile,ASLv2,
 com.google.guava:guava:jar:12.0.1:compile,ASLv2,
 com.google.guava:guava:jar:12.0:compile,ASLv2,
@@ -225,6 +228,7 @@ commons-collections:commons-collections:jar:3.2.1:compile,ASLv2,http://commons.a
 commons-collections:commons-collections:jar:3.2.2:compile,ASLv2,http://commons.apache.org/collections/
 commons-configuration:commons-configuration:jar:1.10:compile,ASLv2,http://commons.apache.org/configuration/
 commons-configuration:commons-configuration:jar:1.6:compile,The Apache Software License, Version 2.0,http://commons.apache.org/${pom.artifactId.substring(8)}/
+commons-configuration:commons-configuration:jar:1.9:compile,The Apache Software License, Version 2.0,http://commons.apache.org/${pom.artifactId.substring(8)}/
 commons-daemon:commons-daemon:jar:1.0.13:compile,ASLv2,http://commons.apache.org/daemon/
 commons-digester:commons-digester:jar:1.8.1:compile,ASLv2,http://commons.apache.org/digester/
 commons-digester:commons-digester:jar:1.8:compile,The Apache Software License, Version 2.0,http://jakarta.apache.org/commons/digester/
@@ -507,3 +511,4 @@ org.elasticsearch:securesm:jar:1.2:compile
 com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile,ASLv2,http://stephenc.github.io/jcip-annotations/
 com.nimbusds:nimbus-jose-jwt:jar:4.41.2:compile,ASLv2,https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home
 tomcat:jasper-compiler:jar:5.5.23:compile,ASLv2,https://tomcat.apache.org/
+org.danilopianini:gson-extras:jar:0.2.1:compile,ASLv2,https://github.com/DanySK/gson-extras

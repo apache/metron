@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.zeppelin.interpreter.InterpreterContext;
+import org.apache.zeppelin.interpreter.InterpreterException;
 import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.apache.zeppelin.interpreter.InterpreterResultMessage;
 import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
@@ -151,7 +152,7 @@ public class StellarInterpreterTest {
    * The interpreter should support auto-completion.
    */
   @Test
-  public void testAutoCompletion() {
+  public void testAutoCompletion() throws InterpreterException {
 
     // the user's input that needs auto-completed
     final String buffer = "TO_";
@@ -159,7 +160,7 @@ public class StellarInterpreterTest {
     // the cursor is at the end of the buffer
     int cursor = buffer.length();
 
-    List<InterpreterCompletion> completions = interpreter.completion(buffer, cursor);
+    List<InterpreterCompletion> completions = interpreter.completion(buffer, cursor, context);
 
     // expect some completions to be offered
     assertTrue(completions.size() > 0);
@@ -182,7 +183,7 @@ public class StellarInterpreterTest {
    * What happens when we have nothing useful to auto-complete?
    */
   @Test
-  public void testAutoCompletionWithNoCompletions() {
+  public void testAutoCompletionWithNoCompletions() throws InterpreterException {
 
     // the user's input that needs auto-completed
     final String buffer = "NOTHING_AUTOCOMPLETES_THIS_";
@@ -191,7 +192,7 @@ public class StellarInterpreterTest {
     int cursor = buffer.length();
 
     // perform auto-completion
-    List<InterpreterCompletion> completions = interpreter.completion(buffer, cursor);
+    List<InterpreterCompletion> completions = interpreter.completion(buffer, cursor, context);
 
     // expect no completions
     assertEquals(0, completions.size());
