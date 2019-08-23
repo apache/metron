@@ -99,6 +99,8 @@
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_curator_version>2.7.1</global_curator_version>
         <global_classindex_version>3.3</global_classindex_version>
+        <global_hbase_version>1.1.1</global_hbase_version>
+        <global_hbase_guava_version>12.0</global_hbase_guava_version>
         <global_storm_version>1.0.3</global_storm_version>
         <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
@@ -137,29 +139,15 @@
     <profiles>
         <profile>
             <id>HDP-3.1</id>
-            <properties>
-                <hdp_version>3.1.0.0</hdp_version>
-                <global_hbase_version>2.0.2</global_hbase_version>
-                <global_hbase_guava_version>17.0</global_hbase_guava_version>
-                <global_zeppelin_version>0.8.0</global_zeppelin_version>
-                <global_kafka_version>2.0.0</global_kafka_version>
-                <global_slf4j_version>1.7.25</global_slf4j_version>
-                <global_storm_version>1.2.1</global_storm_version>
-            </properties>
-        </profile>
-        <profile>
-            <id>HDP-2.6</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <hdp_version>2.6.5.0</hdp_version>
-                <global_hbase_version>1.1.1</global_hbase_version>
-                <global_hbase_guava_version>12.0</global_hbase_guava_version>
-                <global_zeppelin_version>0.8.0</global_zeppelin_version>
+                <hdp_version>3.1.0.0</hdp_version>
                 <global_kafka_version>2.0.0</global_kafka_version>
                 <global_slf4j_version>1.7.25</global_slf4j_version>
                 <global_storm_version>1.2.1</global_storm_version>
+                <global_zeppelin_version>0.8.0</global_zeppelin_version>
             </properties>
         </profile>
         <profile>
@@ -167,16 +155,12 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
-                <!--<global_storm_kafka_version>1.2.2</global_storm_kafka_version>-->
-                <!--<global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>-->
-                <!--global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version-->
-                <!--global_slf4j_version>1.7.7</global_slf4j_version-->
-                <global_kafka_version>2.0.0</global_kafka_version>
-                <global_slf4j_version>1.7.25</global_slf4j_version>
-                <global_storm_version>1.2.1</global_storm_version>
                 <global_hbase_version>1.1.1</global_hbase_version>
                 <global_hbase_guava_version>12.0</global_hbase_guava_version>
-                <global_zeppelin_version>0.8.0</global_zeppelin_version>
+                <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
+                <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
+                <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
+                <global_zeppelin_version>0.7.3</global_zeppelin_version>
             </properties>
         </profile>
     </profiles>
