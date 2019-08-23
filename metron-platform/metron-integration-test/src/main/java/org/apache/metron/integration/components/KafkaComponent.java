@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -144,7 +143,7 @@ public class KafkaComponent implements InMemoryComponent {
   public AdminClient createAdminClient() {
     Map<String, Object> adminConfig = new HashMap<>();
     adminConfig.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerList());
-    AdminClient adminClient = KafkaAdminClient.create(adminConfig);
+    AdminClient adminClient = AdminClient.create(adminConfig);
     return adminClient;
   }
 

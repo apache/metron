@@ -17,18 +17,6 @@
  */
 package org.apache.metron.rest.config;
 
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
@@ -42,8 +30,10 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
@@ -175,13 +165,13 @@ public class TestConfig {
   @Bean
   public Map<String, Object> kafkaConsumer(KafkaComponent kafkaWithZKComponent) {
     Map<String, Object> props = new HashMap<>();
-    props.put("bootstrap.servers", kafkaWithZKComponent.getBrokerList());
-    props.put("group.id", "metron-config");
-    props.put("enable.auto.commit", "false");
-    props.put("auto.commit.interval.ms", "1000");
-    props.put("session.timeout.ms", "30000");
-    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-    props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaWithZKComponent.getBrokerList());
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "metron-config");
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+    props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
+    props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
     return props;
   }
 
@@ -193,10 +183,10 @@ public class TestConfig {
   @Bean
   public Map<String, Object> producerProperties(KafkaComponent kafkaWithZKComponent) {
     Map<String, Object> producerConfig = new HashMap<>();
-    producerConfig.put("bootstrap.servers", kafkaWithZKComponent.getBrokerList());
-    producerConfig.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-    producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-    producerConfig.put("request.required.acks", 1);
+    producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaWithZKComponent.getBrokerList());
+    producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put(ProducerConfig.ACKS_CONFIG, 1);
     return producerConfig;
   }
 
@@ -220,8 +210,8 @@ public class TestConfig {
   @Bean
   public AdminClient adminUtils(KafkaComponent kafkaWithZKComponent) {
     Map<String, Object> adminConfig = new HashMap<>();
-    adminConfig.put("bootstrap.servers", kafkaWithZKComponent.getBrokerList());
-    return KafkaAdminClient.create(adminConfig);
+    adminConfig.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaWithZKComponent.getBrokerList());
+    return AdminClient.create(adminConfig);
   }
 
   @Bean(destroyMethod = "close")
