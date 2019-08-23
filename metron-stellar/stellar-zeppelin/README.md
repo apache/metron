@@ -65,6 +65,7 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
     **Note:** The above command will download maven artifact groupId1:artifact1:version1 (org.apache.metron:stellar-zeppelin:0.7.2) and all of its transitive dependencies into the $ZEPPELIN_HOME/interpreter/stellar directory. `stellar-common`, which contains many of the [Stellar Core Functions](../stellar-common#stellar-core-functions), will be included transitively because `stellar-zeppelin` declares it as a direct dependency in its Maven pom.xml.
 
     * [3rd Party Zeppelin Interpreter Installation Documentation](http://zeppelin.apache.org/docs/0.8.0/usage/interpreter/installation.html#3rd-party-interpreters)
+    * Apache Zeppelin provides Interpreter Installation mechanism for whom downloaded Zeppelin netinst binary package, or just want to install another 3rd party interpreters.
 
 1. Start Zeppelin.  
 
