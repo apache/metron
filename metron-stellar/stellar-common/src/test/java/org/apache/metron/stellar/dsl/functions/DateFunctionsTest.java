@@ -254,7 +254,7 @@ public class DateFunctionsTest {
     Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzz', 'GMT')");
     assertTrue(result.toString().endsWith("GMT"));
   }
-/*
+
   @Test
   public void testDateFormatDefaultTimezone() {
     Object result = run("DATE_FORMAT('EEE MMM dd yyyy hh:mm:ss zzzz', test_datetime)");
@@ -263,7 +263,7 @@ public class DateFunctionsTest {
             .getRules().isDaylightSavings(Instant.ofEpochMilli(AUG2016) );
     assertTrue(result.toString().endsWith(TimeZone.getDefault().getDisplayName(inDaylightSavings, 1)));
   }
-*/
+
   /**
    * If refer to variable that does not exist, expect ParseException.
    */
