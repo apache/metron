@@ -36,6 +36,12 @@
         <version>${project.parent.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>stellar-common</artifactId>
+        <version>${project.parent.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
         <groupId>org.apache.storm</groupId>
         <artifactId>storm-core</artifactId>
         <version>${global_storm_version}</version>

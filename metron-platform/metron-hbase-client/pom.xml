@@ -66,6 +66,8 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>${global_shade_version}</version>
                 <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>uber</shadedClassifierName>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <artifactSet>
                         <excludes>

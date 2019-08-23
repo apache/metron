@@ -508,6 +508,9 @@
             <package>
               <name>metron-performance</name>
             </package>
+            <package>
+              <name>stellar-common</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>

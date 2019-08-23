@@ -56,6 +56,12 @@
       <artifactId>metron-writer-storm</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>stellar-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Storm dependencies -->
     <dependency>

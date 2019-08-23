@@ -36,5 +36,5 @@ done
 export HADOOP_CLASSPATH
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
-export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
+export DM_JAR=${project.artifactId}-$METRON_VERSION-uber.jar
 hadoop jar $METRON_HOME/lib/$DM_JAR org.apache.metron.dataloads.bulk.LeastRecentlyUsedPruner -libjars ${LIBJARS} "$@"
