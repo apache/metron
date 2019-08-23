@@ -17,6 +17,7 @@
  */
 import {Component} from '@angular/core';
 import {AuthenticationService} from './service/authentication.service';
+import {AppConfigService} from './service/app-config.service';
 
 
 @Component({
@@ -28,8 +29,42 @@ import {AuthenticationService} from './service/authentication.service';
 export class AppComponent {
 
   loggedIn = false;
+  isCollapsed = false;
+  hostname = this.appConfigService.getAlertsUIHost();
+  centralNavLinks = [
+    {
+      linkName: 'Alerts',
+      iconClass: 'warning',
+      subLinks: [
+        {
+          linkName: 'Overview',
+          routerLink: ':' + this.appConfigService.getAlertsUIPort() + '/alerts-list',
+          externalLink: true
+        },
+        {
+          linkName: 'PCAP',
+          routerLink: ':' + this.appConfigService.getAlertsUIPort() + '/pcap',
+          externalLink: true
+        }
+      ]
+    },
+    {
+      linkName: 'Management',
+      iconClass: 'tool',
+      subLinks: [
+        {
+          linkName: 'Sensors',
+          routerLink: '/sensors',
+        },
+        {
+          linkName: 'General Settings',
+          routerLink: '/general-settings'
+        }
+      ]
+    }
+  ];
 
-  constructor(private authService: AuthenticationService) {
+  constructor(private authService: AuthenticationService, private appConfigService: AppConfigService) {
     this.authService.onLoginEvent.subscribe(result => {
       this.loggedIn = result;
     });

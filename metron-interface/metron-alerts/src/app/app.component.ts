@@ -18,6 +18,7 @@
 import { Component, OnInit } from '@angular/core';
 import {AuthenticationService} from './service/authentication.service';
 import { environment } from 'environments/environment';
+import {AppConfigService} from './service/app-config.service';
 
 @Component({
   selector: 'metron-alerts-root',
@@ -27,8 +28,42 @@ import { environment } from 'environments/environment';
 export class AppComponent implements OnInit {
   loggedIn = false;
   noTransition = false;
+  isCollapsed = false;
+  hostname = this.appConfigService.getManagementUIHost();
+  centralNavLinks = [
+    {
+      linkName: 'Alerts',
+      iconClass: 'warning',
+      subLinks: [
+        {
+          linkName: 'Overview',
+          routerLink: '/alerts-list'
+        },
+        {
+          linkName: 'PCAP',
+          routerLink: '/pcap'
+        }
+      ]
+    },
+    {
+      linkName: 'Management',
+      iconClass: 'tool',
+      subLinks: [
+        {
+          linkName: 'Sensors',
+          routerLink: ':' + this.appConfigService.getManagementUIPort() + '/sensors',
+          externalLink: true
+        },
+        {
+          linkName: 'General Settings',
+          routerLink: ':' + this.appConfigService.getManagementUIPort() + '/general-settings',
+          externalLink: true
+        }
+      ]
+    }
+  ]
 
-  constructor(private authService: AuthenticationService) {
+  constructor(private authService: AuthenticationService, private appConfigService: AppConfigService) {
     this.authService.onLoginEvent.subscribe(result => {
       this.loggedIn = result;
     });
