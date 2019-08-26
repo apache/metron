@@ -15,9 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Pipe, PipeTransform } from '@angular/core';
+import { TopologyStatus } from '../../model/topology-status';
 
- import { SensorsEffects } from './sensors.effects';
-
- export * from './sensors.effects';
-
- export const effects = [ SensorsEffects ];
+@Pipe({ name: 'throughput' })
+export class SensorParserThroughputPipe implements PipeTransform {
+  transform(status: TopologyStatus): string {
+    return status && status.status === 'ACTIVE' && status.throughput != null
+      ? (Math.round(status.throughput * 100) / 100) + 'kb/s'
+      : '-';
+  }
+}
