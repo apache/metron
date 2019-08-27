@@ -64,9 +64,8 @@ public class SolrUtilities {
     insertChildAlerts(solrDocument, document);
 
     return new Document(document,
-            (String) solrDocument.getFieldValue(Constants.GUID),
-            (String) solrDocument.getFieldValue(Constants.SENSOR_TYPE),
-            (Long) solrDocument.getFieldValue(Constants.Fields.TIMESTAMP.getName()));
+        (String) solrDocument.getFieldValue(Constants.GUID),
+        (String) solrDocument.getFieldValue(Constants.SENSOR_TYPE), 0L);
   }
 
   protected static void reformatComments(SolrDocument solrDocument, Map<String, Object> document) {

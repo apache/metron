@@ -17,26 +17,6 @@
  */
 package org.apache.metron.rest.controller;
 
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.ColumnList;
-import org.apache.metron.hbase.client.FakeHBaseClient;
-import org.apache.metron.rest.service.SensorEnrichmentConfigService;
-import org.hamcrest.core.IsCollectionContaining;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -49,69 +29,83 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.rest.service.SensorEnrichmentConfigService;
+import org.hamcrest.core.IsCollectionContaining;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(TEST_PROFILE)
 public class SensorEnrichmentConfigControllerIntegrationTest {
 
   /**
-   * {
-   *    "enrichment":{
-   *       "fieldMap":{
-   *          "geo":[
-   *             "ip_dst_addr"
-   *          ],
-   *          "host":[
-   *             "ip_dst_addr"
-   *          ],
-   *          "hbaseEnrichment":[
-   *             "ip_src_addr"
-   *          ],
-   *          "stellar":{
-   *             "config":{
-   *                "group1":{
-   *                   "foo":"1 + 1",
-   *                   "bar":"foo"
-   *                },
-   *                "group2":{
-   *                   "ALL_CAPS":"TO_UPPER(source.type)"
-   *                }
-   *             }
-   *          }
-   *       },
-   *       "fieldToTypeMap":{
-   *          "ip_src_addr":[
-   *             "sample"
-   *          ]
-   *       }
-   *    },
-   *    "threatIntel":{
-   *       "fieldMap":{
-   *          "hbaseThreatIntel":[
-   *             "ip_src_addr",
-   *             "ip_dst_addr"
-   *          ]
-   *       },
-   *       "fieldToTypeMap":{
-   *          "ip_src_addr":[
-   *             "malicious_ip"
-   *          ],
-   *          "ip_dst_addr":[
-   *             "malicious_ip"
-   *          ]
-   *       },
-   *       "triageConfig":{
-   *          "riskLevelRules":[
-   *             {
-   *                "rule":"ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'",
-   *                "score":10
-   *             }
-   *          ],
-   *          "aggregator":"MAX"
-   *       }
-   *    }
-   * }
-   *
+   {
+   "enrichment": {
+   "fieldMap": {
+   "geo": [
+   "ip_dst_addr"
+   ],
+   "host": [
+   "ip_dst_addr"
+   ],
+   "hbaseEnrichment": [
+   "ip_src_addr"
+   ],
+   "stellar": {
+   "config": {
+   "group1": {
+   "foo": "1 + 1",
+   "bar": "foo"
+   },
+   "group2": {
+   "ALL_CAPS": "TO_UPPER(source.type)"
+   }
+   }
+   }
+   },
+   "fieldToTypeMap": {
+   "ip_src_addr": [
+   "sample"
+   ]
+   }
+   },
+   "threatIntel": {
+   "fieldMap": {
+   "hbaseThreatIntel": [
+   "ip_src_addr",
+   "ip_dst_addr"
+   ]
+   },
+   "fieldToTypeMap": {
+   "ip_src_addr": [
+   "malicious_ip"
+   ],
+   "ip_dst_addr": [
+   "malicious_ip"
+   ]
+   },
+   "triageConfig": {
+   "riskLevelRules": [
+   {
+   "rule": "ip_src_addr == '10.122.196.204' or ip_dst_addr == '10.122.196.204'",
+   "score": 10
+   }
+   ],
+   "aggregator": "MAX"
+   }
+   }
+   }
    */
   @Multiline
   public static String broJson;
@@ -123,6 +117,7 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
   private WebApplicationContext wac;
 
   private MockMvc mockMvc;
+
   private String sensorEnrichmentConfigUrl = "/api/v1/sensor/enrichment/config";
   private String user = "user";
   private String password = "password";
@@ -130,9 +125,6 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
-
-    // clear any fake hbase data between tests
-    new FakeHBaseClient().deleteAll();
   }
 
   @Test
@@ -250,6 +242,12 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[?(@.sensorTopic == 'broTest')]").doesNotExist());
 
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/list/available/enrichments").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.length()").value("3"))
+            .andExpect(jsonPath("$.*").value(IsCollectionContaining.hasItems("foo", "bar", "baz")));
+
     this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/list/available/threat/triage/aggregators").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
@@ -257,7 +255,8 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(jsonPath("$[1]").value("MIN"))
             .andExpect(jsonPath("$[2]").value("SUM"))
             .andExpect(jsonPath("$[3]").value("MEAN"))
-            .andExpect(jsonPath("$[4]").value("POSITIVE_MEAN"));
+            .andExpect(jsonPath("$[4]").value("POSITIVE_MEAN"))
+    ;
 
     sensorEnrichmentConfigService.delete("broTest");
   }

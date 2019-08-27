@@ -161,16 +161,6 @@ public class SolrMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void close() throws IOException {
-    if(indexDao != null) {
-      indexDao.close();
-    }
-    if(solrDao != null) {
-      solrDao.close();
-    }
-  }
-
-  @Override
   public void init(AccessConfig config) {
     // Do nothing. We're just wrapping a child dao
   }

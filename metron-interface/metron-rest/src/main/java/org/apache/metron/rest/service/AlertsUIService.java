@@ -37,5 +37,5 @@ public interface AlertsUIService {
 
   void saveAlertsUIUserSettings(AlertsUIUserSettings userSettings) throws RestException;
 
-  boolean deleteAlertsUIUserSettings(String user) throws RestException;
+  boolean deleteAlertsUIUserSettings(String user);
 }

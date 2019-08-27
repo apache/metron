@@ -17,11 +17,8 @@
  */
 package org.apache.metron.indexing.dao;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
-
 import java.util.function.Function;
+import org.apache.metron.hbase.TableProvider;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,11 +30,8 @@ public class AccessConfig {
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private Function<String, String> indexSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
-  private HBaseConnectionFactory hbaseConnectionFactory;
-  private Configuration hbaseConfiguration;
   private TableProvider tableProvider = null;
   private Boolean isKerberosEnabled = false;
-
 
   /**
    * @return A supplier which will return the current global config.
@@ -89,30 +83,6 @@ public class AccessConfig {
 
   public void setOptionalSettings(Map<String, String> optionalSettings) {
     this.optionalSettings = optionalSettings;
-  }
-
-  /**
-   * @return The {@link HBaseConnectionFactory} that establishes connections to HBase.
-   */
-  public HBaseConnectionFactory getHbaseConnectionFactory() {
-    return hbaseConnectionFactory;
-  }
-
-  public AccessConfig setHbaseConnectionFactory(HBaseConnectionFactory hbaseConnectionFactory) {
-    this.hbaseConnectionFactory = hbaseConnectionFactory;
-    return this;
-  }
-
-  /**
-   * @return The configuration used to connect to HBase.
-   */
-  public Configuration getHbaseConfiguration() {
-    return hbaseConfiguration;
-  }
-
-  public AccessConfig setHbaseConfiguration(Configuration hbaseConfiguration) {
-    this.hbaseConfiguration = hbaseConfiguration;
-    return this;
   }
 
   /**
