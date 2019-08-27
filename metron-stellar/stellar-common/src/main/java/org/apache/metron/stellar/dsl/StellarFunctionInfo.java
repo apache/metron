@@ -77,11 +77,6 @@ public class StellarFunctionInfo {
     return function;
   }
 
-  public StellarFunctionInfo setFunction(StellarFunction function) {
-    this.function = function;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -95,6 +90,7 @@ public class StellarFunctionInfo {
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
     if (!Arrays.equals(params, that.params)) return false;
     return function != null ? function.equals(that.function) : that.function == null;
+
   }
 
   @Override

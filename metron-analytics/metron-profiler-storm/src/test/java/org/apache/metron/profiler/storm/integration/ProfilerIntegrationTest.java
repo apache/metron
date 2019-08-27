@@ -24,16 +24,14 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.apache.metron.hbase.client.FakeHBaseClient;
-import org.apache.metron.hbase.client.FakeHBaseClientFactory;
-import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.profiler.client.HBaseProfilerClientFactory;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
 import org.apache.metron.profiler.client.stellar.GetProfile;
 import org.apache.metron.profiler.client.stellar.WindowLookback;
@@ -41,7 +39,6 @@ import org.apache.metron.statistics.OnlineStatisticsProvider;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.storm.Config;
 import org.json.simple.JSONObject;
@@ -67,6 +64,7 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
@@ -111,6 +109,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static KafkaComponent kafkaComponent;
   private static ConfigUploadComponent configUploadComponent;
   private static ComponentRunner runner;
+  private static MockHTable profilerTable;
   private static String message1;
   private static String message2;
   private static String message3;
@@ -394,6 +393,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   @BeforeClass
   public static void setupBeforeClass() throws UnableToStartException {
+
     // create some messages that contain a timestamp - a really old timestamp; close to 1970
     message1 = getMessage(entity, startAt);
     message2 = getMessage(entity, startAt + 100);
@@ -428,8 +428,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.hbase.column.family", columnFamily);
       setProperty("profiler.hbase.batch", "10");
       setProperty("profiler.hbase.flush.interval.seconds", "1");
-      setProperty("profiler.hbase.connection.factory", FakeHBaseConnectionFactory.class.getName());
-      setProperty("profiler.hbase.client.factory", FakeHBaseClientFactory.class.getName());
+      setProperty("hbase.provider.impl", "" + MockHBaseTableProvider.class.getName());
 
       // profile settings
       setProperty("profiler.period.duration", Long.toString(periodDurationMillis));
@@ -442,6 +441,9 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.window.lag.units", "MILLISECONDS");
       setProperty("profiler.max.routes.per.bolt", Long.toString(maxRoutesPerBolt));
     }};
+
+    // create the mock table
+    profilerTable = (MockHTable) MockHBaseTableProvider.addToCache(tableName, columnFamily);
 
     zkComponent = getZKServerComponent(topologyProperties);
 
@@ -475,7 +477,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   }
 
   @AfterClass
-  public static void tearDownAfterClass() {
+  public static void tearDownAfterClass() throws Exception {
+    MockHBaseTableProvider.clear();
     if (runner != null) {
       runner.stop();
     }
@@ -483,10 +486,14 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void setup() {
+    // create the mock table
+    profilerTable = (MockHTable) MockHBaseTableProvider.addToCache(tableName, columnFamily);
+
     // global properties
     Map<String, Object> global = new HashMap<String, Object>() {{
       put(PROFILER_HBASE_TABLE.getKey(), tableName);
       put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
+      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
 
       // client needs to use the same period duration
       put(PROFILER_PERIOD.getKey(), Long.toString(periodDurationMillis));
@@ -496,28 +503,21 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       put(PROFILER_SALT_DIVISOR.getKey(), saltDivisor);
     }};
 
-    Context context = new Context.Builder()
-            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
-            .build();
-
-    // create the GET_PROFILE function
-    GetProfile getProfileFunction = new GetProfile(new HBaseProfilerClientFactory(new FakeHBaseClientFactory()));
-
-    // ensure the functions that we need can be resolved
-    FunctionResolver functionResolver = new SimpleFunctionResolver()
-            .withClass(FixedLookback.class)
-            .withClass(WindowLookback.class)
-            .withInstance(getProfileFunction);
-
     // create the stellar execution environment
-    executor = new DefaultStellarStatefulExecutor(functionResolver, context);
-
-    // ensure that all HBase "records" are cleared before starting the test
-    new FakeHBaseClient().deleteAll();
+    executor = new DefaultStellarStatefulExecutor(
+            new SimpleFunctionResolver()
+                    .withClass(GetProfile.class)
+                    .withClass(FixedLookback.class)
+                    .withClass(WindowLookback.class),
+            new Context.Builder()
+                    .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+                    .build());
   }
 
   @After
   public void tearDown() throws Exception {
+    MockHBaseTableProvider.clear();
+    profilerTable.clear();
     if (runner != null) {
       runner.reset();
     }

@@ -75,7 +75,7 @@ public class Util {
    * @return effective config Map with overrides applied.
    * @throws ParseException - if any override values are of wrong type.
    */
-  public static Map<String, Object> getEffectiveConfig(Context context, Map configOverridesMap) throws ParseException {
+  public static Map<String, Object> getEffectiveConfig(Context context , Map configOverridesMap ) throws ParseException {
     // ensure the required capabilities are defined
     final Context.Capabilities[] required = { GLOBAL_CONFIG };
     validateCapabilities(context, required);
