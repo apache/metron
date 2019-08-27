@@ -155,6 +155,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     uploadConfigToZookeeper(ProfilerConfig.fromJSON(processingTimeProfile));
 
     // start the topology and write 3 test messages to kafka
+    fluxComponent.start();
     fluxComponent.submitTopology();
     kafkaComponent.writeMessages(inputTopic, message1);
     kafkaComponent.writeMessages(inputTopic, message2);
@@ -196,6 +197,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     uploadConfigToZookeeper(ProfilerConfig.fromJSON(processingTimeProfile));
 
     // start the topology and write 3 test messages to kafka
+    fluxComponent.start();
     fluxComponent.submitTopology();
     kafkaComponent.writeMessages(inputTopic, message1);
     kafkaComponent.writeMessages(inputTopic, message2);
@@ -244,6 +246,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     uploadConfigToZookeeper(ProfilerConfig.fromJSON(eventTimeProfile));
 
     // start the topology and write test messages to kafka
+    fluxComponent.start();
     fluxComponent.submitTopology();
     List<String> messages = FileUtils.readLines(new File("src/test/resources/telemetry.json"));
     kafkaComponent.writeMessages(inputTopic, messages);
@@ -309,6 +312,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     uploadConfigToZookeeper(ProfilerConfig.fromJSON(profileWithStats));
 
     // start the topology and write test messages to kafka
+    fluxComponent.start();
     fluxComponent.submitTopology();
     List<String> messages = FileUtils.readLines(new File("src/test/resources/telemetry.json"));
     kafkaComponent.writeMessages(inputTopic, messages);
@@ -358,6 +362,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     uploadConfigToZookeeper(ProfilerConfig.fromJSON(profileWithTriageResult));
 
     // start the topology and write test messages to kafka
+    fluxComponent.start();
     fluxComponent.submitTopology();
     List<String> telemetry = FileUtils.readLines(new File("src/test/resources/telemetry.json"));
     kafkaComponent.writeMessages(inputTopic, telemetry);
@@ -519,7 +524,10 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @After
   public void tearDown() throws Exception {
     if (runner != null) {
-      runner.reset();
+      fluxComponent.stop();
+      configUploadComponent.reset();
+      kafkaComponent.reset();
+      zkComponent.reset();
     }
   }
 

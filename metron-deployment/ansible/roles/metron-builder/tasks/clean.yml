@@ -23,7 +23,7 @@
   args:
     chdir: "{{ metron_build_dir }}"
   with_items:
-    - mvn clean -P HDP-2.5.0.0
+    - mvn clean -P HDP-3.1
     - mvn clean -P mpack
     - mvn clean -P build-rpms
     - mvn clean -P build-debs

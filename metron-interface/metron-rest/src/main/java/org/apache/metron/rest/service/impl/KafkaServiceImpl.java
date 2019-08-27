@@ -17,24 +17,31 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.time.Duration;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import kafka.admin.AclCommand;
-import kafka.admin.AdminOperationException;
-import kafka.admin.AdminUtils$;
-import kafka.admin.RackAwareMode;
-import kafka.utils.ZkUtils;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.CreateTopicsResult;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.acl.AccessControlEntry;
+import org.apache.kafka.common.acl.AclBinding;
+import org.apache.kafka.common.acl.AclOperation;
+import org.apache.kafka.common.acl.AclPermissionType;
+import org.apache.kafka.common.resource.PatternType;
+import org.apache.kafka.common.resource.ResourcePattern;
+import org.apache.kafka.common.resource.ResourceType;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
@@ -58,40 +65,37 @@ public class KafkaServiceImpl implements KafkaService {
    */
   private static final int KAFKA_CONSUMER_TIMEOUT = 100;
 
-  private final ZkUtils zkUtils;
   private final ConsumerFactory<String, String> kafkaConsumerFactory;
   private final KafkaProducer<String, String> kafkaProducer;
-  private final AdminUtils$ adminUtils;
+  private final AdminClient adminClient;
 
   @Autowired
   private Environment environment;
 
   /**
-   * @param zkUtils              A utility class used to interact with ZooKeeper.
    * @param kafkaConsumerFactory A class used to create {@link KafkaConsumer} in order to interact with Kafka.
    * @param kafkaProducer        A class used to produce messages to Kafka.
-   * @param adminUtils           A utility class used to do administration operations on Kafka.
+   * @param adminClient           A utility class used to do administration operations on Kafka.
    */
   @Autowired
-  public KafkaServiceImpl(final ZkUtils zkUtils,
-                          final ConsumerFactory<String, String> kafkaConsumerFactory,
+  public KafkaServiceImpl(final ConsumerFactory<String, String> kafkaConsumerFactory,
                           final KafkaProducer<String, String> kafkaProducer,
-                          final AdminUtils$ adminUtils) {
-    this.zkUtils = zkUtils;
+                          final AdminClient adminClient) {
     this.kafkaConsumerFactory = kafkaConsumerFactory;
     this.kafkaProducer = kafkaProducer;
-    this.adminUtils = adminUtils;
+    this.adminClient = adminClient;
   }
 
   @Override
   public KafkaTopic createTopic(final KafkaTopic topic) throws RestException {
     if (!listTopics().contains(topic.getName())) {
       try {
-        adminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
+        CreateTopicsResult createTopicsResult = adminClient.createTopics(Collections.singletonList(new NewTopic(topic.getName(), topic.getNumPartitions(), (short) topic.getReplicationFactor())));
+        createTopicsResult.all();
         if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)){
           addACLToCurrentUser(topic.getName());
         }
-      } catch (AdminOperationException e) {
+      } catch (KafkaException e) {
         throw new RestException(e);
       }
     }
@@ -102,7 +106,7 @@ public class KafkaServiceImpl implements KafkaService {
   public boolean deleteTopic(final String name) {
     final Set<String> topics = listTopics();
     if (topics != null && topics.contains(name)) {
-      adminUtils.deleteTopic(zkUtils, name);
+      adminClient.deleteTopics(Collections.singletonList(name));
       return true;
     } else {
       return false;
@@ -150,7 +154,7 @@ public class KafkaServiceImpl implements KafkaService {
           .filter(p -> (kafkaConsumer.position(p) - 1) >= 0)
           .forEach(p -> kafkaConsumer.seek(p, kafkaConsumer.position(p) - 1));
 
-        final ConsumerRecords<String, String> records = kafkaConsumer.poll(KAFKA_CONSUMER_TIMEOUT);
+        final ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(KAFKA_CONSUMER_TIMEOUT));
         message = records.isEmpty() ? null : records.iterator().next().value();
         kafkaConsumer.unsubscribe();
       }
@@ -166,18 +170,11 @@ public class KafkaServiceImpl implements KafkaService {
   @Override
   public boolean addACLToCurrentUser(String name){
     if(listTopics().contains(name)) {
-      String zkServers = environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY);
       User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       String user = principal.getUsername();
-      List<String> cmd = new ArrayList<>();
-      cmd.add("--add");
-      cmd.add("--allow-principal");
-      cmd.add("User:" + user);
-      cmd.add("--topic");
-      cmd.add(name);
-      cmd.add("--authorizer-properties");
-      cmd.add("zookeeper.connect=" + String.join(",", zkServers));
-      AclCommand.main(cmd.toArray(new String[cmd.size()]));
+      ResourcePattern resourcePattern = new ResourcePattern(ResourceType.TOPIC, name, PatternType.LITERAL);
+      AccessControlEntry accessControlEntry = new AccessControlEntry(user, "*", AclOperation.ALL, AclPermissionType.ALLOW);
+      adminClient.createAcls(Collections.singletonList(new AclBinding(resourcePattern, accessControlEntry)));
     } else {
       return false;
     }

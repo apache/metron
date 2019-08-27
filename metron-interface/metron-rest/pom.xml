@@ -43,6 +43,16 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>2.1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+        <dependency>
             <!-- There's an issue with the Javassist versions used by our version of Powermock. Keep the explicit test dep at the top
             so it takes precedence during testing - https://github.com/powermock/powermock/issues/729
             -->
@@ -325,11 +335,7 @@
             <artifactId>json-path</artifactId>
             <version>${jsonpath.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>${swagger.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
@@ -337,7 +343,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
+            <artifactId>kafka-clients</artifactId>
             <version>${global_kafka_version}</version>
         </dependency>
         <dependency>
@@ -486,6 +492,10 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy-all</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

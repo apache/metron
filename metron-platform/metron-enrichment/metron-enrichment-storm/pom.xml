@@ -35,7 +35,11 @@
     <dependencies>
 
         <!-- Metron -->
-
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${global_guava_version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-enrichment-common</artifactId>
@@ -162,7 +166,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka-clients</artifactId>
             <version>${global_kafka_version}</version>
             <exclusions>
                 <exclusion>
@@ -211,17 +215,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>${global_jackson_version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${global_hbase_guava_version}</version>
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>
