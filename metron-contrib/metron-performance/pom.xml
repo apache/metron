@@ -43,6 +43,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>stellar-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka_2.10</artifactId>
       <version>${global_kafka_version}</version>
@@ -77,6 +83,8 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>uber</shadedClassifierName>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>

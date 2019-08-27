@@ -77,6 +77,12 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>${global_log4j_core_version}</version>
@@ -96,6 +102,8 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>${global_shade_version}</version>
                 <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>uber</shadedClassifierName>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                 </configuration>
                 <executions>

@@ -43,6 +43,7 @@
           <artifactId>hadoop-auth</artifactId>
         </exclusion>
       </exclusions>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
