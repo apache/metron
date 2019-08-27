@@ -194,10 +194,5 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${global_httpclient_version}</version>
-        </dependency>
     </dependencies>
 </project>

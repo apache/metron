@@ -32,7 +32,7 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.apache.zookeeper.KeeperException;
@@ -48,12 +48,12 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     private ConfigurationsCache cache;
 
-    private LegacyHBaseClient hBaseClient;
+    private HBaseClient hBaseClient;
 
     @Autowired
     public SensorEnrichmentConfigServiceImpl(final ObjectMapper objectMapper,
         final CuratorFramework client, final ConfigurationsCache cache,
-        final LegacyHBaseClient hBaseClient) {
+        final HBaseClient hBaseClient) {
       this.objectMapper = objectMapper;
       this.client = client;
       this.cache = cache;

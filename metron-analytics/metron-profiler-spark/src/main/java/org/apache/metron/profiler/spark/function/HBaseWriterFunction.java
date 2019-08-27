@@ -26,7 +26,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
@@ -118,7 +118,7 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
 
       // open an HBase connection
       Configuration config = HBaseConfiguration.create();
-      try (LegacyHBaseClient client = new LegacyHBaseClient(tableProvider, config, tableName)) {
+      try (HBaseClient client = new HBaseClient(tableProvider, config, tableName)) {
 
         for (ProfileMeasurementAdapter adapter : measurements) {
           ProfileMeasurement m = adapter.toProfileMeasurement();

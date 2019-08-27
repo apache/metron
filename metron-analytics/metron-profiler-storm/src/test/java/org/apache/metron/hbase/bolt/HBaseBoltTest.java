@@ -25,7 +25,7 @@ import org.apache.storm.Constants;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.hbase.bolt.mapper.Widget;
 import org.apache.metron.hbase.bolt.mapper.WidgetMapper;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 public class HBaseBoltTest extends BaseBoltTest {
 
   private static final String tableName = "widgets";
-  private LegacyHBaseClient client;
+  private HBaseClient client;
   private Tuple tuple1;
   private Tuple tuple2;
   private Widget widget1;
@@ -71,7 +71,7 @@ public class HBaseBoltTest extends BaseBoltTest {
   public void setup() throws Exception {
     tuple1 = mock(Tuple.class);
     tuple2 = mock(Tuple.class);
-    client = mock(LegacyHBaseClient.class);
+    client = mock(HBaseClient.class);
     provider = mock(TableProvider.class);
   }
 
