@@ -93,7 +93,7 @@ public class KafkaWriterTest {
     assertEquals(producerConfigs.get("bootstrap.servers"), "localhost:6667");
     assertEquals(producerConfigs.get("key.serializer"), "org.apache.kafka.common.serialization.StringSerializer");
     assertEquals(producerConfigs.get("value.serializer"), "org.apache.kafka.common.serialization.StringSerializer");
-    assertEquals(producerConfigs.get("request.required.acks"), 1);
+    assertEquals(producerConfigs.get("acks"), "1");
     assertEquals(producerConfigs.get("key1"), 1);
     assertEquals(producerConfigs.get("key2"), "value2");
   }
@@ -115,7 +115,7 @@ public class KafkaWriterTest {
     assertEquals(producerConfigs.get("bootstrap.servers"), "localhost:6667");
     assertEquals(producerConfigs.get("key.serializer"), "org.apache.kafka.common.serialization.StringSerializer");
     assertEquals(producerConfigs.get("value.serializer"), "org.apache.kafka.common.serialization.StringSerializer");
-    assertEquals(producerConfigs.get("request.required.acks"), 1);
+    assertEquals(producerConfigs.get("acks"), "1");
     assertEquals(producerConfigs.get("key1"), 1);
     assertEquals(producerConfigs.get("key2"), "value2");
   }

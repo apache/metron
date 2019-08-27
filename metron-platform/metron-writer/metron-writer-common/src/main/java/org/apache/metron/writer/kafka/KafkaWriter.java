@@ -90,7 +90,7 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
   private int requiredAcks = 1;
   private String kafkaTopic = Constants.ENRICHMENT_TOPIC;
   private String kafkaTopicField = null;
-  private KafkaProducer kafkaProducer;
+  private KafkaProducer<String, String> kafkaProducer;
   private String configPrefix = null;
   private String zkQuorum = null;
   private Map<String, Object> producerConfigs = new HashMap<>();
@@ -213,10 +213,10 @@ public class KafkaWriter extends AbstractWriter implements BulkMessageWriter<JSO
 
   public Map<String, Object> createProducerConfigs() {
     Map<String, Object> producerConfig = new HashMap<>();
-    producerConfig.put("bootstrap.servers", brokerUrl);
-    producerConfig.put("key.serializer", keySerializer);
-    producerConfig.put("value.serializer", valueSerializer);
-    producerConfig.put("request.required.acks", requiredAcks);
+    producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerUrl);
+    producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
+    producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
+    producerConfig.put(ProducerConfig.ACKS_CONFIG, Integer.toString(requiredAcks));
     producerConfig.put(ProducerConfig.BATCH_SIZE_CONFIG, DEFAULT_BATCH_SIZE);
     producerConfig.putAll(producerConfigs == null?new HashMap<>():producerConfigs);
     producerConfig = KafkaUtils.INSTANCE.normalizeProtocol(producerConfig);

@@ -32,6 +32,11 @@
   <dependencies>
     <!-- Metron Dependencies -->
     <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${global_guava_version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-parsers-common</artifactId>
       <version>${project.parent.version}</version>
@@ -43,11 +48,7 @@
     </dependency>
 
     <!-- 3rd party dependencies -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${global_guava_version}</version>
-    </dependency>
+
     <dependency>
       <groupId>io.thekraken</groupId>
       <artifactId>grok</artifactId>
