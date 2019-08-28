@@ -40,7 +40,7 @@ import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +170,8 @@ public class SolrDao implements IndexDao {
   }
 
   void enableKerberos() {
-    HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+    Krb5HttpClientBuilder krb5HttpClientBuilder = new Krb5HttpClientBuilder();
+    HttpClientUtil.setHttpClientBuilder(krb5HttpClientBuilder.getBuilder());
   }
 
   public SolrSearchDao getSolrSearchDao() {

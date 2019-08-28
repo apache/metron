@@ -115,7 +115,6 @@
         <global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_java_version>1.8</global_java_version>
-        <global_solr_version>6.6.2</global_solr_version>
         <global_mockito_version>1.10.19</global_mockito_version>
         <global_powermock_version>1.7.0</global_powermock_version>
         <global_shade_version>3.2.0</global_shade_version>
@@ -148,6 +147,7 @@
                 <global_slf4j_version>1.7.25</global_slf4j_version>
                 <global_storm_version>1.2.1</global_storm_version>
                 <global_zeppelin_version>0.8.0</global_zeppelin_version>
+                <global_solr_version>7.4.0</global_solr_version>
             </properties>
         </profile>
         <profile>
@@ -161,6 +161,7 @@
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
                 <global_zeppelin_version>0.7.3</global_zeppelin_version>
+                <global_solr_version>6.6.2</global_solr_version>
             </properties>
         </profile>
     </profiles>

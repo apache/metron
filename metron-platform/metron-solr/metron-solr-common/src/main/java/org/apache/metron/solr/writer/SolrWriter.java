@@ -46,7 +46,7 @@ import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
@@ -134,9 +134,9 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   private String defaultCollection;
   private Map<String, Object> solrHttpConfig;
 
-  private MetronSolrClient solr;
+  private org.apache.solr.client.solrj.impl.CloudSolrClient solr;
 
-  public SolrWriter withMetronSolrClient(MetronSolrClient solr) {
+  public SolrWriter withCloudSolrClient(org.apache.solr.client.solrj.impl.CloudSolrClient solr) {
     this.solr = solr;
     return this;
   }
@@ -163,9 +163,12 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     LOG.info("Default Collection: {}", "" + defaultCollection );
     if(solr == null) {
       if (isKerberosEnabled(stormConf)) {
-        HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
+        Krb5HttpClientBuilder krb5HttpClientBuilder = new Krb5HttpClientBuilder();
+        HttpClientUtil.setHttpClientBuilder(krb5HttpClientBuilder.getBuilder());
       }
-      solr = new MetronSolrClient(zookeeperUrl, solrHttpConfig);
+
+
+      solr = SolrClientFactory.create(zookeeperUrl, solrHttpConfig);
     }
     solr.setDefaultCollection(defaultCollection);
 

@@ -30,6 +30,8 @@
 service kibana stop
 service elasticsearch stop
 
+yum install -y wget zip lsof
+
 SOLR_VERSION=${global_solr_version}
 SOLR_USER=solr
 SOLR_SERVICE=$SOLR_USER

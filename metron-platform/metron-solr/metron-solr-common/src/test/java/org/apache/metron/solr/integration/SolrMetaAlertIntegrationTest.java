@@ -389,7 +389,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   @Override
   protected void commit() throws IOException {
     try {
-      List<String> collections = solr.getSolrClient().listCollections();
+      List<String> collections = solr.listCollections();
       for (String collection : collections) {
         solr.getSolrClient().commit(collection);
       }

@@ -15,7 +15,7 @@
 #  limitations under the License.
 #
 ---
-solr_version: 6.6.2
+solr_version: 7.4.0
 solr_installation_user: "solr"
 solr_user_home: /var/solr
 solr_home: "{{ solr_user_home }}/solr-{{ solr_version }}"

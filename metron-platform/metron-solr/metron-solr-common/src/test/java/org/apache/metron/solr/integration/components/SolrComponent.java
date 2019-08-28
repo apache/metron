@@ -21,12 +21,12 @@ import com.google.common.base.Function;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import org.apache.metron.common.Constants;
+
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.solr.dao.SolrUtilities;
-import org.apache.metron.solr.writer.MetronSolrClient;
+import org.apache.metron.solr.writer.SolrClientFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.JettyConfig;
@@ -105,7 +105,7 @@ public class SolrComponent implements InMemoryComponent {
       for(String name: collections.keySet()) {
         String configPath = collections.get(name);
         miniSolrCloudCluster.uploadConfigSet(new File(configPath).toPath(), name);
-        CollectionAdminRequest.createCollection(name, 1, 1).process(miniSolrCloudCluster.getSolrClient());
+        CollectionAdminRequest.createCollection(name, name,1, 1).process(miniSolrCloudCluster.getSolrClient());
       }
       if (postStartCallback != null) {
         postStartCallback.apply(this);
@@ -134,8 +134,8 @@ public class SolrComponent implements InMemoryComponent {
     }
   }
 
-  public MetronSolrClient getSolrClient() {
-    return new MetronSolrClient(getZookeeperUrl());
+  public CloudSolrClient getSolrClient() {
+    return SolrClientFactory.create(getZookeeperUrl());
   }
 
   public MiniSolrCloudCluster getMiniSolrCloudCluster() {
@@ -149,19 +149,16 @@ public class SolrComponent implements InMemoryComponent {
   public void addCollection(String name, String configPath)
       throws InterruptedException, IOException, KeeperException, SolrServerException {
     miniSolrCloudCluster.uploadConfigSet(new File(configPath).toPath(), name);
-    CollectionAdminRequest.createCollection(name, 1, 1)
+    CollectionAdminRequest.createCollection(name, name,1, 1)
         .process(miniSolrCloudCluster.getSolrClient());
   }
 
-  public boolean hasCollection(String collection) {
-    MetronSolrClient solr = getSolrClient();
-    boolean collectionFound = false;
-    try {
-      collectionFound = solr.listCollections().contains(collection);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return collectionFound;
+  public List<String> listCollections() throws IOException, SolrServerException {
+    return CollectionAdminRequest.listCollections(miniSolrCloudCluster.getSolrClient());
+  }
+
+  public boolean hasCollection(String collection) throws IOException, SolrServerException {
+    return listCollections().contains(collection);
   }
 
   public List<Map<String, Object>> getAllIndexedDocs(String collection) {

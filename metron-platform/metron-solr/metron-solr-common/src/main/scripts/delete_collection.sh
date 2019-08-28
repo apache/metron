@@ -31,3 +31,6 @@ SOLR_NODE=`$ZOOKEEPER_HOME/bin/zkCli.sh -server $ZOOKEEPER ls /live_nodes | tail
 
 # Delete the collection
 curl -X GET $NEGOTIATE "http://$SOLR_NODE/solr/admin/collections?action=DELETE&name=$1"
+
+# Delete the config set
+curl -X GET $NEGOTIATE "http://$SOLR_NODE/solr/admin/configs?action=DELETE&name=$1"

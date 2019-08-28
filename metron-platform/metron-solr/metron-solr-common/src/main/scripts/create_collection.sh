@@ -33,4 +33,4 @@ SOLR_NODE=`$ZOOKEEPER_HOME/bin/zkCli.sh -server $ZOOKEEPER ls /live_nodes | tail
 zip -rj - $METRON_HOME/config/schema/$1 | curl -X POST $NEGOTIATE --header "Content-Type:text/xml" --data-binary @- "http://$SOLR_NODE/solr/admin/configs?action=UPLOAD&name=$1"
 
 # Create the collection
-curl -X GET $NEGOTIATE "http://$SOLR_NODE/solr/admin/collections?action=CREATE&name=$1&numShards=1"
+curl -X GET $NEGOTIATE "http://$SOLR_NODE/solr/admin/collections?action=CREATE&name=$1&collection.configName=$1&numShards=1"

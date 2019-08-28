@@ -27,7 +27,7 @@ limitations under the License.
 
 ## Introduction
 
-Metron ships with Solr 6.6.2 support. Solr Cloud can be used as the real-time portion of the datastore resulting from [metron-indexing](../metron-indexing/README.md).
+Metron ships with Solr 7.4.0 support. Solr Cloud can be used as the real-time portion of the datastore resulting from [metron-indexing](../metron-indexing/README.md).
 
 ## Configuration
 
@@ -42,15 +42,15 @@ via the global config.  The following settings are possible as part of the globa
   * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
     worker failure *may* result data being acknowledged in storm but not written in Solr.
 * `solr.commit.soft`
-  * This is a boolean which defines whether the writer makes a soft commit or a durable commit.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `false`.
+  * This is a boolean which defines whether the writer makes a soft commit or a durable commit.  See [here](https://lucene.apache.org/solr/guide/7_4/near-real-time-searching.html)  The default is `false`.
   * _WARNING_: If you set this to `true`, then commits will happen based on the SolrClient's internal mechanism and
     worker failure *may* result data being acknowledged in storm but not written in Solr.
 * `solr.commit.waitSearcher`
-  * This is a boolean which defines whether the writer blocks the commit until the data is available to search.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `true`.
+  * This is a boolean which defines whether the writer blocks the commit until the data is available to search.  See [here](https://lucene.apache.org/solr/guide/7_4/near-real-time-searching.html)  The default is `true`.
   * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
     worker failure *may* result data being acknowledged in storm but not written in Solr.
 * `solr.commit.waitFlush`
-  * This is a boolean which defines whether the writer blocks the commit until the data is flushed.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `true`.
+  * This is a boolean which defines whether the writer blocks the commit until the data is flushed.  See [here](https://lucene.apache.org/solr/guide/7_4/near-real-time-searching.html)  The default is `true`.
   * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
     worker failure *may* result data being acknowledged in storm but not written in Solr.
 * `solr.collection`
@@ -86,15 +86,11 @@ The script performs the following tasks
 * Installs Solr
 * Starts Solr Cloud
 
-_Note: for details on setting up Solr Cloud in production mode, see https://lucene.apache.org/solr/guide/6_6/taking-solr-to-production.html_
+Note: for details on setting up Solr Cloud in production mode, see https://lucene.apache.org/solr/guide/7_4/taking-solr-to-production.html
 
 Navigate to `$METRON_HOME/bin` and spin up Solr Cloud by running `install_solr.sh`.  After running this script, 
 Elasticsearch and Kibana will have been stopped and you should now have an instance of Solr Cloud up and running at http://localhost:8983/solr/#/~cloud.  This manner of starting Solr
-will also spin up an embedded Zookeeper instance at port 9983. More information can be found [here](https://lucene.apache.org/solr/guide/6_6/getting-started-with-solrcloud.html)
-
-Solr can also be installed using [HDP Search 3](https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.4/bk_solr-search-installation/content/ch_hdp_search_30.html).  HDP Search 3 sets the Zookeeper root to 
-`/solr` so this will need to be added to each url in the comma-separated list in Ambari UI -> Services -> Metron -> Configs -> Index Settings -> Solr Zookeeper Urls.  For example, in full dev
-this would be `node1:2181/solr`.
+will also spin up an embedded Zookeeper instance at port 9983. More information can be found [here](https://lucene.apache.org/solr/guide/7_4/getting-started-with-solrcloud.html)
 
 ## Enabling Solr
 
@@ -122,8 +118,8 @@ Any other collections must be created manually before starting the Indexing comp
 
 As of now, we have mapped out the Schemas in `src/main/config/schema`.
 Ambari will eventually install these, but at the moment it's manual and
-you should refer to the Solr documentation [https://lucene.apache.org/solr/guide/6_6](here) in general
-and [here](https://lucene.apache.org/solr/guide/6_6/documents-fields-and-schema-design.html) if you'd like to know more about schemas in Solr.
+you should refer to the Solr documentation [https://lucene.apache.org/solr/guide/7_4](here) in general
+and [here](https://lucene.apache.org/solr/guide/7_4/documents-fields-and-schema-design.html) if you'd like to know more about schemas in Solr.
 
 In Metron's Solr DAO implementation, document updates involve reading a document, applying the update and replacing the original by reindexing the whole document.  
 Indexing LatLonType and PointType field types stores data in internal fields that should not be returned in search results.  For these fields a dynamic field type matching the suffix needs to be added to store the data points.
@@ -146,7 +142,7 @@ If any copy fields are defined, stored and docValues should be set to false.
 Convenience scripts are provided with Metron to create and delete collections.  Ambari uses these scripts to automatically create collections.  To use them outside of Ambari, a few environment variables must be set first:
 ```
 # Path to the zookeeper node used by Solr
-export ZOOKEEPER=node1:2181/solr
+export ZOOKEEPER=node1:9983
 # Set to true if Kerberos is enabled
 export SECURITY_ENABLED=true 
 ```
@@ -167,4 +163,4 @@ The `create_collection.sh` script depends on schemas installed in `$METRON_HOME/
 * error
 
 Additional schemas should be installed in that location if using the `create_collection.sh` script.  Any collection can be deleted with the `delete_collection.sh` script.
-These scripts use the [Solr Collection API](http://lucene.apache.org/solr/guide/6_6/collections-api.html).
+These scripts use the [Solr Collection API](http://lucene.apache.org/solr/guide/7_4/collections-api.html).
