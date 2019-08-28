@@ -130,7 +130,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.10</artifactId>
+      <artifactId>kafka-clients</artifactId>
       <version>${global_kafka_version}</version>
       <classifier>test</classifier>
       <exclusions>
@@ -143,6 +143,19 @@
           <artifactId>log4j</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.12</artifactId>
+      <version>${global_kafka_version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.12</artifactId>
+      <version>${global_kafka_version}</version>
+      <classifier>test</classifier>
     </dependency>
 
     <dependency>

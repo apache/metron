@@ -226,6 +226,25 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
   }
 
   @Test
+  public void different_type_facet_query() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
+    SearchResponse response = getIndexDao().search(request);
+    Assert.assertEquals(10, response.getTotal());
+    Assert.assertTrue(response.getFacetCounts().containsKey("ttl"));
+    Map<String, Long> facetCounts = response.getFacetCounts().get("ttl");
+    Assert.assertEquals(1L, facetCounts.get("1").longValue());
+    Assert.assertEquals(1L, facetCounts.get("2").longValue());
+    Assert.assertEquals(1L, facetCounts.get("3").longValue());
+    Assert.assertEquals(1L, facetCounts.get("4").longValue());
+    Assert.assertEquals(1L, facetCounts.get("5").longValue());
+    Assert.assertEquals(1L, facetCounts.get("data 1").longValue());
+    Assert.assertEquals(1L, facetCounts.get("data 2").longValue());
+    Assert.assertEquals(1L, facetCounts.get("data 3").longValue());
+    Assert.assertEquals(1L, facetCounts.get("data 4").longValue());
+    Assert.assertEquals(1L, facetCounts.get("data 5").longValue());
+  }
+
+  @Test
   public void different_type_filter_query() throws Exception {
     thrown.expect(InvalidSearchException.class);
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFilterQuery, SearchRequest.class);

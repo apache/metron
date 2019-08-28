@@ -31,21 +31,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class MetronSolrClient extends CloudSolrClient {
+public class SolrClientFactory {
 
   private static final Logger LOG = LoggerFactory
-          .getLogger(MetronSolrClient.class);
+          .getLogger(SolrClientFactory.class);
 
 
-  public MetronSolrClient(String zkHost) {
-    super(zkHost);
+  public static CloudSolrClient create(String zkHost) {
+    CloudSolrClient.Builder builder = getBuilder(zkHost);
+    return builder.build();
   }
 
-  public MetronSolrClient(String zkHost, Map<String, Object> solrHttpConfig) {
-    super(zkHost, HttpClientUtil.createClient(toSolrProps(solrHttpConfig)));
+  public static CloudSolrClient create(String zkHost, Map<String, Object> solrHttpConfig) {
+    CloudSolrClient.Builder builder = getBuilder(zkHost);
+    builder.withHttpClient(HttpClientUtil.createClient(toSolrProps(solrHttpConfig)));
+    return builder.build();
+  }
+
+
+  public static CloudSolrClient.Builder getBuilder(String zkHost) {
+    String[] parts = zkHost.split("/");
+    Optional<String> zkChroot = Optional.empty();
+    if (parts.length > 1) {
+      zkChroot = Optional.of("/" + parts[1]);
+    }
+    return new CloudSolrClient.Builder(Arrays.asList(parts[0].split(",")), zkChroot);
   }
 
   public static SolrParams toSolrProps(Map<String, Object> config) {
@@ -72,37 +84,5 @@ public class MetronSolrClient extends CloudSolrClient {
       }
     }
     return ret;
-  }
-
-  public void createCollection(String name, int numShards, int replicationFactor) throws IOException, SolrServerException {
-    if (!listCollections().contains(name)) {
-      request(getCreateCollectionsRequest(name, numShards, replicationFactor));
-    }
-  }
-
-  public QueryRequest getCreateCollectionsRequest(String name, int numShards, int replicationFactor) {
-    ModifiableSolrParams params = new ModifiableSolrParams();
-    params.set(SolrConstants.REQUEST_ACTION, CollectionParams.CollectionAction.CREATE.name());
-    params.set(SolrConstants.REQUEST_NAME, name);
-    params.set(SolrConstants.REQUEST_NUM_SHARDS, numShards);
-    params.set(SolrConstants.REQUEST_REPLICATION_FACTOR, replicationFactor);
-    params.set(SolrConstants.REQUEST_COLLECTION_CONFIG_NAME, name);
-    QueryRequest request = new QueryRequest(params);
-    request.setPath(SolrConstants.REQUEST_COLLECTIONS_PATH);
-    return request;
-  }
-
-  @SuppressWarnings("unchecked")
-  public List<String> listCollections() throws IOException, SolrServerException {
-    NamedList<Object> response = request(getListCollectionsRequest(), null);
-    return (List<String>) response.get(SolrConstants.RESPONSE_COLLECTIONS);
-  }
-
-  public QueryRequest getListCollectionsRequest() {
-    ModifiableSolrParams params = new ModifiableSolrParams();
-    params.set(SolrConstants.REQUEST_ACTION, CollectionParams.CollectionAction.LIST.name());
-    QueryRequest request = new QueryRequest(params);
-    request.setPath(SolrConstants.REQUEST_COLLECTIONS_PATH);
-    return request;
   }
 }

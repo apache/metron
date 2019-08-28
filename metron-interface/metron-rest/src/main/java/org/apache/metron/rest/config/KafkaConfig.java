@@ -17,12 +17,14 @@
  */
 package org.apache.metron.rest.config;
 
-import kafka.admin.AdminUtils$;
-import kafka.utils.ZkUtils;
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.KafkaAdminClient;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.common.protocol.SecurityProtocol;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.security.auth.SecurityProtocol;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,20 +61,6 @@ public class KafkaConfig {
   }
 
   /**
-   * The client used for ZooKeeper.
-   */
-  @Autowired
-  private ZkClient zkClient;
-
-  /**
-   * Bean for ZooKeeper
-   */
-  @Bean
-  public ZkUtils zkUtils() {
-    return ZkUtils.apply(zkClient, false);
-  }
-
-  /**
    * Create properties that will be used by {@link org.apache.metron.rest.config.KafkaConfig#createConsumerFactory()}
    *
    * @return Configurations used by {@link org.apache.metron.rest.config.KafkaConfig#createConsumerFactory()}.
@@ -80,13 +68,13 @@ public class KafkaConfig {
   @Bean
   public Map<String, Object> consumerProperties() {
     final Map<String, Object> props = new HashMap<>();
-    props.put("bootstrap.servers", environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
-    props.put("group.id", "metron-rest");
-    props.put("enable.auto.commit", "false");
-    props.put("auto.commit.interval.ms", "1000");
-    props.put("session.timeout.ms", "30000");
-    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-    props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "metron-rest");
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+    props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
+    props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
     if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
       props.put("security.protocol", KafkaUtils.INSTANCE.normalizeProtocol(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)));
     }
@@ -106,30 +94,35 @@ public class KafkaConfig {
   @Bean
   public Map<String, Object> producerProperties() {
     Map<String, Object> producerConfig = new HashMap<>();
-    producerConfig.put("bootstrap.servers", environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
-    producerConfig.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-    producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-    producerConfig.put("request.required.acks", 1);
+    producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
+    producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
     if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
-      producerConfig.put("security.protocol", KafkaUtils.INSTANCE.normalizeProtocol(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)));
+      producerConfig.put("security.protocol", SecurityProtocol.SASL_PLAINTEXT);
     }
     return producerConfig;
   }
 
 
-
+  /**
+   * The {@link KafkaProducer} is thread-safe so we can reuse it across the application.
+   * @return
+   */
   @Bean
   public KafkaProducer kafkaProducer() {
     return new KafkaProducer<>(producerProperties());
   }
 
   /**
-   * Create a bean for {@link AdminUtils$}. This is primarily done to make testing a bit easier.
+   * Create a bean for {@link AdminClient}. This is primarily done to make testing a bit easier.
    *
-   * @return {@link AdminUtils$} is written in scala. We return a reference to this class.
+   * @return adminClient
    */
   @Bean
-  public AdminUtils$ adminUtils() {
-    return AdminUtils$.MODULE$;
+  public AdminClient adminClient() {
+    Map<String, Object> adminConfig = new HashMap<>();
+    adminConfig.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
+    return KafkaAdminClient.create(adminConfig);
   }
 }

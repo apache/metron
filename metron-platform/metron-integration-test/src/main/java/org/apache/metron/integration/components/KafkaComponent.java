@@ -20,12 +20,13 @@ package org.apache.metron.integration.components;
 
 import com.google.common.base.Function;
 import java.lang.invoke.MethodHandles;
-import java.nio.ByteBuffer;
+import java.time.Duration;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -33,21 +34,21 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import kafka.api.FetchRequest;
-import kafka.api.FetchRequestBuilder;
-import kafka.common.TopicExistsException;
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.FetchResponse;
-import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.javaapi.consumer.SimpleConsumer;
-import kafka.message.MessageAndOffset;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.TopicExistsException;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
-import kafka.utils.MockTime;
 import kafka.utils.TestUtils;
-import kafka.utils.Time;
+import org.apache.kafka.common.utils.MockTime;
+import org.apache.kafka.common.utils.Time;
+import org.apache.kafka.clients.admin.AdminClient;
+
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
@@ -65,6 +66,7 @@ import org.slf4j.LoggerFactory;
 public class KafkaComponent implements InMemoryComponent {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int POLL_SECONDS = 1;
 
   public static class Topic {
     public int numPartitions;
@@ -79,7 +81,8 @@ public class KafkaComponent implements InMemoryComponent {
   private List<KafkaProducer> producersCreated = new ArrayList<>();
   private transient KafkaServer kafkaServer;
   private transient ZkClient zkClient;
-  private transient ConsumerConnector consumer;
+  private transient AdminClient adminClient;
+  private transient KafkaConsumer<byte[], byte[]> consumer;
   private String zookeeperConnectString;
   private Properties topologyProperties;
 
@@ -137,13 +140,20 @@ public class KafkaComponent implements InMemoryComponent {
     return createProducer(String.class, byte[].class);
   }
 
+  public AdminClient createAdminClient() {
+    Map<String, Object> adminConfig = new HashMap<>();
+    adminConfig.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerList());
+    AdminClient adminClient = AdminClient.create(adminConfig);
+    return adminClient;
+  }
+
   public <K,V> KafkaProducer<K,V> createProducer(Map<String, Object> properties, Class<K> keyClass, Class<V> valueClass)
   {
     Map<String, Object> producerConfig = new HashMap<>();
-    producerConfig.put("bootstrap.servers", getBrokerList());
-    producerConfig.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-    producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-    producerConfig.put("request.required.acks", "-1");
+    producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerList());
+    producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
+    producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
+    producerConfig.put(ProducerConfig.ACKS_CONFIG, "-1");
     producerConfig.put("fetch.message.max.bytes", ""+ 1024*1024*10);
     producerConfig.put("replica.fetch.max.bytes", "" + 1024*1024*10);
     producerConfig.put("message.max.bytes", "" + 1024*1024*10);
@@ -152,6 +162,18 @@ public class KafkaComponent implements InMemoryComponent {
     KafkaProducer<K, V> ret = new KafkaProducer<>(producerConfig);
     producersCreated.add(ret);
     return ret;
+  }
+
+  public <K,V> KafkaConsumer<K, V> createConsumer(Map<String, Object> properties) {
+    Properties consumerConfig = new Properties();
+    consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerList());
+    consumerConfig.put(ConsumerConfig.GROUP_ID_CONFIG, "consumer");
+    consumerConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    consumerConfig.putAll(properties);
+    KafkaConsumer consumer = new KafkaConsumer<>(consumerConfig);
+    return consumer;
   }
 
   @Override
@@ -184,6 +206,8 @@ public class KafkaComponent implements InMemoryComponent {
     if(postStartCallback != null) {
       postStartCallback.apply(this);
     }
+
+    adminClient = createAdminClient();
   }
 
   public String getZookeeperConnect() {
@@ -192,7 +216,6 @@ public class KafkaComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
-    shutdownConsumer();
     shutdownProducers();
 
     if(kafkaServer != null) {
@@ -222,8 +245,6 @@ public class KafkaComponent implements InMemoryComponent {
       zkClient.deleteRecursive(ZkUtils.PreferredReplicaLeaderElectionPath());
       zkClient.deleteRecursive(ZkUtils.BrokerSequenceIdPath());
       zkClient.deleteRecursive(ZkUtils.IsrChangeNotificationPath());
-      zkClient.deleteRecursive(ZkUtils.EntityConfigPath());
-      zkClient.deleteRecursive(ZkUtils.EntityConfigChangesPath());
       zkClient.close();
     }
   }
@@ -237,42 +258,23 @@ public class KafkaComponent implements InMemoryComponent {
   }
 
   public List<byte[]> readMessages(String topic) {
-    SimpleConsumer consumer = new SimpleConsumer("localhost", 6667, 100000, 64 * 1024, "consumer");
-    FetchRequest req = new FetchRequestBuilder()
-            .clientId("consumer")
-            .addFetch(topic, 0, 0, 100000)
-            .build();
-    FetchResponse fetchResponse = consumer.fetch(req);
-    Iterator<MessageAndOffset> results = fetchResponse.messageSet(topic, 0).iterator();
-    List<byte[]> messages = new ArrayList<>();
-    while(results.hasNext()) {
-      ByteBuffer payload = results.next().message().payload();
-      byte[] bytes = new byte[payload.limit()];
-      payload.get(bytes);
-      messages.add(bytes);
+    if (consumer == null) {
+      consumer = createConsumer(new HashMap<>());
     }
-    consumer.close();
-    return messages;
-  }
+    consumer.assign(Arrays.asList(new TopicPartition(topic, 0)));
+    consumer.seek(new TopicPartition(topic, 0), 0);
+    List<byte[]> messages = new ArrayList<>();
+    ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(POLL_SECONDS));
+    for(ConsumerRecord<byte[], byte[]> record: records) {
+      messages.add(record.value());
+    }
 
-  public ConsumerIterator<byte[], byte[]> getStreamIterator(String topic) {
-    return getStreamIterator(topic, "group0", "consumer0");
-  }
-  public ConsumerIterator<byte[], byte[]> getStreamIterator(String topic, String group, String consumerName) {
-    // setup simple consumer
-    Properties consumerProperties = TestUtils.createConsumerProperties(zookeeperConnectString, group, consumerName, -1);
-    consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
-    Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-    topicCountMap.put(topic, 1);
-    Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
-    KafkaStream<byte[], byte[]> stream = consumerMap.get(topic).get(0);
-    ConsumerIterator<byte[], byte[]> iterator = stream.iterator();
-    return iterator;
+    return messages;
   }
 
   public void shutdownConsumer() {
     if(consumer != null) {
-      consumer.shutdown();
+      consumer.close();
     }
   }
 
