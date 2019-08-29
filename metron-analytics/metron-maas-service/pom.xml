@@ -28,7 +28,7 @@
     <slf4j.version>1.7.7</slf4j.version>
     <storm.hdfs.version>0.1.2</storm.hdfs.version>
     <guava.version>${global_guava_version}</guava.version>
-    <hadoop.version>2.7.1</hadoop.version>
+    <hadoop.version>${global_hadoop_version}</hadoop.version>
     <jackson.version>1.9.13</jackson.version>
   </properties>
   <dependencies>
@@ -70,12 +70,12 @@
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-guice</artifactId>
-      <version>1.9</version>
+      <version>1.19</version>
     </dependency>
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>1.9</version>
+      <version>1.19</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>

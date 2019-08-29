@@ -97,7 +97,7 @@
         <global_caffeine_version>2.6.2</global_caffeine_version>
         <global_antlr_version>4.5</global_antlr_version>
         <global_opencsv_version>3.7</global_opencsv_version>
-        <global_curator_version>2.7.1</global_curator_version>
+        <global_curator_version>2.12.0</global_curator_version>
         <global_classindex_version>3.3</global_classindex_version>
         <global_hbase_version>1.1.1</global_hbase_version>
         <global_hbase_guava_version>12.0</global_hbase_guava_version>
@@ -149,6 +149,7 @@
                 <global_storm_kafka_version>1.2.3</global_storm_kafka_version>
                 <global_zeppelin_version>0.8.0</global_zeppelin_version>
                 <global_solr_version>7.4.0</global_solr_version>
+                <base_hadoop_version>3.1.1</base_hadoop_version>
                 <global_hbase_version>2.0.2</global_hbase_version>
                 <global_hbase_guava_version>17.0</global_hbase_guava_version>
             </properties>
