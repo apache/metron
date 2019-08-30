@@ -104,7 +104,9 @@ describe('AlertDetailsComponent', () => {
         AuthenticationService,
         AlertsService,
         UpdateService,
-        GlobalConfigService,
+        { provide: GlobalConfigService, useValue: {
+          get: () => { return of({})}
+        }},
         {
           provide: DialogService,
           useValue: {
