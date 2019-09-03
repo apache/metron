@@ -141,6 +141,8 @@ export class AutoPollingService {
   }
 
   onDestroy() {
-    this.stop(false);
+    if (this.getIsPollingActive()) {
+      this.stop(false);
+    }
   }
 }
