@@ -18,26 +18,21 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AutoPollingComponent } from './auto-polling.component';
-import { SearchService } from 'app/service/search.service';
-import { QueryBuilder } from '../query-builder';
 import { AutoPollingService } from './auto-polling.service';
 
 describe('AutoPollingComponent', () => {
   let component: AutoPollingComponent;
   let fixture: ComponentFixture<AutoPollingComponent>;
+  let autoPollingSvc: AutoPollingService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ AutoPollingComponent ],
       providers: [
-        { provide: SearchService, useClass: () => {
-          return {
-            search: () => {},
-          }}
-        },
-        { provide: QueryBuilder, useClass: () => {} },
         { provide: AutoPollingService, useClass: () => { return {
-          getIsPollingActive: () => {}
+          getIsPollingActive: () => {},
+          start: () => {},
+          stop: () => {},
         } } },
       ],
     })
@@ -47,10 +42,39 @@ describe('AutoPollingComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(AutoPollingComponent);
     component = fixture.componentInstance;
+
+    autoPollingSvc = TestBed.get(AutoPollingService);
+
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should have auto polling service injected', () => {
+    expect(component.autoPollingSvc).toBeTruthy();
+  });
+
+  it('toggle should call stop on svc when polling is active', () => {
+    spyOn(autoPollingSvc, 'getIsPollingActive').and.returnValue(true);
+    spyOn(autoPollingSvc, 'stop');
+    spyOn(autoPollingSvc, 'start');
+
+    component.onToggle();
+
+    expect(autoPollingSvc.start).not.toHaveBeenCalled();
+    expect(autoPollingSvc.stop).toHaveBeenCalled();
+  });
+
+  it('toggle should call start on svc when polling is inactive', () => {
+    spyOn(autoPollingSvc, 'getIsPollingActive').and.returnValue(false);
+    spyOn(autoPollingSvc, 'stop');
+    spyOn(autoPollingSvc, 'start');
+
+    component.onToggle();
+
+    expect(autoPollingSvc.start).toHaveBeenCalled();
+    expect(autoPollingSvc.stop).not.toHaveBeenCalled();
   });
 });

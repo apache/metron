@@ -15,9 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Output } from '@angular/core';
-import { SearchResponse } from 'app/model/search-response';
-import { EventEmitter } from '@angular/core';
+import { Component } from '@angular/core';
 import { AutoPollingService } from './auto-polling.service';
 
 @Component({
@@ -26,10 +24,6 @@ import { AutoPollingService } from './auto-polling.service';
   styleUrls: ['./auto-polling.component.scss']
 })
 export class AutoPollingComponent {
-  @Output() onRefresh = new EventEmitter<SearchResponse>();
-
-  showNotification = false;
-
   constructor(public autoPollingSvc: AutoPollingService) {}
 
   onToggle() {
