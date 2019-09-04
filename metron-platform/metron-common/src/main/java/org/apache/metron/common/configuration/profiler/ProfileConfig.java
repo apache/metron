@@ -19,6 +19,7 @@ package org.apache.metron.common.configuration.profiler;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -287,7 +288,7 @@ public class ProfileConfig implements Serializable {
    * @throws IOException If unable to deserialize the bytes into a {@link ProfileConfig}
    */
   public static ProfileConfig fromBytes(byte[] bytes) throws IOException {
-    return JSONUtils.INSTANCE.load(new String(bytes), ProfileConfig.class);
+    return JSONUtils.INSTANCE.load(new String(bytes, StandardCharsets.UTF_8), ProfileConfig.class);
   }
 
   /**

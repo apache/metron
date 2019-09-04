@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.controller;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.service.HdfsService;
 import org.junit.Before;
@@ -90,7 +91,7 @@ public class HdfsControllerIntegrationTest {
         this.mockMvc.perform(get(hdfsUrl + "?path=" + path).with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
-                .andExpect(content().bytes(fileContents.getBytes()));
+                .andExpect(content().bytes(fileContents.getBytes(StandardCharsets.UTF_8)));
 
         this.mockMvc.perform(delete(hdfsUrl + "?path=" + path).with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isOk());

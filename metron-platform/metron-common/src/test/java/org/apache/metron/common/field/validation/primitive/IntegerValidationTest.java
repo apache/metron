@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
@@ -63,6 +64,11 @@ public class IntegerValidationTest extends BaseValidationTest{
     Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 1)));
     Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "1")));
     Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "1")));
+  }
+  @Test
+  public void negativeTest_empty() throws IOException {
+    Assert.assertFalse(runPredicate("IS_INTEGER()", Collections.emptyMap()));
+    Assert.assertFalse(runPredicate("IS_INTEGER('')", Collections.emptyMap()));
   }
   @Test
   public void negativeTest_single() throws IOException {

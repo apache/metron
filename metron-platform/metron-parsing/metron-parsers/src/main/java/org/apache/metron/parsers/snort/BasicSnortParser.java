@@ -19,6 +19,7 @@ package org.apache.metron.parsers.snort;
 
 import com.google.common.collect.Lists;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -90,6 +91,7 @@ public class BasicSnortParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
     dateTimeFormatter = getDateFormatter(parserConfig);
     dateTimeFormatter = getDateFormatterWithZone(dateTimeFormatter, parserConfig);
     init();
@@ -139,7 +141,7 @@ public class BasicSnortParser extends BasicParser {
     List<JSONObject> messages = new ArrayList<>();
     try {
       // snort alerts expected as csv records
-      String csvMessage = new String(rawMessage, "UTF-8");
+      String csvMessage = new String(rawMessage, getReadCharset());
       Map<String, String> records = null;
       try {
          records = converter.toMap(csvMessage);
@@ -175,7 +177,8 @@ public class BasicSnortParser extends BasicParser {
       jsonMessage.put("is_alert", "true");
       messages.add(jsonMessage);
     } catch (Exception e) {
-      String message = "Unable to parse message: " + (rawMessage == null?"null" : new String(rawMessage));
+      String message = "Unable to parse message: " + (rawMessage == null?"null" : new String(rawMessage,
+          StandardCharsets.UTF_8));
       _LOG.error(message, e);
       throw new IllegalStateException(message, e);
     }

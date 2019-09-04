@@ -40,6 +40,7 @@ PARSER_CONTRIB=${PARSER_CONTRIB:-$METRON_HOME/parser_contrib}
 INDEXING_CONTRIB=${INDEXING_CONTRIB:-$METRON_HOME/indexing_contrib}
 METRON_PARSERS_PLATFORM="${METRON_PARSERS_PLATFORM:-storm}"
 PARSER_LIB=$(find $METRON_HOME/lib/ -name metron-parsing-${METRON_PARSERS_PLATFORM}*.jar)
+STELLAR_LIB=$METRON_HOME/lib/stellar-common-$METRON_VERSION-uber.jar
 
 echo "METRON_VERSION=${METRON_VERSION}"
 echo "METRON_HOME=${METRON_HOME}"
@@ -61,6 +62,7 @@ rest_jar_pattern="${METRON_HOME}/lib/metron-rest*.jar"
 rest_files=( ${rest_jar_pattern} )
 echo "Default metron-rest jar is: ${rest_files[0]}"
 METRON_REST_CLASSPATH+=":${rest_files[0]}"
+METRON_REST_CLASSPATH+=":$STELLAR_LIB"
 METRON_REST_CLASSPATH+=":$PARSER_LIB"
 
 if [ -d "$PARSER_CONTRIB" ]; then

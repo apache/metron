@@ -55,7 +55,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     new ColumnMetadata('alert_status', 'string')
   ];
 
-  getAlerts(searchRequest: SearchRequest): Observable<SearchResponse> {
+  getAlerts(searchRequest: SearchRequest): Observable<SearchResponse | RestError> {
     let url = '/search/*' + ElasticsearchUtils.excludeIndexName + '/_search';
     let request: any  = JSON.parse(JSON.stringify(searchRequest));
     request.query = { query_string: { query: searchRequest.query } };

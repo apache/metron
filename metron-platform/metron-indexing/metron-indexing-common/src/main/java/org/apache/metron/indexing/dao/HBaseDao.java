@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -62,7 +63,7 @@ import org.apache.metron.indexing.dao.update.Document;
 public class HBaseDao implements IndexDao {
   public static String HBASE_TABLE = "update.hbase.table";
   public static String HBASE_CF = "update.hbase.cf";
-  private HTableInterface tableInterface;
+  private Table tableInterface;
   private byte[] cf;
   private AccessConfig config;
 
@@ -160,14 +161,14 @@ public class HBaseDao implements IndexDao {
       }
       try {
         tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), table);
-        this.cf = cf.getBytes();
+        this.cf = cf.getBytes(StandardCharsets.UTF_8);
       } catch (IOException e) {
         throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
       }
     }
   }
 
-  public HTableInterface getTableInterface() {
+  public Table getTableInterface() {
     if(tableInterface == null) {
       init(config);
     }
@@ -209,7 +210,8 @@ public class HBaseDao implements IndexDao {
     Map.Entry<byte[], byte[]> entry= columns.lastEntry();
     Long ts = Bytes.toLong(entry.getKey());
     if(entry.getValue()!= null) {
-      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()),
+      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue(),
+              StandardCharsets.UTF_8),
           JSONUtils.MAP_SUPPLIER);
 
       // Make sure comments are in the proper format

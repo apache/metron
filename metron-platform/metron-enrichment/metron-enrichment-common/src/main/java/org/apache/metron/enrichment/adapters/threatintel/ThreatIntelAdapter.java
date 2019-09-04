@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
@@ -41,6 +42,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected ThreatIntelConfig config;
   protected EnrichmentLookup lookup;
+  protected Connection connection;
 
   public ThreatIntelAdapter() {
   }

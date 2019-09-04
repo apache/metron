@@ -255,7 +255,8 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
     if (!message.containsKey(Constants.GUID)) {
       message.put(Constants.GUID, UUID.randomUUID().toString());
     }
-    message.putIfAbsent(Fields.ORIGINAL.getName(), new String(rawMessage.getMessage()));
+    message.putIfAbsent(Fields.ORIGINAL.getName(),
+        new String(rawMessage.getMessage(), parser.getReadCharset()));
     MessageFilter<JSONObject> filter = sensorToParserComponentMap.get(sensorType).getFilter();
     if (filter == null || filter.emit(message, stellarContext)) {
       boolean isInvalid = !parser.validate(message);

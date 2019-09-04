@@ -22,7 +22,9 @@ import {SortField} from '../../model/sort-field';
 import {TIMESTAMP_FIELD_NAME} from '../../utils/constants';
 import {GroupRequest} from '../../model/group-request';
 import {Group} from '../../model/group';
+import { Injectable } from '@angular/core';
 
+@Injectable()
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
   private _groupRequest = new GroupRequest();
@@ -47,7 +49,6 @@ export class QueryBuilder {
   get filters(): Filter[] {
     return this._filters;
   }
-
 
   get searchRequest(): SearchRequest {
     this._searchRequest.query = this.generateSelect();
@@ -77,8 +78,19 @@ export class QueryBuilder {
 
   addOrUpdateFilter(filter: Filter) {
     let existingFilterIndex = -1;
+
+    if (filter.field === TIMESTAMP_FIELD_NAME) {
+      const existingTimeRangeFilter = this.filters.find(fItem => fItem.field === TIMESTAMP_FIELD_NAME);
+      if (existingTimeRangeFilter) {
+        this.removeFilter(existingTimeRangeFilter);
+      }
+      this._filters.push(filter);
+      this.onSearchChange();
+      return;
+    }
+
     let existingFilter = this._filters.find((tFilter, index) => {
-      if (tFilter.field === filter.field) {
+      if (filter.equals(tFilter)) {
         existingFilterIndex = index;
         return true;
       }
@@ -127,11 +139,13 @@ export class QueryBuilder {
     this._displayQuery = this.generateSelectForDisplay();
   }
 
-  removeFilter(field: string) {
-    let filter = this._filters.find(tFilter => tFilter.field === field);
-    this._filters.splice(this._filters.indexOf(filter), 1);
-
+  removeFilter(filter: Filter) {
+    this._filters = this._filters.filter(fItem => fItem !== filter );
     this.onSearchChange();
+  }
+
+  removeFilterByField(field: string): void {
+    this._filters = this._filters.filter(fItem => fItem.field !== field );
   }
 
   setFields(fieldNames: string[]) {
@@ -152,24 +166,28 @@ export class QueryBuilder {
     this.searchRequest.sort = [sortField];
   }
 
-  private updateFilters(tQuery: string, updateNameTransform = false) {
-    let query = tQuery;
+  private updateFilters(query: string, updateNameTransform = false) {
     this.removeDisplayedFilters();
 
     if (query && query !== '' && query !== '*') {
       let terms = query.split(' AND ');
       for (let term of terms) {
-        let separatorPos = term.lastIndexOf(':');
-        let field = term.substring(0, separatorPos).replace('\\', '');
+        let [field, value] = this.splitTerm(term);
         field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
-        let value = term.substring(separatorPos + 1, term.length);
+        value = value.trim();
+
         this.addOrUpdateFilter(new Filter(field, value));
       }
     }
   }
 
+  private splitTerm(term): string[] {
+    const lastIdxOfSeparator = term.lastIndexOf(':');
+    return [ term.substring(0, lastIdxOfSeparator), term.substring(lastIdxOfSeparator + 1) ];
+  }
+
   private removeDisplayedFilters() {
-    for (let i = this._filters.length-1; i >= 0; i--) {
+    for (let i = this._filters.length - 1; i >= 0; i--) {
       if (this._filters[i].display) {
         this._filters.splice(i, 1);
       }

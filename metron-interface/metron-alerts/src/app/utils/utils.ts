@@ -17,25 +17,11 @@
  */
 import * as moment from 'moment/moment';
 
-import { DEFAULT_START_TIME, DEFAULT_END_TIME, DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE } from './constants';
+import { DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE } from './constants';
 import { Alert } from '../model/alert';
 import { DateFilterValue } from '../model/date-filter-value';
-import { PcapRequest } from '../pcap/model/pcap.request';
-import { PcapFilterFormValue } from '../pcap/pcap-filters/pcap-filters.component';
-import { FormGroup } from '@angular/forms';
 
 export class Utils {
-
-  public static escapeESField(field: string): string {
-    return field.replace(/:/g, '\\:');
-  }
-
-  public static escapeESValue(value: string): string {
-    return String(value)
-    .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
-    .replace(/\|\|/g, '\\||') // replace ||
-    .replace(/\&\&/g, '\\&&'); // replace &&
-  }
 
   public static getAlertSensorType(alert: Alert, sourceType: string): string {
     if (alert.source[sourceType] && alert.source[sourceType].length > 0) {

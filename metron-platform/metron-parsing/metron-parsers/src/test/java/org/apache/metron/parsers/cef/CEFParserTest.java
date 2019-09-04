@@ -18,23 +18,8 @@
 
 package org.apache.metron.parsers.cef;
 
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.metron.common.Constants.Fields;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,10 +29,24 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
 import com.google.common.io.Resources;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.metron.common.Constants.Fields;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class CEFParserTest {
-
-	private static final Charset UTF_8 = StandardCharsets.UTF_8;
 	private CEFParser parser;
 
 	@Before
@@ -178,29 +177,29 @@ public class CEFParserTest {
 
 	@Test
 	public void testCEFParserAdallom() throws Exception {
-		runTest("adallom", Resources.readLines(Resources.getResource(getClass(), "adallom.cef"), UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "adallom.schema"), UTF_8));
+		runTest("adallom", Resources.readLines(Resources.getResource(getClass(), "adallom.cef"), StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "adallom.schema"), StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testCEFParserCyberArk() throws Exception {
-		runTest("cyberark", Resources.readLines(Resources.getResource(getClass(), "cyberark.cef"), UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "cyberark.schema"), UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "cyberark.json"), UTF_8));
+		runTest("cyberark", Resources.readLines(Resources.getResource(getClass(), "cyberark.cef"), StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "cyberark.schema"), StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "cyberark.json"), StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testCEFParserWAF() throws Exception {
 		URL waf_url = Resources.getResource(getClass(), "waf.cef");
-		runTest("waf", Resources.readLines(waf_url, UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "waf.schema"), UTF_8));
+		runTest("waf", Resources.readLines(waf_url, StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "waf.schema"), StandardCharsets.UTF_8));
 	}
 
 	@Test
 	public void testPaloAltoCEF() throws Exception {
 		URL palo_url = Resources.getResource(getClass(), "palo.cef");
-		runTest("palo", Resources.readLines(palo_url, UTF_8),
-				Resources.toString(Resources.getResource(getClass(), "palo.schema"), UTF_8));
+		runTest("palo", Resources.readLines(palo_url, StandardCharsets.UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "palo.schema"), StandardCharsets.UTF_8));
 	}
 
 	private void runTest(String name, List<String> lines, String schema) throws Exception {
@@ -276,9 +275,24 @@ public class CEFParserTest {
 	}
 
 	private List<JSONObject> parse(String string) {
-		List<JSONObject> parse = parser.parse(string.getBytes(UTF_8));
+		List<JSONObject> parse = parser.parse(string.getBytes(StandardCharsets.UTF_8));
 		Assert.assertNotNull(parse);
 		return parse;
 	}
+
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
+  }
 
 }

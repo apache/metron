@@ -39,7 +39,7 @@ public class BasicLancopeParser extends BasicParser {
 
 	@Override
 	public void configure(Map<String, Object> parserConfig) {
-
+    setReadCharset(parserConfig);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class BasicLancopeParser extends BasicParser {
 		List<JSONObject> messages = new ArrayList<>();
 		try {
 			
-			String raw_message = new String(msg, "UTF-8");
+			String raw_message = new String(msg, getReadCharset());
 			
 			payload = (JSONObject) JSONValue.parse(raw_message);
 			

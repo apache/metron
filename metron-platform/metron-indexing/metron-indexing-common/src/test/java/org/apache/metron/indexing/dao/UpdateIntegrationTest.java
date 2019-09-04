@@ -17,12 +17,12 @@ package org.apache.metron.indexing.dao;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.collections.MapUtils;
 import org.apache.metron.common.Constants;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,8 +35,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 import static org.hamcrest.CoreMatchers.hasItem;
+
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 
 public abstract class UpdateIntegrationTest {
 
@@ -272,29 +273,81 @@ public abstract class UpdateIntegrationTest {
     return new Document(message1, guid, SENSOR_NAME, timestamp);
   }
 
-  private List<AlertComment> getComments(Document withComment) {
-    List<Map<String, Object>> commentsField = List.class.cast(withComment.getDocument().get(COMMENTS_FIELD));
+  private static List<AlertComment> getComments(Document withComment) throws ParseException {
+    return getComments(withComment.getDocument());
+  }
+
+  private static List<AlertComment> getComments(Map<String, Object> fields) throws ParseException {
     List<AlertComment> comments = new ArrayList<>();
-    if(commentsField != null) {
-      comments = commentsField
-              .stream()
-              .map(map -> new AlertComment(map))
-              .collect(Collectors.toList());
+    boolean hasComments = fields.containsKey(COMMENTS_FIELD);
+    if(hasComments) {
+      List<Object> commentsField = List.class.cast(fields.get(COMMENTS_FIELD));
+      for (Object commentObject: commentsField) {
+        if (commentObject instanceof Map) {
+          // comments are stored as maps in Elasticsearch
+          Map<String, Object> commentAsMap = (Map<String, Object>) commentObject;
+          comments.add(new AlertComment(commentAsMap));
+
+        } else if (commentObject instanceof String) {
+          // comments are stored as json strings in Solr
+          String commentAsString = (String) commentObject;
+          comments.add(new AlertComment(commentAsString));
+
+        } else {
+          throw new IllegalArgumentException(String.format("Unexpected comment value; %s", commentObject));
+        }
+      }
     }
 
     return comments;
   }
 
-  protected Document findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
+  /**
+   * Normalizes the format of stored comments.
+   *
+   * <p>Comments are serialized differently when stored in Elasticsearch and Solr.  Comments
+   * are stored as maps in Elasticsearch and JSON strings in Solr.  This reformats all comments
+   * as maps, so they look the same when validation occurs in the integration tests.
+   * @param fields The fields of a document that may contain comments.
+   */
+  protected static void normalizeCommentsAsMap(Map<String, Object> fields) {
+    @SuppressWarnings("unchecked")
+    List<Object> commentValues = (List<Object>) fields.get(COMMENTS_FIELD);
+    if (commentValues != null) {
+      try {
+        List<AlertComment> comments = getComments(fields);
+        if(comments.size() > 0) {
+          // overwrite the comments field
+          List<Map<String, Object>> serializedComments = comments
+                  .stream()
+                  .map(AlertComment::asMap)
+                  .collect(Collectors.toList());
+          fields.put(COMMENTS_FIELD, serializedComments);
+
+        } else {
+          // there are no longer any comments
+          fields.remove(COMMENTS_FIELD);
+        }
+
+      } catch (ParseException e) {
+        throw new IllegalStateException("Unable to parse comment", e);
+      }
+    }
+  }
+
+  protected Document findUpdatedDoc(Map<String, Object> expected, String guid, String sensorType)
       throws InterruptedException, IOException, OriginalNotFoundException {
+    // comments are stored differently in Solr and Elasticsearch
+    normalizeCommentsAsMap(expected);
+
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
-      Document doc = getDao().getLatest(guid, sensorType);
-      if (doc != null && message0.equals(doc.getDocument())) {
-        return doc;
+      Document found = getDao().getLatest(guid, sensorType);
+      if (found != null && expected.equals(found.getDocument())) {
+        return found;
       }
       if (t == MAX_RETRIES -1) {
-        MapUtils.debugPrint(System.out, "Expected", message0);
-        MapUtils.debugPrint(System.out, "actual", doc.getDocument());
+        MapUtils.debugPrint(System.out, "Expected", expected);
+        MapUtils.debugPrint(System.out, "Actual", found.getDocument());
       }
     }
     throw new OriginalNotFoundException("Count not find " + guid + " after " + MAX_RETRIES + " tries");
@@ -309,7 +362,6 @@ public abstract class UpdateIntegrationTest {
   }
 
   protected abstract String getIndexName();
-  protected abstract MockHTable getMockHTable();
   protected abstract void addTestData(String indexName, String sensorType, List<Map<String,Object>> docs) throws Exception;
   protected abstract List<Map<String,Object>> getIndexedTestData(String indexName, String sensorType) throws Exception;
 }

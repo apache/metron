@@ -37,13 +37,14 @@ import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.dataloads.hbase.mr.HBaseUtil;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.helper.HelperDao;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
@@ -65,8 +66,8 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
   private static ZKServerComponent zookeeperComponent;
   private static ComponentRunner componentRunner;
   private static HBaseTestingUtility testUtil;
-  private static HTable enrichmentTable;
-  private static HTable enrichmentListTable;
+  private static Table enrichmentTable;
+  private static Table enrichmentListTable;
   private static Configuration hBaseConfig;
 
   /*
@@ -75,7 +76,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
   /**
    * {
-   *    "enrichment.list.hbase.provider.impl" : "org.apache.metron.hbase.HTableProvider",
+   *    "enrichment.list.hbase.provider.impl" : "%PROVIDER_NAME%",
    *    "enrichment.list.hbase.table" : "%TABLE_NAME%",
    *    "enrichment.list.hbase.cf" : "%COLUMN_FAMILY%"
    * }
@@ -89,7 +90,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
     // don't need the properties for anything else now, but could extract var if desired.
     startZookeeper(new Properties());
     globalConfig = globalConfig.replace("%TABLE_NAME%", ENRICHMENT_LIST_TABLE)
-        .replace("%COLUMN_FAMILY%", COLUMN_FAMILY);
+        .replace("%COLUMN_FAMILY%", COLUMN_FAMILY).replace("%PROVIDER_NAME%", HTableProvider.class.getName());
     uploadGlobalConfigToZK(globalConfig);
     configureAndStartHBase();
     addCoprocessor(enrichmentTable.getName());

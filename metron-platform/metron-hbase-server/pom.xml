@@ -58,6 +58,12 @@
             <artifactId>metron-enrichment-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+            <classifier>uber</classifier>
+        </dependency>
 
         <!-- HBase -->
 

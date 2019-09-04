@@ -17,9 +17,15 @@
  */
 package org.apache.metron.parsers.sourcefire;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.metron.parsers.AbstractParserConfigTest;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -40,8 +46,8 @@ public class BasicSourcefireParserTest extends AbstractParserConfigTest {
   @Test
   public void testParse() throws ParseException {
     for (String inputString : inputStrings) {
-      byte[] srcBytes = inputString.getBytes();
-      JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+      byte[] srcBytes = inputString.getBytes(StandardCharsets.UTF_8);
+      JSONObject parsed = parser.parse(inputString.getBytes(StandardCharsets.UTF_8)).get(0);
       Assert.assertNotNull(parsed);
 
       JSONParser parser = new JSONParser();
@@ -54,5 +60,20 @@ public class BasicSourcefireParserTest extends AbstractParserConfigTest {
         Assert.assertNotNull(value);
       }
     }
+  }
+
+  @Test
+  public void getsReadCharsetFromConfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put(MessageParser.READ_CHARSET, StandardCharsets.UTF_16.toString());
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_16));
+  }
+
+  @Test
+  public void getsReadCharsetFromDefault() {
+    Map<String, Object> config = new HashMap<>();
+    parser.configure(config);
+    assertThat(parser.getReadCharset(), equalTo(StandardCharsets.UTF_8));
   }
 }

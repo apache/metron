@@ -48,6 +48,7 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>stellar-common</artifactId>
             <version>${project.parent.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -278,10 +279,10 @@
             <artifactId>reflections</artifactId>
             <version>0.9.10</version>
             <exclusions>
-              <exclusion>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>annotations</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>annotations</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -344,14 +345,14 @@
                 <artifactId>antlr4-maven-plugin</artifactId>
                 <version>${global_antlr_version}</version>
                 <configuration>
-                  <outputDirectory>${basedir}/src/main/java</outputDirectory>
+                    <outputDirectory>${basedir}/src/main/java</outputDirectory>
                 </configuration>
                 <executions>
-                  <execution>
-                    <goals>
-                      <goal>antlr4</goal>
-                    </goals>
-                  </execution>
+                    <execution>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -374,16 +375,18 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                          <filters>
-                            <filter>
-                              <artifact>*:*</artifact>
-                              <excludes>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                              </excludes>
-                            </filter>
-                          </filters>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>uber</shadedClassifierName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
@@ -396,13 +399,13 @@
                             </relocations>
                             <transformers>
                                 <transformer
-                                  implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                                     <resources>
+                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resources>
                                         <resource>.yaml</resource>
                                         <resource>LICENSE.txt</resource>
                                         <resource>ASL2.0</resource>
                                         <resource>NOTICE.txt</resource>
-                                      </resources>
+                                    </resources>
                                 </transformer>
                                 <!-- UNCOMMENT THIS IF YOU NEED TO REGENERATE THE BEST GUESS NOTICES FILE WHICH REQUIRES PRUNING EVERY RELEASE -->
                                 <!--transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
@@ -410,7 +413,7 @@
                                     <projectName>${project.name}</projectName>
                                 </transformer-->
                                 <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass></mainClass>

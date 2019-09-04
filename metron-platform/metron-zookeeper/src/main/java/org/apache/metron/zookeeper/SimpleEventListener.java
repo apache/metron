@@ -19,6 +19,7 @@ package org.apache.metron.zookeeper;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
@@ -111,7 +112,8 @@ public class SimpleEventListener implements TreeCacheListener {
       path = event.getData().getPath();
       data = event.getData().getData();
     }
-    LOG.debug("Type: {}, Path: {}, Data: {}", event.getType(), (path == null?"":path) , (data == null?"":new String(data)));
+    LOG.debug("Type: {}, Path: {}, Data: {}", event.getType(), (path == null?"":path) , (data == null?"":new String(data,
+        StandardCharsets.UTF_8)));
     List<Callback> callback = callbacks.get(event.getType());
     if(callback != null) {
       for(Callback cb : callback) {

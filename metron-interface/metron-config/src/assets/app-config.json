@@ -1,4 +1,6 @@
 {
   "apiRoot": "/api/v1",
-  "loginPath": "/login"
+  "loginPath": "/login",
+  "alertsUIHost": "localhost",
+  "alertsUIPort": "4201"
 }

@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -46,11 +48,10 @@ import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   List<RotationAction> rotationActions = new ArrayList<>();
   FileRotationPolicy rotationPolicy = new NoRotationPolicy();
@@ -93,7 +94,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     this.stellarProcessor = new StellarProcessor();
     if(syncPolicy != null) {
       //if the user has specified the sync policy, we don't want to override their wishes.
-      LOG.debug("Using user specified sync policy {}", syncPolicy.getClass().getSimpleName());
+      LOG.debug("Using user specified sync policy {}", () -> syncPolicy.getClass().getSimpleName());
       syncPolicyCreator = new ClonedSyncPolicyCreator(syncPolicy);
     }
     else {
@@ -124,7 +125,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
       );
 
       try {
-        LOG.trace("Writing message {} to path: {}", message.toJSONString(), path);
+        LOG.trace("Writing message {} to path: {}", () -> message.toJSONString(), () -> path);
         SourceHandler handler = getSourceHandler(sensorType, path, configurations);
         handler.handle(message, sensorType, configurations, syncPolicyCreator);
       } catch (Exception e) {
@@ -169,7 +170,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   @Override
   public void close() {
     for(SourceHandler handler : sourceHandlerMap.values()) {
-      LOG.debug("Closing SourceHandler {}", handler.toString());
+      LOG.debug("Closing SourceHandler {}", () -> handler.toString());
       handler.close();
     }
     // Everything is closed, so just clear it

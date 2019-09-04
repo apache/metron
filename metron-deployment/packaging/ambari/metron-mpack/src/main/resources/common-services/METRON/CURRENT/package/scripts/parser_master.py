@@ -17,13 +17,12 @@ limitations under the License.
 
 """
 
+import metron_service
+from metron_security import storm_security_setup
+from parser_commands import ParserCommands
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
-
-from metron_security import storm_security_setup
-import metron_service
-from parser_commands import ParserCommands
 
 
 class ParserMaster(Script):

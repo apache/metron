@@ -14,25 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import errno
 import os
-import requests
 
+import errno
+
+import metron_service
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-
+from indexing_commands import IndexingCommands
+from metron_security import storm_security_setup
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
-from resource_management.core.source import Template
-from resource_management.libraries.functions.format import format
 from resource_management.core.source import StaticFile
+from resource_management.core.source import Template
 from resource_management.libraries.functions import format as ambari_format
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.script import Script
-
-from metron_security import storm_security_setup
-import metron_service
-from indexing_commands import IndexingCommands
+from resource_management.libraries.functions.get_user_call_output import \
+    get_user_call_output
 
 
 class Indexing(Script):
@@ -229,16 +229,18 @@ class Indexing(Script):
         Logger.info(ambari_format('Searching for Zeppelin Notebooks in {metron_config_zeppelin_path}'))
 
         # Check if authentication is configured on Zeppelin server, and fetch details if enabled.
-        ses = requests.session()
-        ses = commands.get_zeppelin_auth_details(ses, params.zeppelin_server_url, env)
+        session_id = commands.get_zeppelin_auth_details(params.zeppelin_server_url, env)
         for dirName, subdirList, files in os.walk(params.metron_config_zeppelin_path):
             for fileName in files:
                 if fileName.endswith(".json"):
                     Logger.info("Importing notebook: " + fileName)
-                    zeppelin_import_url = ambari_format('http://{zeppelin_server_url}/api/notebook/import')
-                    zeppelin_notebook = {'file' : open(os.path.join(dirName, fileName), 'rb')}
-                    res = ses.post(zeppelin_import_url, files=zeppelin_notebook)
-                    Logger.info("Result: " + res.text)
+                    zeppelin_notebook = os.path.join(dirName, fileName)
+                    zeppelin_import_url = 'curl -i -b \"{0}\" http://{1}/api/notebook/import -d @\'{2}\''
+                    zeppelin_import_url = zeppelin_import_url.format(session_id, params.zeppelin_server_url, zeppelin_notebook)
+                    return_code, import_result, stderr = get_user_call_output(zeppelin_import_url, user=params.metron_user)
+                    Logger.info("Status of importing notebook: " + import_result)
+                    if return_code != 0:
+                        Logger.error("Error importing notebook: " + fileName + " Error Message: " + stderr)
 
 if __name__ == "__main__":
     Indexing().execute()

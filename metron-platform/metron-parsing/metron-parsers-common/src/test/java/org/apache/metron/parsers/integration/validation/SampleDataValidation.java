@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.integration.validation;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.ParserValidation;
 import org.apache.metron.test.TestDataType;
@@ -38,8 +39,8 @@ public class SampleDataValidation implements ParserValidation {
     List<byte[]> expectedMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath("..", sensorType, TestDataType.PARSED));
     Assert.assertEquals(expectedMessages.size(), actualMessages.size());
     for (int i = 0; i < actualMessages.size(); i++) {
-      String expectedMessage = new String(expectedMessages.get(i));
-      String actualMessage = new String(actualMessages.get(i));
+      String expectedMessage = new String(expectedMessages.get(i), StandardCharsets.UTF_8);
+      String actualMessage = new String(actualMessages.get(i), StandardCharsets.UTF_8);
       try {
         ValidationUtils.assertJsonEqual(expectedMessage, actualMessage);
       } catch (Throwable t) {

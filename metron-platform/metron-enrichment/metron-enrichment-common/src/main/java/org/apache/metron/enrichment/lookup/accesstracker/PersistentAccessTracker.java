@@ -26,7 +26,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class PersistentAccessTracker implements AccessTracker {
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final long serialVersionUID = 1L;
 
-    public static class AccessTrackerKey {
+  public static class AccessTrackerKey {
         String name;
         String containerName;
         long timestamp;
@@ -102,7 +102,7 @@ public class PersistentAccessTracker implements AccessTracker {
     }
 
     final Object sync = new Object();
-    HTableInterface accessTrackerTable;
+    Table accessTrackerTable;
     String accessTrackerColumnFamily;
     AccessTracker underlyingTracker;
     long timestamp = System.currentTimeMillis();
@@ -113,7 +113,7 @@ public class PersistentAccessTracker implements AccessTracker {
 
     public PersistentAccessTracker( String name
                                   , String containerName
-                                  , HTableInterface accessTrackerTable
+                                  , Table accessTrackerTable
                                   , String columnFamily
                                   , AccessTracker underlyingTracker
                                   , long maxMillisecondsBetweenPersists

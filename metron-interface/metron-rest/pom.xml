@@ -201,6 +201,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+        </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-client</artifactId>
@@ -209,6 +215,10 @@
           <exclusion>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -221,12 +231,22 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
           </exclusion>
+            <exclusion>
+              <groupId>javax.servlet</groupId>
+              <artifactId>servlet-api</artifactId>
+            </exclusion>
         </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-app</artifactId>
         <version>${global_hadoop_version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>javax.servlet</groupId>
+              <artifactId>servlet-api</artifactId>
+            </exclusion>
+          </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -559,6 +579,8 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>uber</shadedClassifierName>
                     <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <filters>

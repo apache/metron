@@ -24,6 +24,7 @@ import static org.junit.Assert.assertThat;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
@@ -121,7 +122,8 @@ public class JSONUtilsTest {
 
   @Test
   public void applyPatch_modifies_source_json_doc() throws IOException {
-    String actual = new String(JSONUtils.INSTANCE.applyPatch(patchJson, sourceJson));
+    String actual = new String(JSONUtils.INSTANCE.applyPatch(patchJson, sourceJson),
+        StandardCharsets.UTF_8);
     assertThat(JSONUtils.INSTANCE.load(actual, JSONUtils.MAP_SUPPLIER), equalTo(JSONUtils.INSTANCE.load(expectedJson, JSONUtils.MAP_SUPPLIER)));
   }
 
@@ -157,7 +159,8 @@ public class JSONUtilsTest {
 
   @Test
   public void applyPatch_modifies_complex_source_json_doc() throws IOException {
-    String actual = new String(JSONUtils.INSTANCE.applyPatch(patchComplexJson, complexJson));
+    String actual = new String(JSONUtils.INSTANCE.applyPatch(patchComplexJson, complexJson),
+        StandardCharsets.UTF_8);
     assertThat(JSONUtils.INSTANCE.load(actual, JSONUtils.MAP_SUPPLIER), equalTo(JSONUtils.INSTANCE.load(expectedComplexJson, JSONUtils.MAP_SUPPLIER)));
   }
 

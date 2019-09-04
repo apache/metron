@@ -21,6 +21,7 @@ package org.apache.metron.common.utils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -64,7 +65,7 @@ public enum KafkaUtils {
     List<String> ret = new ArrayList<>();
     for(String id : client.getChildren().forPath("/brokers/ids")) {
       byte[] data = client.getData().forPath("/brokers/ids/" + id);
-      String brokerInfoStr = new String(data);
+      String brokerInfoStr = new String(data, StandardCharsets.UTF_8);
       Map<String, Object> brokerInfo = JSONUtils.INSTANCE.load(brokerInfoStr, JSONUtils.MAP_SUPPLIER);
       String host = (String) brokerInfo.get("host");
       if(host != null) {

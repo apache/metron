@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.hbase;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.junit.Assert;
@@ -78,9 +79,9 @@ public class SaltyRowKeyBuilderTest {
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
             .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .put("group1".getBytes())
+            .put(measurement.getProfileName().getBytes(StandardCharsets.UTF_8))
+            .put(measurement.getEntity().getBytes(StandardCharsets.UTF_8))
+            .put("group1".getBytes(StandardCharsets.UTF_8))
             .putLong(1635701L);
 
     buffer.flip();
@@ -104,10 +105,10 @@ public class SaltyRowKeyBuilderTest {
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
             .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .put("group1".getBytes())
-            .put("group2".getBytes())
+            .put(measurement.getProfileName().getBytes(StandardCharsets.UTF_8))
+            .put(measurement.getEntity().getBytes(StandardCharsets.UTF_8))
+            .put("group1".getBytes(StandardCharsets.UTF_8))
+            .put("group2".getBytes(StandardCharsets.UTF_8))
             .putLong(1635701L);
 
     buffer.flip();
@@ -131,9 +132,9 @@ public class SaltyRowKeyBuilderTest {
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
             .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .put("200".getBytes())
+            .put(measurement.getProfileName().getBytes(StandardCharsets.UTF_8))
+            .put(measurement.getEntity().getBytes(StandardCharsets.UTF_8))
+            .put("200".getBytes(StandardCharsets.UTF_8))
             .putLong(1635701L);
 
     buffer.flip();
@@ -157,10 +158,10 @@ public class SaltyRowKeyBuilderTest {
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
             .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
-            .put("200".getBytes())
-            .put("group1".getBytes())
+            .put(measurement.getProfileName().getBytes(StandardCharsets.UTF_8))
+            .put(measurement.getEntity().getBytes(StandardCharsets.UTF_8))
+            .put("200".getBytes(StandardCharsets.UTF_8))
+            .put("group1".getBytes(StandardCharsets.UTF_8))
             .putLong(1635701L);
 
     buffer.flip();
@@ -184,8 +185,8 @@ public class SaltyRowKeyBuilderTest {
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
             .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
-            .put(measurement.getProfileName().getBytes())
-            .put(measurement.getEntity().getBytes())
+            .put(measurement.getProfileName().getBytes(StandardCharsets.UTF_8))
+            .put(measurement.getEntity().getBytes(StandardCharsets.UTF_8))
             .putLong(1635701L);
 
     buffer.flip();

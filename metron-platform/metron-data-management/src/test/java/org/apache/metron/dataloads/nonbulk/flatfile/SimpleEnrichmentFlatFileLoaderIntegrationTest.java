@@ -17,6 +17,23 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
@@ -27,9 +44,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -45,28 +62,12 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.startsWith;
-
 public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
 
   private static HBaseTestingUtility testUtil;
 
   /** The test table. */
-  private static HTable testTable;
+  private static Table testTable;
   private static Configuration config = null;
   private static TestingServer testZkServer;
   private static String zookeeperUrl;
@@ -203,42 +204,44 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       lineByLineExtractorConfigFile.delete();
     }
     Files.write( lineByLineExtractorConfigFile.toPath()
-               , lineByLineExtractorConfig.getBytes()
+               , lineByLineExtractorConfig.getBytes(StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(wholeFileExtractorConfigFile.exists()) {
       wholeFileExtractorConfigFile.delete();
     }
     Files.write( wholeFileExtractorConfigFile.toPath()
-               , wholeFileExtractorConfig.getBytes()
+               , wholeFileExtractorConfig.getBytes(StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(stellarExtractorConfigFile.exists()) {
       stellarExtractorConfigFile.delete();
     }
     Files.write( stellarExtractorConfigFile.toPath()
-            , stellarExtractorConfig.replace("%ZK_QUORUM%", zookeeperUrl).getBytes()
+            , stellarExtractorConfig.replace("%ZK_QUORUM%", zookeeperUrl).getBytes(
+            StandardCharsets.UTF_8)
             , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(customLineByLineExtractorConfigFile.exists()) {
       customLineByLineExtractorConfigFile.delete();
     }
     Files.write( customLineByLineExtractorConfigFile.toPath()
-               , customLineByLineExtractorConfig.replace("%EXTRACTOR_CLASS%", CSVExtractor.class.getName()).getBytes()
+               , customLineByLineExtractorConfig.replace("%EXTRACTOR_CLASS%", CSVExtractor.class.getName()).getBytes(
+            StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(file1.exists()) {
       file1.delete();
     }
     Files.write( file1.toPath()
-               , "google1.com,1,foo2\n".getBytes()
+               , "google1.com,1,foo2\n".getBytes(StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
     if(file2.exists()) {
       file2.delete();
     }
     Files.write( file2.toPath()
-               , "google2.com,2,foo2\n".getBytes()
+               , "google2.com,2,foo2\n".getBytes(StandardCharsets.UTF_8)
                , StandardOpenOption.CREATE_NEW , StandardOpenOption.TRUNCATE_EXISTING
     );
 
@@ -256,10 +259,11 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(multilineZipFile));
       ZipEntry entry = new ZipEntry("file");
       zos.putNextEntry(entry);
+      // Use intermediate OutputStreamWriters to specify encoding, instead of platform default.
        pws = new PrintWriter[]{
-         new PrintWriter(multilineFile),
-         new PrintWriter(zos),
-         new PrintWriter(new GZIPOutputStream(new FileOutputStream(multilineGzFile)))
+         new PrintWriter(multilineFile, StandardCharsets.UTF_8.name()),
+         new PrintWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8)),
+         new PrintWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(multilineGzFile)), StandardCharsets.UTF_8))
                               };
       for(int i = 0;i < NUM_LINES;++i) {
         for(PrintWriter pw : pws) {
@@ -282,7 +286,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
   private static void setupGlobalConfig(String zookeeperUrl) throws Exception {
     client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
-    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), zookeeperUrl);
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(StandardCharsets.UTF_8), zookeeperUrl);
   }
 
   @AfterClass
@@ -425,7 +429,8 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
             , "-p 2", "-b 128", "-q"
     };
     FileSystem fs = FileSystem.get(config);
-    HBaseUtil.INSTANCE.writeFile(new String(Files.readAllBytes(multilineFile.toPath())), new Path(multilineFile.getName()), fs);
+    HBaseUtil.INSTANCE.writeFile(new String(Files.readAllBytes(multilineFile.toPath()),
+        StandardCharsets.UTF_8), new Path(multilineFile.getName()), fs);
     SimpleEnrichmentFlatFileLoader.main(config, argv);
     EnrichmentConverter converter = new EnrichmentConverter();
     ResultScanner scanner = testTable.getScanner(Bytes.toBytes(cf));

@@ -71,14 +71,6 @@ public class HBaseConfigTest {
   }
 
   @Test
-  public void hBaseClientShouldBeCreatedWithDefaultProvider() throws Exception {
-    when(globalConfigService.get()).thenReturn(new HashMap<String, Object>() {{
-      put(EnrichmentConfigurations.TABLE_NAME, "enrichment_list_hbase_table_name");
-    }});
-    Assert.assertNotNull(hBaseConfig.hBaseClient());
-  }
-
-  @Test
   public void hBaseClientShouldBeCreatedWithSpecifiedProvider() throws Exception {
     when(globalConfigService.get()).thenReturn(new HashMap<String, Object>() {{
       put(EnrichmentConfigurations.TABLE_PROVIDER, MockHBaseTableProvider.class.getName());

@@ -24,7 +24,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.extractor.Extractor;
@@ -99,7 +99,7 @@ public class TaxiiIntegrationTest {
         Extractor extractor = new TransformFilterExtractorDecorator(new StixExtractor());
         TaxiiHandler handler = new TaxiiHandler(TaxiiConnectionConfig.load(taxiiConnectionConfig), extractor, config ) {
             @Override
-            protected synchronized HTableInterface createHTable(String tableInfo) throws IOException {
+            protected synchronized Table createHTable(String tableInfo) throws IOException {
                 return provider.addToCache("threat_intel", "cf");
             }
         };

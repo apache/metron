@@ -30,14 +30,15 @@ import static org.mockito.Mockito.when;
 
 import com.github.benmanes.caffeine.cache.CacheWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.coprocessor.ObserverContext;
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
@@ -120,9 +121,10 @@ public class EnrichmentCoprocessorTest {
     }
 
     @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
+    public Table getTable(Configuration config, String tableName) throws IOException {
       return null; // not used for instantiation test
     }
+    
   }
 
   @Test
@@ -145,7 +147,7 @@ public class EnrichmentCoprocessorTest {
     thrown.expectMessage("Error occurred while processing enrichment Put.");
     thrown.expectCause(instanceOf(RuntimeException.class));
     cop.start(copEnv);
-    cop.postPut(observerContext, new Put("foo".getBytes()), null, null);
+    cop.postPut(observerContext, new Put("foo".getBytes(StandardCharsets.UTF_8)), null, null);
   }
 
   @Test

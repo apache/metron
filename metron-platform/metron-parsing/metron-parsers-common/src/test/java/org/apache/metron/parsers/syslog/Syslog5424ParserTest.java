@@ -20,6 +20,7 @@ package org.apache.metron.parsers.syslog;
 
 import com.github.palindromicity.syslog.NilPolicy;
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -41,17 +42,17 @@ public class Syslog5424ParserTest {
   private static final String SYSLOG_LINE_ALL = "<14>1 2014-06-20T09:14:07+00:00 loggregator"
           + " d0602076-b14a-4c55-852a-981e7afeed38 DEA MSG-01"
           + " [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]"
-          + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
+          + "[exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
 
   private static final String SYSLOG_LINE_MISSING = "<14>1 2014-06-20T09:14:07+00:00 loggregator"
           + " d0602076-b14a-4c55-852a-981e7afeed38 DEA -"
           + " [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]"
-          + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
+          + "[exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
 
   private static final String SYSLOG_LINE_MISSING_DATE = "<14>1 - loggregator"
           + " d0602076-b14a-4c55-852a-981e7afeed38 DEA -"
           + " [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"]"
-          + " [exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
+          + "[exampleSDID@32480 iut=\"4\" eventSource=\"Other Application\" eventID=\"2022\"] Removing instance";
 
   private static final String expectedVersion = "1";
   private static final String expectedMessage = "Removing instance";
@@ -141,7 +142,7 @@ public class Syslog5424ParserTest {
     }
     parser.configure(config);
 
-    parser.parseOptionalResult(line.getBytes());
+    parser.parseOptionalResult(line.getBytes(StandardCharsets.UTF_8));
   }
 
   @Test
@@ -157,7 +158,8 @@ public class Syslog5424ParserTest {
             .append(SYSLOG_LINE_MISSING)
             .append("\n")
             .append(SYSLOG_LINE_ALL);
-    Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(builder.toString().getBytes());
+    Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(builder.toString().getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertNotNull(resultOptional);
     Assert.assertTrue(resultOptional.isPresent());
     List<JSONObject> parsedList = resultOptional.get().getMessages();
@@ -180,7 +182,8 @@ public class Syslog5424ParserTest {
             .append("BOOM!\n")
             .append(SYSLOG_LINE_ALL)
             .append("\nOHMY!");
-    Optional<MessageParserResult<JSONObject>> output = parser.parseOptionalResult(builder.toString().getBytes());
+    Optional<MessageParserResult<JSONObject>> output = parser.parseOptionalResult(builder.toString().getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertTrue(output.isPresent());
     Assert.assertEquals(3,output.get().getMessages().size());
     Assert.assertEquals(3,output.get().getMessageThrowables().size());
@@ -193,14 +196,15 @@ public class Syslog5424ParserTest {
     String timeStampString = null;
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.DASH.name());
     parser.configure(config);
-    Optional<MessageParserResult<JSONObject>> output  = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes());
+    Optional<MessageParserResult<JSONObject>> output  = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertNotNull(output);
     Assert.assertTrue(output.isPresent());
     Assert.assertNotNull(output.get().getMessages().get(0).get("timestamp").toString());
     config.clear();
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.NULL.name());
     parser.configure(config);
-    output = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes());
+    output = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes(StandardCharsets.UTF_8));
     Assert.assertNotNull(output);
     Assert.assertTrue(output.isPresent());
     timeStampString = output.get().getMessages().get(0).get("timestamp").toString();
@@ -209,7 +213,7 @@ public class Syslog5424ParserTest {
     config.put(Syslog5424Parser.NIL_POLICY_CONFIG, NilPolicy.OMIT.name());
     parser.configure(config);
 
-    output = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes());
+    output = parser.parseOptionalResult(SYSLOG_LINE_MISSING_DATE.getBytes(StandardCharsets.UTF_8));
     Assert.assertNotNull(output);
     Assert.assertTrue(output.isPresent());
   }

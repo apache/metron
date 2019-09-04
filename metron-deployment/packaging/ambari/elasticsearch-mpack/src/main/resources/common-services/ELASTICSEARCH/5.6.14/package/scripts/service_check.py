@@ -21,11 +21,11 @@ from __future__ import print_function
 
 import subprocess
 import sys
-import re
 
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
-from resource_management.core.logger import Logger
+
 
 class ServiceCheck(Script):
 
