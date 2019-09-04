@@ -214,4 +214,213 @@ fdescribe('AutoPollingService', () => {
     }));
   });
 
+  describe('polling suppression - to prevent collision with other features', () => {
+    it('should suspend polling even if it is started', fakeAsync(() => {
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      autoPollingService.start();
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+
+      autoPollingService.setSuppression(true);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+
+      autoPollingService.stop();
+    }));
+
+    it('should continue polling when freed from suppression if it is started ', fakeAsync(() => {
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      autoPollingService.start();
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+
+      autoPollingService.setSuppression(true);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+
+      autoPollingService.setSuppression(false);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(4);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(5);
+
+      autoPollingService.stop();
+    }));
+
+    it('should have no impact when polling stopped', fakeAsync(() => {
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      autoPollingService.start();
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      autoPollingService.stop();
+      autoPollingService.setSuppression(true);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      autoPollingService.setSuppression(false);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+    }));
+  });
+
+  describe('request congestion handling - when refresh interval faster than response time', () => {
+    it('should skip new poll request when there is congestion', fakeAsync(() => {
+      const searchObservableFake = new Subject<SearchResponse>();
+
+      searchServiceFake.search = () => searchObservableFake;
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      autoPollingService.start();
+
+      searchObservableFake.next({ total: 2 } as SearchResponse);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+      expect(autoPollingService.getIsCongestion()).toBe(false);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+      expect(autoPollingService.getIsCongestion()).toBe(true);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+      expect(autoPollingService.getIsCongestion()).toBe(true);
+
+      autoPollingService.stop();
+    }));
+
+    it('should continue polling when congestion resolves', fakeAsync(() => {
+      const searchObservableFake = new Subject<SearchResponse>();
+
+      searchServiceFake.search = () => searchObservableFake;
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      autoPollingService.start();
+
+      searchObservableFake.next({ total: 2 } as SearchResponse);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+      expect(autoPollingService.getIsCongestion()).toBe(false);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+      expect(autoPollingService.getIsCongestion()).toBe(true);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+      expect(autoPollingService.getIsCongestion()).toBe(true);
+
+      searchObservableFake.next({ total: 2 } as SearchResponse);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+      expect(autoPollingService.getIsCongestion()).toBe(false);
+
+      autoPollingService.stop();
+    }));
+  });
+
+  describe('polling state persisting and restoring', () => {
+
+    it('should persist polling state on start', () => {
+      spyOn(localStorage, 'setItem');
+      autoPollingService.start();
+      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', '{"isActive":true,"refreshInterval":10}');
+    });
+
+    it('should persist polling state on stop', () => {
+      spyOn(localStorage, 'setItem');
+      autoPollingService.stop();
+      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', '{"isActive":false,"refreshInterval":10}');
+    });
+
+    it('should persist polling state on interval change', () => {
+      spyOn(localStorage, 'setItem');
+      autoPollingService.setInterval(4);
+      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', '{"isActive":false,"refreshInterval":4}');
+    });
+
+    it('should restore polling state on construction', () => {
+      const queryBuilderFake = TestBed.get(QueryBuilder);
+
+      spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":443}');
+
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake);
+
+      expect(localStorage.getItem).toHaveBeenCalledWith('autoPolling');
+      expect(localAutoPollingSvc.getIsPollingActive()).toBe(true);
+      expect(localAutoPollingSvc.getInterval()).toBe(443);
+    });
+
+    it('should start polling on construction when persisted isActive==true', fakeAsync(() => {
+      const queryBuilderFake = TestBed.get(QueryBuilder);
+
+      spyOn(searchServiceFake, 'search').and.callThrough();
+      spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":10}');
+
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake);
+
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+
+      localAutoPollingSvc.stop();
+    }));
+
+    it('should start polling on construction with the persisted interval', fakeAsync(() => {
+      const queryBuilderFake = TestBed.get(QueryBuilder);
+
+      spyOn(searchServiceFake, 'search').and.callThrough();
+      spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":4}');
+
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake);
+
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+
+      tick(4000);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      tick(4000);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
+
+      localAutoPollingSvc.stop();
+    }));
+  });
+
 });

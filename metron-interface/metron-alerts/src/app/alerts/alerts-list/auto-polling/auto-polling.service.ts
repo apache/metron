@@ -40,8 +40,10 @@ export class AutoPollingService {
 
   stop(persist = true) {
     this.isPollingActive = false;
-    this.pollingIntervalSubs.unsubscribe();
-    this.pollingIntervalSubs = null;
+    if (this.pollingIntervalSubs) {
+      this.pollingIntervalSubs.unsubscribe();
+      this.pollingIntervalSubs = null;
+    }
 
     if (persist) {
       this.persistState();
