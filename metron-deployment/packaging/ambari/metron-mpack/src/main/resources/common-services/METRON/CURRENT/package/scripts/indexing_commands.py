@@ -18,7 +18,6 @@ limitations under the License.
 import os
 import re
 
-import requests
 import time
 
 import metron_security
@@ -28,6 +27,8 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.get_user_call_output import \
+    get_user_call_output
 
 
 # Wrap major operations and functionality in this class
@@ -435,47 +436,43 @@ class IndexingCommands:
 
         Logger.info("Indexing service check completed successfully")
 
-    def get_zeppelin_auth_details(self, ses, zeppelin_server_url, env):
+    def get_zeppelin_auth_details(self, zeppelin_server_url, env):
         """
-        With Ambari 2.5+, Zeppelin server is enabled to work with Shiro authentication, which requires user/password
-        for authentication (see https://zeppelin.apache.org/docs/0.6.0/security/shiroauthentication.html for details).
+        With Ambari 2.5+, Zeppelin server is enabled to work with Shiro authentication by default, which requires
+        user/password for authentication (see https://zeppelin.apache.org/docs/0.6.0/security/shiroauthentication.html
+        for details).
 
-        This method checks if Shiro authentication is enabled on the Zeppelin server. And if enabled, it returns the
-        session connection details to be used for importing Zeppelin notebooks.
-        :param ses: Session handle
+        This method uses the Shiro authentication credentials on the Zeppelin server to authenticate and returns the
+        cookie information to be used for importing Zeppelin notebooks.
+
         :param zeppelin_server_url: Zeppelin Server URL
-        :return: ses
+        :return: session_id - the cookie handle to be used for subsequent interaction
         """
         from params import params
         env.set_params(params)
 
-        # Check if authentication is enabled on the Zeppelin server
+        session_id = None
         try:
-            ses.get(ambari_format('http://{zeppelin_server_url}/api/login'))
+            Logger.info("Shiro authentication is found to be enabled on the Zeppelin server.")
+            # Read the Shiro admin user credentials from Zeppelin config in Ambari
+            username = None
+            password = None
+            if re.search(r'^\[users\]', params.zeppelin_shiro_ini_content, re.MULTILINE):
+                tokens = re.search(r'^admin\ =.*', params.zeppelin_shiro_ini_content, re.MULTILINE).group()
+                userpassword = tokens.split(',')[0].strip()
+                username = userpassword.split('=')[0].strip()
+                password = userpassword.split('=')[1].strip()
+            else:
+                Logger.error("ERROR: Admin credentials config was not found in shiro.ini. Notebook import may fail.")
 
-            # Establish connection if authentication is enabled
-            try:
-                Logger.info("Shiro authentication is found to be enabled on the Zeppelin server.")
-                # Read the Shiro admin user credentials from Zeppelin config in Ambari
-                seen_users = False
-                username = None
-                password = None
-                if re.search(r'^\[users\]', params.zeppelin_shiro_ini_content, re.MULTILINE):
-                    seen_users = True
-                    tokens = re.search(r'^admin\ =.*', params.zeppelin_shiro_ini_content, re.MULTILINE).group()
-                    userpassword = tokens.split(',')[0].strip()
-                    username = userpassword.split('=')[0].strip()
-                    password = userpassword.split('=')[1].strip()
-                else:
-                    Logger.error("ERROR: Admin credentials config was not found in shiro.ini. Notebook import may fail.")
+            zeppelin_creds = "userName=%s&password=%s" % (username, password)
+            cmd = 'curl -i --data \'{0}\' -X POST \"http://{1}/api/login\" | grep JSESSIONID | grep -v deleteMe | tail -1'
+            cmd = cmd.format(zeppelin_creds, params.zeppelin_server_url)
+            return_code, stdout, stderr = get_user_call_output(cmd, user=params.metron_user)
+            session_id = stdout.replace("Set-Cookie: ",'').strip()
 
-                zeppelin_payload = {'userName': username, 'password' : password}
-                ses.post(ambari_format('http://{zeppelin_server_url}/api/login'), data=zeppelin_payload)
-            except:
-                pass
+        except Exception as e1:
+            msg = "Unable to get Shiro authentication details: Error={0}"
+            Logger.error(msg.format(e1))
 
-        # If authentication is not enabled, fall back to default method of imporing notebooks
-        except requests.exceptions.RequestException:
-            ses.get(ambari_format('http://{zeppelin_server_url}/api/notebook'))
-
-        return ses
+        return session_id
