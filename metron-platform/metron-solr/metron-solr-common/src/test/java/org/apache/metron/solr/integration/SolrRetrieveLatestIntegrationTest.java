@@ -51,7 +51,7 @@ public class SolrRetrieveLatestIntegrationTest {
   protected static final String TEST_COLLECTION = "test";
   protected static final String TEST_SENSOR = "test_sensor";
   protected static final String BRO_SENSOR = "bro";
-  protected final long expectedTimestamp = 123456789L;
+
   private static IndexDao dao;
 
   @BeforeClass
@@ -62,7 +62,8 @@ public class SolrRetrieveLatestIntegrationTest {
 
   @Before
   public void setup() throws Exception {
-    solrComponent.addCollection(TEST_COLLECTION, "./src/test/resources/config/test/conf");
+    solrComponent
+        .addCollection(TEST_COLLECTION, "./src/test/resources/config/test/conf");
     solrComponent.addCollection(BRO_SENSOR, "./src/main/config/schema/bro");
 
     AccessConfig accessConfig = new AccessConfig();
@@ -74,8 +75,8 @@ public class SolrRetrieveLatestIntegrationTest {
 
     dao = new SolrDao();
     dao.init(accessConfig);
-    addData(BRO_SENSOR, BRO_SENSOR, expectedTimestamp);
-    addData(TEST_COLLECTION, TEST_SENSOR, expectedTimestamp);
+    addData(BRO_SENSOR, BRO_SENSOR);
+    addData(TEST_COLLECTION, TEST_SENSOR);
   }
 
   @After
@@ -130,11 +131,8 @@ public class SolrRetrieveLatestIntegrationTest {
     requests.add(buildGetRequest(BRO_SENSOR, 2));
 
     Iterable<Document> actual = dao.getAllLatest(requests);
-    Document expected1 = buildExpectedDocument(BRO_SENSOR, 1);
-    assertTrue(Iterables.contains(actual, expected1));
-
-    Document expected2 = buildExpectedDocument(BRO_SENSOR, 2);
-    assertTrue(Iterables.contains(actual, expected2));
+    assertTrue(Iterables.contains(actual, buildExpectedDocument(BRO_SENSOR, 1)));
+    assertTrue(Iterables.contains(actual, buildExpectedDocument(BRO_SENSOR, 2)));
     assertEquals(2, Iterables.size(actual));
   }
 
@@ -181,9 +179,8 @@ public class SolrRetrieveLatestIntegrationTest {
   protected Document buildExpectedDocument(String sensor, int i) {
     Map<String, Object> expectedMapOne = new HashMap<>();
     expectedMapOne.put("source.type", sensor);
-    expectedMapOne.put(Constants.Fields.TIMESTAMP.getName(), expectedTimestamp);
     expectedMapOne.put(Constants.GUID, buildGuid(sensor, i));
-    return new Document(expectedMapOne, buildGuid(sensor, i), sensor, expectedTimestamp);
+    return new Document(expectedMapOne, buildGuid(sensor, i), sensor, 0L);
   }
 
   protected GetRequest buildGetRequest(String sensor, int i) {
@@ -193,7 +190,7 @@ public class SolrRetrieveLatestIntegrationTest {
     return requestOne;
   }
 
-  protected static void addData(String collection, String sensorName, Long timestamp)
+  protected static void addData(String collection, String sensorName)
       throws IOException, SolrServerException {
     List<Map<String, Object>> inputData = new ArrayList<>();
     for (int i = 0; i < 3; ++i) {
@@ -201,7 +198,6 @@ public class SolrRetrieveLatestIntegrationTest {
       HashMap<String, Object> inputMap = new HashMap<>();
       inputMap.put("source.type", sensorName);
       inputMap.put(Constants.GUID, name);
-      inputMap.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
       inputData.add(inputMap);
     }
     solrComponent.addDocs(collection, inputData);

@@ -20,16 +20,10 @@
 package org.apache.metron.profiler.spark;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.hbase.client.FakeHBaseClient;
-import org.apache.metron.hbase.client.FakeHBaseClientFactory;
-import org.apache.metron.hbase.client.FakeHBaseConnectionFactory;
-import org.apache.metron.profiler.client.HBaseProfilerClient;
-import org.apache.metron.profiler.client.ProfilerClient;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
 import org.apache.metron.profiler.client.stellar.GetProfile;
 import org.apache.metron.profiler.client.stellar.WindowLookback;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
-import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
@@ -52,16 +46,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.common.configuration.profiler.ProfilerConfig.fromJSON;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_CONNECTION_FACTORY;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_CLIENT_FACTORY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_COLUMN_FAMILY;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_NAME;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_CONNECTION_FACTORY;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_PROVIDER;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_BEGIN;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_END;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
@@ -109,40 +101,28 @@ public class BatchProfilerIntegrationTest {
   public void setup() {
     readerProperties = new Properties();
     profilerProperties = new Properties();
+
+    // the output will be written to a mock HBase table
     String tableName = HBASE_TABLE_NAME.get(profilerProperties, String.class);
     String columnFamily = HBASE_COLUMN_FAMILY.get(profilerProperties, String.class);
-    profilerProperties.put(HBASE_CONNECTION_FACTORY.getKey(), FakeHBaseConnectionFactory.class.getName());
+    profilerProperties.put(HBASE_TABLE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
+
+    // create the mock hbase table
+    MockHBaseTableProvider.addToCache(tableName, columnFamily);
 
     // define the globals required by `PROFILE_GET`
     Map<String, Object> global = new HashMap<String, Object>() {{
       put(PROFILER_HBASE_TABLE.getKey(), tableName);
       put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
-      put(PROFILER_HBASE_CONNECTION_FACTORY.getKey(), FakeHBaseConnectionFactory.class.getName());
+      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
     }};
-
-    // the batch profiler needs to use the `FakeHBaseClient` for these tests
-    profilerProperties.put(HBASE_CLIENT_FACTORY.getKey(), FakeHBaseClientFactory.class.getName());
-
-    // ensure that all of the static records are deleted before running the test
-    FakeHBaseClient hbaseClient = new FakeHBaseClient();
-    hbaseClient.deleteAll();
-
-    // create a `ProfilerClient` that uses the `FakeHBaseClient`
-    ProfilerClient profilerClient = new HBaseProfilerClient(
-            hbaseClient,
-            new SaltyRowKeyBuilder(),
-            new ValueOnlyColumnBuilder(),
-            TimeUnit.MINUTES.toMillis(15));
-
-    // create an instance of `PROFILE_GET` that indirectly uses the `FakeHBaseClient`
-    GetProfile profileGetFunction = new GetProfile(globals -> profilerClient);
 
     // create the stellar execution environment
     executor = new DefaultStellarStatefulExecutor(
             new SimpleFunctionResolver()
+                    .withClass(GetProfile.class)
                     .withClass(FixedLookback.class)
-                    .withClass(WindowLookback.class)
-                    .withInstance(profileGetFunction),
+                    .withClass(WindowLookback.class),
             new Context.Builder()
                     .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
                     .build());

@@ -20,15 +20,18 @@
 
 package org.apache.metron.hbase.bolt;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.bolt.mapper.HBaseMapper;
 import org.apache.metron.hbase.client.HBaseClient;
-import org.apache.metron.hbase.client.HBaseClientFactory;
-import org.apache.metron.hbase.client.HBaseConnectionFactory;
-import org.apache.metron.hbase.client.HBaseTableClient;
-import org.apache.metron.hbase.client.HBaseTableClientFactory;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -37,10 +40,6 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.invoke.MethodHandles;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * A bolt that writes to HBase.
@@ -77,36 +76,39 @@ public class HBaseBolt extends BaseRichBolt {
   protected HBaseMapper mapper;
 
   /**
-   * Defines when a batch needs flushed.
+   * The name of the class that should be used as a table provider.
+   *
+   * <p>Defaults to 'org.apache.metron.hbase.HTableProvider'.
    */
+  protected String tableProviderClazzName = "org.apache.metron.hbase.HTableProvider";
+
+  /**
+   * The TableProvider
+   * May be loaded from tableProviderClazzName or provided
+   */
+  protected TableProvider tableProvider;
+
   private BatchHelper batchHelper;
-
-  /**
-   * Establishes a connection to HBase.
-   */
-  private HBaseConnectionFactory connectionFactory;
-
-  /**
-   * Creates the {@link HBaseTableClient} used by this bolt.
-   */
-  private HBaseClientFactory hBaseClientFactory;
-
-  /**
-   * Used to write to HBase.
-   */
-  protected transient HBaseClient hbaseClient;
-
   protected OutputCollector collector;
+  protected transient HBaseClient hbaseClient;
 
   public HBaseBolt(String tableName, HBaseMapper mapper) {
     this.tableName = tableName;
     this.mapper = mapper;
-    this.connectionFactory = new HBaseConnectionFactory();
-    this.hBaseClientFactory = new HBaseTableClientFactory();
   }
 
   public HBaseBolt writeToWAL(boolean writeToWAL) {
     this.writeToWAL = writeToWAL;
+    return this;
+  }
+
+  public HBaseBolt withTableProvider(String tableProvider) {
+    this.tableProviderClazzName = tableProvider;
+    return this;
+  }
+
+  public HBaseBolt withTableProviderInstance(TableProvider tableProvider){
+    this.tableProvider = tableProvider;
     return this;
   }
 
@@ -120,24 +122,14 @@ public class HBaseBolt extends BaseRichBolt {
     return this;
   }
 
-  public HBaseBolt withConnectionFactory(HBaseConnectionFactory connectionFactory) {
-    this.connectionFactory = connectionFactory;
-    return this;
-  }
-
-  public HBaseBolt withConnectionFactory(String connectionFactoryImpl) {
-    this.connectionFactory = HBaseConnectionFactory.byName(connectionFactoryImpl);
-    return this;
-  }
-
-  public HBaseBolt withClientFactory(HBaseClientFactory clientFactory) {
-    this.hBaseClientFactory = clientFactory;
-    return this;
+  public void setClient(HBaseClient hbaseClient) {
+    this.hbaseClient = hbaseClient;
   }
 
   @Override
   public Map<String, Object> getComponentConfiguration() {
     LOG.debug("Tick tuples expected every {} second(s)", flushIntervalSecs);
+
     Config conf = new Config();
     conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, flushIntervalSecs);
     return conf;
@@ -147,7 +139,15 @@ public class HBaseBolt extends BaseRichBolt {
   public void prepare(Map map, TopologyContext topologyContext, OutputCollector collector) {
     this.collector = collector;
     this.batchHelper = new BatchHelper(batchSize, collector);
-    this.hbaseClient = hBaseClientFactory.create(connectionFactory, HBaseConfiguration.create(), tableName);
+
+    TableProvider provider;
+    if(this.tableProvider == null) {
+      provider = createTableProvider(tableProviderClazzName);
+    } else {
+      provider = this.tableProvider;
+    }
+
+    hbaseClient = new HBaseClient(provider, HBaseConfiguration.create(), tableName);
   }
 
   @Override
@@ -158,10 +158,12 @@ public class HBaseBolt extends BaseRichBolt {
   @Override
   public void execute(Tuple tuple) {
     LOG.trace("Received a tuple.");
+
     try {
       if (batchHelper.shouldHandle(tuple)) {
         save(tuple);
       }
+
       if (batchHelper.shouldFlush()) {
         flush();
       }
@@ -180,6 +182,7 @@ public class HBaseBolt extends BaseRichBolt {
     byte[] rowKey = mapper.rowKey(tuple);
     ColumnList cols = mapper.columns(tuple);
     Durability durability = writeToWAL ? Durability.SYNC_WAL : Durability.SKIP_WAL;
+
     Optional<Long> ttl = mapper.getTTL(tuple);
     if(ttl.isPresent()) {
       hbaseClient.addMutation(rowKey, cols, durability, ttl.get());
@@ -196,7 +199,31 @@ public class HBaseBolt extends BaseRichBolt {
    */
   private void flush() {
     LOG.debug("About to flush a batch of {} mutation(s)", batchHelper.getBatchSize());
+
     this.hbaseClient.mutate();
     batchHelper.ack();
+  }
+
+  /**
+   * Creates a TableProvider based on a class name.
+   * @param connectorImpl The class name of a TableProvider
+   */
+  private static TableProvider createTableProvider(String connectorImpl) {
+    LOG.trace("Creating table provider; className={}", connectorImpl);
+
+    // if class name not defined, use a reasonable default
+    if(StringUtils.isEmpty(connectorImpl) || connectorImpl.charAt(0) == '$') {
+      return new HTableProvider();
+    }
+
+    // instantiate the table provider
+    try {
+      Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(connectorImpl);
+      return clazz.getConstructor().newInstance();
+
+    } catch (InstantiationException | IllegalAccessException | IllegalStateException |
+              InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+      throw new IllegalStateException("Unable to instantiate connector", e);
+    }
   }
 }

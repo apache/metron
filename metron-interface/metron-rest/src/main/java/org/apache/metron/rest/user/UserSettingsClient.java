@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,85 +17,158 @@
  */
 package org.apache.metron.rest.user;
 
-import java.io.Closeable;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.function.Supplier;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Delete;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.TableProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * A client that interacts with persisted user settings data.  Enables create, read, and
- * delete operations on user settings.
- */
-public interface UserSettingsClient extends Closeable {
+public class UserSettingsClient {
 
-  /**
-   * Initialize the client.
-   */
-  void init();
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  /**
-   * Finds all settings for a particular user.
-   *
-   * <p>There may be more than one type of setting associated with each user. This returns all
-   * setting types for a particular user.
-   *
-   * @param user The user.
-   * @return All of the user's settings.
-   * @throws IOException
-   */
-  Map<String, String> findOne(String user) throws IOException;
+  public static String USER_SETTINGS_HBASE_TABLE = "user.settings.hbase.table";
+  public static String USER_SETTINGS_HBASE_CF = "user.settings.hbase.cf";
 
-  /**
-   * Finds one setting for a particular user.
-   *
-   * @param user The user.
-   * @param type The setting type.
-   * @return The value of the setting.
-   * @throws IOException
-   */
-  Optional<String> findOne(String user, String type) throws IOException;
+  private HTableInterface userSettingsTable;
+  private byte[] cf;
+  private Supplier<Map<String, Object>> globalConfigSupplier;
+  private TableProvider tableProvider;
 
-  /**
-   * Finds all settings for all users.
-   *
-   * @return All settings value for all users.
-   * @throws IOException
-   */
-  Map<String, Map<String, String>> findAll() throws IOException;
+  public UserSettingsClient() {
+  }
 
-  /**
-   * Finds the value of a particular setting type for all users.
-   *
-   * @param type The setting type.
-   * @return The value of the setting type for all users.
-   * @throws IOException
-   */
-  Map<String, Optional<String>> findAll(String type) throws IOException;
+  public UserSettingsClient(Supplier<Map<String, Object>> globalConfigSupplier, TableProvider tableProvider) {
+    this.globalConfigSupplier = globalConfigSupplier;
+    this.tableProvider = tableProvider;
+  }
 
-  /**
-   * Save a user setting.
-   *
-   * @param user The user.
-   * @param type The setting type.
-   * @param value The value of the user setting.
-   * @throws IOException
-   */
-  void save(String user, String type, String value) throws IOException;
+  public UserSettingsClient(HTableInterface userSettingsTable, byte[] cf) {
+    this.userSettingsTable = userSettingsTable;
+    this.cf = cf;
+  }
 
-  /**
-   * Delete all user settings for a particular user.
-   *
-   * @param user The user.
-   * @throws IOException
-   */
-  void delete(String user) throws IOException;
+  public synchronized void init(Supplier<Map<String, Object>> globalConfigSupplier, TableProvider tableProvider) {
+    if (this.userSettingsTable == null) {
+      Map<String, Object> globalConfig = globalConfigSupplier.get();
+      if(globalConfig == null) {
+        throw new IllegalStateException("Cannot find the global config.");
+      }
+      String table = (String)globalConfig.get(USER_SETTINGS_HBASE_TABLE);
+      String cf = (String) globalConfigSupplier.get().get(USER_SETTINGS_HBASE_CF);
+      if(table == null || cf == null) {
+        throw new IllegalStateException("You must configure " + USER_SETTINGS_HBASE_TABLE + " and " + USER_SETTINGS_HBASE_CF + " in the global config.");
+      }
+      try {
+        userSettingsTable = tableProvider.getTable(HBaseConfiguration.create(), table);
+        this.cf = cf.getBytes();
+      } catch (IOException e) {
+        throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
+      }
 
-  /**
-   * Delete one user setting value.
-   *
-   * @param user The user.
-   * @param type The setting type.
-   * @throws IOException
-   */
-  void delete(String user, String type) throws IOException;
+    }
+  }
+
+  public HTableInterface getTableInterface() {
+    if(userSettingsTable == null) {
+      init(globalConfigSupplier, tableProvider);
+    }
+    return userSettingsTable;
+  }
+
+  public Map<String, String> findOne(String user) throws IOException {
+    Result result = getResult(user);
+    return getAllUserSettings(result);
+  }
+
+  public Optional<String> findOne(String user, String type) throws IOException {
+    Result result = getResult(user);
+    return getUserSettings(result, type);
+  }
+
+  public Map<String, Map<String, String>> findAll() throws IOException {
+    Scan scan = new Scan();
+    ResultScanner results = getTableInterface().getScanner(scan);
+    Map<String, Map<String, String>> allUserSettings = new HashMap<>();
+    for (Result result : results) {
+      allUserSettings.put(new String(result.getRow()), getAllUserSettings(result));
+    }
+    return allUserSettings;
+  }
+
+  public Map<String, Optional<String>> findAll(String type) throws IOException {
+    Scan scan = new Scan();
+    ResultScanner results = getTableInterface().getScanner(scan);
+    Map<String, Optional<String>> allUserSettings = new HashMap<>();
+    for (Result result : results) {
+      allUserSettings.put(new String(result.getRow()), getUserSettings(result, type));
+    }
+    return allUserSettings;
+  }
+
+  public void save(String user, String type, String userSettings) throws IOException {
+    byte[] rowKey = Bytes.toBytes(user);
+    Put put = new Put(rowKey);
+    put.addColumn(cf, Bytes.toBytes(type), Bytes.toBytes(userSettings));
+    getTableInterface().put(put);
+  }
+
+  public void delete(String user) throws IOException {
+    Delete delete = new Delete(Bytes.toBytes(user));
+    getTableInterface().delete(delete);
+  }
+
+  public void delete(String user, String type) throws IOException {
+    Delete delete = new Delete(Bytes.toBytes(user));
+    delete.addColumn(cf, Bytes.toBytes(type));
+    getTableInterface().delete(delete);
+  }
+
+  private Result getResult(String user) throws IOException {
+    byte[] rowKey = Bytes.toBytes(user);
+    Get get = new Get(rowKey);
+    get.addFamily(cf);
+    return getTableInterface().get(get);
+  }
+
+  private Optional<String> getUserSettings(Result result, String type) throws IOException {
+    Optional<String> userSettings = Optional.empty();
+    if (result != null) {
+      byte[] value = result.getValue(cf, Bytes.toBytes(type));
+      if (value != null) {
+        userSettings = Optional.of(new String(value, StandardCharsets.UTF_8));
+      }
+    }
+    return userSettings;
+  }
+
+  public Map<String, String> getAllUserSettings(Result result) {
+    if (result == null) {
+      return new HashMap<>();
+    }
+    NavigableMap<byte[], byte[]> columns = result.getFamilyMap(cf);
+    if(columns == null || columns.size() == 0) {
+      return new HashMap<>();
+    }
+    Map<String, String> userSettingsMap = new HashMap<>();
+    for(Map.Entry<byte[], byte[]> column: columns.entrySet()) {
+      userSettingsMap.put(new String(column.getKey(), StandardCharsets.UTF_8), new String(column.getValue(), StandardCharsets.UTF_8));
+    }
+    return userSettingsMap;
+  }
 }

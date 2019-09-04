@@ -38,8 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -221,7 +219,7 @@ public class SolrSearchDaoTest {
 
   @Test
   public void getLatestShouldProperlyReturnDocument() throws Exception {
-    SolrDocument solrDocument = createSolrDocument("bro", 123456789L);
+    SolrDocument solrDocument = mock(SolrDocument.class);
 
     solrSearchDao = spy(new SolrSearchDao(client, accessConfig));
     when(client.getById("collection", "guid")).thenReturn(solrDocument);
@@ -239,10 +237,10 @@ public class SolrSearchDaoTest {
     GetRequest broRequest2 = new GetRequest("bro-2", "bro");
     GetRequest snortRequest1 = new GetRequest("snort-1", "snort");
     GetRequest snortRequest2 = new GetRequest("snort-2", "snort");
-    SolrDocument broSolrDoc1 = createSolrDocument("bro", 12345L);
-    SolrDocument broSolrDoc2 = createSolrDocument("bro", 34567L);
-    SolrDocument snortSolrDoc1 = createSolrDocument("snort", 12345L);
-    SolrDocument snortSolrDoc2 = createSolrDocument("snort", 67890L);
+    SolrDocument broSolrDoc1 = mock(SolrDocument.class);
+    SolrDocument broSolrDoc2 = mock(SolrDocument.class);
+    SolrDocument snortSolrDoc1 = mock(SolrDocument.class);
+    SolrDocument snortSolrDoc2 = mock(SolrDocument.class);
     Document broDoc1 = SolrUtilities.toDocument(broSolrDoc1);
     Document broDoc2 = SolrUtilities.toDocument(broSolrDoc2);
     Document snortDoc1 = SolrUtilities.toDocument(snortSolrDoc1);
@@ -512,13 +510,5 @@ public class SolrSearchDaoTest {
     assertNull(level2GroupResults.get(1).getGroupResults());
   }
 
-  private SolrDocument createSolrDocument(String sensorType, Long timestamp) {
-    SolrDocument solrDocument = new SolrDocument();
-    solrDocument.addField(SolrDao.VERSION_FIELD, 1.0);
-    solrDocument.addField(Constants.GUID, UUID.randomUUID().toString());
-    solrDocument.addField(Constants.SENSOR_TYPE, sensorType);
-    solrDocument.addField(Constants.Fields.TIMESTAMP.getName(), timestamp);
-    solrDocument.addField("ip_src_addr", "192.168.1.1");
-    return solrDocument;
-  }
+
 }

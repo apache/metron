@@ -23,14 +23,13 @@ package org.apache.metron.profiler.client;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 
-import java.io.Closeable;
 import java.util.List;
 import java.util.Optional;
 
 /**
  * An interface for a client capable of retrieving the profile data that has been persisted by the Profiler.
  */
-public interface ProfilerClient extends Closeable {
+public interface ProfilerClient {
 
   /**
    * Fetch the values stored in a profile based on a start and end timestamp.

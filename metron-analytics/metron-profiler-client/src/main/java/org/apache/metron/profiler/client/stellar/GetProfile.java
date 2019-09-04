@@ -20,12 +20,18 @@
 
 package org.apache.metron.profiler.client.stellar;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.client.HBaseProfilerClientFactory;
+import org.apache.metron.profiler.client.HBaseProfilerClient;
 import org.apache.metron.profiler.client.ProfilerClient;
-import org.apache.metron.profiler.client.ProfilerClientFactories;
-import org.apache.metron.profiler.client.ProfilerClientFactory;
+import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
+import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -36,16 +42,21 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_DEFAULT_VALUE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
 import static org.apache.metron.profiler.client.stellar.Util.getArg;
 import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
-import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.profiler.client.stellar.Util.getPeriodDurationInMillis;
 
 /**
  * A Stellar function that can retrieve data contained within a Profile.
@@ -80,133 +91,103 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
         name="GET",
         description="Retrieves a series of values from a stored profile.",
         params={
-                "profile - The name of the profile.",
-                "entity - The name of the entity.",
-                "periods - The list of profile periods to fetch. Use PROFILE_WINDOW or PROFILE_FIXED.",
-                "groups - Optional - The groups to retrieve. Must correspond to the 'groupBy' " +
-                        "list used during profile creation. Defaults to an empty list, meaning no groups.",
-                "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
-                        "of the same name. Default is the empty Map, meaning no overrides."
+          "profile - The name of the profile.",
+          "entity - The name of the entity.",
+          "periods - The list of profile periods to fetch. Use PROFILE_WINDOW or PROFILE_FIXED.",
+          "groups - Optional - The groups to retrieve. Must correspond to the 'groupBy' " +
+                    "list used during profile creation. Defaults to an empty list, meaning no groups.",
+          "config_overrides - Optional - Map (in curly braces) of name:value pairs, each overriding the global config parameter " +
+                  "of the same name. Default is the empty Map, meaning no overrides."
         },
         returns="The selected profile measurements."
 )
 public class GetProfile implements StellarFunction {
+
+  /**
+   * Cached client that can retrieve profile values.
+   */
+  private ProfilerClient client;
+
+  /**
+   * Cached value of config map actually used to construct the previously cached client.
+   */
+  private Map<String, Object> cachedConfigMap = new HashMap<String, Object>(6);
+
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final int PROFILE_ARG_INDEX = 0;
-  private static final int ENTITY_ARG_INDEX = 1;
-  private static final int PERIOD_ARG_INDEX = 2;
-  private static final int GROUPS_ARG_INDEX = 3;
-  private static final int CONFIG_OVERRIDES_ARG_INDEX = 4;
 
   /**
-   * Allows the function to retrieve persisted {@link ProfileMeasurement} values.
+   * Initialization.  No longer need to do anything in initialization,
+   * as all setup is done lazily and cached.
    */
-  private ProfilerClient profilerClient;
-
-  /**
-   * Creates the {@link ProfilerClient} used by this function.
-   */
-  private ProfilerClientFactory profilerClientFactory;
-
-  /**
-   * Last known global configuration used to create the {@link ProfilerClient}. If the
-   * global configuration changes, a new {@link ProfilerClient} needs to be constructed.
-   */
-  private Map<String, Object> lastKnownGlobals = new HashMap<>();
-
-  /**
-   * The default constructor used during Stellar function resolution.
-   */
-  public GetProfile() {
-    this(ProfilerClientFactories.DEFAULT);
-  }
-
-  /**
-   * The constructor used for testing.
-   * @param profilerClientFactory
-   */
-  public GetProfile(ProfilerClientFactory profilerClientFactory) {
-    this.profilerClientFactory = profilerClientFactory;
-  }
-
   @Override
   public void initialize(Context context) {
-    Map<String, Object> globals = getGlobals(context);
-    profilerClient = profilerClientFactory.create(globals);
   }
 
+  /**
+   * Is the function initialized?
+   */
   @Override
   public boolean isInitialized() {
-    return profilerClient != null;
+    return true;
   }
 
-  @Override
-  public void close() throws IOException {
-    if(profilerClient != null) {
-      profilerClient.close();
-    }
-  }
-
+  /**
+   * Apply the function.
+   * @param args The function arguments.
+   * @param context
+   */
   @Override
   public Object apply(List<Object> args, Context context) throws ParseException {
-    // required arguments
-    String profile = getArg(PROFILE_ARG_INDEX, String.class, args);
-    String entity = getArg(ENTITY_ARG_INDEX, String.class, args);
-    List<ProfilePeriod> periods = getArg(PERIOD_ARG_INDEX, List.class, args);
 
-    // optional arguments
-    List<Object> groups = getGroups(args);
-    Map<String, Object> overrides = getOverrides(args);
-
-    // lazily create new profiler client if needed
-    Map<String, Object> effectiveConfig = getEffectiveConfig(context, overrides);
-    if (profilerClient == null || !lastKnownGlobals.equals(effectiveConfig)) {
-      profilerClient = profilerClientFactory.create(effectiveConfig);
-      lastKnownGlobals = effectiveConfig;
+    String profile = getArg(0, String.class, args);
+    String entity = getArg(1, String.class, args);
+    Optional<List<ProfilePeriod>> periods = Optional.ofNullable(getArg(2, List.class, args));
+    //Optional arguments
+    @SuppressWarnings("unchecked")
+    List<Object> groups = null;
+    Map configOverridesMap = null;
+    if (args.size() < 4) {
+      // no optional args, so default 'groups' and configOverridesMap remains null.
+      groups = new ArrayList<>(0);
+    }
+    else if (args.get(3) instanceof List) {
+      // correct extensible usage
+      groups = getArg(3, List.class, args);
+      if (args.size() >= 5) {
+        configOverridesMap = getArg(4, Map.class, args);
+        if (configOverridesMap.isEmpty()) configOverridesMap = null;
+      }
+    }
+    else {
+      // Deprecated "varargs" style usage for groups_list
+      // configOverridesMap cannot be specified so it remains null.
+      groups = getGroupsArg(3, args);
     }
 
-    // is there a default value?
-    Optional<Object> defaultValue = Optional.empty();
-    if(effectiveConfig != null) {
-      defaultValue = Optional.ofNullable(PROFILER_DEFAULT_VALUE.get(effectiveConfig));
+    Map<String, Object> effectiveConfig = getEffectiveConfig(context, configOverridesMap);
+    Object defaultValue = null;
+    //lazily create new profiler client if needed
+    if (client == null || !cachedConfigMap.equals(effectiveConfig)) {
+      RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(effectiveConfig);
+      ColumnBuilder columnBuilder = getColumnBuilder(effectiveConfig);
+      HTableInterface table = getTable(effectiveConfig);
+      long periodDuration = getPeriodDurationInMillis(effectiveConfig);
+      client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDuration);
+      cachedConfigMap = effectiveConfig;
     }
+    if(cachedConfigMap != null) {
+      defaultValue = ProfilerClientConfig.PROFILER_DEFAULT_VALUE.get(cachedConfigMap);
+    }
+
+    List<ProfileMeasurement> measurements = client.fetch(Object.class, profile, entity, groups,
+            periods.orElse(new ArrayList<>(0)), Optional.ofNullable(defaultValue));
 
     // return only the value of each profile measurement
-    List<ProfileMeasurement> measurements = profilerClient.fetch(Object.class, profile, entity, groups, periods, defaultValue);
     List<Object> values = new ArrayList<>();
     for(ProfileMeasurement m: measurements) {
       values.add(m.getProfileValue());
     }
-
     return values;
-  }
-
-  private Map<String, Object> getOverrides(List<Object> args) {
-    Map<String, Object> configOverridesMap = null;
-    if(args.size() > CONFIG_OVERRIDES_ARG_INDEX && args.get(GROUPS_ARG_INDEX) instanceof List) {
-      configOverridesMap = getArg(CONFIG_OVERRIDES_ARG_INDEX, Map.class, args);
-      if (configOverridesMap.isEmpty()) {
-        configOverridesMap = null;
-      }
-    }
-    return configOverridesMap;
-  }
-
-  private List<Object> getGroups(List<Object> args) {
-    List<Object> groups;
-    if (args.size() < CONFIG_OVERRIDES_ARG_INDEX) {
-      // no optional args, so default 'groups' and configOverridesMap remains null.
-      groups = new ArrayList<>(0);
-
-    } else if (args.get(GROUPS_ARG_INDEX) instanceof List) {
-      // correct extensible usage
-      groups = getArg(GROUPS_ARG_INDEX, List.class, args);
-
-    } else {
-      // deprecated "varargs" style usage for groups_list
-      groups = getVarArgGroups(GROUPS_ARG_INDEX, args);
-    }
-    return groups;
   }
 
   /**
@@ -220,7 +201,7 @@ public class GetProfile implements StellarFunction {
    * @param args The function arguments.
    * @return The groups.
    */
-  private static List<Object> getVarArgGroups(int startIndex, List<Object> args) {
+  private List<Object> getGroupsArg(int startIndex, List<Object> args) {
     List<Object> groups = new ArrayList<>();
 
     for(int i=startIndex; i<args.size(); i++) {
@@ -231,8 +212,76 @@ public class GetProfile implements StellarFunction {
     return groups;
   }
 
-  private static Map<String, Object> getGlobals(Context context) {
-    return (Map<String, Object>) context.getCapability(GLOBAL_CONFIG)
-            .orElse(Collections.emptyMap());
+  /**
+   * Creates the ColumnBuilder to use in accessing the profile data.
+   * @param global The global configuration.
+   */
+  private ColumnBuilder getColumnBuilder(Map<String, Object> global) {
+    ColumnBuilder columnBuilder;
+
+    String columnFamily = PROFILER_COLUMN_FAMILY.get(global, String.class);
+    columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+
+    return columnBuilder;
+  }
+
+  /**
+   * Creates the ColumnBuilder to use in accessing the profile data.
+   * @param global The global configuration.
+   */
+  private RowKeyBuilder getRowKeyBuilder(Map<String, Object> global) {
+
+    // how long is the profile period?
+    long duration = PROFILER_PERIOD.get(global, Long.class);
+    LOG.debug("profiler client: {}={}", PROFILER_PERIOD, duration);
+
+    // which units are used to define the profile period?
+    String configuredUnits = PROFILER_PERIOD_UNITS.get(global, String.class);
+    TimeUnit units = TimeUnit.valueOf(configuredUnits);
+    LOG.debug("profiler client: {}={}", PROFILER_PERIOD_UNITS, units);
+
+    // what is the salt divisor?
+    Integer saltDivisor = PROFILER_SALT_DIVISOR.get(global, Integer.class);
+    LOG.debug("profiler client: {}={}", PROFILER_SALT_DIVISOR, saltDivisor);
+
+    return new SaltyRowKeyBuilder(saltDivisor, duration, units);
+  }
+
+  /**
+   * Create an HBase table used when accessing HBase.
+   * @param global The global configuration.
+   * @return
+   */
+  private HTableInterface getTable(Map<String, Object> global) {
+
+    String tableName = PROFILER_HBASE_TABLE.get(global, String.class);
+    TableProvider provider = getTableProvider(global);
+
+    try {
+      return provider.getTable(HBaseConfiguration.create(), tableName);
+
+    } catch (IOException e) {
+      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName), e);
+    }
+  }
+
+  /**
+   * Create the TableProvider to use when accessing HBase.
+   * @param global The global configuration.
+   */
+  private TableProvider getTableProvider(Map<String, Object> global) {
+    String clazzName = PROFILER_HBASE_TABLE_PROVIDER.get(global, String.class);
+
+    TableProvider provider;
+    try {
+      @SuppressWarnings("unchecked")
+      Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(clazzName);
+      provider = clazz.getConstructor().newInstance();
+
+    } catch (Exception e) {
+      provider = new HTableProvider();
+    }
+
+    return provider;
   }
 }

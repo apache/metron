@@ -49,8 +49,8 @@ search:
 
 index:
   dao:
-  # By default, we use the InMemoryDao for our tests
-     impl: org.apache.metron.indexing.dao.InMemoryDao
+  # By default, we use the InMemoryDao for our tests and HBaseDao for backing updates.
+     impl: org.apache.metron.indexing.dao.InMemoryDao,org.apache.metron.indexing.dao.HBaseDao
   hbase:
   # HBase is provided via a mock provider, so no actual HBase infrastructure is started.
      provider: org.apache.metron.hbase.mock.MockHBaseTableProvider

@@ -215,11 +215,6 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void close() {
-    // nothing to do
-  }
-
-  @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
     for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
       if(kv.getKey().startsWith(sensorType)) {

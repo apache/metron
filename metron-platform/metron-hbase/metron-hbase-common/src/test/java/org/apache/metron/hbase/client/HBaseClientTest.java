@@ -63,7 +63,7 @@ public class HBaseClientTest {
   private static final String tableName = "table";
 
   private static HBaseTestingUtility util;
-  private static LegacyHBaseClient client;
+  private static HBaseClient client;
   private static HTableInterface table;
   private static Admin admin;
   private static byte[] cf = Bytes.toBytes("cf");
@@ -87,7 +87,7 @@ public class HBaseClientTest {
     table = util.createTable(Bytes.toBytes(tableName), cf);
     util.waitTableEnabled(table.getName());
     // setup the client
-    client = new LegacyHBaseClient((c, t) -> table, table.getConfiguration(), tableName);
+    client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
   }
 
   @AfterClass
@@ -259,7 +259,7 @@ public class HBaseClientTest {
     TableProvider tableProvider = mock(TableProvider.class);
     when(tableProvider.getTable(any(), any())).thenThrow(new IllegalArgumentException("test exception"));
 
-    client = new LegacyHBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
+    client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
   }
 
   @Test(expected = RuntimeException.class)
@@ -271,7 +271,7 @@ public class HBaseClientTest {
     TableProvider tableProvider = mock(TableProvider.class);
     when(tableProvider.getTable(any(), any())).thenReturn(table);
 
-    client = new LegacyHBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
+    client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
     client.addMutation(rowKey1, cols1, Durability.SYNC_WAL);
     client.mutate();
   }
@@ -288,7 +288,7 @@ public class HBaseClientTest {
     HBaseProjectionCriteria criteria = new HBaseProjectionCriteria();
     criteria.addColumnFamily(Bytes.toString(cf));
 
-    client = new LegacyHBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
+    client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
     client.addGet(rowKey1, criteria);
     client.addGet(rowKey2, criteria);
     client.getAll();

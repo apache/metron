@@ -115,12 +115,6 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
     // Ignore threatSort for test.
   }
 
-  @Override
-  public void close() throws IOException {
-    if(indexDao != null) {
-      indexDao.close();
-    }
-  }
 
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {

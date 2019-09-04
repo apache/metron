@@ -42,7 +42,7 @@ import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
-import org.apache.metron.hbase.client.LegacyHBaseClient;
+import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.apache.zookeeper.KeeperException;
@@ -82,14 +82,14 @@ public class SensorEnrichmentConfigServiceImplTest {
   public static String broJson;
 
   ConfigurationsCache cache;
-  private LegacyHBaseClient hBaseClient;
+  private HBaseClient hBaseClient;
 
   @Before
   public void setUp() throws Exception {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
     cache = mock(ConfigurationsCache.class);
-    hBaseClient = mock(LegacyHBaseClient.class);
+    hBaseClient = mock(HBaseClient.class);
     sensorEnrichmentConfigService = new SensorEnrichmentConfigServiceImpl(objectMapper, curatorFramework, cache, hBaseClient);
   }
 
