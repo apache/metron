@@ -79,137 +79,139 @@ fdescribe('AutoPollingService', () => {
   });
 
 
-  it('should mark polling as active after start', () => {
-    autoPollingService.start();
-    expect(autoPollingService.getIsPollingActive()).toBe(true);
-  });
-
-  it('should mark polling as inactive after stop', () => {
-    autoPollingService.start();
-    expect(autoPollingService.getIsPollingActive()).toBe(true);
-
-    autoPollingService.stop();
-    expect(autoPollingService.getIsPollingActive()).toBe(false);
-  });
-
-  it('should send an initial request on start', () => {
-    spyOn(searchServiceFake, 'search').and.callThrough();
-
-    autoPollingService.start();
-
-    expect(searchServiceFake.search).toHaveBeenCalled();
-  });
-
-  it('should broadcast response to initial request via data subject', () => {
-    autoPollingService.data.subscribe((result) => {
-      expect(result).toEqual(new SearchResponse());
+  describe('polling basics', () => {
+    it('should mark polling as active after start', () => {
+      autoPollingService.start();
+      expect(autoPollingService.getIsPollingActive()).toBe(true);
     });
 
-    autoPollingService.start();
-  });
+    it('should mark polling as inactive after stop', () => {
+      autoPollingService.start();
+      expect(autoPollingService.getIsPollingActive()).toBe(true);
 
-  it('should start polling when start called', fakeAsync(() => {
-    spyOn(searchServiceFake, 'search').and.callThrough();
-
-    autoPollingService.start();
-
-    tick(getIntervalInMS());
-    expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
-
-    autoPollingService.stop();
-  }));
-
-  it('should broadcast polling response via data subject', fakeAsync(() => {
-    const searchObservableFake = new Subject<SearchResponse>();
-    const pollResponseFake = new SearchResponse();
-
-    autoPollingService.start();
-    // The reason am mocking the searchService.search here is to not interfere
-    // with the initial request triggered right after the start
-    searchServiceFake.search = () => searchObservableFake;
-
-    autoPollingService.data.subscribe((result) => {
-      expect(result).toBe(pollResponseFake);
       autoPollingService.stop();
+      expect(autoPollingService.getIsPollingActive()).toBe(false);
     });
 
-    tick(autoPollingService.getInterval() * 1000);
+    it('should send an initial request on start', () => {
+      spyOn(searchServiceFake, 'search').and.callThrough();
 
-    searchObservableFake.next(pollResponseFake);
-  }));
+      autoPollingService.start();
 
-  it('should keep polling and broadcasting based on the interval', fakeAsync(() => {
-    const searchObservableFake = new Subject<SearchResponse>();
-    const broadcastObserverSpy = jasmine.createSpy('broadcastObserverSpy');
-    const testInterval = 2;
+      expect(searchServiceFake.search).toHaveBeenCalled();
+    });
 
-    autoPollingService.setInterval(testInterval);
-    autoPollingService.start();
+    it('should broadcast response to initial request via data subject', () => {
+      autoPollingService.data.subscribe((result) => {
+        expect(result).toEqual(new SearchResponse());
+      });
 
-    // The reason am mocking the searchService.search here is to not interfere
-    // with the initial request triggered right after the start
-    searchServiceFake.search = () => searchObservableFake;
-    spyOn(searchServiceFake, 'search').and.callThrough();
+      autoPollingService.start();
+    });
 
-    autoPollingService.data.subscribe(broadcastObserverSpy);
+    it('should start polling when start called', fakeAsync(() => {
+      spyOn(searchServiceFake, 'search').and.callThrough();
 
-    tick(testInterval * 1000);
-    expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+      autoPollingService.start();
 
-    searchObservableFake.next({ total: 2 } as SearchResponse);
-    expect(broadcastObserverSpy).toHaveBeenCalledTimes(1);
-    expect(broadcastObserverSpy.calls.argsFor(0)[0]).toEqual({ total: 2 });
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
 
-    tick(testInterval * 1000);
-    expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+      autoPollingService.stop();
+    }));
 
-    searchObservableFake.next({ total: 3 } as SearchResponse);
-    expect(broadcastObserverSpy).toHaveBeenCalledTimes(2);
-    expect(broadcastObserverSpy.calls.argsFor(1)[0]).toEqual({ total: 3 });
+    it('should broadcast polling response via data subject', fakeAsync(() => {
+      const searchObservableFake = new Subject<SearchResponse>();
+      const pollResponseFake = new SearchResponse();
 
-    autoPollingService.stop();
-  }));
+      autoPollingService.start();
+      // The reason am mocking the searchService.search here is to not interfere
+      // with the initial request triggered right after the start
+      searchServiceFake.search = () => searchObservableFake;
 
-  it('should stop polling when stop triggered', fakeAsync(() => {
-    const searchObservableFake = new Subject<SearchResponse>();
-    const broadcastObserverSpy = jasmine.createSpy('broadcastObserverSpy');
+      autoPollingService.data.subscribe((result) => {
+        expect(result).toBe(pollResponseFake);
+        autoPollingService.stop();
+      });
 
-    autoPollingService.start();
+      tick(autoPollingService.getInterval() * 1000);
 
-    // The reason am mocking the searchService.search here is to not interfere
-    // with the initial request triggered right after the start
-    searchServiceFake.search = () => searchObservableFake;
-    spyOn(searchServiceFake, 'search').and.callThrough();
+      searchObservableFake.next(pollResponseFake);
+    }));
 
-    autoPollingService.data.subscribe(broadcastObserverSpy);
+    it('should keep polling and broadcasting based on the interval', fakeAsync(() => {
+      const searchObservableFake = new Subject<SearchResponse>();
+      const broadcastObserverSpy = jasmine.createSpy('broadcastObserverSpy');
+      const testInterval = 2;
 
-    tick(getIntervalInMS());
-    searchObservableFake.next({ total: 3 } as SearchResponse);
-    expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+      autoPollingService.setInterval(testInterval);
+      autoPollingService.start();
 
-    autoPollingService.stop();
+      // The reason am mocking the searchService.search here is to not interfere
+      // with the initial request triggered right after the start
+      searchServiceFake.search = () => searchObservableFake;
+      spyOn(searchServiceFake, 'search').and.callThrough();
 
-    tick(getIntervalInMS() * 4);
-    expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
-  }));
+      autoPollingService.data.subscribe(broadcastObserverSpy);
 
-  it('should use the latest query from query builder', fakeAsync(() => {
-    const queryBuilderFake = TestBed.get(QueryBuilder);
-    spyOn(searchServiceFake, 'search').and.callThrough();
+      tick(testInterval * 1000);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
 
-    queryBuilderFake.setFilter('testFieldAA:testValueAA');
-    autoPollingService.start();
-    expect((searchServiceFake.search as Spy).calls.argsFor(0)[0].query).toBe('testFieldAA:testValueAA');
+      searchObservableFake.next({ total: 2 } as SearchResponse);
+      expect(broadcastObserverSpy).toHaveBeenCalledTimes(1);
+      expect(broadcastObserverSpy.calls.argsFor(0)[0]).toEqual({ total: 2 });
 
-    queryBuilderFake.setFilter('testFieldBB:testValueBB');
-    tick(getIntervalInMS());
-    expect((searchServiceFake.search as Spy).calls.argsFor(1)[0].query).toBe('testFieldBB:testValueBB');
+      tick(testInterval * 1000);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
 
-    queryBuilderFake.setFilter('*');
-    tick(getIntervalInMS());
-    expect((searchServiceFake.search as Spy).calls.argsFor(2)[0].query).toBe('*');
+      searchObservableFake.next({ total: 3 } as SearchResponse);
+      expect(broadcastObserverSpy).toHaveBeenCalledTimes(2);
+      expect(broadcastObserverSpy.calls.argsFor(1)[0]).toEqual({ total: 3 });
 
-    autoPollingService.stop();
-  }));
+      autoPollingService.stop();
+    }));
+
+    it('should stop polling when stop triggered', fakeAsync(() => {
+      const searchObservableFake = new Subject<SearchResponse>();
+      const broadcastObserverSpy = jasmine.createSpy('broadcastObserverSpy');
+
+      autoPollingService.start();
+
+      // The reason am mocking the searchService.search here is to not interfere
+      // with the initial request triggered right after the start
+      searchServiceFake.search = () => searchObservableFake;
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      autoPollingService.data.subscribe(broadcastObserverSpy);
+
+      tick(getIntervalInMS());
+      searchObservableFake.next({ total: 3 } as SearchResponse);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+
+      autoPollingService.stop();
+
+      tick(getIntervalInMS() * 4);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+    }));
+
+    it('should use the latest query from query builder', fakeAsync(() => {
+      const queryBuilderFake = TestBed.get(QueryBuilder);
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      queryBuilderFake.setFilter('testFieldAA:testValueAA');
+      autoPollingService.start();
+      expect((searchServiceFake.search as Spy).calls.argsFor(0)[0].query).toBe('testFieldAA:testValueAA');
+
+      queryBuilderFake.setFilter('testFieldBB:testValueBB');
+      tick(getIntervalInMS());
+      expect((searchServiceFake.search as Spy).calls.argsFor(1)[0].query).toBe('testFieldBB:testValueBB');
+
+      queryBuilderFake.setFilter('*');
+      tick(getIntervalInMS());
+      expect((searchServiceFake.search as Spy).calls.argsFor(2)[0].query).toBe('*');
+
+      autoPollingService.stop();
+    }));
+  });
 
 });
