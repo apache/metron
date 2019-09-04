@@ -46,6 +46,11 @@ fi
 
 rpmlint -i SPECS/metron.spec RPMS/*/metron* SRPMS/metron
 
+echo "Copying RPMs from docker image to project target directory"
+# Its faster to keep files in the docker image and copy them out at the end
+cp -r RPMS target/
+cp -r SRPMS target/
+
 # Ensure original user permissions are maintained after build
 if [ $OWNER_UID -ne 0 ]; then
   chown -R $OWNER_UID *

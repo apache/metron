@@ -330,6 +330,24 @@
                         <version>1.5.0</version>
                         <executions>
                             <execution>
+                                <id>docker-build-base</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>docker</executable>
+                                    <arguments>
+                                        <argument>build</argument>
+                                        <argument>-f</argument>
+                                        <argument>rpm-base-image/Dockerfile</argument>
+                                        <argument>-t</argument>
+                                        <argument>${rpm.docker.tag}-base</argument>
+                                        <argument>rpm-base-image</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
                                 <id>docker-build</id>
                                 <phase>package</phase>
                                 <goals>
@@ -342,7 +360,7 @@
                                         <argument>-f</argument>
                                         <argument>Dockerfile</argument>
                                         <argument>-t</argument>
-                                        <argument>${rpm.docker.tag}</argument>
+                                        <argument>${rpm.docker.tag}-metron</argument>
                                         <argument>.</argument>
                                     </arguments>
                                 </configuration>
@@ -358,33 +376,12 @@
                                     <arguments>
                                         <argument>run</argument>
                                         <argument>-v</argument>
-                                        <argument>${project.basedir}:/root</argument>
-                                        <argument>${rpm.docker.tag}:latest</argument>
+                                        <argument>${project.basedir}/target:/root/target:delegated</argument>
+                                        <argument>${rpm.docker.tag}-metron:latest</argument>
                                         <argument>/bin/bash</argument>
                                         <argument>-c</argument>
                                         <argument>./build.sh ${project.version}</argument>
                                     </arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>3.0.1</version>
-                        <executions>
-                            <execution>
-                                <id>copy-rpms-target</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${project.basedir}/target/RPMS</outputDirectory>
-                                    <resources>
-                                        <resource>
-                                            <directory>RPMS</directory>
-                                        </resource>
-                                    </resources>
                                 </configuration>
                             </execution>
                         </executions>
