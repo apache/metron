@@ -23,7 +23,16 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
 import com.google.protobuf.Service;
 import com.google.protobuf.ServiceException;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.NoSuchElementException;
+import java.util.TreeMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -34,7 +43,6 @@ import org.apache.hadoop.hbase.client.Append;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
@@ -42,31 +50,19 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Row;
 import org.apache.hadoop.hbase.client.RowMutations;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.coprocessor.Batch;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.ipc.CoprocessorRpcChannel;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.TableProvider;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.NoSuchElementException;
-import java.util.TreeMap;
 
 /**
  * MockHTable.
  *
  * This implementation is a selected excerpt from https://gist.github.com/agaoglu/613217
  */
-public class MockHTable implements HTableInterface {
+public class MockHTable implements Table {
 
 
   private final String tableName;
@@ -124,7 +120,6 @@ public class MockHTable implements HTableInterface {
     }
   }
 
-  @Override
   public byte[] getTableName() {
     return Bytes.toBytes(tableName);
   }
@@ -191,7 +186,6 @@ public class MockHTable implements HTableInterface {
     return ret;
   }
 
-  @Override
   public Boolean[] exists(List<Get> list) throws IOException {
     Boolean[] ret = new Boolean[list.size()];
     int i = 0;
@@ -316,7 +310,6 @@ public class MockHTable implements HTableInterface {
    * @deprecated
    */
   @Deprecated
-  @Override
   public Result getRowOrBefore(byte[] bytes, byte[] bytes1) throws IOException {
     throw new UnsupportedOperationException();
   }
@@ -608,17 +601,14 @@ public class MockHTable implements HTableInterface {
    * @deprecated
    */
   @Deprecated
-  @Override
   public long incrementColumnValue(byte[] bytes, byte[] bytes1, byte[] bytes2, long l, boolean b) throws IOException {
     throw new UnsupportedOperationException();
   }
 
-  @Override
   public boolean isAutoFlush() {
     return autoflush;
   }
 
-  @Override
   public void flushCommits() throws IOException {
 
   }
@@ -650,17 +640,14 @@ public class MockHTable implements HTableInterface {
    * @deprecated
    */
   @Deprecated
-  @Override
   public void setAutoFlush(boolean b) {
     autoflush = b;
   }
 
-  @Override
   public void setAutoFlush(boolean b, boolean b1) {
     autoflush = b;
   }
 
-  @Override
   public void setAutoFlushTo(boolean b) {
     autoflush = b;
   }

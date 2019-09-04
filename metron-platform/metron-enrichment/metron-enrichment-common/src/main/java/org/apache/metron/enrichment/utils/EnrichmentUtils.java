@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
@@ -45,8 +45,8 @@ public class EnrichmentUtils {
   public static class TypeToKey implements Function<String, KeyWithContext<EnrichmentKey, EnrichmentLookup.HBaseContext>> {
     private final String indicator;
     private final EnrichmentConfig config;
-    private final HTableInterface table;
-    public TypeToKey(String indicator, HTableInterface table, EnrichmentConfig config) {
+    private final Table table;
+    public TypeToKey(String indicator, Table table, EnrichmentConfig config) {
       this.indicator = indicator;
       this.config = config;
       this.table = table;

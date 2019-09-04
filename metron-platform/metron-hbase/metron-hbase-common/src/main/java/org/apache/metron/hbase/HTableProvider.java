@@ -18,13 +18,49 @@
 package org.apache.metron.hbase;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.Table;
 
 public class HTableProvider implements TableProvider {
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-        return new HTable(config, tableName);
+
+  private static class RetryingConnection {
+
+    private Configuration config;
+    private Connection conn;
+
+    RetryingConnection(Configuration config) {
+      this.config = config;
     }
+
+    public Connection getUnderlying() throws IOException {
+      if (conn == null || conn.isClosed()) {
+        conn = ConnectionFactory.createConnection(config);
+      }
+      return conn;
+    }
+  }
+
+  /**
+   * We have to handle serialization issues with Storm via indirections. Rather than re-implement
+   * the interface everywhere we touch HBase, we can use a lazy initialization scheme to encapsulate
+   * this within the HTableProvider. This is a sort of poor man's connection pool.
+   */
+  private static Map<Configuration, ThreadLocal<RetryingConnection>> connMap = new ConcurrentHashMap<>();
+
+  @Override
+  public Table getTable(Configuration config, String tableName)
+      throws IOException {
+    return getConnection(config).getTable(TableName.valueOf(tableName));
+  }
+
+  private Connection getConnection(Configuration config) throws IOException {
+    ThreadLocal<RetryingConnection> threadLocal = connMap.computeIfAbsent(config, c -> ThreadLocal.withInitial(() -> new RetryingConnection(config)));
+    return threadLocal.get().getUnderlying();
+  }
+
 }

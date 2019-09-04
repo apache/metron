@@ -27,7 +27,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -196,7 +196,7 @@ public class TestConfig {
   public HBaseClient hBaseClient() throws RestException, IOException {
     final String cf = "t";
     final String cq = "v";
-    HTableInterface table = MockHBaseTableProvider.addToCache("enrichment_list", cf);
+    Table table = MockHBaseTableProvider.addToCache("enrichment_list", cf);
     List<String> enrichmentTypes = new ArrayList<String>() {{
       add("foo");
       add("bar");

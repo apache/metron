@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -63,7 +63,7 @@ import org.apache.metron.indexing.dao.update.Document;
 public class HBaseDao implements IndexDao {
   public static String HBASE_TABLE = "update.hbase.table";
   public static String HBASE_CF = "update.hbase.cf";
-  private HTableInterface tableInterface;
+  private Table tableInterface;
   private byte[] cf;
   private AccessConfig config;
 
@@ -168,7 +168,7 @@ public class HBaseDao implements IndexDao {
     }
   }
 
-  public HTableInterface getTableInterface() {
+  public Table getTableInterface() {
     if(tableInterface == null) {
       init(config);
     }

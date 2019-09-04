@@ -30,17 +30,17 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.HBaseProjectionCriteria;
+import org.apache.metron.hbase.TableProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,8 +64,11 @@ public class HBaseClient implements Closeable {
   /**
    * The HBase table this client interacts with.
    */
-  private HTableInterface table;
+  private Table table;
 
+  /**
+   * New hbase client.
+   */
   public HBaseClient(TableProvider provider, final Configuration configuration, final String tableName) {
     this.mutations = new ArrayList<>();
     this.gets = new ArrayList<>();
@@ -294,7 +297,7 @@ public class HBaseClient implements Closeable {
    * @param table The table to retrieve the name of.
    * @return The name of the table
    */
-  private static String tableName(HTableInterface table) {
+  private static String tableName(Table table) {
     String tableName = "null";
     if(table != null) {
       if(table.getName() != null) {
