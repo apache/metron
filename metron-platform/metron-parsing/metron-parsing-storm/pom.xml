@@ -30,6 +30,13 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
   <dependencies>
+    <!-- Dependencies needed preferentially -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.2</version>
+    </dependency>
+
     <!-- Metron dependencies -->
     <dependency>
       <groupId>org.apache.metron</groupId>

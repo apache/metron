@@ -18,15 +18,24 @@
 package org.apache.metron.integration.processors;
 
 import com.google.common.base.Function;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 public class KafkaProcessor<T> implements Processor<T> {
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private String kafkaComponentName;
     private String readTopic;
     private String errorTopic;
@@ -63,10 +72,12 @@ public class KafkaProcessor<T> implements Processor<T> {
         KafkaComponent kafkaComponent = runner.getComponent(kafkaComponentName, KafkaComponent.class);
         LinkedList<byte[]> outputMessages = new LinkedList<>(kafkaComponent.readMessages(readTopic));
         LinkedList<byte[]> outputErrors = null;
-
         if (errorTopic != null) {
             outputErrors = new LinkedList<>(kafkaComponent.readMessages(errorTopic));
         }
+        LOG.debug("Found {} message(s) in topic '{}'; {}", outputMessages.size(), readTopic, toString(outputMessages));
+        LOG.debug("Found {} message(s) in topic '{}'; {}", outputErrors.size(), errorTopic, toString(outputErrors));
+
         Boolean validated = validateReadMessages.apply(new KafkaMessageSet(outputMessages,outputErrors));
         if(validated == null){
             validated = false;
@@ -79,6 +90,13 @@ public class KafkaProcessor<T> implements Processor<T> {
             return ReadinessState.READY;
         }
         return ReadinessState.NOT_READY;
+    }
+
+    private List<String> toString(List<byte[]> bytes) {
+        bytes = ListUtils.emptyIfNull(bytes);
+        return bytes.stream()
+                .map(b -> new String(b, StandardCharsets.UTF_8))
+                .collect(Collectors.toList());
     }
 
     @Override
