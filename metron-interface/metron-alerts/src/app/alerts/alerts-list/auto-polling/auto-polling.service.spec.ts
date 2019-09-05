@@ -47,7 +47,7 @@ class QueryBuilderFake {
   };
 }
 
-fdescribe('AutoPollingService', () => {
+describe('AutoPollingService', () => {
 
   let autoPollingService: AutoPollingService;
   let searchServiceFake: SearchService;
@@ -139,7 +139,7 @@ fdescribe('AutoPollingService', () => {
       searchObservableFake.next(pollResponseFake);
     }));
 
-    it('should keep polling and broadcasting based on the interval', fakeAsync(() => {
+    it('should polling and broadcasting based on the interval', fakeAsync(() => {
       const searchObservableFake = new Subject<SearchResponse>();
       const broadcastObserverSpy = jasmine.createSpy('broadcastObserverSpy');
       const testInterval = 2;
@@ -167,6 +167,35 @@ fdescribe('AutoPollingService', () => {
       searchObservableFake.next({ total: 3 } as SearchResponse);
       expect(broadcastObserverSpy).toHaveBeenCalledTimes(2);
       expect(broadcastObserverSpy.calls.argsFor(1)[0]).toEqual({ total: 3 });
+
+      autoPollingService.stop();
+    }));
+
+    it('interval change should impact the polling even when it is active', fakeAsync(() => {
+      autoPollingService.start();
+
+      // The reason am mocking the searchService.search here is to not interfere
+      // with the initial request triggered right after the start
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      tick(getIntervalInMS());
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+
+      autoPollingService.setInterval(9);
+
+      tick(4000);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+
+      tick(5000);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      autoPollingService.setInterval(2);
+
+      tick(1000);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+
+      tick(1000);
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
 
       autoPollingService.stop();
     }));
@@ -350,6 +379,44 @@ fdescribe('AutoPollingService', () => {
 
       autoPollingService.stop();
     }));
+  });
+
+  describe('cancellation by manual request', () => {
+
+    it('should be able to drop current response and continue polling', fakeAsync(() => {
+      const broadcastObserverSpy = jasmine.createSpy('broadcastObserverSpy');
+      const searchObservableFake = new Subject<SearchResponse>();
+
+      autoPollingService.start();
+
+      searchServiceFake.search = () => searchObservableFake;
+      spyOn(searchServiceFake, 'search').and.callThrough();
+
+      autoPollingService.data.subscribe(broadcastObserverSpy);
+
+      tick(getIntervalInMS());
+
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+      searchObservableFake.next({ total: 2 } as SearchResponse);
+      expect(broadcastObserverSpy).toHaveBeenCalledTimes(1);
+
+      tick(getIntervalInMS() / 2);
+      autoPollingService.dropNextAndContinue();
+      tick(getIntervalInMS() / 2);
+
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
+      searchObservableFake.next({ total: 3 } as SearchResponse);
+      expect(broadcastObserverSpy).toHaveBeenCalledTimes(1);
+
+      tick(getIntervalInMS());
+
+      expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
+      searchObservableFake.next({ total: 4 } as SearchResponse);
+      expect(broadcastObserverSpy).toHaveBeenCalledTimes(2);
+
+      autoPollingService.stop();
+    }));
+
   });
 
   describe('polling state persisting and restoring', () => {
