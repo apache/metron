@@ -47,6 +47,7 @@ import { Utils } from 'app/utils/utils';
 import { AlertSource } from '../../model/alert-source';
 import { AutoPollingService } from './auto-polling/auto-polling.service';
 import { ConfigureRowsModel } from '../configure-rows/configure-rows.component';
+import { SearchRequest } from 'app/model/search-request';
 
 @Component({
   selector: 'app-alerts-list',
@@ -71,6 +72,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
+  @ViewChild('manualQuery') manualQuery: ElementRef;
 
   tableMetaData = new TableMetadata();
   pagination: Pagination = new Pagination();
@@ -80,6 +82,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   configSubscription: Subscription;
   groups = [];
   subgroupTotal = 0;
+  hideQueryBuilder = false;
 
   pendingSearch: Subscription;
   staleDataState = false;
@@ -227,6 +230,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onClear() {
     this.timeStampFilterPresent = false;
     this.queryBuilder.clearSearch();
+    if (this.hideQueryBuilder) { this.manualQuery.nativeElement.value = '*'; }
+    this.search();
     this.staleDataState = true;
   }
 
@@ -265,7 +270,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onAddFilter(filter: Filter) {
-    this.timeStampFilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
+    this.timeStampFilterPresent = this.queryBuilder.isTimeStampFieldPresent();
     this.queryBuilder.addOrUpdateFilter(filter);
     this.staleDataState = true;
   }
@@ -376,26 +381,41 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   search(resetPaginationParams = true, savedSearch?: SaveSearch) {
-    this.saveCurrentSearch(savedSearch);
+    if (savedSearch) { this.saveCurrentSearch(savedSearch); }
     if (resetPaginationParams) {
       this.pagination.from = 0;
     }
 
     this.setSearchRequestSize();
 
-    this.pendingSearch = this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
+    this.pendingSearch = this.searchService.search(this.getSearchRequest()).subscribe(results => {
       this.setData(results);
       this.pendingSearch = null;
       this.staleDataState = false;
     }, error => {
       this.setData(new SearchResponse());
-      this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
       this.pendingSearch = null;
+      this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
 
     if (this.autoPollingSvc.getIsPollingActive()) {
       this.autoPollingSvc.dropNextAndContinue();
     }
+  }
+
+  private getSearchRequest(): SearchRequest {
+    let searchRequest: SearchRequest;
+
+    if (this.hideQueryBuilder) {
+      searchRequest = new SearchRequest();
+      searchRequest.query = this.manualQuery.nativeElement.value;
+      searchRequest.size = this.pagination.size;
+      searchRequest.from = 0;
+    } else {
+      searchRequest = this.queryBuilder.searchRequest;
+    }
+
+    return searchRequest;
   }
 
   setSearchRequestSize() {
@@ -520,4 +540,25 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.autoPollingSvc.setSuppression(false);
     }
   }
+
+  toggleQueryBuilder() {
+    this.setSelectedTimeRange([this.selectedTimeRange]);
+    if (!this.hideQueryBuilder) {
+      this.hideQueryBuilder = true;
+      this.manualQuery.nativeElement.value = this.queryBuilder.query;
+    } else {
+      this.hideQueryBuilder = false;
+      this.queryBuilder.clearSearch();
+      this.search();
+    }
+  }
+
+  queryForTreeView() {
+    if (!this.hideQueryBuilder) {
+      return this.queryBuilder.generateSelect();
+    } else {
+      return this.manualQuery.nativeElement.value;
+    }
+  }
+
 }

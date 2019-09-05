@@ -19,6 +19,7 @@ package org.apache.metron.dataloads.extractor.stix;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -39,8 +40,9 @@ public class StixExtractorTest {
 
   @Before
   public void setup() throws IOException {
-    stixDoc = Joiner.on("\n").join(IOUtils.readLines(new FileReader(new File("src/test/resources/stix_example.xml"))));
-    stixDocWithoutCondition = Joiner.on("\n").join(IOUtils.readLines(new FileReader(new File("src/test/resources/stix_example_wo_conditions.xml"))));
+    stixDoc = Joiner.on("\n").join(IOUtils.readLines(new InputStreamReader(new FileInputStream(new File("src/test/resources/stix_example.xml")),
+        StandardCharsets.UTF_8)));
+    stixDocWithoutCondition = Joiner.on("\n").join(IOUtils.readLines(new InputStreamReader(new FileInputStream(new File("src/test/resources/stix_example_wo_conditions.xml")), StandardCharsets.UTF_8)));
   }
 
   /**

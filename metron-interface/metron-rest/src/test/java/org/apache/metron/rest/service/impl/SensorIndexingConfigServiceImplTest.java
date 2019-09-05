@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
@@ -262,7 +263,8 @@ public class SensorIndexingConfigServiceImplTest {
     exception.expect(RestException.class);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro", broJson.getBytes())).thenThrow(Exception.class);
+    when(setDataBuilder.forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro", broJson.getBytes(
+        StandardCharsets.UTF_8))).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
@@ -276,11 +278,11 @@ public class SensorIndexingConfigServiceImplTest {
     when(objectMapper.writeValueAsString(sensorIndexingConfig)).thenReturn(broJson);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro", broJson.getBytes())).thenReturn(new Stat());
+    when(setDataBuilder.forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro", broJson.getBytes(StandardCharsets.UTF_8))).thenReturn(new Stat());
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
     assertEquals(sensorIndexingConfig, sensorIndexingConfigService.save("bro", sensorIndexingConfig));
-    verify(setDataBuilder).forPath(eq(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro"), eq(broJson.getBytes()));
+    verify(setDataBuilder).forPath(eq(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro"), eq(broJson.getBytes(StandardCharsets.UTF_8)));
   }
 
   private Map<String, Object> getTestSensorIndexingConfig() {

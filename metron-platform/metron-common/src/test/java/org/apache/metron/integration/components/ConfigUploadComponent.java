@@ -17,21 +17,19 @@
  */
 package org.apache.metron.integration.components;
 
-import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
-import static org.apache.metron.common.configuration.ConfigurationsUtils.readSensorParserConfigFromZookeeper;
-import static org.apache.metron.common.configuration.ConfigurationsUtils.uploadConfigsToZookeeper;
-import static org.apache.metron.common.configuration.ConfigurationsUtils.writeGlobalConfigToZookeeper;
-import static org.apache.metron.common.configuration.ConfigurationsUtils.writeSensorParserConfigToZookeeper;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.UnableToStartException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Consumer;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.UnableToStartException;
+
+import static org.apache.metron.common.configuration.ConfigurationsUtils.*;
 
 public class ConfigUploadComponent implements InMemoryComponent {
 
@@ -153,7 +151,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
       }
 
       if(globalConfig.isPresent()) {
-        writeGlobalConfigToZookeeper(globalConfig.get().getBytes(), zookeeperUrl);
+        writeGlobalConfigToZookeeper(globalConfig.get().getBytes(StandardCharsets.UTF_8), zookeeperUrl);
       }
       if(postStartCallback.isPresent()) {
         postStartCallback.get().accept(this);

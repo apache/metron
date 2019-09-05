@@ -19,13 +19,15 @@
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
 TOPOLOGY_JAR=metron-parsing-storm-$METRON_VERSION-uber.jar
+STELLAR_JAR=stellar-common-$METRON_VERSION-uber.jar
 PARSER_CONTRIB=${PARSER_CONTRIB:-$METRON_HOME/parser_contrib}
+EXTRA_JARS="--jars $METRON_HOME/lib/$STELLAR_JAR"
 EXTRA_ARGS="$@"
 
 if [ -d "$PARSER_CONTRIB" ]; then
 
   export STORM_EXT_CLASSPATH=$METRON_HOME/lib/$TOPOLOGY_JAR
-  export EXTRA_JARS=$(ls -m $PARSER_CONTRIB/*.jar | tr -d ' ' | tr -d '\n' | sed 's/\/\//\//g')
+  export PARSER_CONTRIB_JARS=$(ls -m $PARSER_CONTRIB/*.jar | tr -d ' ' | tr -d '\n' | sed 's/\/\//\//g')
 
   STORM_VERSION=`storm version | grep Storm | awk '{print $2}' | cut -d. -f1,2,3`
   STORM_COMPAT_CUTOFF="1.1.0"
@@ -33,7 +35,7 @@ if [ -d "$PARSER_CONTRIB" ]; then
 
   if [ "$STORM_COMPAT_VERSION" = "$STORM_COMPAT_CUTOFF" ]; then
     echo "Third party parser support for Storm >= 1.1.0; found Storm $STORM_VERSION"
-    EXTRA_ARGS+=" --jars $EXTRA_JARS"
+    EXTRA_JARS+=",$PARSER_CONTRIB_JARS"
   else
     echo "Legacy third party parser support for Storm < 1.1.0; found Storm $STORM_VERSION"
     EXTRA_ARGS+=" -c client.jartransformer.class=org.apache.metron.parsers.topology.MergeAndShadeTransformer"
@@ -41,4 +43,4 @@ if [ -d "$PARSER_CONTRIB" ]; then
 fi
 
 echo "Submitting parser topology; args='$EXTRA_ARGS'"
-storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.metron.parsers.topology.ParserTopologyCLI $EXTRA_ARGS
+storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.metron.parsers.topology.ParserTopologyCLI $EXTRA_ARGS $EXTRA_JARS

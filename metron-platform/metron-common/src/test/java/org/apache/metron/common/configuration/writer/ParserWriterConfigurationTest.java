@@ -22,6 +22,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.junit.Assert;
@@ -60,7 +61,8 @@ public class ParserWriterConfigurationTest {
   public void pulls_writer_configuration_from_parserConfig() throws IOException {
     ParserConfigurations parserConfigurations = new ParserConfigurations();
     final String sensorName = "some-sensor";
-    parserConfigurations.updateSensorParserConfig("some-sensor", configJson.getBytes());
+    parserConfigurations.updateSensorParserConfig("some-sensor", configJson.getBytes(
+        StandardCharsets.UTF_8));
     ParserWriterConfiguration writerConfiguration = new ParserWriterConfiguration(
         parserConfigurations);
     assertThat("batch size should match", writerConfiguration.getBatchSize(sensorName), equalTo(5));

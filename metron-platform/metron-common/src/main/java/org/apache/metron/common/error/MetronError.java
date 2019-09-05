@@ -184,7 +184,7 @@ public class MetronError {
         // It's unclear if we need a rawMessageBytes field so commenting out for now
         //String rawMessageBytesField = rawMessages.size() == 1 ? ErrorFields.RAW_MESSAGE_BYTES.getName() : ErrorFields.RAW_MESSAGE_BYTES.getName() + "_" + i;
         if(rawMessage instanceof byte[]) {
-          errorMessage.put(rawMessageField, new String((byte[])rawMessage, Charset.forName("UTF-8")));
+          errorMessage.put(rawMessageField, new String((byte[])rawMessage, UTF_8));
           //errorMessage.put(rawMessageBytesField, com.google.common.primitives.Bytes.asList((byte[])rawMessage));
         } else if (rawMessage instanceof JSONObject) {
           JSONObject rawMessageJSON = (JSONObject) rawMessage;

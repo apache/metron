@@ -83,6 +83,19 @@ $searchbox-height: 42px;
     }
   }
 
+  .btn-options {
+    background: $mine-shaft-1;
+    border-bottom: 1px solid $tundora;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid $tundora;
+    color: $gothic;
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
   .btn-search-clear {
     border-top: 1px solid $tundora;
     border-bottom: 1px solid $tundora;
@@ -279,4 +292,15 @@ $searchbox-height: 42px;
   .ace_hidden-cursors .ace_cursor {
     opacity: 0;
   }
+
+}
+
+.manual-query-input {
+  background: $mine-shaft-1;
+  border: 1px solid $tundora;
+  color: #F8F8F2;
+  font-size: 12px;
+  height: 100%;
+  padding-left: .5rem;
+  width: 100%;
 }

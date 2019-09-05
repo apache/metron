@@ -56,6 +56,17 @@
       <artifactId>metron-writer-storm</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>stellar-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${global_hbase_guava_version}</version>
+    </dependency>
 
     <!-- Storm dependencies -->
     <dependency>

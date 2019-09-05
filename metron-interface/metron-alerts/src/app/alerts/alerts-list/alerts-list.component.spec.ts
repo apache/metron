@@ -38,6 +38,7 @@ import { AutoPollingService } from './auto-polling/auto-polling.service';
 import { Router } from '@angular/router';
 import { Alert } from 'app/model/alert';
 import { AlertSource } from 'app/model/alert-source';
+import { SearchRequest } from 'app/model/search-request';
 
 @Component({
   selector: 'app-auto-polling',
@@ -125,6 +126,26 @@ describe('AlertsListComponent', () => {
 
   let component: AlertsListComponent;
   let fixture: ComponentFixture<AlertsListComponent>;
+  // let searchServiceStub = {
+  //   search() { return of({
+  //     total: 0,
+  //     groupedBy: '',
+  //     results: [],
+  //     facetCounts: [],
+  //     groups: []
+  //   }) },
+  //   pollSearch() { return of({}) }
+  // }
+  // let queryBuilderStub = {
+  //   addOrUpdateFilter() { return {} },
+  //   clearSearch() { return {} },
+  //   generateSelect() { return '*' },
+  //   isTimeStampFieldPresent() { return {} },
+  //   filters: [{}],
+  //   searchRequest: {
+  //     from: 0
+  //   }
+  // }
 
   let queryBuilder: QueryBuilder;
   let searchService: SearchService;
@@ -227,8 +248,65 @@ describe('AlertsListComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]')).toBeNull();
   });
 
-  describe('handling pending search requests', () => {
+  describe('filtering by query builder or manual query', () => {
+    it('should toggle the query builder with toggleQueryBuilder', () => {
+      component.toggleQueryBuilder();
+      fixture.detectChanges();
+      expect(component.hideQueryBuilder).toBe(true);
 
+      component.hideQueryBuilder = true;
+      component.pagination.from = 0;
+      component.pagination.size = 25;
+
+      fixture.detectChanges();
+      component.toggleQueryBuilder();
+      expect(component.hideQueryBuilder).toBe(false);
+    });
+
+    it('should pass the manual query value when hideQueryBuilder is true', () => {
+      const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+      const el = input.nativeElement;
+
+      expect(component.queryForTreeView()).toBe('*');
+
+      component.toggleQueryBuilder();
+      fixture.detectChanges();
+      expect(component.hideQueryBuilder).toBe(true);
+
+      el.value = 'test';
+      expect(component.queryForTreeView()).toBe('test');
+    });
+
+    it('should build a new search request if hideQueryBuilder is true', () => {
+      const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+      const el = input.nativeElement;
+      const searchServiceSpy = spyOn(searchService, 'search').and.returnValue(of());
+      const newSearch = new SearchRequest();
+
+      el.value = 'test';
+      component.hideQueryBuilder = true;
+      component.pagination.size = 25;
+      newSearch.query = 'test'
+      newSearch.size = 25
+      newSearch.from = 0;
+
+      fixture.detectChanges();
+      component.search();
+      expect(searchServiceSpy).toHaveBeenCalledWith(newSearch);
+    });
+
+    it('should poll with new search request if isRefreshPaused is true and manualSearch is present', () => {
+      const searchServiceSpy = spyOn(searchService, 'pollSearch').and.returnValue(of());
+      const newSearch = new SearchRequest();
+
+      component.isRefreshPaused = false;
+      fixture.detectChanges();
+      component.tryStartPolling(newSearch);
+      expect(searchServiceSpy).toHaveBeenCalledWith(newSearch);
+    });
+  });
+
+  describe('handling pending search requests', () => {
     it('should set pendingSearch on search', () => {
       spyOn(searchService, 'search').and.returnValue(of(new SearchResponse()));
       spyOn(component, 'saveCurrentSearch');

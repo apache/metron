@@ -43,7 +43,7 @@ public class BasicSourcefireParser extends BasicParser {
 
 	@Override
 	public void configure(Map<String, Object> parserConfig) {
-
+	  setReadCharset(parserConfig);
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class BasicSourcefireParser extends BasicParser {
 		List<JSONObject> messages = new ArrayList<>();
 		try {
 
-			toParse = new String(msg, "UTF-8");
+			toParse = new String(msg, getReadCharset());
 			_LOG.debug("Received message: {}", toParse);
 
 			String tmp = toParse.substring(toParse.lastIndexOf("{"));

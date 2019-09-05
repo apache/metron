@@ -66,6 +66,7 @@ Source19:       metron-profiler-repl-%{full_version}-archive.tar.gz
 Source20:       metron-parsing-storm-%{full_version}-archive.tar.gz
 Source21:       metron-parsers-%{full_version}-archive.tar.gz
 Source22:       metron-hbase-server-%{full_version}-archive.tar.gz
+Source23:       stellar-common-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -111,6 +112,7 @@ tar -xzf %{SOURCE19} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE20} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE21} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE22} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE23} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -142,7 +144,7 @@ This package installs the Metron common files %{metron_home}
 %{metron_home}/bin/cluster_info.py
 %{metron_home}/bin/tgt_renew.py
 %{metron_home}/config/zookeeper/global.json
-%attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -262,7 +264,7 @@ This package installs performance tools useful for Metron
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/bin/load_tool.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-performance-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-performance-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -288,7 +290,7 @@ This package installs the Metron Parser files
 %{metron_home}/bin/prune_hdfs_files.sh
 %{metron_home}/bin/threatintel_bulk_prune.sh
 %{metron_home}/bin/threatintel_taxii_load.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-data-management-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-data-management-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -455,7 +457,7 @@ This package installs the Metron Management Library
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}/lib
-%attr(0644,root,root) %{metron_home}/lib/metron-management-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-management-%{full_version}-uber.jar
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -484,7 +486,7 @@ This package installs the Metron PCAP files %{metron_home}
 %{metron_home}/bin/pcap_zeppelin_run.sh
 %{metron_home}/flux/pcap/remote.yaml
 %{metron_home}/config/zeppelin/metron/metron-pcap.json
-%attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -539,7 +541,7 @@ This package installs the Metron Rest %{metron_home}
 %{metron_home}/bin/metron-rest.sh
 %{metron_home}/bin/pcap_to_pdml.sh
 %{metron_home}/bin/install_metron_knox.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -676,7 +678,7 @@ This package installs the Metron Profiler for Spark %{metron_home}
 %dir %{metron_home}/bin
 %{metron_home}/bin/start_batch_profiler.sh
 %dir %{metron_home}/lib
-%attr(0644,root,root) %{metron_home}/lib/metron-profiler-spark-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-spark-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -693,7 +695,7 @@ This package installs the Metron Profiler for the Stellar REPL %{metron_home}
 %dir %{metron_root}
 %dir %{metron_home}
 %dir %{metron_home}/lib
-%attr(0644,root,root) %{metron_home}/lib/metron-profiler-repl-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-repl-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -713,6 +715,23 @@ This package installs the Metron HBase Server files
 %dir %{metron_home}/bin
 %{metron_home}/bin/load_enrichment_coprocessor.sh
 %attr(0644,root,root) %{metron_home}/coprocessor/metron-hbase-server-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        stellar-common
+Summary:        Stellar Common Files
+Group:          Applications/Internet
+Provides:       stellar-common = %{version}
+
+%description    stellar-common
+This package installs the Stellar Common files
+
+%files          stellar-common
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/stellar-common-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

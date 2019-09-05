@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
@@ -45,7 +45,7 @@ public class UserSettingsClient {
   public static String USER_SETTINGS_HBASE_TABLE = "user.settings.hbase.table";
   public static String USER_SETTINGS_HBASE_CF = "user.settings.hbase.cf";
 
-  private HTableInterface userSettingsTable;
+  private Table userSettingsTable;
   private byte[] cf;
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private TableProvider tableProvider;
@@ -58,7 +58,7 @@ public class UserSettingsClient {
     this.tableProvider = tableProvider;
   }
 
-  public UserSettingsClient(HTableInterface userSettingsTable, byte[] cf) {
+  public UserSettingsClient(Table userSettingsTable, byte[] cf) {
     this.userSettingsTable = userSettingsTable;
     this.cf = cf;
   }
@@ -76,7 +76,7 @@ public class UserSettingsClient {
       }
       try {
         userSettingsTable = tableProvider.getTable(HBaseConfiguration.create(), table);
-        this.cf = cf.getBytes();
+        this.cf = cf.getBytes(StandardCharsets.UTF_8);
       } catch (IOException e) {
         throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
       }
@@ -84,7 +84,7 @@ public class UserSettingsClient {
     }
   }
 
-  public HTableInterface getTableInterface() {
+  public Table getTableInterface() {
     if(userSettingsTable == null) {
       init(globalConfigSupplier, tableProvider);
     }
@@ -106,7 +106,7 @@ public class UserSettingsClient {
     ResultScanner results = getTableInterface().getScanner(scan);
     Map<String, Map<String, String>> allUserSettings = new HashMap<>();
     for (Result result : results) {
-      allUserSettings.put(new String(result.getRow()), getAllUserSettings(result));
+      allUserSettings.put(new String(result.getRow(), StandardCharsets.UTF_8), getAllUserSettings(result));
     }
     return allUserSettings;
   }
@@ -116,7 +116,7 @@ public class UserSettingsClient {
     ResultScanner results = getTableInterface().getScanner(scan);
     Map<String, Optional<String>> allUserSettings = new HashMap<>();
     for (Result result : results) {
-      allUserSettings.put(new String(result.getRow()), getUserSettings(result, type));
+      allUserSettings.put(new String(result.getRow(), StandardCharsets.UTF_8), getUserSettings(result, type));
     }
     return allUserSettings;
   }

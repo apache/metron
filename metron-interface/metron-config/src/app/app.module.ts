@@ -20,6 +20,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
 import {HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
 import { Router } from '@angular/router';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {AppComponent} from './app.component';
 import {SensorParserConfigService} from './service/sensor-parser-config.service';
 import {KafkaService} from './service/kafka.service';
@@ -46,21 +47,37 @@ import {SensorIndexingConfigService} from './service/sensor-indexing-config.serv
 import {HdfsService} from './service/hdfs.service';
 import { DefaultHeadersInterceptor } from './http-interceptors/default-headers.interceptor';
 import {AppConfigService} from './service/app-config.service';
+import {
+  NzLayoutModule,
+  NzMenuModule,
+  NgZorroAntdModule,
+  NZ_ICONS
+} from 'ng-zorro-antd';
+import {
+  ToolOutline,
+  WarningOutline,
+  FileOutline
+} from '@ant-design/icons-angular/icons';
+import { IconDefinition } from '@ant-design/icons-angular';
 
 export function initConfig(appConfigService: AppConfigService) {
   return () => appConfigService.loadAppConfig();
 }
 
+const icons: IconDefinition[] = [ ToolOutline, WarningOutline, FileOutline ];
+
 @NgModule({
   imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule, SensorParserListModule,
-    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule ],
+    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule, MetronConfigRoutingModule,NzLayoutModule,
+    NzMenuModule, BrowserAnimationsModule, NgZorroAntdModule ],
   declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [  AppConfigService, AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
     GlobalConfigService, MetronAlerts, MetronDialogBox,
     { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true },
-    { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfigService], multi: true }
+    { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfigService], multi: true },
+    { provide: NZ_ICONS, useValue: icons },
     ],
   bootstrap:    [ AppComponent ]
 })

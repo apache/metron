@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import java.nio.charset.StandardCharsets;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,7 +61,8 @@ public class DockerStormCLIWrapperTest {
     when(processBuilder.command()).thenReturn(new ArrayList<>());
 
     Process process = mock(Process.class);
-    InputStream inputStream = new ByteArrayInputStream("export DOCKER_HOST=\"tcp://192.168.99.100:2376\"".getBytes());
+    InputStream inputStream = new ByteArrayInputStream("export DOCKER_HOST=\"tcp://192.168.99.100:2376\"".getBytes(
+        StandardCharsets.UTF_8));
 
     when(processBuilder.start()).thenReturn(process);
     when(process.getInputStream()).thenReturn(inputStream);

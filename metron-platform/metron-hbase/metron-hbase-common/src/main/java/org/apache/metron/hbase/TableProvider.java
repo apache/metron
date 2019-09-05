@@ -17,16 +17,16 @@
  */
 package org.apache.metron.hbase;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.function.Supplier;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.client.Table;
 
 public interface TableProvider extends Serializable {
-  HTableInterface getTable(Configuration config, String tableName) throws IOException;
+
+  Table getTable(Configuration config, String tableName) throws IOException;
 
   /**
    * Factory method that creates TableProviders.

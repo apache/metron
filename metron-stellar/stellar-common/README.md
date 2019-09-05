@@ -686,7 +686,7 @@ Where:
   * Description: Determine if an string is an IP or not.
   * Input:
     * ip - An object which we wish to test is an ip
-    * type (optional) - Object of string or collection type (e.g. list) one of IPV4 or IPV6 or both.  The default is IPV4.
+    * type (optional) - Object of string or collection type (e.g. list) one of IPV4 or IPV6 or both.  The default is both IPV4 and IPV6.
   * Returns: True if the string is an IP and false otherwise.
 
 ### `IS_NAN`

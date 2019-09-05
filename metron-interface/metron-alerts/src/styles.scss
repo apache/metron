@@ -23,6 +23,8 @@
 @import "../node_modules/pikaday-time/scss/pikaday.scss";
 @import "hexagon";
 @import "confirm-popover.scss";
+@import "~ng-zorro-antd/layout/style/index.min.css"; /* Import styles of the component */
+@import "~ng-zorro-antd/menu/style/index.min.css"; /* Import styles of the component */
 
 body,
 button {
@@ -357,4 +359,66 @@ $background_color_3: #2196F3;
 .dropdown-item.disabled {
   cursor: not-allowed;
   pointer-events: all;
+}
+
+.ant-layout {
+  background: transparent;
+  min-height: 100vh;
+}
+
+.ant-layout-sider-trigger { background: #3C3C3C; }
+
+.cdk-overlay-pane {
+  position: absolute;
+  z-index: 1000;
+}
+
+.cdk-overlay-connected-position-bounding-box {
+  display: flex;
+  flex-direction: column;
+  min-height: 1px;
+  min-width: 1px;
+  position: absolute;
+  z-index: 1000;
+}
+
+.cdk-overlay-container {
+  height: 100%;
+  left: 0;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.ant-menu-dark .ant-menu-sub {
+  background: #2e2e2e;
+}
+
+.ant-menu.ant-menu-dark :not(ant-menu-submenu-open) .ant-menu-item-selected,
+.ant-menu.ant-menu-dark .ant-menu-sub .ant-menu-item-selected {
+  background-color: rgba(255, 255, 255, .1);
+}
+
+.ant-menu.ant-menu-dark .ant-menu-item-selected {
+  background-color: transparent;
+}
+
+.ant-menu-submenu-popup.ant-menu-dark .ant-menu-item-selected {
+  background-color: rgba(255, 255, 255, .1);
+}
+
+.ant-menu-dark .ant-menu-inline.ant-menu-sub {
+  background: #2e2e2e;
+  box-shadow: none;
+}
+
+.ant-menu-submenu-title {
+  color: rgba(255,255,255,.65);
+}
+
+.ant-menu-submenu-arrow::before,
+.ant-menu-submenu-arrow::after {
+  background: rgba(255,255,255,.65);
 }

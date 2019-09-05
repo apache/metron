@@ -18,6 +18,7 @@
 package org.apache.metron.common.configuration.enrichment;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
@@ -94,7 +95,7 @@ public class SensorEnrichmentConfig {
   }
 
   public static SensorEnrichmentConfig fromBytes(byte[] config) throws IOException {
-    return JSONUtils.INSTANCE.load(new String(config), SensorEnrichmentConfig.class);
+    return JSONUtils.INSTANCE.load(new String(config, StandardCharsets.UTF_8), SensorEnrichmentConfig.class);
   }
 
   public String toJSON() throws JsonProcessingException {

@@ -18,8 +18,24 @@
 
 package org.apache.metron.profiler.client.stellar;
 
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_DEFAULT_VALUE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
+import static org.apache.metron.profiler.client.stellar.Util.getArg;
+import static org.apache.metron.profiler.client.stellar.Util.getPeriodDurationInMillis;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -36,25 +52,6 @@ import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_DEFAULT_VALUE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
-import static org.apache.metron.profiler.client.stellar.Util.getArg;
-import static org.apache.metron.profiler.client.stellar.Util.getPeriodDurationInMillis;
-import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
 /**
  * A Stellar function that can retrieve profile measurements.
@@ -130,9 +127,9 @@ public class VerboseProfile implements StellarFunction {
     if (client == null) {
       RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(globals);
       ColumnBuilder columnBuilder = getColumnBuilder(globals);
-      HTableInterface table = getTable(globals);
+      TableProvider provider = getTableProvider(globals);
       long periodDuration = getPeriodDurationInMillis(globals);
-      client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDuration);
+      client = new HBaseProfilerClient(provider, rowKeyBuilder, columnBuilder, periodDuration, getTableName(globals), HBaseConfiguration.create());
     }
 
     // is there a default value?
@@ -185,20 +182,8 @@ public class VerboseProfile implements StellarFunction {
     return new SaltyRowKeyBuilder(saltDivisor, getPeriodDurationInMillis(global), TimeUnit.MILLISECONDS);
   }
 
-  /**
-   * Create an HBase table used when accessing HBase.
-   * @param global The global configuration.
-   * @return
-   */
-  private HTableInterface getTable(Map<String, Object> global) {
-    String tableName = PROFILER_HBASE_TABLE.get(global, String.class);
-    TableProvider provider = getTableProvider(global);
-    try {
-      return provider.getTable(HBaseConfiguration.create(), tableName);
-
-    } catch (IOException e) {
-      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName), e);
-    }
+  private String getTableName(Map<String, Object> global) {
+    return PROFILER_HBASE_TABLE.get(global, String.class);
   }
 
   /**

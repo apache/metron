@@ -21,8 +21,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -32,7 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.DefaultMessageParserResult;
@@ -81,7 +78,6 @@ public class LEEFParser extends BasicParser {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String HEADER_CAPTURE_PATTERN = "[^\\|]*";
-  private static final Charset UTF_8 = StandardCharsets.UTF_8;
 
   private Pattern pattern;
 
@@ -138,7 +134,7 @@ public class LEEFParser extends BasicParser {
     Map<Object,Throwable> errors = new HashMap<>();
     String originalMessage = null;
 
-    try (BufferedReader reader = new BufferedReader(new StringReader(new String(rawMessage, StandardCharsets.UTF_8)))) {
+    try (BufferedReader reader = new BufferedReader(new StringReader(new String(rawMessage, getReadCharset())))) {
       while ((originalMessage = reader.readLine()) != null) {
         Matcher matcher = pattern.matcher(originalMessage);
         while (matcher.find()) {
@@ -273,6 +269,7 @@ public class LEEFParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> config) {
+    setReadCharset(config);
   }
 
   @SuppressWarnings("unchecked")

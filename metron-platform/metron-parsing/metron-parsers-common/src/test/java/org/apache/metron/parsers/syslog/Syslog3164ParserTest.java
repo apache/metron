@@ -19,6 +19,7 @@
 package org.apache.metron.parsers.syslog;
 
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
@@ -142,7 +143,7 @@ public class Syslog3164ParserTest {
     Syslog3164Parser parser = new Syslog3164Parser();
     Map<String, Object> config = new HashMap<>();
     parser.configure(config);
-    parser.parseOptionalResult(line.getBytes());
+    parser.parseOptionalResult(line.getBytes(StandardCharsets.UTF_8));
   }
 
   @Test
@@ -157,7 +158,8 @@ public class Syslog3164ParserTest {
             .append(SYSLOG_LINE_MISSING)
             .append("\n")
             .append(SYSLOG_LINE_ALL);
-    Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(builder.toString().getBytes());
+    Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(builder.toString().getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertNotNull(resultOptional);
     Assert.assertTrue(resultOptional.isPresent());
     List<JSONObject> parsedList = resultOptional.get().getMessages();
@@ -179,7 +181,8 @@ public class Syslog3164ParserTest {
             .append("BOOM!\n")
             .append(SYSLOG_LINE_ALL)
             .append("\nOHMY!");
-    Optional<MessageParserResult<JSONObject>> output = parser.parseOptionalResult(builder.toString().getBytes());
+    Optional<MessageParserResult<JSONObject>> output = parser.parseOptionalResult(builder.toString().getBytes(
+        StandardCharsets.UTF_8));
     Assert.assertTrue(output.isPresent());
     Assert.assertEquals(3,output.get().getMessages().size());
     Assert.assertEquals(3,output.get().getMessageThrowables().size());

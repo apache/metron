@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.mock;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -50,6 +51,6 @@ public class MockPcapToPdmlScriptWrapper extends PcapToPdmlScriptWrapper {
 
   @Override
   public InputStream execute(String scriptPath, FileSystem fileSystem, Path pcapPath) throws IOException {
-    return new ByteArrayInputStream(pdmlXml.getBytes());
+    return new ByteArrayInputStream(pdmlXml.getBytes(StandardCharsets.UTF_8));
   }
 }
