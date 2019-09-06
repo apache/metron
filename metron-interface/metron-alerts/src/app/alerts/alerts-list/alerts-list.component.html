@@ -22,7 +22,7 @@
                     </span>
                     <div appAceEditor *ngIf="!isQueryBuilderModeManual()" class="flex-fill" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
                     <div class="flex-fill" [class.d-none]="!isQueryBuilderModeManual()">
-                        <input class="manual-query-input" data-qe-id="manual-query-input" type="text" #manualQuery >
+                        <input class="manual-query-input" [value]="queryBuilder.getManualQuery()" data-qe-id="manual-query-input" type="text" #manualQuery >
                     </div>
                     <span class="input-group-append">
                         <button class="btn btn-secondary btn-options" (click)="toggleQueryBuilderMode()">
@@ -89,7 +89,7 @@
 
 <div class="container-fluid no-gutters">
     <div class="row">
-      <div class="px-0" style="width: 200px;max-width: 200px;" [class.d-none]="hideQueryBuilder">
+      <div class="px-0" style="width: 200px;max-width: 200px;" [class.d-none]="isQueryBuilderModeManual()">
         <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
       </div>
       <div class="col px-0 pl-4" style="overflow: auto;">

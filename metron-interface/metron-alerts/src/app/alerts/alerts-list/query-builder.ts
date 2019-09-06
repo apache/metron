@@ -34,6 +34,7 @@ export class QueryBuilder {
   private _searchRequest = new SearchRequest();
   private _groupRequest = new GroupRequest();
   private _query = '*';
+  private _manualQuery = '*';
   private _displayQuery = this._query;
   private _filters: Filter[] = [];
 
@@ -171,6 +172,14 @@ export class QueryBuilder {
   setSort(sortBy: string, order: string) {
     let sortField = new SortField(sortBy, order);
     this.searchRequest.sort = [sortField];
+  }
+
+  setManualQuery(query: string) {
+    this._manualQuery = query;
+  }
+
+  getManualQuery(): string {
+    return this._query;
   }
 
   private updateFilters(query: string, updateNameTransform = false) {

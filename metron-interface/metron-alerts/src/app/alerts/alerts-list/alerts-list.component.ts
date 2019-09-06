@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {forkJoin as observableForkJoin, noop} from 'rxjs';
+import {forkJoin, noop, fromEvent} from 'rxjs';
 import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Subscription} from 'rxjs';
@@ -48,6 +48,7 @@ import { AlertSource } from '../../model/alert-source';
 import { AutoPollingService } from './auto-polling/auto-polling.service';
 import { ConfigureRowsModel } from '../configure-rows/configure-rows.component';
 import { SearchRequest } from 'app/model/search-request';
+import { switchMap, map, debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-alerts-list',
@@ -173,7 +174,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   getAlertColumnNames(resetPaginationForSearch: boolean) {
-    observableForkJoin(
+    forkJoin(
         this.configureTableService.getTableMetadata(),
         this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
@@ -218,6 +219,16 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
     this.addAlertChangedListner();
+    this.addManualQueryFieldChangeStream()
+  }
+
+  private addManualQueryFieldChangeStream() {
+    fromEvent<KeyboardEvent>(this.manualQuery.nativeElement, 'keyup').pipe(
+      map(event => (event.target as HTMLInputElement).value),
+      debounceTime(300),
+    ).subscribe((manualQuery) => {
+      this.queryBuilder.setManualQuery(manualQuery);
+    });
   }
 
   private setDefaultTimeRange(timeRangeId: string) {
@@ -229,9 +240,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onClear() {
     this.timeStampFilterPresent = false;
     this.queryBuilder.clearSearch();
-    if (this.queryBuilder.filteringMode === FilteringMode.MANUAL) {
-      this.manualQuery.nativeElement.value = '*';
-    }
     this.staleDataState = true;
   }
 
@@ -542,12 +550,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   toggleQueryBuilderMode() {
+    // FIXME setting timerange on toggle feels like a hack
     this.setSelectedTimeRange([this.selectedTimeRange]);
     if (this.queryBuilder.filteringMode === FilteringMode.BUILDER) {
       this.queryBuilder.filteringMode = FilteringMode.MANUAL;
-      this.manualQuery.nativeElement.value = this.queryBuilder.query;
+      // this.manualQuery.nativeElement.value = this.queryBuilder.query;
     } else {
       this.queryBuilder.filteringMode = FilteringMode.BUILDER;
+      // FIXME: this could lead to a large blocking load depending on the response time
       this.queryBuilder.clearSearch();
       this.search();
     }

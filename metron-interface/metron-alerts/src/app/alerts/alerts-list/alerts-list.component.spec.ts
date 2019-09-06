@@ -365,6 +365,18 @@ describe('AlertsListComponent', () => {
       expect(component.staleDataState).toBe(false);
     });
 
+    xit('should show manual input dom element depending on mode', () => {
+
+    });
+
+    xit('should bind default manual query from query builder', () => {
+
+    });
+
+    xit('should set stale date state when query changes in manual mode', () => {
+
+    });
+
     it('should show warning if data is in a stale state', () => {
       expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBe(null);
 

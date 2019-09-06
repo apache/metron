@@ -170,6 +170,34 @@ describe('query-builder', () => {
       expect(queryBuilder.filteringMode).toBe(FilteringMode.BUILDER);
     });
 
+    xit('should have a setter for manual query string', () => {
+
+    });
+
+    xit('should have a getter for manual query', () => {
+
+    });
+
+    xit('manual query should contains time range filter', () => {
+
+    });
+
+    xit('manual query should not contain time range filter if all time selected', () => {
+
+    });
+
+    xit('should use manual query string value in manual mode', () => {
+
+    });
+
+    xit('should use built query string value in builder mode', () => {
+
+    });
+
+    xit('clearSearch should set manual query value to default', () => {
+
+    });
+
   });
 
 });
