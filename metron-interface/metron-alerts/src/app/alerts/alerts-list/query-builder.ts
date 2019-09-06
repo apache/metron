@@ -24,6 +24,11 @@ import {GroupRequest} from '../../model/group-request';
 import {Group} from '../../model/group';
 import { Injectable } from '@angular/core';
 
+export enum FilteringMode {
+  MANUAL = 'FilteringModeIsManual',
+  BUILDER = 'FilteringModeIsBuilder',
+}
+
 @Injectable()
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
@@ -31,6 +36,8 @@ export class QueryBuilder {
   private _query = '*';
   private _displayQuery = this._query;
   private _filters: Filter[] = [];
+
+  filteringMode: FilteringMode = FilteringMode.BUILDER;
 
   get query(): string {
     return this._query;

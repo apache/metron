@@ -23,7 +23,7 @@ import {Subscription} from 'rxjs';
 import {Alert} from '../../model/alert';
 import {SearchService} from '../../service/search.service';
 import {UpdateService} from '../../service/update.service';
-import {QueryBuilder} from './query-builder';
+import {QueryBuilder, FilteringMode} from './query-builder';
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {AlertsService} from '../../service/alerts.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
@@ -82,7 +82,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   configSubscription: Subscription;
   groups = [];
   subgroupTotal = 0;
-  hideQueryBuilder = false;
 
   pendingSearch: Subscription;
   staleDataState = false;
@@ -230,8 +229,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onClear() {
     this.timeStampFilterPresent = false;
     this.queryBuilder.clearSearch();
-    if (this.hideQueryBuilder) { this.manualQuery.nativeElement.value = '*'; }
-    this.search();
+    if (this.queryBuilder.filteringMode === FilteringMode.MANUAL) {
+      this.manualQuery.nativeElement.value = '*';
+    }
     this.staleDataState = true;
   }
 
@@ -402,7 +402,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   private getSearchRequest(): SearchRequest {
     let searchRequest: SearchRequest;
 
-    if (this.hideQueryBuilder) {
+    if (this.queryBuilder.filteringMode === FilteringMode.MANUAL) {
       searchRequest = new SearchRequest();
       searchRequest.query = this.manualQuery.nativeElement.value;
       searchRequest.size = this.pagination.size;
@@ -537,20 +537,24 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleQueryBuilder() {
+  isQueryBuilderModeManual() {
+    return this.queryBuilder.filteringMode === FilteringMode.MANUAL;
+  }
+
+  toggleQueryBuilderMode() {
     this.setSelectedTimeRange([this.selectedTimeRange]);
-    if (!this.hideQueryBuilder) {
-      this.hideQueryBuilder = true;
+    if (this.queryBuilder.filteringMode === FilteringMode.BUILDER) {
+      this.queryBuilder.filteringMode = FilteringMode.MANUAL;
       this.manualQuery.nativeElement.value = this.queryBuilder.query;
     } else {
-      this.hideQueryBuilder = false;
+      this.queryBuilder.filteringMode = FilteringMode.BUILDER;
       this.queryBuilder.clearSearch();
       this.search();
     }
   }
 
   queryForTreeView() {
-    if (!this.hideQueryBuilder) {
+    if (this.queryBuilder.filteringMode === FilteringMode.BUILDER) {
       return this.queryBuilder.generateSelect();
     } else {
       return this.manualQuery.nativeElement.value;

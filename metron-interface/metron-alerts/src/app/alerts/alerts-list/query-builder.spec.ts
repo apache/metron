@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { QueryBuilder } from './query-builder';
+import { QueryBuilder, FilteringMode } from './query-builder';
 import { Filter } from 'app/model/filter';
 import { TIMESTAMP_FIELD_NAME } from '../../utils/constants';
 import { Utils } from 'app/utils/utils';
@@ -160,6 +160,16 @@ describe('query-builder', () => {
 
     expect(queryBuilder.filters.length).toBe(1);
     expect(queryBuilder.filters[0]).toBe(filter3);
+  });
+
+  describe('filter query builder modes', () => {
+
+    it('filtering mode should be builder mode by default', () => {
+      const queryBuilder = new QueryBuilder();
+
+      expect(queryBuilder.filteringMode).toBe(FilteringMode.BUILDER);
+    });
+
   });
 
 });
