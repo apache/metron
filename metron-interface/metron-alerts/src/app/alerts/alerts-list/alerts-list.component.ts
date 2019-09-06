@@ -262,11 +262,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       alert => (alert.source.metron_alert && alert.source.metron_alert.length > 0)
     );
 
-    if (selectedAlerts.length > 0) {
-      this.autoPollingSvc.setSuppression(true);
-    } else {
-      this.autoPollingSvc.setSuppression(false);
-    }
+    this.autoPollingSvc.setSuppression(!!selectedAlerts.length);
   }
 
   onAddFilter(filter: Filter) {
