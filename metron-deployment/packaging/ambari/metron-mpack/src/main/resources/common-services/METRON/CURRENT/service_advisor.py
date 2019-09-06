@@ -41,21 +41,31 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         componentsListList = [service["components"] for service in services["services"]]
         componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
 
-        metronParsersHost = self.getHosts(componentsList, "METRON_PARSERS")[0]
-        metronEnrichmentMaster = self.getHosts(componentsList, "METRON_ENRICHMENT_MASTER")[0]
-        metronProfilerHost = self.getHosts(componentsList, "METRON_PROFILER")[0]
-        metronPcapHost = self.getHosts(componentsList, "METRON_PCAP")[0]
-        metronIndexingHost = self.getHosts(componentsList, "METRON_INDEXING")[0]
-        metronRESTHost = self.getHosts(componentsList, "METRON_REST")[0]
-        metronManagementUIHost = self.getHosts(componentsList, "METRON_MANAGEMENT_UI")[0]
-        metronAlertsUIHost = self.getHosts(componentsList, "METRON_ALERTS_UI")[0]
+        stormSupervisors = self.getHosts(componentsList, "SUPERVISOR")
+
+        # This host assignment strategy for Metron hosts is an ugly hack to get around an unreported bug in Ambari 2.7.
+        # Some hostnames end up empty, which causes the lookup to NPE. For whatever reason, enrichment seems to consistently get its
+        # hostname populated, so we'll use it to get around the limitation. The fallback option if enrichment also bombs out
+        # will be to grab the first Storm supervisor host.
+        # Note: This only affects the recommendations in Ambari - users can still modify the hosts for the components as they see fit
+
+        # Grab one of the Storm supervisor nodes as our last ditch effort in case this is a non-deterministic problem
+        metronEnrichmentMaster = self.getFirstOrDefault(self.getHosts(componentsList, "METRON_ENRICHMENT_MASTER"), stormSupervisors[0])
+        defaultHost = metronEnrichmentMaster
+        metronParsersHost = self.getFirstOrDefault(self.getHosts(componentsList, "METRON_PARSERS"), defaultHost)
+        metronProfilerHost = self.getFirstOrDefault(self.getHosts(componentsList, "METRON_PROFILER"), defaultHost)
+        metronPcapHost = self.getFirstOrDefault(self.getHosts(componentsList, "METRON_PCAP"), defaultHost)
+        metronIndexingHost = self.getFirstOrDefault(self.getHosts(componentsList, "METRON_INDEXING"), defaultHost)
+        metronRESTHost = self.getFirstOrDefault(self.getHosts(componentsList, "METRON_REST"), defaultHost)
+        metronManagementUIHost = self.getFirstOrDefault(self.getHosts(componentsList, "METRON_MANAGEMENT_UI"), defaultHost)
+        metronAlertsUIHost = self.getFirstOrDefault(self.getHosts(componentsList, "METRON_ALERTS_UI"), defaultHost)
+
 
         hbaseClientHosts = self.getHosts(componentsList, "HBASE_CLIENT")
         hdfsClientHosts = self.getHosts(componentsList, "HDFS_CLIENT")
         zookeeperClientHosts = self.getHosts(componentsList, "ZOOKEEPER_CLIENT")
 
         kafkaBrokers = self.getHosts(componentsList, "KAFKA_BROKER")
-        stormSupervisors = self.getHosts(componentsList, "SUPERVISOR")
 
         items = []
 
@@ -111,6 +121,9 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ALERTS_UI', "host": metronAlertsUIHost })
 
         return items
+
+    def getFirstOrDefault(self, list, default):
+        return list[0] if list else default
 
     def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
 
