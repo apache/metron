@@ -42,6 +42,7 @@ import { AlertSource } from '../../../model/alert-source';
 import { QueryBuilder } from '../query-builder';
 import { GroupRequest } from 'app/model/group-request';
 import { Group } from 'app/model/group';
+import { TimezoneConfigService } from 'app/alerts/configure-rows/timezone-config/timezone-config.service';
 
 @Component({
   selector: 'app-tree-view',
@@ -71,8 +72,9 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
               updateService: UpdateService,
               metaAlertService: MetaAlertService,
               globalConfigService: GlobalConfigService,
-              dialogService: DialogService) {
-    super(searchService, updateService, metaAlertService, globalConfigService, dialogService);
+              dialogService: DialogService,
+              timezoneConfigService: TimezoneConfigService, ) {
+    super(searchService, updateService, metaAlertService, globalConfigService, dialogService, timezoneConfigService);
   }
 
   addAlertChangedListner() {
