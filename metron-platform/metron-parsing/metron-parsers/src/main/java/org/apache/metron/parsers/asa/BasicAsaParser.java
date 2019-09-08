@@ -20,8 +20,8 @@ package org.apache.metron.parsers.asa;
 import com.google.common.collect.ImmutableMap;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -33,16 +33,16 @@ import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.ParseException;
 import org.apache.metron.parsers.utils.SyslogUtils;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BasicAsaParser extends BasicParser {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected Clock deviceClock;
   private String syslogPattern = "%{CISCO_TAGGED_SYSLOG}";
@@ -96,6 +96,7 @@ public class BasicAsaParser extends BasicParser {
 
   @Override
   public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
     String timeZone = (String) parserConfig.get("deviceTimeZone");
     if (timeZone != null)
       deviceClock = Clock.system(ZoneId.of(timeZone));
@@ -108,7 +109,7 @@ public class BasicAsaParser extends BasicParser {
   private void addGrok(String key, String pattern) throws GrokException {
     Grok grok = new Grok();
     InputStream patternStream = this.getClass().getResourceAsStream("/patterns/asa");
-    grok.addPatternFromReader(new InputStreamReader(patternStream));
+    grok.addPatternFromReader(new InputStreamReader(patternStream, StandardCharsets.UTF_8));
     grok.compile("%{" + pattern + "}");
     grokers.put(key, grok);
   }
@@ -118,7 +119,7 @@ public class BasicAsaParser extends BasicParser {
     syslogGrok = new Grok();
     InputStream syslogStream = this.getClass().getResourceAsStream("/patterns/asa");
     try {
-      syslogGrok.addPatternFromReader(new InputStreamReader(syslogStream));
+      syslogGrok.addPatternFromReader(new InputStreamReader(syslogStream, StandardCharsets.UTF_8));
       syslogGrok.compile(syslogPattern);
     } catch (GrokException e) {
       LOG.error("[Metron] Failed to load grok patterns from jar", e);
@@ -144,12 +145,7 @@ public class BasicAsaParser extends BasicParser {
     List<JSONObject> messages = new ArrayList<>();
     Map<String, Object> syslogJson = new HashMap<String, Object>();
 
-    try {
-      logLine = new String(rawMessage, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      LOG.error("[Metron] Could not read raw message", e);
-      throw new RuntimeException(e.getMessage(), e);
-    }
+    logLine = new String(rawMessage, StandardCharsets.UTF_8);
 
     try {
       LOG.debug("[Metron] Started parsing raw message: {}", logLine);
@@ -157,7 +153,7 @@ public class BasicAsaParser extends BasicParser {
       syslogMatch.captures();
       if (!syslogMatch.isNull()) {
 	syslogJson = syslogMatch.toMap();
-	LOG.trace("[Metron] Grok CISCO ASA syslog matches: {}", syslogMatch.toJson());
+	LOG.trace("[Metron] Grok CISCO ASA syslog matches: {}", syslogMatch::toJson);
 
 	metronJson.put(Constants.Fields.ORIGINAL.getName(), logLine);
 	metronJson.put(Constants.Fields.TIMESTAMP.getName(),
@@ -197,7 +193,7 @@ public class BasicAsaParser extends BasicParser {
 	messageMatch.captures();
 	if (!messageMatch.isNull()) {
 	  Map<String, Object> messageJson = messageMatch.toMap();
-	  LOG.trace("[Metron] Grok CISCO ASA message matches: {}", messageMatch.toJson());
+	  LOG.trace("[Metron] Grok CISCO ASA message matches: {}", messageMatch::toJson);
 
 	  String src_ip = (String) messageJson.get("src_ip");
 	  if (src_ip != null)
@@ -227,7 +223,7 @@ public class BasicAsaParser extends BasicParser {
 	      syslogJson.get("CISCOTAG"));
       }
 
-      LOG.debug("[Metron] Final normalized message: {}", metronJson.toString());
+      LOG.debug("[Metron] Final normalized message: {}", metronJson::toString);
 
     } catch (RuntimeException e) {
       LOG.error(e.getMessage(), e);

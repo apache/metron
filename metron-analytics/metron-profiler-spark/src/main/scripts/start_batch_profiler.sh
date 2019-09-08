@@ -18,15 +18,31 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/${METRON_VERSION}
-PROFILER_JAR=${METRON_HOME}/lib/${project.artifactId}-${METRON_VERSION}.jar
+PROFILER_JAR=${METRON_HOME}/lib/${project.artifactId}-${METRON_VERSION}-uber.jar
+STELLAR_JAR=${METRON_HOME}/lib/stellar-common-$METRON_VERSION-uber.jar
 MAIN_CLASS=org.apache.metron.profiler.spark.cli.BatchProfilerCLI
 PROFILER_PROPS=${PROFILER_PROPS:-"${METRON_HOME}/config/batch-profiler.properties"}
-PROFILES_FILE=${PROFILES:-"${METRON_HOME}/config/zookeeper/profiler.json"}
 SPARK_HOME=${SPARK_HOME:-"/usr/hdp/current/spark2-client"}
+
+PROFILES_FILE=${PROFILES:-"${METRON_HOME}/config/zookeeper/profiler.json"}
+ZOOKEEPER_LOCATION=${ZOOKEEPER:-"node1:2181"}
+
+# allow for an override on event time source via environment variable
+if [ -n "$SPARK_PROFILER_EVENT_TIMESTAMP_FIELD" ]; then
+  EVENT_TIMESTAMP="--timestampfield ${SPARK_PROFILER_EVENT_TIMESTAMP_FIELD}"
+fi
+
+if [ -n "$SPARK_PROFILER_USE_ZOOKEEPER" ]; then
+  PROFILES_LOCATION="--zookeeper ${ZOOKEEPER_LOCATION}"
+else
+  PROFILES_LOCATION="--profiles ${PROFILES_FILE}"
+fi
 
 ${SPARK_HOME}/bin/spark-submit \
     --class ${MAIN_CLASS} \
+    --jars ${STELLAR_JAR} \
     --properties-file ${PROFILER_PROPS} \
     ${PROFILER_JAR} \
     --config ${PROFILER_PROPS} \
-    --profiles ${PROFILES_FILE}
+    ${PROFILES_LOCATION} ${EVENT_TIMESTAMP} \
+    "$@"

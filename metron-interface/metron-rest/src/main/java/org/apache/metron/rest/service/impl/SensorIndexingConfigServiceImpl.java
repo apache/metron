@@ -19,6 +19,7 @@ package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
@@ -58,7 +59,8 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
   @Override
   public Map<String, Object> save(String name, Map<String, Object> sensorIndexingConfig) throws RestException {
     try {
-      ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(name, objectMapper.writeValueAsString(sensorIndexingConfig).getBytes(), client);
+      ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(name, objectMapper.writeValueAsString(sensorIndexingConfig).getBytes(
+          StandardCharsets.UTF_8), client);
     } catch (Exception e) {
       throw new RestException(e);
     }

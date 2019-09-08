@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-parsing</artifactId>
-    <version>0.7.1</version>
+    <version>0.7.2</version>
   </parent>
   <artifactId>metron-parsing-storm</artifactId>
   <name>metron-parsing-storm</name>
@@ -55,6 +55,17 @@
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-writer-storm</artifactId>
       <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>stellar-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${global_hbase_guava_version}</version>
     </dependency>
 
     <!-- Storm dependencies -->
@@ -116,7 +127,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
-      <artifactId>metron-hbase</artifactId>
+      <artifactId>metron-hbase-common</artifactId>
       <version>${project.parent.version}</version>
       <scope>test</scope>
       <type>test-jar</type>

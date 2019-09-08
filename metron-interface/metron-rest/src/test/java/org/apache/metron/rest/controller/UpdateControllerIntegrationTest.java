@@ -18,6 +18,7 @@
 package org.apache.metron.rest.controller;
 
 import com.google.common.collect.ImmutableMap;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.client.Get;
@@ -185,7 +186,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
         //ensure hbase is up to date
         Get g = new Get(new HBaseDao.Key(guid,"bro").toBytes());
         Result r = table.get(g);
-        NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
+        NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes(StandardCharsets.UTF_8));
         Assert.assertEquals(1, columns.size());
     }
   }

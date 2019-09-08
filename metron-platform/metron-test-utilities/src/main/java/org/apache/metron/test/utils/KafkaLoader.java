@@ -17,6 +17,9 @@
  */
 package org.apache.metron.test.utils;
 
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -58,7 +61,7 @@ public class KafkaLoader {
     kafkaProducer = new KafkaProducer<>(producerConfig);
     try {
       while (iterations == -1 || iterations-- > 0) {
-        BufferedReader reader = new BufferedReader(new FileReader(samplePath));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(samplePath), StandardCharsets.UTF_8));
         String line;
         while((line = reader.readLine()) != null) {
           kafkaProducer.send(new ProducerRecord<String, String>(topic, line));

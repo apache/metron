@@ -18,7 +18,7 @@
     <parent>
         <artifactId>metron-analytics</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.7.1</version>
+        <version>0.7.2</version>
     </parent>
     <artifactId>metron-profiler-common</artifactId>
     <url>https://metron.apache.org/</url>
@@ -34,7 +34,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-hbase</artifactId>
+            <artifactId>metron-hbase-common</artifactId>
             <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
@@ -46,6 +46,12 @@
                     <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>

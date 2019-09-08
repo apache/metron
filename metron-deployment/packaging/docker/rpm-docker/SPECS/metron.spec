@@ -45,25 +45,28 @@ Group:          Applications/Internet
 URL:            %{url}
 Source0:        metron-common-%{full_version}-archive.tar.gz
 Source1:        metron-parsers-common-%{full_version}-archive.tar.gz
-Source2:        metron-elasticsearch-%{full_version}-archive.tar.gz
+Source2:        metron-elasticsearch-storm-%{full_version}-archive.tar.gz
 Source3:        metron-data-management-%{full_version}-archive.tar.gz
-Source4:        metron-solr-%{full_version}-archive.tar.gz
-Source5:        metron-enrichment-common-%{full_version}-archive.tar.gz
-Source6:        metron-enrichment-storm-%{full_version}-archive.tar.gz
-Source7:        metron-indexing-%{full_version}-archive.tar.gz
-Source8:        metron-pcap-backend-%{full_version}-archive.tar.gz
-Source9:        metron-profiler-storm-%{full_version}-archive.tar.gz
-Source10:       metron-rest-%{full_version}-archive.tar.gz
-Source11:       metron-config-%{full_version}-archive.tar.gz
-Source12:       metron-management-%{full_version}-archive.tar.gz
-Source13:       metron-maas-service-%{full_version}-archive.tar.gz
-Source14:       metron-alerts-%{full_version}-archive.tar.gz
-Source15:       metron-performance-%{full_version}-archive.tar.gz
-Source16:       metron-profiler-spark-%{full_version}-archive.tar.gz
-Source17:       metron-profiler-repl-%{full_version}-archive.tar.gz
-Source18:       metron-parsing-storm-%{full_version}-archive.tar.gz
-Source19:       metron-parsers-%{full_version}-archive.tar.gz
-Source20:       metron-hbase-server-%{full_version}-archive.tar.gz
+Source4:        metron-solr-common-%{full_version}-archive.tar.gz
+Source5:        metron-solr-storm-%{full_version}-archive.tar.gz
+Source6:        metron-enrichment-common-%{full_version}-archive.tar.gz
+Source7:        metron-enrichment-storm-%{full_version}-archive.tar.gz
+Source8:        metron-indexing-common-%{full_version}-archive.tar.gz
+Source9:        metron-indexing-storm-%{full_version}-archive.tar.gz
+Source10:       metron-pcap-backend-%{full_version}-archive.tar.gz
+Source11:       metron-profiler-storm-%{full_version}-archive.tar.gz
+Source12:       metron-rest-%{full_version}-archive.tar.gz
+Source13:       metron-config-%{full_version}-archive.tar.gz
+Source14:       metron-management-%{full_version}-archive.tar.gz
+Source15:       metron-maas-service-%{full_version}-archive.tar.gz
+Source16:       metron-alerts-%{full_version}-archive.tar.gz
+Source17:       metron-performance-%{full_version}-archive.tar.gz
+Source18:       metron-profiler-spark-%{full_version}-archive.tar.gz
+Source19:       metron-profiler-repl-%{full_version}-archive.tar.gz
+Source20:       metron-parsing-storm-%{full_version}-archive.tar.gz
+Source21:       metron-parsers-%{full_version}-archive.tar.gz
+Source22:       metron-hbase-server-%{full_version}-archive.tar.gz
+Source23:       stellar-common-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -107,6 +110,9 @@ tar -xzf %{SOURCE17} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE18} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE19} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE20} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE21} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE22} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE23} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
@@ -138,7 +144,7 @@ This package installs the Metron common files %{metron_home}
 %{metron_home}/bin/cluster_info.py
 %{metron_home}/bin/tgt_renew.py
 %{metron_home}/config/zookeeper/global.json
-%attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -192,6 +198,7 @@ This package installs the Metron Bundled Parser files
 %{metron_home}/config/zookeeper/parsers/websphere.json
 %{metron_home}/config/zookeeper/parsers/yaf.json
 %{metron_home}/config/zookeeper/parsers/asa.json
+%{metron_home}/config/zookeeper/parsers/leef.json
 %{metron_home}/patterns/asa
 %{metron_home}/patterns/fireeye
 %{metron_home}/patterns/sourcefire
@@ -221,15 +228,15 @@ This package installs the Metron Parser Storm files
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        elasticsearch
-Summary:        Metron Elasticsearch Files
+%package        elasticsearch-storm
+Summary:        Metron Elasticsearch Storm Files
 Group:          Applications/Internet
-Provides:       elasticsearch = %{version}
+Provides:       elasticsearch-storm = %{version}
 
-%description    elasticsearch
-This package installs the Metron Elasticsearch files
+%description    elasticsearch-storm
+This package installs the Metron Elasticsearch Storm files
 
-%files          elasticsearch
+%files          elasticsearch-storm
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
@@ -238,7 +245,7 @@ This package installs the Metron Elasticsearch files
 %dir %{metron_home}/lib
 %{metron_home}/bin/start_elasticsearch_topology.sh
 %{metron_home}/config/elasticsearch.properties
-%attr(0644,root,root) %{metron_home}/lib/metron-elasticsearch-%{full_version}-uber.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-elasticsearch-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -257,7 +264,7 @@ This package installs performance tools useful for Metron
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/bin/load_tool.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-performance-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-performance-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -283,32 +290,30 @@ This package installs the Metron Parser files
 %{metron_home}/bin/prune_hdfs_files.sh
 %{metron_home}/bin/threatintel_bulk_prune.sh
 %{metron_home}/bin/threatintel_taxii_load.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-data-management-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-data-management-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        solr
-Summary:        Metron Solr Files
+%package        solr-common
+Summary:        Metron Solr Common Files
 Group:          Applications/Internet
-Provides:       solr = %{version}
+Provides:       solr-common = %{version}
 
-%description    solr
-This package installs the Metron Solr files
+%description    solr-common
+This package installs the Metron Solr Common files
 
-%files          solr
+%files          solr-common
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/config
-%dir %{metron_home}/lib
 %{metron_home}/bin/create_collection.sh
 %{metron_home}/bin/delete_collection.sh
 %{metron_home}/bin/install_solr.sh
 %{metron_home}/bin/start_solr.sh
 %{metron_home}/bin/start_solr_topology.sh
 %{metron_home}/bin/stop_solr.sh
-%{metron_home}/config/solr.properties
 %{metron_home}/config/schema/bro/schema.xml
 %{metron_home}/config/schema/bro/solrconfig.xml
 %{metron_home}/config/schema/error/schema.xml
@@ -319,7 +324,27 @@ This package installs the Metron Solr files
 %{metron_home}/config/schema/snort/solrconfig.xml
 %{metron_home}/config/schema/yaf/schema.xml
 %{metron_home}/config/schema/yaf/solrconfig.xml
-%attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        solr-storm
+Summary:        Metron Solr Storm Files
+Group:          Applications/Internet
+Provides:       solr-storm = %{version}
+
+%description    solr-storm
+This package installs the Metron Solr Storm files
+
+%files          solr-storm
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/config
+%dir %{metron_home}/lib
+%{metron_home}/bin/start_solr_topology.sh
+%{metron_home}/config/solr.properties
+%attr(0644,root,root) %{metron_home}/lib/metron-solr-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -365,32 +390,27 @@ This package installs the Metron Enrichment Storm files
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/enrichment
 %{metron_home}/bin/start_enrichment_topology.sh
-%{metron_home}/config/enrichment-splitjoin.properties
-%{metron_home}/config/enrichment-unified.properties
-%{metron_home}/flux/enrichment/remote-splitjoin.yaml
-%{metron_home}/flux/enrichment/remote-unified.yaml
+%{metron_home}/config/enrichment.properties
+%{metron_home}/flux/enrichment/remote.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-storm-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-%package        indexing
+%package        indexing-common
 Summary:        Metron Indexing Files
 Group:          Applications/Internet
-Provides:       indexing = %{version}
+Provides:       indexing-common = %{version}
 
-%description    indexing
+%description    indexing-common
 This package installs the Metron Indexing files
 
-%files          indexing
+%files          indexing-common
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/indexing
-%{metron_home}/bin/start_hdfs_topology.sh
-%{metron_home}/flux/indexing/batch/remote.yaml
-%{metron_home}/flux/indexing/random_access/remote.yaml
 %{metron_home}/config/zookeeper/indexing/bro.json
 %{metron_home}/config/zookeeper/indexing/snort.json
 %{metron_home}/config/zookeeper/indexing/websphere.json
@@ -401,6 +421,27 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zeppelin/metron/metron-connection-report.json
 %{metron_home}/config/zeppelin/metron/metron-ip-report.json
 %{metron_home}/config/zeppelin/metron/metron-connection-volume-report.json
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        indexing-storm
+Summary:        Metron Indexing Storm Files
+Group:          Applications/Internet
+Provides:       indexing-storm = %{version}
+
+%description    indexing-storm
+This package installs the Metron Indexing Storm files
+
+%files          indexing-storm
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/flux
+%dir %{metron_home}/flux/indexing
+%{metron_home}/bin/start_hdfs_topology.sh
+%{metron_home}/flux/indexing/batch/remote.yaml
+%{metron_home}/flux/indexing/random_access/remote.yaml
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -416,7 +457,7 @@ This package installs the Metron Management Library
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}/lib
-%attr(0644,root,root) %{metron_home}/lib/metron-management-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-management-%{full_version}-uber.jar
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -445,7 +486,7 @@ This package installs the Metron PCAP files %{metron_home}
 %{metron_home}/bin/pcap_zeppelin_run.sh
 %{metron_home}/flux/pcap/remote.yaml
 %{metron_home}/config/zeppelin/metron/metron-pcap.json
-%attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -500,7 +541,7 @@ This package installs the Metron Rest %{metron_home}
 %{metron_home}/bin/metron-rest.sh
 %{metron_home}/bin/pcap_to_pdml.sh
 %{metron_home}/bin/install_metron_knox.sh
-%attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -616,6 +657,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/*.ttf
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/images/*
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/app-config.json
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/context-menu.conf.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -636,7 +678,7 @@ This package installs the Metron Profiler for Spark %{metron_home}
 %dir %{metron_home}/bin
 %{metron_home}/bin/start_batch_profiler.sh
 %dir %{metron_home}/lib
-%attr(0644,root,root) %{metron_home}/lib/metron-profiler-spark-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-spark-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -653,7 +695,7 @@ This package installs the Metron Profiler for the Stellar REPL %{metron_home}
 %dir %{metron_root}
 %dir %{metron_home}
 %dir %{metron_home}/lib
-%attr(0644,root,root) %{metron_home}/lib/metron-profiler-repl-%{full_version}.jar
+%attr(0644,root,root) %{metron_home}/lib/metron-profiler-repl-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -673,6 +715,23 @@ This package installs the Metron HBase Server files
 %dir %{metron_home}/bin
 %{metron_home}/bin/load_enrichment_coprocessor.sh
 %attr(0644,root,root) %{metron_home}/coprocessor/metron-hbase-server-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        stellar-common
+Summary:        Stellar Common Files
+Group:          Applications/Internet
+Provides:       stellar-common = %{version}
+
+%description    stellar-common
+This package installs the Stellar Common files
+
+%files          stellar-common
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/stellar-common-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {RestError} from '../model/rest-error';
 import {throwError as observableThrowError, Observable} from 'rxjs';
 import {AppConfigService} from "../service/app-config.service";
@@ -28,7 +28,7 @@ export class HttpUtil {
     return text || '';
   }
 
-  public static extractData(res: HttpErrorResponse): any {
+  public static extractData(res: HttpResponse<any>): any {
     let body = res;
     return body || {};
   }

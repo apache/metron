@@ -21,8 +21,9 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
 
-from elastic_commands import service_check
 from elastic_commands import configure_slave
+from elastic_commands import service_check
+
 
 class Elasticsearch(Script):
 

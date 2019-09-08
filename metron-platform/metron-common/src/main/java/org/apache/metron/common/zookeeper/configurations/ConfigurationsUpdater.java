@@ -17,11 +17,12 @@
  */
 package org.apache.metron.common.zookeeper.configurations;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -36,7 +37,7 @@ import java.util.function.Supplier;
  * @param <T> the Type of Configuration
  */
 public abstract class ConfigurationsUpdater<T extends Configurations> implements Serializable {
-  protected static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger LOG =  LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Reloadable reloadable;
   private Supplier<T> configSupplier;
 
@@ -65,11 +66,13 @@ public abstract class ConfigurationsUpdater<T extends Configurations> implements
     if (data.length != 0) {
       String name = path.substring(path.lastIndexOf("/") + 1);
       if (path.startsWith(getType().getZookeeperRoot())) {
-        LOG.debug("Updating the {} config: {} -> {}", getType().name(), name, new String(data == null?"".getBytes():data));
+        LOG.debug("Updating the {} config: {} -> {}", () -> getType().name(), () -> name,
+                () -> new String(data == null?"".getBytes(StandardCharsets.UTF_8):data, StandardCharsets.UTF_8));
         update(name, data);
         reloadCallback(name, getType());
       } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-        LOG.debug("Updating the global config: {}", new String(data == null?"".getBytes():data));
+        LOG.debug("Updating the global config: {}",
+                () -> new String(data == null?"".getBytes(StandardCharsets.UTF_8):data, StandardCharsets.UTF_8));
         getConfigurations().updateGlobalConfig(data);
         reloadCallback(name, ConfigurationType.GLOBAL);
       }

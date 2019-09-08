@@ -30,7 +30,7 @@ fi
 export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
-export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
+export DM_JAR=${project.artifactId}-$METRON_VERSION-uber.jar
 
 CP=$METRON_HOME/lib/$DM_JAR:/usr/metron/$METRON_VERSION/lib/taxii-1.1.0.1.jar:`${HBASE_HOME}/bin/hbase classpath`
 HADOOP_CLASSPATH=$(echo $CP )

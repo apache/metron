@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.storm.integration;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.Constants;
@@ -368,7 +369,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     }, timeout);
 
     // validate the triage message
-    JSONObject message = (JSONObject) new JSONParser().parse(new String(outputMessages.get(0), "UTF-8"));
+    JSONObject message = (JSONObject) new JSONParser().parse(new String(outputMessages.get(0),
+        StandardCharsets.UTF_8));
     assertEquals("profile-with-triage", message.get(PROFILE_FIELD));
     assertEquals("global",              message.get(ENTITY_FIELD));
     assertEquals(76548935L,             message.get(PERIOD_ID_FIELD));

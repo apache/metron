@@ -23,6 +23,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class EnrichmentWriterConfigurationTest {
   @Test
   public void gets_batch_size_and_timeout_from_global_config() throws IOException {
     EnrichmentConfigurations configs = new EnrichmentConfigurations();
-    configs.updateGlobalConfig(globalJson.getBytes());
+    configs.updateGlobalConfig(globalJson.getBytes(StandardCharsets.UTF_8));
     EnrichmentWriterConfiguration writerConfig = new EnrichmentWriterConfiguration(configs);
     assertThat("batch timeout should match global config setting",
         writerConfig.getBatchTimeout(null), equalTo(555));

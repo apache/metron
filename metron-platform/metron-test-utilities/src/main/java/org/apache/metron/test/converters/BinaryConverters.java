@@ -17,9 +17,11 @@
  */
 package org.apache.metron.test.converters;
 
+import java.nio.charset.StandardCharsets;
+
 public enum BinaryConverters implements IConverter {
     DEFAULT(s -> {
-        return s.getBytes();
+        return s.getBytes(StandardCharsets.UTF_8);
     })
     , FROM_HEX_STRING(new HexStringConverter());
     IConverter _underlying;

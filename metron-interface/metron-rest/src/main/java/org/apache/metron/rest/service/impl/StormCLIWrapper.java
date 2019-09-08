@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -180,7 +181,8 @@ public class StormCLIWrapper {
     } catch (IOException e) {
       throw new RestException(e);
     }
-    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(),
+        StandardCharsets.UTF_8));
     List<String> lines = reader.lines().collect(toList());
     lines.forEach(System.out::println);
     if (lines.size() > 1) {

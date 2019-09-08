@@ -61,7 +61,7 @@ export class SensorEnrichmentConfigService {
   public deleteSensorEnrichments(name: string) {
     return this.http
       .delete<Observable<{}>>(this.url + '/' + name)
-      .pipe<HttpResponse<{}>>(catchError(HttpUtil.handleError));
+      .pipe(catchError(HttpUtil.handleError));
   }
 
   public getAvailableEnrichments(): Observable<string[]> {

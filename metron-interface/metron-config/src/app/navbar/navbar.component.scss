@@ -26,3 +26,13 @@
   color: $form-button-border;
   cursor: pointer;
 }
+
+.page-header {
+  background-color: #2E2E2E;
+  display: flex;
+  flex-direction: row;
+  height: 50px;
+  line-height: 50px;
+  max-height: 50px;
+  padding: 0rem 1rem;
+}

@@ -25,7 +25,7 @@ public class Constants {
   public static final String ZOOKEEPER_ROOT = "/metron";
   public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
   public static final long DEFAULT_CONFIGURED_BOLT_TIMEOUT = 5000;
-  public static final String SENSOR_TYPE = "source.type";
+  public static final String SENSOR_TYPE = Fields.SENSOR_TYPE.getName();
   public static final String SENSOR_TYPE_FIELD_PROPERTY = "source.type.field";
   public static final String THREAT_SCORE_FIELD_PROPERTY = "threat.triage.score.field";
   public static final String ENRICHMENT_TOPIC = "enrichments";
@@ -35,7 +35,7 @@ public class Constants {
   public static final String SIMPLE_HBASE_ENRICHMENT = "hbaseEnrichment";
   public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
   public static final String STELLAR_CONTEXT_CONF = "stellarContext";
-  public static final String GUID = "guid";
+  public static final String GUID = Fields.GUID.getName();
 
   /**
    * The key in the global configuration that defines the global parser error topic.
@@ -56,6 +56,8 @@ public class Constants {
     ,PROTOCOL("protocol")
     ,TIMESTAMP("timestamp")
     ,ORIGINAL("original_string")
+    ,GUID("guid")
+    ,SENSOR_TYPE("source.type")
     ,INCLUDES_REVERSE_TRAFFIC("includes_reverse_traffic")
     ;
     private static Map<String, Fields> nameToField;

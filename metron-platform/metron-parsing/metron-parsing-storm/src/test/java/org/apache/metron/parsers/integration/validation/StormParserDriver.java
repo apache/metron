@@ -17,37 +17,31 @@
  */
 package org.apache.metron.parsers.integration.validation;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class StormParserDriver extends ParserDriver {
   private static final Logger LOG = LoggerFactory.getLogger(StormParserDriver.class);
@@ -66,7 +60,7 @@ public class StormParserDriver extends ParserDriver {
 
     @Override
     public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, List<BulkMessage<JSONObject>> messages) throws Exception {
-      messages.forEach(bulkWriterMessage -> output.add(bulkWriterMessage.getMessage().toJSONString().getBytes()));
+      messages.forEach(bulkWriterMessage -> output.add(bulkWriterMessage.getMessage().toJSONString().getBytes(StandardCharsets.UTF_8)));
       Set<MessageId> ids = messages.stream().map(BulkMessage::getId).collect(Collectors.toSet());
       BulkWriterResponse bulkWriterResponse = new BulkWriterResponse();
       bulkWriterResponse.addAllSuccesses(ids);
@@ -110,6 +104,18 @@ public class StormParserDriver extends ParserDriver {
     protected void handleError(String sensorType, byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
       errors.add(originalMessage);
       LOG.error("Error parsing message: " + ex.getMessage(), ex);
+    }
+
+    @Override
+    protected void handleError(OutputCollector collector, MetronError error) {
+      for(Object rawMessage: error.getRawMessages()) {
+        errors.add((byte[]) rawMessage);
+      }
+      if (error.getThrowable().isPresent()) {
+        Throwable throwable = error.getThrowable().get();
+        LOG.error("Error parsing message: " + throwable.getMessage(), throwable);
+      }
+
     }
 
     @SuppressWarnings("unchecked")

@@ -20,6 +20,13 @@
 
 package org.apache.metron.profiler.client;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
@@ -31,14 +38,6 @@ import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the HBaseProfilerClient.
@@ -59,26 +58,29 @@ public class HBaseProfilerClientTest {
 
   private HBaseProfilerClient client;
   private StellarStatefulExecutor executor;
-  private MockHTable table;
+  private MockHBaseTableProvider provider;
   private ProfileWriter profileWriter;
 
   @Before
   public void setup() throws Exception {
-    table = new MockHTable(tableName, columnFamily);
+    provider = new MockHBaseTableProvider();
     executor = new DefaultStellarStatefulExecutor();
+    MockHBaseTableProvider.addToCache(tableName, columnFamily);
 
     // writes values to be read during testing
     long periodDurationMillis = periodUnits.toMillis(periodDuration);
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
     ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodDurationMillis);
+    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, provider, periodDurationMillis,
+        tableName, null);
 
-    client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDurationMillis);
+    client = new HBaseProfilerClient(provider, rowKeyBuilder, columnBuilder, periodDurationMillis,
+        tableName, null);
   }
 
   @After
   public void tearDown() throws Exception {
-    table.clear();
+    ((MockHTable) provider.getTable(null, tableName)).clear();
   }
 
   @Test

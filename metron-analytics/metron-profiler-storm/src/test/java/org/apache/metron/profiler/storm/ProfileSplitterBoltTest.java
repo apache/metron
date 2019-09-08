@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.storm;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
@@ -220,7 +221,8 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
     message = (JSONObject) parser.parse(input);
 
     // ensure the tuple returns the expected json message
-    when(tuple.getBinaryByField(VALUE.getFieldName())).thenReturn(input.getBytes());
+    when(tuple.getBinaryByField(VALUE.getFieldName())).thenReturn(input.getBytes(
+        StandardCharsets.UTF_8));
   }
 
   /**
@@ -430,7 +432,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
    * @throws Exception
    */
   private ProfilerConfig toProfilerConfig(String configAsJSON) throws Exception {
-    InputStream in = new ByteArrayInputStream(configAsJSON.getBytes("UTF-8"));
+    InputStream in = new ByteArrayInputStream(configAsJSON.getBytes(StandardCharsets.UTF_8));
     return JSONUtils.INSTANCE.load(in, ProfilerConfig.class);
   }
 

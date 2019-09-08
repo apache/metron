@@ -18,7 +18,7 @@
     <parent>
         <artifactId>metron-stellar</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.7.1</version>
+        <version>0.7.2</version>
     </parent>
     <artifactId>stellar-common</artifactId>
     <name>stellar-common</name>
@@ -353,6 +353,10 @@
                                                                     <shadedPattern>org.apache.metron.commons.validator</shadedPattern>
                                                                 </relocation>
                                 -->
+                                <relocation>
+                                    <pattern>com.jakewharton.fliptables</pattern>
+                                    <shadedPattern>org.apache.metron.fliptables</shadedPattern>
+                                </relocation>
                             </relocations>
                             <artifactSet>
                                 <excludes>
@@ -398,8 +402,10 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <descriptor>src/main/assembly/assembly.xml</descriptor>
-                    <descriptor>src/main/assembly/stand-alone-assembly.xml</descriptor>
+                    <descriptors>
+                        <descriptor>src/main/assembly/assembly.xml</descriptor>
+                        <descriptor>src/main/assembly/stand-alone-assembly.xml</descriptor>
+                    </descriptors>
                 </configuration>
                 <executions>
                     <execution>

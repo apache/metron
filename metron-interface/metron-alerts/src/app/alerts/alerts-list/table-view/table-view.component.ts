@@ -24,7 +24,6 @@ import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
 import {ColumnMetadata} from '../../../model/column-metadata';
 import {Alert} from '../../../model/alert';
 import {SearchService} from '../../../service/search.service';
-import {QueryBuilder} from '../query-builder';
 import {Sort} from '../../../utils/enums';
 import {Filter} from '../../../model/filter';
 import {AlertSource} from '../../../model/alert-source';
@@ -35,10 +34,24 @@ import {GetRequest} from '../../../model/get-request';
 import { GlobalConfigService } from '../../../service/global-config.service';
 import { DialogService } from '../../../service/dialog.service';
 import { ConfirmationType } from 'app/model/confirmation-type';
-import {HttpErrorResponse} from "@angular/common/http";
+import {HttpErrorResponse} from '@angular/common/http';
+
+import { merge } from '../../../shared/context-menu/context-menu.util'
+import * as moment from 'moment/moment';
+import { TimezoneConfigService } from 'app/alerts/configure-rows/timezone-config/timezone-config.service';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
+}
+
+export interface SortChangedEvent {
+  sortBy: string;
+  sortOrder: string;
+}
+
+export interface PageChangedEvent {
+  from: number;
+  size: number;
 }
 
 @Component({
@@ -55,15 +68,18 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   globalConfig: {} = {};
   configSubscription: Subscription;
 
+  merge: Function = merge;
+  localTime: boolean;
+
   @Input() alerts: Alert[] = [];
-  @Input() queryBuilder: QueryBuilder;
   @Input() pagination: Pagination;
   @Input() alertsColumnsToDisplay: ColumnMetadata[] = [];
   @Input() selectedAlerts: Alert[] = [];
 
   @Output() onResize = new EventEmitter<void>();
   @Output() onAddFilter = new EventEmitter<Filter>();
-  @Output() onRefreshData = new EventEmitter<boolean>();
+  @Output() onSortChanged = new EventEmitter<SortChangedEvent>();
+  @Output() onPageChanged = new EventEmitter<PageChangedEvent>();
   @Output() onShowDetails = new EventEmitter<Alert>();
   @Output() onShowConfigureTable = new EventEmitter<Alert>();
   @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
@@ -72,7 +88,8 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
               public updateService: UpdateService,
               public metaAlertService: MetaAlertService,
               public globalConfigService: GlobalConfigService,
-              public dialogService: DialogService) {
+              public dialogService: DialogService,
+              public timezoneConfigService: TimezoneConfigService, ) {
   }
 
   ngOnInit() {
@@ -108,12 +125,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   hasScore(alertSource) {
-    if(alertSource[this.threatScoreFieldName()]) {
-      return true;
-    }
-    else {
-      return false;
-    }
+    return !!this.getScore(alertSource);
   }
 
   getScore(alertSource) {
@@ -143,8 +155,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   onSort(sortEvent: SortEvent) {
     let sortOrder = (sortEvent.sortOrder === Sort.ASC ? 'asc' : 'desc');
     let sortBy = sortEvent.sortBy === 'id' ? '_uid' : sortEvent.sortBy;
-    this.queryBuilder.setSort(sortBy, sortOrder);
-    this.onRefreshData.emit(true);
+    this.onSortChanged.emit({ sortBy, sortOrder });
   }
 
   getValue(alert: Alert, column: ColumnMetadata, formatData: boolean) {
@@ -180,9 +191,12 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   formatValue(column: ColumnMetadata, returnValue: string) {
+    this.localTime = this.timezoneConfigService.getTimezoneConfig();
     try {
-      if (column.name.endsWith(':ts') || column.name.endsWith('timestamp')) {
-        returnValue = new Date(parseInt(returnValue, 10)).toISOString().replace('T', ' ').slice(0, 19);
+      if ((column.name.endsWith(':ts') || column.name.endsWith('timestamp')) && this.localTime === true) {
+        returnValue = moment.utc(returnValue).local().format('YYYY-MM-DD H:mm:ss');
+      } else if ((column.name.endsWith(':ts') || column.name.endsWith('timestamp')) && this.localTime === false) {
+        returnValue = moment.utc(returnValue).format('YYYY-MM-DD H:mm:ss');
       }
     } catch (e) {}
 
@@ -190,8 +204,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onPageChange() {
-    this.queryBuilder.setFromAndSize(this.pagination.from, this.pagination.size);
-    this.onRefreshData.emit(false);
+    this.onPageChanged.emit({ from: this.pagination.from, size: this.pagination.size });
   }
 
   selectRow($event, alert: Alert) {

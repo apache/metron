@@ -19,9 +19,10 @@ import { NgModule } from '@angular/core';
 import {SharedModule} from '../../../shared/shared.module';
 import {SensorRuleEditorComponent} from './sensor-rule-editor.component';
 import {NumberSpinnerModule} from '../../../shared/number-spinner/number-spinner.module';
+import {AceEditorModule} from '../../../shared/ace-editor/ace-editor.module';
 
 @NgModule ({
-  imports: [ SharedModule, NumberSpinnerModule ],
+  imports: [ SharedModule, NumberSpinnerModule, AceEditorModule ],
   declarations: [ SensorRuleEditorComponent ],
   exports: [ SensorRuleEditorComponent ]
 })

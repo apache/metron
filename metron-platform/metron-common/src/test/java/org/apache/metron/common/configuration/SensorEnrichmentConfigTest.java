@@ -17,6 +17,9 @@
  */
 package org.apache.metron.common.configuration;
 
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.apache.commons.io.IOUtils;
@@ -47,11 +50,12 @@ public class SensorEnrichmentConfigTest {
   public void testSerDe() throws IOException {
     for(File enrichmentConfig : new File(new File(TestConstants.ENRICHMENTS_CONFIGS_PATH), "enrichments").listFiles()) {
       SensorEnrichmentConfig config = null;
-      try (BufferedReader br = new BufferedReader(new FileReader(enrichmentConfig))) {
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(enrichmentConfig), StandardCharsets.UTF_8))) {
         String parserStr = IOUtils.toString(br);
-        config = SensorEnrichmentConfig.fromBytes(parserStr.getBytes());
+        config = SensorEnrichmentConfig.fromBytes(parserStr.getBytes(StandardCharsets.UTF_8));
       }
-      SensorEnrichmentConfig config2 = SensorEnrichmentConfig.fromBytes(config.toJSON().getBytes());
+      SensorEnrichmentConfig config2 = SensorEnrichmentConfig.fromBytes(config.toJSON().getBytes(
+          StandardCharsets.UTF_8));
       Assert.assertEquals(config2, config);
     }
   }

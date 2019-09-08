@@ -16,14 +16,14 @@ limitations under the License.
 """
 
 import os
-import time
 
-from resource_management.core.exceptions import Fail
-from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+import time
 
 import metron_service
 from metron_security import kinit
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
 
 
 # Wrap major operations and functionality in this class
@@ -146,20 +146,9 @@ class EnrichmentCommands:
 
     def start_enrichment_topology(self, env):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
-
         if not self.is_topology_active(env):
-
-            # which enrichment topology needs started?
-            if self.__params.enrichment_topology == "Unified":
-                topology_flux = "{0}/flux/enrichment/remote-unified.yaml".format(self.__params.metron_home)
-                topology_props = "{0}/config/enrichment-unified.properties".format(self.__params.metron_home)
-            elif self.__params.enrichment_topology == "Split-Join":
-                topology_flux = "{0}/flux/enrichment/remote-splitjoin.yaml".format(self.__params.metron_home)
-                topology_props = "{0}/config/enrichment-splitjoin.properties".format(self.__params.metron_home)
-            else:
-                raise Fail("Unexpected enrichment topology; name=" + self.__params.enrichment_topology)
-
-            # start the topology
+            topology_flux = "{0}/flux/enrichment/remote.yaml".format(self.__params.metron_home)
+            topology_props = "{0}/config/enrichment.properties".format(self.__params.metron_home)
             start_cmd_template = """{0}/bin/start_enrichment_topology.sh --remote {1} --filter {2}"""
             Logger.info('Starting ' + self.__enrichment_topology)
             start_cmd = start_cmd_template.format(self.__params.metron_home, topology_flux, topology_props)

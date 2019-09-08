@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
@@ -113,7 +114,7 @@ public class ConfigurationsUtils {
    * @throws Exception If there's an error writing to ZK
    */
   public static void writeGlobalConfigToZookeeper(byte[] globalConfig, CuratorFramework client) throws Exception {
-    GLOBAL.deserialize(new String(globalConfig));
+    GLOBAL.deserialize(new String(globalConfig, StandardCharsets.UTF_8));
     writeToZookeeper(GLOBAL.getZookeeperRoot(), globalConfig, client);
   }
 
@@ -125,7 +126,7 @@ public class ConfigurationsUtils {
    * @throws Exception If there's an error writing to ZK
    */
   public static void writeProfilerConfigToZookeeper(byte[] config, CuratorFramework client) throws Exception {
-    PROFILER.deserialize(new String(config));
+    PROFILER.deserialize(new String(config, StandardCharsets.UTF_8));
     writeToZookeeper(PROFILER.getZookeeperRoot(), config, client);
   }
 
@@ -165,7 +166,8 @@ public class ConfigurationsUtils {
    * @throws Exception If there's an error writing to ZK
    */
   public static void writeSensorParserConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
-    SensorParserConfig c = (SensorParserConfig) PARSER.deserialize(new String(configData));
+    SensorParserConfig c = (SensorParserConfig) PARSER.deserialize(new String(configData,
+        StandardCharsets.UTF_8));
     c.init();
     writeToZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
@@ -206,7 +208,7 @@ public class ConfigurationsUtils {
    * @throws Exception If there's an error writing to ZK
    */
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
-    INDEXING.deserialize(new String(configData));
+    INDEXING.deserialize(new String(configData, StandardCharsets.UTF_8));
     writeToZookeeper(INDEXING.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
@@ -246,7 +248,7 @@ public class ConfigurationsUtils {
    * @throws Exception If there's an error writing to ZK
    */
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
-    ENRICHMENT.deserialize(new String(configData));
+    ENRICHMENT.deserialize(new String(configData, StandardCharsets.UTF_8));
     writeToZookeeper(ENRICHMENT.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
@@ -644,7 +646,8 @@ public class ConfigurationsUtils {
       case GLOBAL:
         final byte[] globalConfig = readGlobalConfigFromFile(rootFilePath);
         if (globalConfig.length > 0) {
-          setupStellarStatically(client, Optional.of(new String(globalConfig)));
+          setupStellarStatically(client, Optional.of(new String(globalConfig,
+              StandardCharsets.UTF_8)));
           writeGlobalConfigToZookeeper(globalConfig, client);
         }
         break;
@@ -696,7 +699,7 @@ public class ConfigurationsUtils {
     if (globalConfigPath != null) {
       final byte[] globalConfig = readGlobalConfigFromFile(globalConfigPath);
       if (globalConfig.length > 0) {
-        setupStellarStatically(client, Optional.of(new String(globalConfig)));
+        setupStellarStatically(client, Optional.of(new String(globalConfig, StandardCharsets.UTF_8)));
         ConfigurationsUtils.writeGlobalConfigToZookeeper(readGlobalConfigFromFile(globalConfigPath), client);
       }
     }
@@ -752,7 +755,7 @@ public class ConfigurationsUtils {
       setupStellarStatically(client, Optional.empty());
     }
     else {
-      setupStellarStatically(client, Optional.of(new String(ret)));
+      setupStellarStatically(client, Optional.of(new String(ret, StandardCharsets.UTF_8)));
     }
   }
 
@@ -949,7 +952,7 @@ public class ConfigurationsUtils {
     byte[] prettyPatchedConfig = JSONUtils.INSTANCE.applyPatch(patchData, configData);
 
     // ensure the patch produces a valid result; otherwise exception thrown during deserialization
-    String prettyPatchedConfigStr = new String(prettyPatchedConfig);
+    String prettyPatchedConfigStr = new String(prettyPatchedConfig, StandardCharsets.UTF_8);
     configurationType.deserialize(prettyPatchedConfigStr);
 
     writeConfigToZookeeper(configurationType, configName, prettyPatchedConfig, client);
@@ -995,21 +998,22 @@ public class ConfigurationsUtils {
 
       if (configType.equals(GLOBAL)) {
         byte[] globalConfigData = client.getData().forPath(configType.getZookeeperRoot());
-        callback.visit(configType, "global", new String(globalConfigData));
+        callback.visit(configType, "global", new String(globalConfigData, StandardCharsets.UTF_8));
       }
       else if(configType.equals(PROFILER)) {
         byte[] profilerConfigData = client.getData().forPath(configType.getZookeeperRoot());
-        callback.visit(configType, "profiler", new String(profilerConfigData));
+        callback.visit(configType, "profiler", new String(profilerConfigData,
+            StandardCharsets.UTF_8));
       }
       else if (configType.equals(PARSER) || configType.equals(ENRICHMENT) || configType.equals(INDEXING)) {
         if (configName.isPresent()) {
           byte[] data = readConfigBytesFromZookeeper(configType, configName,  client);
-          callback.visit(configType, configName.get(), new String(data));
+          callback.visit(configType, configName.get(), new String(data, StandardCharsets.UTF_8));
         } else {
           List<String> children = client.getChildren().forPath(configType.getZookeeperRoot());
           for (String child : children) {
             byte[] data = client.getData().forPath(configType.getZookeeperRoot() + "/" + child);
-            callback.visit(configType, child, new String(data));
+            callback.visit(configType, child, new String(data, StandardCharsets.UTF_8));
           }
         }
       }

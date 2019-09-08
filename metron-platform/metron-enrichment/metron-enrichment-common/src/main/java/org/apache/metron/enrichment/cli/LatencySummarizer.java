@@ -20,6 +20,7 @@ package org.apache.metron.enrichment.cli;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.cli.*;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.metron.common.utils.JSONUtils;
@@ -178,7 +179,8 @@ public class LatencySummarizer {
       System.exit(0);
     }
     LatencyStats statsMap = new LatencyStats();
-    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in,
+        StandardCharsets.UTF_8));
     for(String line = null;(line = reader.readLine()) != null;) {
       Map<String, Object> doc = JSONUtils.INSTANCE.load(line, JSONUtils.MAP_SUPPLIER);
       updateStats(statsMap, doc);

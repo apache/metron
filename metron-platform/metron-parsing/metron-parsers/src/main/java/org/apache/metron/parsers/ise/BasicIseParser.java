@@ -20,15 +20,14 @@
 package org.apache.metron.parsers.ise;
 
 import com.esotericsoftware.minlog.Log;
-import org.apache.metron.parsers.BasicParser;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.parsers.BasicParser;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class BasicIseParser extends BasicParser {
@@ -39,7 +38,7 @@ public class BasicIseParser extends BasicParser {
 
 	@Override
 	public void configure(Map<String, Object> parserConfig) {
-
+    setReadCharset(parserConfig);
 	}
 
 	@Override
@@ -55,7 +54,7 @@ public class BasicIseParser extends BasicParser {
 		List<JSONObject> messages = new ArrayList<>();
 		try {
 
-			raw_message = new String(msg, "UTF-8");
+			raw_message = new String(msg, getReadCharset());
 			_LOG.debug("Received message: {}", raw_message);
 
 			/*

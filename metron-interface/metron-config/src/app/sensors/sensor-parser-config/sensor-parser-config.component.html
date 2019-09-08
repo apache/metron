@@ -71,7 +71,7 @@
                 </div>
 
                 <div class="form-group" [ngClass]="{'panel-selected': showGrokValidator }" *ngIf="isGrokParser(sensorParserConfig)" >
-                    <label attr.for="grokStatement">GROK STATEMENT</label>
+                    <label attr.for="grokStatement">GROK STATEMENT *</label>
                     <div  class="input-group" [attr.disabled]="!sensorNameValid || !parserClassValid">
                         <input type="text" class="form-control" formControlName="grokStatement"  [(ngModel)]="this.grokStatement" readonly>
                         <span class="input-group-btn">
@@ -81,6 +81,12 @@
                             </button>
                         </span>
                     </div>
+                </div>
+
+                <div class="form-group" *ngIf="isGrokParser(sensorParserConfig)" data-qe-id="timestamp-field">
+                    <label attr.for="timestampField">TIMESTAMP *</label>
+                    <input type="text" class="form-control" name="timestampField" formControlName="timestampField" [(ngModel)]="sensorParserConfig.timestampField">
+                    <label *ngIf="!sensorParserConfig.timestampField"><span class="warning-text">Field is required. </span></label>
                 </div>
 
                 <div class="form-group" [ngClass]="{'panel-selected': showFieldSchema }" >

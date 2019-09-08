@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -44,16 +45,16 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected transient Grok grok;
   protected String grokPath;
@@ -63,10 +64,12 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
   protected String timestampField;
   protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S z");
   protected String patternsCommonDir = "/patterns/common";
+  private Charset readCharset;
 
   @Override
   @SuppressWarnings("unchecked")
   public void configure(Map<String, Object> parserConfig) {
+    setReadCharset(parserConfig);
     this.grokPath = (String) parserConfig.get("grokPath");
     String multiLineString = (String) parserConfig.get("multiLine");
     if (!StringUtils.isBlank(multiLineString)) {
@@ -116,7 +119,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
                 "Unable to initialize grok parser: Unable to load " + patternsCommonDir + " from either classpath or HDFS");
       }
 
-      grok.addPatternFromReader(new InputStreamReader(commonInputStream));
+      grok.addPatternFromReader(new InputStreamReader(commonInputStream, getReadCharset()));
       LOG.info("Loading parser-specific patterns from: {}", grokPath);
 
       InputStream patterInputStream = openInputStream(grokPath);
@@ -124,9 +127,10 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
         throw new RuntimeException("Grok parser unable to initialize grok parser: Unable to load " + grokPath
                 + " from either classpath or HDFS");
       }
-      grok.addPatternFromReader(new InputStreamReader(patterInputStream));
+      grok.addPatternFromReader(new InputStreamReader(patterInputStream, getReadCharset()));
 
-      LOG.info("Grok parser set the following grok expression for '{}': {}", patternLabel, grok.getPatterns().get(patternLabel));
+      LOG.info("Grok parser set the following grok expression for '{}': {}", () ->patternLabel,
+              () -> grok.getPatterns().get(patternLabel));
 
       String grokPattern = "%{" + patternLabel + "}";
 
@@ -158,7 +162,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     String originalMessage = null;
     // read the incoming raw data as if it may have multiple lines of logs
     // if there is only only one line, it will just get processed.
-    try (BufferedReader reader = new BufferedReader(new StringReader(new String(rawMessage, StandardCharsets.UTF_8)))) {
+    try (BufferedReader reader = new BufferedReader(new StringReader(new String(rawMessage, getReadCharset())))) {
       while ((originalMessage = reader.readLine()) != null) {
         LOG.debug("Grok parser parsing message: {}", originalMessage);
         try {
@@ -210,7 +214,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     Map<Object,Throwable> errors = new HashMap<>();
     String originalMessage = null;
     try {
-      originalMessage = new String(rawMessage, "UTF-8");
+      originalMessage = new String(rawMessage, StandardCharsets.UTF_8);
       LOG.debug("Grok parser parsing message: {}",originalMessage);
       Match gm = grok.match(originalMessage);
       gm.captures();
@@ -270,7 +274,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   protected long toEpoch(String datetime) throws ParseException {
     LOG.debug("Grok parser converting timestamp to epoch: {}", datetime);
-    LOG.debug("Grok parser's DateFormat has TimeZone: {}", dateFormat.getTimeZone());
+    LOG.debug("Grok parser's DateFormat has TimeZone: {}", () -> dateFormat.getTimeZone());
 
     Date date = dateFormat.parse(datetime);
     LOG.debug("Grok parser converted timestamp to epoch: {}", date);
@@ -289,6 +293,19 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     } else {
       return Long.parseLong(Joiner.on("").join(Splitter.on('.').split(value + "")));
     }
+  }
+
+  public void setReadCharset(Map<String, Object> config) {
+    if (config.containsKey(READ_CHARSET)) {
+      readCharset = Charset.forName((String) config.get(READ_CHARSET));
+    } else {
+      readCharset = MessageParser.super.getReadCharset();
+    }
+  }
+
+  @Override
+  public Charset getReadCharset() {
+    return null == this.readCharset ? MessageParser.super.getReadCharset() : this.readCharset;
   }
 
 }

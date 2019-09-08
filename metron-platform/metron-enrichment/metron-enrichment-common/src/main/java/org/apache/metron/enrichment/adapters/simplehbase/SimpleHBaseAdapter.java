@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
@@ -36,13 +39,12 @@ import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.NoopAccessTracker;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
-  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  protected static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected SimpleHBaseConfig config;
   protected EnrichmentLookup lookup;
+  protected Connection connection;
 
   public SimpleHBaseAdapter() {
   }
@@ -89,7 +91,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
             for (Map.Entry<String, Object> values : kv.getValue().getMetadata().entrySet()) {
               enriched.put(kv.getKey().type + "." + values.getKey(), values.getValue());
             }
-            LOG.trace("Enriched type {} => {}", kv.getKey().type, enriched);
+            LOG.trace("Enriched type {} => {}", () -> kv.getKey().type, ()->enriched);
           }
         }
       }

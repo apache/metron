@@ -44,13 +44,13 @@ public enum AccessTrackerUtil {
     }
 
 
-    public void persistTracker(HTableInterface accessTrackerTable, String columnFamily, PersistentAccessTracker.AccessTrackerKey key, AccessTracker underlyingTracker) throws IOException {
+    public void persistTracker(Table accessTrackerTable, String columnFamily, PersistentAccessTracker.AccessTrackerKey key, AccessTracker underlyingTracker) throws IOException {
         Put put = new Put(key.toRowKey());
         put.add(Bytes.toBytes(columnFamily), COLUMN, serializeTracker(underlyingTracker));
         accessTrackerTable.put(put);
     }
 
-    public Iterable<AccessTracker> loadAll(HTableInterface accessTrackerTable, final String columnFamily, final String name, final long earliest) throws IOException {
+    public Iterable<AccessTracker> loadAll(Table accessTrackerTable, final String columnFamily, final String name, final long earliest) throws IOException {
         Scan scan = new Scan(PersistentAccessTracker.AccessTrackerKey.getTimestampScanKey(name, earliest));
         ResultScanner scanner = accessTrackerTable.getScanner(scan);
         return Iterables.transform(scanner, new Function<Result, AccessTracker>() {

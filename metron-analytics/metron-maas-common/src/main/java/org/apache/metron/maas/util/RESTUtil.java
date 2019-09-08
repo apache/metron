@@ -19,6 +19,7 @@ package org.apache.metron.maas.util;
 
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
+import java.nio.charset.StandardCharsets;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -61,7 +62,8 @@ public enum RESTUtil {
               + response.getStatusLine().getStatusCode());
     }
 
-    return new BufferedReader(new InputStreamReader(response.getEntity().getContent()))
+    return new BufferedReader(new InputStreamReader(response.getEntity().getContent(),
+        StandardCharsets.UTF_8))
             .lines().collect(Collectors.joining("\n"));
   }
   public URL appendToUrl(URL endpointUrl, String params) throws MalformedURLException {

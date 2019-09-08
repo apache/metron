@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-contrib</artifactId>
-    <version>0.7.1</version>
+    <version>0.7.2</version>
   </parent>
   <description>Performance Testing Utilities</description>
   <url>https://metron.apache.org/</url>
@@ -39,6 +39,12 @@
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>stellar-common</artifactId>
       <version>${project.parent.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -77,6 +83,8 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>uber</shadedClassifierName>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>

@@ -51,6 +51,8 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.job.Finalizer;
 import org.apache.metron.job.JobException;
@@ -67,8 +69,6 @@ import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
 import org.apache.metron.pcap.utils.FileFilterUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Encompasses MapReduce job and final writing of Pageable results to specified location.
@@ -76,7 +76,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PcapJob<T> implements Statusable<Path> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
   public static final String WIDTH_CONF = "width";
@@ -279,7 +279,8 @@ public class PcapJob<T> implements Statusable<Path> {
       );
       String from = format.format(new Date(Long.divideUnsigned(beginNS, 1000000)));
       String to = format.format(new Date(Long.divideUnsigned(endNS, 1000000)));
-      LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
+
+      LOG.debug("Executing query {} on timerange from {} to {}", () -> filterImpl.queryToString(fields), ()-> from, () -> to);
     }
     Path interimResultPath =  new Path(baseInterimResultPath, outputDirName);
     PcapOptions.INTERIM_RESULT_PATH.put(configuration, interimResultPath);

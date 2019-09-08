@@ -15,12 +15,13 @@ limitations under the License.
 """
 
 import os.path
-from resource_management.core.source import Template
-from resource_management.core.source import InlineTemplate
-from resource_management.core.resources.system import Directory, File
+
 from resource_management.core import global_lock
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory, File
 from resource_management.core.resources.system import Execute
+from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
 from resource_management.libraries.functions import format as ambari_format
 
 

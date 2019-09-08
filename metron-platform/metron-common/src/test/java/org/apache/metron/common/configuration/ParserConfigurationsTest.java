@@ -24,6 +24,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.adrianwalker.multilinestring.Multiline;
@@ -77,7 +78,8 @@ public class ParserConfigurationsTest {
   @Test
   public void sensorParserConfig_properties_populated_by_JSON_configuration() throws IOException {
     ParserConfigurations parserConfigs = new ParserConfigurations();
-    parserConfigs.updateSensorParserConfig("test-sensor", parserConfig.getBytes());
+    parserConfigs.updateSensorParserConfig("test-sensor", parserConfig.getBytes(
+        StandardCharsets.UTF_8));
     SensorParserConfig actualSensorConfig = parserConfigs.getSensorParserConfig("test-sensor");
     assertThat(actualSensorConfig.getParserClassName(), equalTo("parser-class"));
     assertThat(actualSensorConfig.getFilterClassName(), equalTo("filter-class"));

@@ -28,6 +28,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.error.MetronError;
@@ -118,8 +120,10 @@ public class ParserRunnerImplTest {
   @Before
   public void setup() throws IOException {
     parserConfigurations = new ParserConfigurations();
-    SensorParserConfig broConfig = SensorParserConfig.fromBytes(broConfigString.getBytes());
-    SensorParserConfig snortConfig = SensorParserConfig.fromBytes(snortConfigString.getBytes());
+    SensorParserConfig broConfig = SensorParserConfig.fromBytes(broConfigString.getBytes(
+        StandardCharsets.UTF_8));
+    SensorParserConfig snortConfig = SensorParserConfig.fromBytes(snortConfigString.getBytes(
+        StandardCharsets.UTF_8));
     parserConfigurations.updateSensorParserConfig("bro", broConfig);
     parserConfigurations.updateSensorParserConfig("snort", snortConfig);
     parserConfigurations.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfigString, JSONUtils.MAP_SUPPLIER));
@@ -129,6 +133,7 @@ public class ParserRunnerImplTest {
     stellarFilter = mock(StellarFilter.class);
     mockStatic(ReflectionUtils.class);
     mockStatic(Filters.class);
+    when(broParser.getReadCharset()).thenReturn(StandardCharsets.UTF_8);
 
     when(ReflectionUtils.createInstance("org.apache.metron.parsers.bro.BasicBroParser")).thenReturn(broParser);
     when(ReflectionUtils.createInstance("org.apache.metron.parsers.snort.BasicSnortParser")).thenReturn(snortParser);
@@ -213,16 +218,19 @@ public class ParserRunnerImplTest {
     }
   }
 
+  /**
+   * This is only testig the execute method. It mocks out processMessage().
+   */
   @Test
   public void shouldExecute() {
     parserRunner = spy(parserRunner);
-    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
+    RawMessage rawMessage = new RawMessage("raw_message".getBytes(StandardCharsets.UTF_8), new HashMap<>());
     JSONObject parsedMessage1 = new JSONObject();
     parsedMessage1.put("field", "parsedMessage1");
     JSONObject parsedMessage2 = new JSONObject();
     parsedMessage2.put("field", "parsedMessage2");
-    Object rawMessage1 = new RawMessage("raw_message1".getBytes(), new HashMap<>());
-    Object rawMessage2 = new RawMessage("raw_message2".getBytes(), new HashMap<>());
+    Object rawMessage1 = new RawMessage("raw_message1".getBytes(StandardCharsets.UTF_8), new HashMap<>());
+    Object rawMessage2 = new RawMessage("raw_message2".getBytes(StandardCharsets.UTF_8), new HashMap<>());
     Throwable throwable1 = mock(Throwable.class);
     Throwable throwable2 = mock(Throwable.class);
     MessageParserResult<JSONObject> messageParserResult = new DefaultMessageParserResult<>(Arrays.asList(parsedMessage1, parsedMessage2),
@@ -272,7 +280,7 @@ public class ParserRunnerImplTest {
   @Test
   public void shouldExecuteWithMasterThrowable() {
     parserRunner = spy(parserRunner);
-    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
+    RawMessage rawMessage = new RawMessage("raw_message".getBytes(StandardCharsets.UTF_8), new HashMap<>());
     Throwable masterThrowable = mock(Throwable.class);
     MessageParserResult<JSONObject> messageParserResult = new DefaultMessageParserResult<>(masterThrowable);
 
@@ -296,20 +304,23 @@ public class ParserRunnerImplTest {
     Assert.assertTrue(parserRunnerResults.getErrors().contains(expectedError));
   }
 
+  /**
+   * This is only testing the processMessage method
+   */
   @Test
   public void shouldPopulateMessagesOnProcessMessage() {
     JSONObject inputMessage = new JSONObject();
     inputMessage.put("guid", "guid");
     inputMessage.put("ip_src_addr", "192.168.1.1");
     inputMessage.put("ip_dst_addr", "192.168.1.2");
-    inputMessage.put("field1", "value");
-    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), new HashMap<>());
+    RawMessage rawMessage = new RawMessage("raw_message_for_testing".getBytes(StandardCharsets.UTF_8), new HashMap<>());
 
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");
     expectedOutput.put("source.type", "bro");
     expectedOutput.put("ip_src_addr", "192.168.1.1");
     expectedOutput.put("ip_dst_addr", "192.168.1.2");
+    expectedOutput.put(Fields.ORIGINAL.getName(), "raw_message_for_testing");
 
     when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
     when(broParser.validate(expectedOutput)).thenReturn(true);
@@ -319,7 +330,38 @@ public class ParserRunnerImplTest {
     }});
 
     Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
+    Assert.assertTrue(processResult.isPresent());
+    Assert.assertFalse(processResult.get().isError());
+    Assert.assertEquals(expectedOutput, processResult.get().getMessage());
+  }
 
+  /**
+   * This is only testing the processMessage method
+   */
+  @Test
+  public void shouldNotOverwriteOriginalStringAddedByParser() {
+    JSONObject inputMessage = new JSONObject();
+    inputMessage.put("guid", "guid");
+    inputMessage.put("ip_src_addr", "192.168.1.1");
+    inputMessage.put("ip_dst_addr", "192.168.1.2");
+    inputMessage.put(Fields.ORIGINAL.getName(), "original_string_added_by_parser");
+    RawMessage rawMessage = new RawMessage("raw_message_for_testing".getBytes(StandardCharsets.UTF_8), new HashMap<>());
+
+    JSONObject expectedOutput  = new JSONObject();
+    expectedOutput.put("guid", "guid");
+    expectedOutput.put("source.type", "bro");
+    expectedOutput.put("ip_src_addr", "192.168.1.1");
+    expectedOutput.put("ip_dst_addr", "192.168.1.2");
+    expectedOutput.put(Fields.ORIGINAL.getName(), "original_string_added_by_parser");
+
+    when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
+    when(broParser.validate(expectedOutput)).thenReturn(true);
+
+    parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
+      put("bro", new ParserComponent(broParser, stellarFilter));
+    }});
+
+    Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
     Assert.assertTrue(processResult.isPresent());
     Assert.assertFalse(processResult.get().isError());
     Assert.assertEquals(expectedOutput, processResult.get().getMessage());
@@ -334,11 +376,12 @@ public class ParserRunnerImplTest {
 
     JSONObject inputMessage = new JSONObject();
     inputMessage.put("guid", "guid");
-    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), metadata);
+    RawMessage rawMessage = new RawMessage("raw_message".getBytes(StandardCharsets.UTF_8), metadata);
 
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");
     expectedOutput.put("source.type", "bro");
+    expectedOutput.put(Fields.ORIGINAL.getName(), "raw_message");
     MetronError expectedMetronError = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_INVALID)
             .withSensorType(Collections.singleton("bro"))
@@ -346,6 +389,7 @@ public class ParserRunnerImplTest {
             .addRawMessage(inputMessage);
 
     when(stellarFilter.emit(expectedOutput, parserRunner.getStellarContext())).thenReturn(true);
+    // This is the important switch. Not to be confused with field validators.
     when(broParser.validate(expectedOutput)).thenReturn(false);
 
     parserRunner.setSensorToParserComponentMap(new HashMap<String, ParserComponent>() {{
@@ -370,13 +414,14 @@ public class ParserRunnerImplTest {
     inputMessage.put("guid", "guid");
     inputMessage.put("ip_src_addr", "test");
     inputMessage.put("ip_dst_addr", "test");
-    RawMessage rawMessage = new RawMessage("raw_message".getBytes(), metadata);
+    RawMessage rawMessage = new RawMessage("raw_message".getBytes(StandardCharsets.UTF_8), metadata);
 
     JSONObject expectedOutput  = new JSONObject();
     expectedOutput.put("guid", "guid");
     expectedOutput.put("ip_src_addr", "test");
     expectedOutput.put("ip_dst_addr", "test");
     expectedOutput.put("source.type", "bro");
+    expectedOutput.put(Fields.ORIGINAL.getName(), "raw_message");
     MetronError expectedMetronError = new MetronError()
             .withErrorType(Constants.ErrorType.PARSER_INVALID)
             .withSensorType(Collections.singleton("bro"))

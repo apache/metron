@@ -30,15 +30,16 @@ fi
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export CLASSNAME="org.apache.metron.dataloads.nonbulk.flatfile.SimpleEnrichmentFlatFileLoader"
-export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
+export DM_JAR=${project.artifactId}-$METRON_VERSION-uber.jar
+export STELLAR_JAR=stellar-common-$METRON_VERSION-uber.jar
 export HBASE_CONF=${HBASE_CONF:-/etc/hbase/conf}
 export HADOOP_OPTS="$HADOOP_OPTS $METRON_JVMFLAGS"
 if [ $(which hadoop) ]
 then
-  export HADOOP_CLASSPATH="$HBASE_CONF"
+  export HADOOP_CLASSPATH="$METRON_HOME/lib/$DM_JAR:$HBASE_CONF:$METRON_HOME/lib/$STELLAR_JAR"
   hadoop jar $METRON_HOME/lib/$DM_JAR $CLASSNAME "$@"
 else
   echo "Warning: Metron cannot find the hadoop client on this node.  This means that loading via Map Reduce will NOT function."
-  CP=$METRON_HOME/lib/$DM_JAR:$HBASE_CONF
+  CP=$METRON_HOME/lib/$DM_JAR:$HBASE_CONF:$METRON_HOME/lib/$STELLAR_JAR
   java $METRON_JVMFLAGS -cp $CP $CLASSNAME "$@"
 fi

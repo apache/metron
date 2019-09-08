@@ -20,7 +20,7 @@
 
 package org.apache.metron.profiler.hbase;
 
-import org.apache.metron.hbase.bolt.mapper.ColumnList;
+import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.profiler.ProfileMeasurement;
 
 import java.io.Serializable;

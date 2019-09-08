@@ -18,6 +18,7 @@
 package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -432,7 +433,7 @@ public class SensorParserConfig implements Serializable {
    * @throws IOException If the config cannot be loaded
    */
   public static SensorParserConfig fromBytes(byte[] config) throws IOException {
-    SensorParserConfig ret = JSONUtils.INSTANCE.load(new String(config), SensorParserConfig.class);
+    SensorParserConfig ret = JSONUtils.INSTANCE.load(new String(config, StandardCharsets.UTF_8), SensorParserConfig.class);
     ret.init();
     return ret;
   }

@@ -132,7 +132,7 @@ component and Apache Kafka as the unified data bus.
 
 Some high level links to the relevant subparts of the architecture, for
 more information:
-* [Parsers](metron-platform/metron-parsers-common) : Parsing data from kafka into the Metron data model and passing it downstream to Enrichment.  
+* [Parsers](metron-platform/metron-parsing) : Parsing data from kafka into the Metron data model and passing it downstream to Enrichment.
 * [Enrichment](metron-platform/metron-enrichment) : Enriching data post-parsing and providing the ability to tag a message as an alert and assign a risk triage level via a custom rule language.
 * [Indexing](metron-platform/metron-indexing) : Indexing the data post-enrichment into HDFS, Elasticsearch or Solr.
 
@@ -146,4 +146,4 @@ Some useful utilities that cross all of these parts of the architecture:
 In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
 it is necessary to add an additional field to the templates and mapping for existing sensors.
 
-Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](./metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
+Please see a description of the steps necessary to make this change in metron-elasticsearch [Using Metron with Elasticsearch 5.6](./metron-platform/metron-elasticsearch/metron-elasticsearch-common#using-metron-with-elasticsearch-56)

@@ -18,6 +18,7 @@
 package org.apache.metron.management;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.ParserRunnerImpl;
@@ -76,7 +77,7 @@ public class StellarParserRunner {
         // parse each message
         List<ParserRunnerResults<JSONObject>> results = messages
                 .stream()
-                .map(str -> str.getBytes())
+                .map(str -> str.getBytes(StandardCharsets.UTF_8))
                 .map(bytes -> DEFAULT.get(emptyMap(), bytes, false, emptyMap()))
                 .map(msg -> runner.execute(sensorType, msg, parserConfigurations))
                 .collect(Collectors.toList());
@@ -101,12 +102,13 @@ public class StellarParserRunner {
     }
 
     public StellarParserRunner withParserConfiguration(String sensorConfig) {
-        parserConfigurations = create(sensorConfig.getBytes());
+        parserConfigurations = create(sensorConfig.getBytes(StandardCharsets.UTF_8));
         return this;
     }
 
     public StellarParserRunner withParserConfiguration(Map<String, Object> config) {
-        parserConfigurations = create(new JSONObject(config).toJSONString().getBytes());
+        parserConfigurations = create(new JSONObject(config).toJSONString().getBytes(
+            StandardCharsets.UTF_8));
         return this;
     }
 

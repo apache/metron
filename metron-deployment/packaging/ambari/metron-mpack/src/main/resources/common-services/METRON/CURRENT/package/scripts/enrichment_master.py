@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import metron_security
+import metron_service
+from enrichment_commands import EnrichmentCommands
+from metron_security import storm_security_setup
 from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script import Script
-from resource_management.core.logger import Logger
 
-from enrichment_commands import EnrichmentCommands
-from metron_security import storm_security_setup
-import metron_service
-import metron_security
 
 class Enrichment(Script):
 
@@ -38,15 +38,10 @@ class Enrichment(Script):
         env.set_params(params)
 
         Logger.info("Running enrichment configure")
-        File(format("{metron_config_path}/enrichment-splitjoin.properties"),
-             content=Template("enrichment-splitjoin.properties.j2"),
+        File(format("{metron_config_path}/enrichment.properties"),
+             content=Template("enrichment.properties.j2"),
              owner=params.metron_user,
              group=params.metron_group)
-
-        File(format("{metron_config_path}/enrichment-unified.properties"),
-            content=Template("enrichment-unified.properties.j2"),
-            owner=params.metron_user,
-            group=params.metron_group)
 
         if not metron_service.is_zk_configured(params):
             metron_service.init_zk_config(params)

@@ -18,6 +18,7 @@
 package org.apache.metron.management;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
@@ -346,22 +347,22 @@ public class ConfigurationFunctions {
         try {
 
           if(GLOBAL == type) {
-            writeGlobalConfigToZookeeper(value.getBytes(), client);
+            writeGlobalConfigToZookeeper(value.getBytes(StandardCharsets.UTF_8), client);
 
           } else if(PROFILER == type) {
-            writeProfilerConfigToZookeeper(value.getBytes(), client);
+            writeProfilerConfigToZookeeper(value.getBytes(StandardCharsets.UTF_8), client);
 
           } else if(ENRICHMENT == type) {
             String sensor = getArg(2, String.class, args);
-            writeSensorEnrichmentConfigToZookeeper(sensor, value.getBytes(), client);
+            writeSensorEnrichmentConfigToZookeeper(sensor, value.getBytes(StandardCharsets.UTF_8), client);
 
           } else if(INDEXING == type) {
             String sensor = getArg(2, String.class, args);
-            writeSensorIndexingConfigToZookeeper(sensor, value.getBytes(), client);
+            writeSensorIndexingConfigToZookeeper(sensor, value.getBytes(StandardCharsets.UTF_8), client);
 
           } else if (PARSER == type) {
             String sensor = getArg(2, String.class, args);
-            writeSensorParserConfigToZookeeper(sensor, value.getBytes(), client);
+            writeSensorParserConfigToZookeeper(sensor, value.getBytes(StandardCharsets.UTF_8), client);
           }
 
         } catch(Exception e) {

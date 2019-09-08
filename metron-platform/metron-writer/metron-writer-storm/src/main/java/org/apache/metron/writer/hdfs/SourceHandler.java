@@ -21,6 +21,7 @@ package org.apache.metron.writer.hdfs;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -32,17 +33,17 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.utils.LazyLogger;
+import org.apache.metron.common.utils.LazyLoggerFactory;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SourceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final LazyLogger LOG = LazyLoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   List<RotationAction> rotationActions = new ArrayList<>();
   FileRotationPolicy rotationPolicy;
   SyncPolicy syncPolicy;
@@ -69,7 +70,7 @@ public class SourceHandler {
 
 
   protected void handle(JSONObject message, String sensor, WriterConfiguration config, SyncPolicyCreator syncPolicyCreator) throws IOException {
-    byte[] bytes = (message.toJSONString() + "\n").getBytes();
+    byte[] bytes = (message.toJSONString() + "\n").getBytes(StandardCharsets.UTF_8);
     synchronized (this.writeLock) {
       try {
         out.write(bytes);
@@ -156,7 +157,7 @@ public class SourceHandler {
     // never be data that would go into a rotation > 0. Instead a new SourceHandler, and by extension file, will
     // be created.
     Path path = new Path(this.fileNameFormat.getPath(), this.fileNameFormat.getName(0, System.currentTimeMillis()));
-    LOG.debug("Creating new output file: {}", path.getName());
+    LOG.debug("Creating new output file: {}", () -> path.getName());
     if(fs.getScheme().equals("file")) {
       //in the situation where we're running this in a local filesystem, flushing doesn't work.
       fs.mkdirs(path.getParent());

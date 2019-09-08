@@ -17,6 +17,7 @@
  */
 import {Component, Input, EventEmitter, Output, OnInit} from '@angular/core';
 import {RiskLevelRule} from '../../../model/risk-level-rule';
+import {StellarService} from '../../../service/stellar.service';
 
 @Component({
   selector: 'metron-config-sensor-rule-editor',
@@ -31,19 +32,36 @@ export class SensorRuleEditorComponent implements OnInit {
   @Output() onCancelTextEditor: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onSubmitTextEditor: EventEmitter<RiskLevelRule> = new EventEmitter<RiskLevelRule>();
   newRiskLevelRule = new RiskLevelRule();
+  isScoreValid = true;
+  isRuleValid = true;
 
-  constructor() { }
+  constructor(private stellarService: StellarService) { }
 
   ngOnInit() {
     Object.assign(this.newRiskLevelRule, this.riskLevelRule);
   }
 
   onSave(): void {
-    this.onSubmitTextEditor.emit(this.newRiskLevelRule);
+    const score = this.newRiskLevelRule.score;
+    const rule = this.newRiskLevelRule.rule;
+    this.stellarService.validateRules([rule, score]).subscribe((response) => {
+      this.isScoreValid = !!response[score];
+      this.isRuleValid = !!response[rule];
+      if (this.isRuleValid && this.isScoreValid) {
+        this.onSubmitTextEditor.emit(this.newRiskLevelRule);
+      }
+    });
   }
 
   onCancel(): void {
     this.onCancelTextEditor.emit(true);
   }
 
+  onRuleChange = () => {
+    this.isRuleValid = true;
+  }
+
+  onScoreChange = () => {
+    this.isScoreValid = true;
+  }
 }

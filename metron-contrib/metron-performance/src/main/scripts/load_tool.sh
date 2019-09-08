@@ -30,7 +30,7 @@ fi
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export CLASSNAME="org.apache.metron.performance.load.LoadGenerator"
-export GEN_JAR=${project.artifactId}-$METRON_VERSION.jar
+export GEN_JAR=${project.artifactId}-$METRON_VERSION-uber.jar
 export PARSERS_JAR=metron-parsers-$METRON_VERSION-uber.jar
 
 java -cp $METRON_HOME/lib/$GEN_JAR:$METRON_HOME/lib/$PARSERS_JAR $CLASSNAME "$@"

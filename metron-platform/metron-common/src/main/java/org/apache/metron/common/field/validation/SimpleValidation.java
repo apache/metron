@@ -52,6 +52,9 @@ public abstract class SimpleValidation implements FieldValidation, Predicate<Lis
 
   @Override
   public boolean test(List<Object> input) {
+    if(input.isEmpty()) {
+      return false;
+    }
     Predicate<Object> predicate = getPredicate();
     for(Object o : input) {
       if(o == null || !predicate.test(o)){
