@@ -20,7 +20,7 @@ package org.apache.metron.spout.pcap.deserializer;
 
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 public class FromKeyDeserializerTest {

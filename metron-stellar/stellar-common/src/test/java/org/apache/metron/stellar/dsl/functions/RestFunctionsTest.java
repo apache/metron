@@ -32,9 +32,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.metron.stellar.dsl.Context;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
@@ -50,7 +50,7 @@ import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.apache.metron.stellar.dsl.functions.RestConfig.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -72,7 +72,7 @@ public class RestFunctionsTest {
   private File proxyBasicAuthPasswordFile;
   private String proxyAuthPassword = "proxyPassword";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)

@@ -17,9 +17,9 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -69,9 +69,9 @@ import org.apache.metron.rest.model.pcap.QueryPcapOptions;
 import org.apache.metron.rest.model.pcap.QueryPcapRequest;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -182,7 +182,7 @@ public class PcapServiceImplTest {
   MockPcapJobSupplier mockPcapJobSupplier;
   PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     environment = mock(Environment.class);
     configuration = new Configuration();

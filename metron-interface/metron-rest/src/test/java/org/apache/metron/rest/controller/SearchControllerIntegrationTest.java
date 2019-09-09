@@ -40,9 +40,9 @@ import org.apache.metron.rest.service.AlertsUIService;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.json.simple.parser.ParseException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -99,7 +99,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   private String user = "user";
   private String password = "password";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     ImmutableMap<String, String> testData = ImmutableMap.of(
@@ -111,7 +111,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
     loadFacetCounts();
   }
 
-  @After
+  @AfterEach
   public void cleanup() throws Exception {
     InMemoryDao.clear();
   }

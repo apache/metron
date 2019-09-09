@@ -26,7 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.File;

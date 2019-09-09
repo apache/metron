@@ -19,7 +19,7 @@
 package org.apache.metron.indexing.dao;
 
 import org.apache.metron.indexing.dao.update.UpdateDao;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * This class returns the HBaseDao implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a
@@ -29,7 +29,7 @@ public class HBaseDaoTest extends UpdateDaoTest{
 
   private HBaseDao dao;
 
-  @Before
+  @BeforeEach
   public void setup() {
     dao = new HBaseDao();
   }

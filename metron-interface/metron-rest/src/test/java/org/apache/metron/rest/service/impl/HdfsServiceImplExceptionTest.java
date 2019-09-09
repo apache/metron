@@ -22,9 +22,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.HdfsService;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -47,7 +47,7 @@ public class HdfsServiceImplExceptionTest {
     private HdfsService hdfsService;
     private String testDir = "./target/hdfsUnitTest";
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         configuration = new Configuration();
         hdfsService = new HdfsServiceImpl(configuration);

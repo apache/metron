@@ -20,13 +20,13 @@
 package org.apache.metron.profiler.client.stellar;
 
 import org.apache.commons.lang3.Range;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class IntervalPredicateTest {
   @Test
@@ -37,11 +37,11 @@ public class IntervalPredicateTest {
       add(Range.between(40L, 50L));
     }};
     IntervalPredicate<Long> predicate = new IntervalPredicate.Identity(intervals);
-    Assert.assertTrue(predicate.test(0L));
-    Assert.assertTrue(predicate.test(10L));
-    Assert.assertTrue(predicate.test(5L));
-    Assert.assertFalse(predicate.test(51L));
-    Assert.assertFalse(predicate.test(15L));
+    assertTrue(predicate.test(0L));
+    assertTrue(predicate.test(10L));
+    assertTrue(predicate.test(5L));
+    assertFalse(predicate.test(51L));
+    assertFalse(predicate.test(15L));
   }
 
   @Test
@@ -52,14 +52,14 @@ public class IntervalPredicateTest {
       add(Range.between(40L, 50L));
     }};
     IntervalPredicate<Long> predicate = new IntervalPredicate.Identity(intervals);
-    Assert.assertTrue(predicate.test(0L));
-    Assert.assertTrue(predicate.test(5L));
-    Assert.assertTrue(predicate.test(30L));
-    Assert.assertTrue(predicate.test(10L));
-    Assert.assertFalse(predicate.test(51L));
-    Assert.assertTrue(predicate.test(15L));
-    Assert.assertFalse(predicate.test(31L));
-    Assert.assertTrue(predicate.test(45L));
+    assertTrue(predicate.test(0L));
+    assertTrue(predicate.test(5L));
+    assertTrue(predicate.test(30L));
+    assertTrue(predicate.test(10L));
+    assertFalse(predicate.test(51L));
+    assertTrue(predicate.test(15L));
+    assertFalse(predicate.test(31L));
+    assertTrue(predicate.test(45L));
   }
 
   @Test
@@ -68,11 +68,11 @@ public class IntervalPredicateTest {
       add(Range.between(0L, 10L));
     }};
     IntervalPredicate<Long> predicate = new IntervalPredicate.Identity(intervals);
-    Assert.assertTrue(predicate.test(0L));
-    Assert.assertTrue(predicate.test(5L));
-    Assert.assertTrue(predicate.test(10L));
-    Assert.assertFalse(predicate.test(51L));
-    Assert.assertFalse(predicate.test(15L));
+    assertTrue(predicate.test(0L));
+    assertTrue(predicate.test(5L));
+    assertTrue(predicate.test(10L));
+    assertFalse(predicate.test(51L));
+    assertFalse(predicate.test(15L));
   }
 
   @Test
@@ -81,9 +81,9 @@ public class IntervalPredicateTest {
       add(Range.between(10L, 10L));
     }};
     IntervalPredicate<Long> predicate = new IntervalPredicate.Identity(intervals);
-    Assert.assertFalse(predicate.test(0L));
-    Assert.assertFalse(predicate.test(5L));
-    Assert.assertTrue(predicate.test(10L));
-    Assert.assertFalse(predicate.test(11L));
+    assertFalse(predicate.test(0L));
+    assertFalse(predicate.test(5L));
+    assertTrue(predicate.test(10L));
+    assertFalse(predicate.test(11L));
   }
 }

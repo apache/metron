@@ -30,8 +30,8 @@ import org.apache.metron.statistics.OnlineStatisticsProvider;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -40,14 +40,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the KafkaDestinationHandler.
@@ -75,7 +70,7 @@ public class KafkaEmitterTest {
   private ProfileConfig profile;
   private OutputCollector collector;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     kafkaEmitter = new KafkaEmitter();
     profile = createDefinition(profileDefinitionWithTriage);
@@ -86,7 +81,7 @@ public class KafkaEmitterTest {
    * The handler should emit a message when a result/triage expression(s) has been defined.
    */
   @Test
-  public void testEmit() throws Exception {
+  public void testEmit() {
 
     // create a measurement that has triage values
     ProfileMeasurement measurement = new ProfileMeasurement()
@@ -107,7 +102,7 @@ public class KafkaEmitterTest {
    * The handler should NOT emit a message when there is NO result/triage value(s).
    */
   @Test
-  public void testDoNotEmit() throws Exception {
+  public void testDoNotEmit() {
 
     // create a measurement with NO triage values
     ProfileMeasurement measurement = new ProfileMeasurement()
@@ -127,7 +122,7 @@ public class KafkaEmitterTest {
    * Validate that the message generated for Kafka should include the triage value.
    */
   @Test
-  public void testTriageValueInMessage() throws Exception {
+  public void testTriageValueInMessage() {
 
     // create a measurement that has triage values
     ProfileMeasurement measurement = new ProfileMeasurement()
@@ -159,7 +154,7 @@ public class KafkaEmitterTest {
    * Validate that the message generated for Kafka can include multiple triage values.
    */
   @Test
-  public void testMultipleTriageValueInMessage() throws Exception {
+  public void testMultipleTriageValueInMessage() {
 
     // multiple triage values have been defined
     Map<String, Object> triageValues = ImmutableMap.of(
@@ -190,7 +185,7 @@ public class KafkaEmitterTest {
    * that can result from a triage expression.  Only primitive types and Strings are allowed.
    */
   @Test
-  public void testInvalidType() throws Exception {
+  public void testInvalidType() {
 
     // create one invalid expression and one valid expression
     Map<String, Object> triageValues = ImmutableMap.of(
@@ -231,7 +226,7 @@ public class KafkaEmitterTest {
    * that can result from a triage expression.  Only primitive types and Strings are allowed.
    */
   @Test
-  public void testIntegerIsValidType() throws Exception {
+  public void testIntegerIsValidType() {
 
     // create a measurement with a triage value that is an integer
     ProfileMeasurement measurement = new ProfileMeasurement()
@@ -254,7 +249,7 @@ public class KafkaEmitterTest {
    * that can result from a triage expression.  Only primitive types and Strings are allowed.
    */
   @Test
-  public void testStringIsValidType() throws Exception {
+  public void testStringIsValidType() {
 
     // create a measurement with a triage value that is a string
     ProfileMeasurement measurement = new ProfileMeasurement()

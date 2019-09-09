@@ -19,7 +19,7 @@
 package org.apache.metron.job.manager;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,9 +37,9 @@ import org.apache.metron.job.JobStatus.State;
 import org.apache.metron.job.Pageable;
 import org.apache.metron.job.Statusable;
 import org.apache.metron.job.Statusable.JobType;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -68,7 +68,7 @@ public class InMemoryJobManagerTest {
   private String emptyJobId;
   private String basePath;
 
-  @Before
+  @BeforeEach
   public void setup() throws JobException {
     MockitoAnnotations.initMocks(this);
     jm = new InMemoryJobManager<Path>();

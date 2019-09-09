@@ -22,16 +22,16 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class CachingStellarProcessorTest {
 
@@ -45,7 +45,7 @@ public class CachingStellarProcessorTest {
   private Cache<CachingStellarProcessor.Key, Object> cache;
   private Context contextWithCache;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     // create the cache

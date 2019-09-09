@@ -23,7 +23,7 @@ import static org.apache.metron.common.configuration.writer.ConfigurationsStrate
 import static org.apache.metron.common.configuration.writer.ConfigurationsStrategies.PARSERS;
 import static org.apache.metron.common.configuration.writer.ConfigurationsStrategies.PROFILER;
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.IndexingConfigurations;
@@ -35,8 +35,8 @@ import org.apache.metron.common.zookeeper.configurations.IndexingUpdater;
 import org.apache.metron.common.zookeeper.configurations.ParserUpdater;
 import org.apache.metron.common.zookeeper.configurations.ProfilerUpdater;
 import org.apache.metron.common.zookeeper.configurations.Reloadable;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -47,7 +47,7 @@ public class ConfigurationsStrategiesTest {
   @Mock
   private Reloadable reloadable;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
   }

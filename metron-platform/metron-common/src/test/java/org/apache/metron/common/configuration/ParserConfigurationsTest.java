@@ -21,14 +21,14 @@ package org.apache.metron.common.configuration;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ParserConfigurationsTest {
 

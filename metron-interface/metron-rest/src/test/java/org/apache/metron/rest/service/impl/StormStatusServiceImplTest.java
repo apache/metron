@@ -24,9 +24,9 @@ import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.model.TopologySummary;
 import org.apache.metron.rest.service.SensorParserGroupService;
 import org.apache.metron.rest.service.StormStatusService;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
@@ -39,7 +39,7 @@ import java.util.Map;
 import static org.apache.metron.rest.MetronRestConstants.STORM_UI_SPRING_PROPERTY;
 import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_SUMMARY_URL;
 import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_URL;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,7 +57,7 @@ public class StormStatusServiceImplTest {
   StormStatusService stormStatusService;
   SensorParserGroupService sensorParserGroupService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     environment = mock(Environment.class);
     restTemplate = mock(RestTemplate.class);

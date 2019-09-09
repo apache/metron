@@ -24,7 +24,7 @@ import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;

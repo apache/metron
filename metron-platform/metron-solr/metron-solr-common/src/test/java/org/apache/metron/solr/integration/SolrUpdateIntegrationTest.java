@@ -30,12 +30,12 @@ import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.common.SolrException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   @Rule
@@ -56,13 +56,13 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   private static final String TABLE_NAME = "modifications";
   private static final String CF = "p";
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBeforeClass() throws Exception {
     solrComponent = new SolrComponent.Builder().build();
     solrComponent.start();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     solrComponent.addCollection(SENSOR_NAME, "./src/test/resources/config/test/conf");
     solrComponent.addCollection("error", "./src/main/config/schema/error");
@@ -86,12 +86,12 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     setDao(dao);
   }
 
-  @After
+  @AfterEach
   public void reset() {
     solrComponent.reset();
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     SolrClientFactory.close();
     solrComponent.stop();

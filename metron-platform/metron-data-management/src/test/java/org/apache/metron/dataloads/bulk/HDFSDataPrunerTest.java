@@ -22,9 +22,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Level;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,9 +33,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 
@@ -48,7 +48,7 @@ public class HDFSDataPrunerTest {
     private Date yesterday = new Date();
 
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() throws Exception {
 
         if (dataPath.isDirectory()) {
@@ -64,7 +64,7 @@ public class HDFSDataPrunerTest {
     }
 
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
 
         Calendar today = Calendar.getInstance();

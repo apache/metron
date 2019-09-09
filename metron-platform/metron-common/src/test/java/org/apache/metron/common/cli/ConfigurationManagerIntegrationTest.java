@@ -26,7 +26,7 @@ import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
 import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 import static org.apache.metron.common.utils.StringUtils.stripLines;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
@@ -56,10 +56,10 @@ import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.utils.TestUtils;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ConfigurationManagerIntegrationTest {
   private TestingServer testZkServer;
@@ -89,7 +89,7 @@ public class ConfigurationManagerIntegrationTest {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
@@ -787,7 +787,7 @@ public class ConfigurationManagerIntegrationTest {
   }
 
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     client.close();
     testZkServer.close();

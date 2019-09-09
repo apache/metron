@@ -18,7 +18,7 @@
 package org.apache.metron.enrichment.adapters.threatintel;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ThreatIntelConfigTest {
 

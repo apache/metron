@@ -17,7 +17,7 @@
  */
 package org.apache.metron.dataloads.nonbulk.geo;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import org.apache.commons.cli.CommandLine;
@@ -29,9 +29,9 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.utils.CompressionStrategies;
 import org.apache.metron.integration.utils.TestUtils;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
@@ -48,7 +48,7 @@ public class MaxmindDbEnrichmentLoaderTest {
   private File remoteDir;
   private File tmpDir;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
       testFolder.create();
       remoteDir = testFolder.newFolder("remoteDir");

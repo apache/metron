@@ -25,13 +25,11 @@ import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.MessageRoute;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests the {@link MessageRouterFunction}.
@@ -67,12 +65,9 @@ public class MessageRouterFunctionTest {
     Assert.assertEquals("profile1", routes.get(0).getProfileDefinition().getProfile());
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testWithSystemTime() throws Exception {
-    MessageRouterFunction function = new MessageRouterFunction(profileWithSystemTime(), getGlobals());
-    Iterator<MessageRoute> iter = function.call(goodMessage);
-
-    Assert.fail("Exception expected as system time is not supported.");
+  @Test
+  public void testWithSystemTime() {
+    assertThrows(IllegalStateException.class, () -> new MessageRouterFunction(profileWithSystemTime(), getGlobals()));
   }
 
   @Test

@@ -30,9 +30,9 @@ import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 import static org.mockito.Mockito.*;
 
@@ -52,7 +52,7 @@ public class SourceHandlerTest {
 
   SourceHandlerCallback callback = mock(SourceHandlerCallback.class);
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     // Ensure each test has a unique folder to work with.
     folder = tempFolder.newFolder();

@@ -34,9 +34,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class GeoEnrichmentFunctionsTest {
   private static Context context;
@@ -72,7 +72,7 @@ public class GeoEnrichmentFunctionsTest {
 
   private static JSONObject expectedSubsetMessage;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupOnce() throws ParseException {
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
@@ -83,7 +83,7 @@ public class GeoEnrichmentFunctionsTest {
     geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG
             , () -> ImmutableMap.of(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath())

@@ -33,12 +33,12 @@ import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.json.simple.JSONObject;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -50,11 +50,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
@@ -66,7 +66,7 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
     private ElasticsearchBulkDocumentWriter<Document> writer;
     private ElasticsearchRetrieveLatestDao retrieveDao;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupElasticsearch() throws Exception {
         AccessConfig accessConfig = new AccessConfig();
         accessConfig.setGlobalConfigSupplier(() -> globals());
@@ -79,14 +79,14 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
         elasticsearch.start();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownElasticsearch() {
         if(elasticsearch != null) {
             elasticsearch.stop();
         }
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         client = ElasticsearchClientFactory.create(globals());
         retrieveDao = new ElasticsearchRetrieveLatestDao(client);
@@ -103,7 +103,7 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
         assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.equalTo(200));
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws IOException {
         if(client != null) {
             client.close();

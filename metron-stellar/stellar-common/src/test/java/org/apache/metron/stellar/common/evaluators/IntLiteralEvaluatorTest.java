@@ -20,12 +20,12 @@ package org.apache.metron.stellar.common.evaluators;
 
 import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -38,7 +38,7 @@ public class IntLiteralEvaluatorTest {
   NumberEvaluator<StellarParser.IntLiteralContext> evaluator;
   StellarParser.IntLiteralContext context;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     evaluator = new IntLiteralEvaluator();
     context = mock(StellarParser.IntLiteralContext.class);

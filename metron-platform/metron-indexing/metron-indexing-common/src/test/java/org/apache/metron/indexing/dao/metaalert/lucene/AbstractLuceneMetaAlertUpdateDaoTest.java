@@ -27,10 +27,10 @@ import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertStatus.ACTIVE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertStatus.INACTIVE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -65,9 +65,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -79,7 +79,7 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
   @Mock
   IndexDao indexDao;
 
-  @Before
+  @BeforeEach
   public void setup() {
     dao = new TestLuceneMetaAlertUpdateDao();
   }

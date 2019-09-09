@@ -19,10 +19,10 @@
 package org.apache.metron.job;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import org.apache.metron.job.JobStatus.State;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JobStatusTest {
 

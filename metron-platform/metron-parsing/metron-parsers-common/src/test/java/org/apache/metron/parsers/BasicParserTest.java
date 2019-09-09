@@ -20,7 +20,7 @@ package org.apache.metron.parsers;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,9 +34,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 public class BasicParserTest {
@@ -84,7 +84,7 @@ public class BasicParserTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException, InterruptedException {
     tempFolder.create();
     parserWithCharset = new SomeParserWithCharset();

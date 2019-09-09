@@ -18,7 +18,7 @@
 package org.apache.storm.kafka.spout.internal;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 

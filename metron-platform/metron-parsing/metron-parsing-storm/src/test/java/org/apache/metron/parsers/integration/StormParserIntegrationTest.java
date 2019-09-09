@@ -21,7 +21,7 @@ import java.util.List;
 import org.apache.metron.parsers.integration.validation.ParserDriver;
 import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 import org.apache.metron.parsers.integration.validation.StormParserDriver;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;

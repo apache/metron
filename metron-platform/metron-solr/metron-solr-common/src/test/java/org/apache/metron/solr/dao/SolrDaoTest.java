@@ -38,9 +38,9 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.solr.client.solrj.SolrClient;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -61,7 +61,7 @@ public class SolrDaoTest {
   private SolrDao solrDao;
 
   @SuppressWarnings("unchecked")
-  @Before
+  @BeforeEach
   public void setUp() {
     client = mock(SolrClient.class);
     solrSearchDao = mock(SolrSearchDao.class);

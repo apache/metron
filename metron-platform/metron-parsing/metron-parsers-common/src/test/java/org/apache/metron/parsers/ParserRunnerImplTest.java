@@ -53,9 +53,9 @@ import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -117,7 +117,7 @@ public class ParserRunnerImplTest {
   private ParserRunnerImpl parserRunner;
 
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     parserConfigurations = new ParserConfigurations();
     SensorParserConfig broConfig = SensorParserConfig.fromBytes(broConfigString.getBytes(

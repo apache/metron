@@ -26,41 +26,42 @@ import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+import org.apache.metron.common.utils.SerDeUtils;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.runners.Parameterized;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the statistical summary functions of Stellar.
  */
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
+
 public class StellarStatisticsFunctionsTest {
 
   private List<Double> values;
   private Map<String, Object> variables;
   private DescriptiveStatistics stats;
   private SummaryStatistics summaryStats;
-  private int windowSize;
+//  private int windowSize;
 
-  public StellarStatisticsFunctionsTest(int windowSize) {
-    this.windowSize = windowSize;
-  }
+//  public StellarStatisticsFunctionsTest(int windowSize) {
+//    this.windowSize = windowSize;
+//  }
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -146,7 +147,7 @@ public class StellarStatisticsFunctionsTest {
     return ret;
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     variables = new HashMap<>();
 
@@ -173,20 +174,20 @@ public class StellarStatisticsFunctionsTest {
     values.stream().forEach(val -> run(format("STATS_ADD (stats, %f)", val), variables));
   }
 
-  @Test(expected=ParseException.class)
-  public void testOverflow() throws Exception {
-   run(format("STATS_ADD(STATS_INIT(), %f)", (Double.MAX_VALUE + 1)), new HashMap<>());
+  @Test
+  public void testOverflow() {
+   assertThrows(ParseException.class, () -> run(format("STATS_ADD(STATS_INIT(), %f)", (Double.MAX_VALUE + 1)), new HashMap<>()));
   }
 
   @Test
-  public void ensureDeterminism() throws Exception {
+  public void ensureDeterminism() {
     for(int i = 0;i < 20;++i) {
       testMergeProviders();
     }
   }
 
   @Test
-  public void testMergeProviders() throws Exception {
+  public void testMergeProviders() {
     List<StatisticsProvider> providers = new ArrayList<>();
     /*
     Create 10 providers, each with a sample drawn from a gaussian distribution.
@@ -224,8 +225,9 @@ public class StellarStatisticsFunctionsTest {
 
   }
 
-  @Test
-  public void testAddAllManyIntegers() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testAddAllManyIntegers(int windowSize) {
     statsInit(windowSize);
     Object result = run("STATS_COUNT(stats)", variables);
     double countAtStart = (double) result;
@@ -236,8 +238,9 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(countAtStart + 5.0, (double) actual, 0.1);
   }
 
-  @Test
-  public void testAddManyIntegers() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testAddManyIntegers(int windowSize) {
     statsInit(windowSize);
     Object result = run("STATS_COUNT(stats)", variables);
     double countAtStart = (double) result;
@@ -248,8 +251,9 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(countAtStart + 5.0, (double) actual, 0.1);
   }
 
-  @Test
-  public void testAllManyFloat() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testAllManyFloat(int windowSize) {
     statsInit(windowSize);
     Object result = run("STATS_COUNT(stats)", variables);
     double countAtStart = (double) result;
@@ -260,8 +264,9 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(countAtStart + 5.0, (double) actual, 0.1);
   }
 
-  @Test
-  public void testAddManyFloats() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testAddManyFloats(int windowSize) {
     statsInit(windowSize);
     Object result = run("STATS_COUNT(stats)", variables);
     double countAtStart = (double) result;
@@ -272,22 +277,25 @@ public class StellarStatisticsFunctionsTest {
     assertEquals(countAtStart + 5.0, (double) actual, 0.1);
   }
 
-  @Test
-  public void testCount() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCount(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_COUNT(stats)", variables);
     assertEquals(stats.getN(), (double) actual, 0.1);
   }
 
-  @Test
-  public void testMean() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testMean(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_MEAN(stats)", variables);
     assertEquals(stats.getMean(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testGeometricMean() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testGeometricMean(int windowSize) {
     if(windowSize > 0) {
       statsInit(windowSize);
       Object actual = run("STATS_GEOMETRIC_MEAN(stats)", variables);
@@ -295,43 +303,49 @@ public class StellarStatisticsFunctionsTest {
     }
   }
 
-  @Test
-  public void testMax() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testMax(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_MAX(stats)", variables);
     assertEquals(stats.getMax(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testMin() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testMin(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_MIN(stats)", variables);
     assertEquals(stats.getMin(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testSum() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSum(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_SUM(stats)", variables);
     assertEquals(stats.getSum(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testStandardDeviation() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testStandardDeviation(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_SD(stats)", variables);
     assertEquals(stats.getStandardDeviation(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testVariance() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testVariance(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_VARIANCE(stats)", variables);
     assertEquals(stats.getVariance(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testPopulationVariance() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testPopulationVariance(int windowSize) {
     if(windowSize > 0) {
       statsInit(windowSize);
       Object actual = run("STATS_POPULATION_VARIANCE(stats)", variables);
@@ -339,8 +353,9 @@ public class StellarStatisticsFunctionsTest {
     }
   }
 
-  @Test
-  public void testQuadraticMean() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testQuadraticMean(int windowSize) {
     if(windowSize > 0) {
       statsInit(windowSize);
       Object actual = run("STATS_QUADRATIC_MEAN(stats)", variables);
@@ -348,35 +363,40 @@ public class StellarStatisticsFunctionsTest {
     }
   }
 
-  @Test
-  public void testSumLogsNoWindow() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSumLogsNoWindow() {
     statsInit(0);
     Object actual = run("STATS_SUM_LOGS(stats)", variables);
     assertEquals(summaryStats.getSumOfLogs(), (Double) actual, 0.1);
   }
 
-  @Test(expected = ParseException.class)
-  public void testSumLogsWithWindow() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSumLogsWithWindow() {
     statsInit(100);
-    run("STATS_SUM_LOGS(stats)", variables);
+    assertThrows(ParseException.class, () -> run("STATS_SUM_LOGS(stats)", variables));
   }
 
-  @Test
-  public void testSumSquares() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSumSquares(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_SUM_SQUARES(stats)", variables);
     assertEquals(stats.getSumsq(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testKurtosis() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testKurtosis(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_KURTOSIS(stats)", variables);
     assertEquals(stats.getKurtosis(), (Double) actual, 0.1);
   }
 
-  @Test
-  public void testSkewness() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testSkewness(int windowSize) {
     statsInit(windowSize);
     Object actual = run("STATS_SKEWNESS(stats)", variables);
     assertEquals(stats.getSkewness(), (Double) actual, 0.1);
@@ -389,8 +409,9 @@ public class StellarStatisticsFunctionsTest {
    * since the numbers are sorted, the bin will increase at the percentile boundaries, thus we have 
    * the expected bin without recreating the computation in the STATS_BIN function.
    **/
-  @Test
-  public void testStatsBin() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testStatsBin(int windowSize) {
     statsInit(windowSize);
     statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.QUARTILE.split);
     statsBinRunner(StellarStatisticsFunctions.StatsBin.BinSplits.QUARTILE.split, "'QUARTILE'");
@@ -399,8 +420,9 @@ public class StellarStatisticsFunctionsTest {
     statsBinRunner(ImmutableList.of(25.0, 50.0, 75.0), "[25.0, 50.0, 75.0]");
   }
 
-  @Test
-  public void testStatsBin_singleValue() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testStatsBin_singleValue(int windowSize) {
     StatisticsProvider provider = (StatisticsProvider)run("STATS_INIT(" + windowSize + ")", variables);
     provider.addValue(10);
     variables.put("stats", provider);
@@ -409,11 +431,11 @@ public class StellarStatisticsFunctionsTest {
     Assert.assertEquals(3, run(format("STATS_BIN(stats, %f)", 11.0), variables));
   }
 
-  public void statsBinRunner(List<Number> splits) throws Exception {
+  public void statsBinRunner(List<Number> splits) {
     statsBinRunner(splits, null);
   }
 
-  public void statsBinRunner(List<Number> splits, String splitsName) throws Exception {
+  public void statsBinRunner(List<Number> splits, String splitsName) {
     int bin = 0;
     StatisticsProvider provider = (StatisticsProvider)variables.get("stats");
     for(Double d : stats.getSortedValues()) {
@@ -434,7 +456,7 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
-  public void testPercentileNoWindow() throws Exception {
+  public void testPercentileNoWindow() {
     statsInit(0);
     final double percentile = 0.9;
     Object actual = run(format("STATS_PERCENTILE(stats, %f)", percentile), variables);
@@ -442,7 +464,7 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
-  public void testPercentileWithWindow() throws Exception {
+  public void testPercentileWithWindow() {
     statsInit(100);
     final double percentile = 0.9;
     Object actual = run(format("STATS_PERCENTILE(stats, %f)", percentile), variables);
@@ -450,7 +472,7 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
-  public void testWithNull() throws Exception {
+  public void testWithNull() {
     Object actual = run("STATS_MEAN(null)", variables);
     assertTrue(((Double)actual).isNaN());
 

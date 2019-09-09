@@ -18,40 +18,27 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.validate;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.DefaultVariableResolver;
-import org.apache.metron.stellar.dsl.MapVariableResolver;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.dsl.VariableResolver;
+import org.apache.metron.stellar.dsl.*;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
+
+import java.util.*;
+
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("ALL")
 public class BasicStellarTest {
@@ -162,10 +149,10 @@ public class BasicStellarTest {
     }
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testMissingVariablesWithParse() {
     String query = "someVar";
-    run(query,new HashMap<>());
+    assertThrows(ParseException.class, () -> run(query,new HashMap<>()));
   }
 
   @Test
@@ -610,10 +597,10 @@ public class BasicStellarTest {
     Collection c = new ArrayList();
     Assert.assertEquals(0,run(query,ImmutableMap.of("foo",c)));
   }
-  @Test(expected = ParseException.class)
+  @Test
   public void testNoVarLength(){
     String query = "LENGTH(foo)";
-    run(query,ImmutableMap.of());
+    assertThrows(ParseException.class, () -> run(query,ImmutableMap.of()));
   }
 
   @Test
@@ -668,9 +655,9 @@ public class BasicStellarTest {
     assertThat(result.get("foo"), equalTo("bar"));
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void mapPutTest_wrongType() throws Exception {
-    Map s = (Map) run("MAP_PUT( 'foo', 'bar', [ 'baz' ] )", new HashMap<>());
+    assertThrows(ParseException.class, () -> run("MAP_PUT( 'foo', 'bar', [ 'baz' ] )", new HashMap<>()));
   }
 
   @Test
@@ -737,9 +724,9 @@ public class BasicStellarTest {
     assertThat(result.get("f"), equalTo("6"));
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void mapMergeTest_wrongType() throws Exception {
-    Map s = (Map) run("MAP_MERGE( [ 'foo', 'bar' ] )", new HashMap<>());
+    assertThrows(ParseException.class, () -> run("MAP_MERGE( [ 'foo', 'bar' ] )", new HashMap<>()));
   }
 
   @Test

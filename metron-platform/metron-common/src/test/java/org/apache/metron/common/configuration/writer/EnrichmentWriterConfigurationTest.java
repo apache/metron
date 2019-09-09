@@ -20,13 +20,13 @@ package org.apache.metron.common.configuration.writer;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EnrichmentWriterConfigurationTest {
 

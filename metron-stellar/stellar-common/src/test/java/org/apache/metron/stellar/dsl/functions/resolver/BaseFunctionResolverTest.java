@@ -19,7 +19,7 @@
 package org.apache.metron.stellar.dsl.functions.resolver;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -29,9 +29,9 @@ import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 public class BaseFunctionResolverTest {
@@ -114,7 +114,7 @@ public class BaseFunctionResolverTest {
 
   private TestResolver resolver;
 
-  @Before
+  @BeforeEach
   public void setup() {
     resolver = new TestResolver();
     IAmAFunction.throwException = false;

@@ -19,10 +19,10 @@ package org.apache.metron.parsers.asa;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
@@ -35,9 +35,9 @@ import org.apache.log4j.Level;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 public class BasicAsaParserTest {
@@ -45,7 +45,7 @@ public class BasicAsaParserTest {
     private static BasicAsaParser asaParser;
     private Map<String, Object> parserConfig;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         parserConfig = new HashMap<>();
         asaParser = new BasicAsaParser();

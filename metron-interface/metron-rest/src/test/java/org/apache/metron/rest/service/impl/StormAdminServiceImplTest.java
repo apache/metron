@@ -27,9 +27,9 @@ import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.rest.service.SensorParserGroupService;
 import org.apache.metron.rest.service.StormAdminService;
 import org.apache.metron.rest.service.StormStatusService;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,7 +54,7 @@ public class StormAdminServiceImplTest {
   SensorParserGroupService sensorParserGroupService;
   StormStatusService stormStatusService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     stormCLIClientWrapper = mock(StormCLIWrapper.class);
     globalConfigService = mock(GlobalConfigService.class);

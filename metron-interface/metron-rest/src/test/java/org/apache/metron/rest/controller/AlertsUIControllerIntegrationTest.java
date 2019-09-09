@@ -34,8 +34,8 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.rest.service.AlertsUIService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -135,7 +135,7 @@ public class AlertsUIControllerIntegrationTest {
   private String admin = "admin";
   private String password = "password";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     for (String user : alertsUIService.findAllAlertsUIUserSettings().keySet()) {
       alertsUIService.deleteAlertsUIUserSettings(user);

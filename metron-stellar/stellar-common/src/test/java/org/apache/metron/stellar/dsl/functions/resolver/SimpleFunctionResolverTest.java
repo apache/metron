@@ -25,8 +25,8 @@ import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ public class SimpleFunctionResolverTest {
 
   private SimpleFunctionResolver resolver;
 
-  @Before
+  @BeforeEach
   public void setup() {
     resolver = new SimpleFunctionResolver();
   }

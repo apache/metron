@@ -57,10 +57,10 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
 
@@ -185,7 +185,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
   @Multiline
   private static String customLineByLineExtractorConfig;
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() throws Exception {
     UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
     Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
@@ -289,7 +289,7 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(StandardCharsets.UTF_8), zookeeperUrl);
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() throws Exception {
     HBaseUtil.INSTANCE.teardown(testUtil);
     file1.delete();

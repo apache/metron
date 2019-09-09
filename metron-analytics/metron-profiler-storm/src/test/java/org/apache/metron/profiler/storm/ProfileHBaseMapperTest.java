@@ -26,8 +26,8 @@ import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.storm.tuple.Tuple;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +47,7 @@ public class ProfileHBaseMapperTest {
   private RowKeyBuilder rowKeyBuilder;
   private ProfileConfig profile;
 
-  @Before
+  @BeforeEach
   public void setup() {
     rowKeyBuilder = mock(RowKeyBuilder.class);
 
@@ -72,7 +72,7 @@ public class ProfileHBaseMapperTest {
    * The mapper should return the expiration for a tuple based on the Profile definition.
    */
   @Test
-  public void testExpires() throws Exception {
+  public void testExpires() {
     final Long expiresDays = 30L;
     profile.setExpires(expiresDays);
 
@@ -85,7 +85,7 @@ public class ProfileHBaseMapperTest {
    * The expiration field is optional within a Profile definition.
    */
   @Test
-  public void testExpiresUndefined() throws Exception {
+  public void testExpiresUndefined() {
     // the TTL should not be defined
     Optional<Long> actual = mapper.getTTL(tuple);
     Assert.assertFalse(actual.isPresent());

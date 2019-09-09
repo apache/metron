@@ -23,10 +23,12 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.integration.TestZKServer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class BatchProfilerZKIntegrationTest {
   /**
@@ -58,7 +60,7 @@ public class BatchProfilerZKIntegrationTest {
       final ProfilerConfig profiles = BatchProfilerCLI.readProfileFromZK(zkClient);
 
       // compare expected values
-      Assert.assertEquals("Profile read from zookeeper has changes", expectedProfileConfig, profiles);
+      assertEquals(expectedProfileConfig, profiles, "Profile read from zookeeper has changes");
     });
   }
 
@@ -76,7 +78,7 @@ public class BatchProfilerZKIntegrationTest {
       final ProfilerConfig profiles = BatchProfilerCLI.readProfileFromZK(zkClient);
 
       // compare expected values
-      Assert.assertNotEquals("Profile zookeeper integration test fails to detect change", expectedProfileConfig, profiles);
+      assertNotEquals(expectedProfileConfig, profiles, "Profile zookeeper integration test fails to detect change");
     });
   }
 }

@@ -18,7 +18,7 @@
 package org.apache.metron.parsers.sourcefire;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -30,12 +30,12 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class BasicSourcefireParserTest extends AbstractParserConfigTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     inputStrings = super
         .readTestDataFromFile("src/test/resources/logData/SourcefireParserTest.txt");

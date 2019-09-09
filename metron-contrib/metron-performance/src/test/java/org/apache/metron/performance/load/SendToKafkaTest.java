@@ -19,7 +19,7 @@ package org.apache.metron.performance.load;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;

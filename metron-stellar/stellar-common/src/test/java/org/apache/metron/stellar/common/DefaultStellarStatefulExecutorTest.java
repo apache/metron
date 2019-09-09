@@ -26,9 +26,9 @@ import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolve
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,8 +37,9 @@ import java.io.ObjectOutputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests the DefaultStellarStatefulExecutor.
@@ -60,7 +61,7 @@ public class DefaultStellarStatefulExecutorTest {
   private JSONObject message;
   private DefaultStellarStatefulExecutor executor;
 
-  @Before
+  @BeforeEach
   public void setup() throws ParseException {
 
     // parse the input message
@@ -157,9 +158,9 @@ public class DefaultStellarStatefulExecutorTest {
   /**
    * An exception is expected if an expression results in an unexpected type.
    */
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testExecuteWithWrongType() {
-    executor.execute("2 + 2", message, Boolean.class);
+    assertThrows(RuntimeException.class, () -> executor.execute("2 + 2", message, Boolean.class));
   }
 
   /**

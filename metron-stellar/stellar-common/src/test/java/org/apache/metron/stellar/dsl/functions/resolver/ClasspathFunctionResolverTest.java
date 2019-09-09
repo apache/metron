@@ -25,9 +25,9 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.reflections.util.FilterBuilder;
 
 import java.io.File;
@@ -44,7 +44,7 @@ public class ClasspathFunctionResolverTest {
 
   private static List<String> expectedFunctions;
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() {
 
     // search the entire classpath for functions - provides a baseline to test against

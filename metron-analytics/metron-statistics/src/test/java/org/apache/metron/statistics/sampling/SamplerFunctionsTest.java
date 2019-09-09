@@ -24,19 +24,21 @@ import com.google.common.collect.Iterables;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class SamplerFunctionsTest {
   static List<Double> sample = new ArrayList<>();
   static List<String> sampleString = new ArrayList<>();
   static List<Sampler> samplers = new ArrayList<>();
-  @BeforeClass
+  @BeforeAll
   public static void beforeClass() {
     Random rng = new Random(0);
     int sampleSize = 1000000;
@@ -70,10 +72,10 @@ public class SamplerFunctionsTest {
     Assert.assertEquals(10, s.getSize());
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void testInvalidInit(){
     String stmt = "SAMPLE_INIT(size)";
-    Sampler s = (Sampler) StellarProcessorUtils.run(stmt, ImmutableMap.of("size", -10 ));
+    assertThrows(ParseException.class, () -> StellarProcessorUtils.run(stmt, ImmutableMap.of("size", -10 )));
   }
 
   @Test

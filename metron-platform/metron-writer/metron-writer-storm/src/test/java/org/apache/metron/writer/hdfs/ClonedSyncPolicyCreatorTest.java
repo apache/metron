@@ -21,7 +21,7 @@ package org.apache.metron.writer.hdfs;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ClonedSyncPolicyCreatorTest {
 

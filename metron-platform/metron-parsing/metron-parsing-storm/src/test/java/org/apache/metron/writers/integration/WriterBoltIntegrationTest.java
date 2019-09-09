@@ -18,7 +18,7 @@
 package org.apache.metron.writers.integration;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -58,7 +58,7 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   private ZKServerComponent zkServerComponent;

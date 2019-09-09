@@ -18,15 +18,15 @@
 package org.apache.metron.enrichment.adapters.jdbc;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MySqlConfigTest {
 
   private String sampleURL = "jdbc:mysql://10.22.0.214:3306/GEO?user=root&password=hadoop123";
   private MySqlConfig conn;
 
-  @Before
+  @BeforeEach
   public void setupJdbc() {
     conn = new MySqlConfig();
     conn.setHost("10.22.0.214");

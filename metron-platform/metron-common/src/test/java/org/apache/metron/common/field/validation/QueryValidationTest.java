@@ -25,7 +25,7 @@ import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 

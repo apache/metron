@@ -18,7 +18,7 @@
 package org.apache.metron.stellar.common.network;
 
 import com.google.common.collect.ImmutableList;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runWithArguments;

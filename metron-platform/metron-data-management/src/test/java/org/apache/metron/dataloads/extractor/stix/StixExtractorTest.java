@@ -28,8 +28,8 @@ import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
 
@@ -38,7 +38,7 @@ public class StixExtractorTest {
 
   private String stixDocWithoutCondition;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     stixDoc = Joiner.on("\n").join(IOUtils.readLines(new InputStreamReader(new FileInputStream(new File("src/test/resources/stix_example.xml")),
         StandardCharsets.UTF_8)));

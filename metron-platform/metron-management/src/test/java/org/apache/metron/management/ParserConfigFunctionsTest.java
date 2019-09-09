@@ -25,8 +25,8 @@ import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +42,7 @@ public class ParserConfigFunctionsTest {
   String existingTransformationsConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/squid.json");
   Map<String, VariableResult> variables ;
   Context context = null;
-  @Before
+  @BeforeEach
   public void setup() {
     variables = ImmutableMap.of(
             "upper" , VariableResult.withExpression("FOO", "TO_UPPER('foo')"),

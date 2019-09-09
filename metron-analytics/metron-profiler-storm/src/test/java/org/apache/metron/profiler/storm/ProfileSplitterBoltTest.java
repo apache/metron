@@ -20,32 +20,30 @@
 
 package org.apache.metron.profiler.storm;
 
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.DefaultMessageRouter;
 import org.apache.metron.profiler.clock.FixedClockFactory;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.VALUE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the ProfileSplitterBolt.
@@ -213,16 +211,14 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
   private JSONObject message;
   private long timestamp = 3333333;
 
-  @Before
+  @BeforeEach
   public void setup() throws ParseException {
-
     // parse the input message
     JSONParser parser = new JSONParser();
     message = (JSONObject) parser.parse(input);
 
     // ensure the tuple returns the expected json message
-    when(tuple.getBinaryByField(VALUE.getFieldName())).thenReturn(input.getBytes(
-        StandardCharsets.UTF_8));
+    when(tuple.getBinaryByField(VALUE.getFieldName())).thenReturn(input.getBytes(StandardCharsets.UTF_8));
   }
 
   /**
@@ -439,7 +435,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
   /**
    * Create a ProfileSplitterBolt to test
    */
-  private ProfileSplitterBolt createBolt(ProfilerConfig config) throws Exception {
+  private ProfileSplitterBolt createBolt(ProfilerConfig config) {
 
     ProfileSplitterBolt bolt = new ProfileSplitterBolt("zookeeperURL");
     bolt.setCuratorFramework(client);

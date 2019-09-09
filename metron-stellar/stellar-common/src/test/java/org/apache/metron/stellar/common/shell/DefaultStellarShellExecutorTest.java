@@ -20,8 +20,8 @@
 package org.apache.metron.stellar.common.shell;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,10 +29,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the DefaultStellarShellExecutor class.
@@ -42,7 +42,7 @@ public class DefaultStellarShellExecutorTest {
   DefaultStellarShellExecutor executor;
   boolean notified;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     Properties props = new Properties();
     executor = new DefaultStellarShellExecutor(props, Optional.empty());

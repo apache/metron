@@ -20,7 +20,6 @@
 
 package org.apache.metron.profiler.storm.integration;
 
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.Constants;
@@ -44,43 +43,24 @@ import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.storm.Config;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
-import static org.apache.metron.profiler.storm.KafkaEmitter.ALERT_FIELD;
-import static org.apache.metron.profiler.storm.KafkaEmitter.ENTITY_FIELD;
-import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_END_FIELD;
-import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_ID_FIELD;
-import static org.apache.metron.profiler.storm.KafkaEmitter.PERIOD_START_FIELD;
-import static org.apache.metron.profiler.storm.KafkaEmitter.PROFILE_FIELD;
-import static org.apache.metron.profiler.storm.KafkaEmitter.TIMESTAMP_FIELD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
+import static org.apache.metron.profiler.storm.KafkaEmitter.*;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * An integration test of the Profiler topology.
@@ -393,7 +373,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             .toJSONString();
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBeforeClass() throws UnableToStartException {
 
     // create some messages that contain a timestamp - a really old timestamp; close to 1970
@@ -478,15 +458,15 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     runner.start();
   }
 
-  @AfterClass
-  public static void tearDownAfterClass() throws Exception {
+  @AfterAll
+  public static void tearDownAfterClass() {
     MockHBaseTableProvider.clear();
     if (runner != null) {
       runner.stop();
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     // create the mock table
     profilerTable = (MockHTable) MockHBaseTableProvider.addToCache(tableName, columnFamily);
@@ -516,7 +496,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
                     .build());
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     MockHBaseTableProvider.clear();
     profilerTable.clear();

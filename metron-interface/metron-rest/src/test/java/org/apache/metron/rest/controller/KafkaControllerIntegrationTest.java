@@ -35,9 +35,9 @@ import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.rest.service.KafkaService;
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -142,7 +142,7 @@ public class KafkaControllerIntegrationTest {
   private String user = "user";
   private String password = "password";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     runner = new ComponentRunner.Builder()
             .withComponent("kafka", kafkaWithZKComponent)
@@ -280,7 +280,7 @@ public class KafkaControllerIntegrationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     runner.stop();
   }

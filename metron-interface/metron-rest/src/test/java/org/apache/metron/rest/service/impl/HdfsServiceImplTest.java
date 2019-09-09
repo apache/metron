@@ -24,10 +24,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.metron.rest.service.HdfsService;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HdfsServiceImplTest {
     @Rule
@@ -46,7 +46,7 @@ public class HdfsServiceImplTest {
     private HdfsService hdfsService;
     private String testDir = "./target/hdfsUnitTest";
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         configuration = new Configuration();
         hdfsService = new HdfsServiceImpl(configuration);
@@ -57,7 +57,7 @@ public class HdfsServiceImplTest {
         FileUtils.cleanDirectory(file);
     }
 
-    @After
+    @AfterEach
     public void teardown() throws IOException {
         File file = new File(testDir);
         FileUtils.cleanDirectory(file);

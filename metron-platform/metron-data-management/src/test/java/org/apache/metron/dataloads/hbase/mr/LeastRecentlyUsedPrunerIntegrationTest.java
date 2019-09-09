@@ -41,10 +41,10 @@ import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class LeastRecentlyUsedPrunerIntegrationTest {
     /** The test util. */
@@ -61,7 +61,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
     private static final String timeFormat = "georgia";
     private static Configuration config = null;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws Exception {
         UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
         Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true);
@@ -71,7 +71,7 @@ public class LeastRecentlyUsedPrunerIntegrationTest {
         atTable = testUtil.createTable(Bytes.toBytes(atTableName), Bytes.toBytes(atCF));
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() throws Exception {
         HBaseUtil.INSTANCE.teardown(testUtil);
     }

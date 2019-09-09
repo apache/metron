@@ -24,7 +24,7 @@ import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.utils.hashing.tlsh.TLSHHasher;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HashFunctionsTest {
   static final Hex HEX = new Hex(StandardCharsets.UTF_8);

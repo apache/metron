@@ -20,7 +20,7 @@ package org.apache.metron.pcap.pattern;
 import java.nio.charset.StandardCharsets;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 

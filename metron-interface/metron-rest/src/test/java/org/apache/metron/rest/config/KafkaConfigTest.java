@@ -17,15 +17,15 @@
  */
 package org.apache.metron.rest.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
 import org.apache.metron.rest.MetronRestConstants;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 
 public class KafkaConfigTest {
@@ -33,7 +33,7 @@ public class KafkaConfigTest {
   private Environment environment;
   private KafkaConfig kafkaConfig;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     environment = mock(Environment.class);
     kafkaConfig = new KafkaConfig(environment);

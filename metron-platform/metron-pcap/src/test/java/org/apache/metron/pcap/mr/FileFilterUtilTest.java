@@ -19,7 +19,7 @@
 package org.apache.metron.pcap.mr;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
@@ -31,14 +31,14 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.pcap.utils.FileFilterUtil;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class FileFilterUtilTest {
 
   private List<Path> filesIn;
 
-  @Before
+  @BeforeEach
   public void setup() {
     filesIn = new ArrayList<>();
     filesIn.add(new Path("/apath/pcap_pcap5_1495135372055519000_2_pcap-9-1495134910"));

@@ -30,7 +30,7 @@ import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JSONMapParserQueryTest {
 

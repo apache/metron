@@ -18,8 +18,8 @@
 package org.apache.metron.rest.config;
 
 import org.apache.metron.rest.MetronRestConstants;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -39,7 +39,7 @@ public class RestTemplateConfigTest {
   private Environment environment;
   private RestTemplateConfig restTemplateConfig;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     environment = mock(Environment.class);
     restTemplateConfig = new RestTemplateConfig(environment);

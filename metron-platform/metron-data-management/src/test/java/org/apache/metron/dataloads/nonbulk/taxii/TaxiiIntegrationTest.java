@@ -44,12 +44,12 @@ import java.util.Set;
 
 public class TaxiiIntegrationTest {
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         MockTaxiiService.start(8282);
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         MockTaxiiService.shutdown();
         MockHBaseTableProvider.clear();

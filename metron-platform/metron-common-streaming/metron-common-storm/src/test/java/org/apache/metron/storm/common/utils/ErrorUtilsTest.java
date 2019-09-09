@@ -21,7 +21,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.OutputCollector;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;

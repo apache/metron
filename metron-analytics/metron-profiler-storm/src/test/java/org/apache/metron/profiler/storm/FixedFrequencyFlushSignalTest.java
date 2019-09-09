@@ -19,10 +19,9 @@
 
 package org.apache.metron.profiler.storm;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the {@code FixedFrequencyFlushSignal} class.
@@ -180,10 +179,10 @@ public class FixedFrequencyFlushSignalTest {
     assertFalse(signal.isTimeToFlush());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testNegativeFrequency() {
     // a negative flush frequency makes no sense
-    new FixedFrequencyFlushSignal(-1000);
+    assertThrows(IllegalArgumentException.class, () -> new FixedFrequencyFlushSignal(-1000));
   }
 
   @Test

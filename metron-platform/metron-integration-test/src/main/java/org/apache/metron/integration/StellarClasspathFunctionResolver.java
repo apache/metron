@@ -25,10 +25,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -39,7 +39,7 @@ import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunction
 public class StellarClasspathFunctionResolver {
   static MRComponent component;
   static Configuration configuration;
-  @BeforeClass
+  @BeforeAll
   public static void setup() {
     component = new MRComponent().withBasePath("target");
     component.start();
@@ -54,7 +54,7 @@ public class StellarClasspathFunctionResolver {
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     component.stop();
   }

@@ -46,9 +46,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Utilities for executing and validating Stellar expressions.
@@ -173,7 +173,7 @@ public class StellarProcessorUtils {
       Object actual = in.readObject();
 
       // ensure that the round-trip was successful
-      assertEquals(msg, value, actual);
+      assertEquals(value, actual, msg);
 
     } catch(IOException | ClassNotFoundException e) {
 

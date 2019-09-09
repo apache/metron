@@ -35,8 +35,8 @@ import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +70,7 @@ public class ParserFunctionsTest {
   Context context = null;
   StellarStatefulExecutor executor;
 
-  @Before
+  @BeforeEach
   public void setup() {
     variables = new HashMap<>();
     functionResolver = new SimpleFunctionResolver()

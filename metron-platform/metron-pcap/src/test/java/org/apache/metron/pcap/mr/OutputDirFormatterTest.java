@@ -19,7 +19,7 @@
 package org.apache.metron.pcap.mr;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +27,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class OutputDirFormatterTest {
 

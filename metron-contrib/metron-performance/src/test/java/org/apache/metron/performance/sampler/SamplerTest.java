@@ -20,7 +20,7 @@ package org.apache.metron.performance.sampler;
 import com.google.common.collect.ImmutableList;
 import org.adrianwalker.multilinestring.Multiline;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sun.java2d.pipe.SpanShapeRenderer;
 
 import java.io.BufferedReader;

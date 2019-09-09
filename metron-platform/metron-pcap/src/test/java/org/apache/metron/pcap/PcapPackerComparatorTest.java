@@ -18,7 +18,7 @@
 
 package org.apache.metron.pcap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PacketPayload;
 import org.krakenapps.pcap.packet.PcapPacket;
@@ -27,8 +27,8 @@ import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PcapPackerComparatorTest {
   private static final String BASE_DATE = "July 26, 2016 8:21:13 AM UTC";

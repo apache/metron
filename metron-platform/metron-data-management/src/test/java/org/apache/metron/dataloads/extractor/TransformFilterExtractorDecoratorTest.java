@@ -25,9 +25,9 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -45,7 +45,7 @@ public class TransformFilterExtractorDecoratorTest {
   LinkedHashMap<String, Object> config1;
   TransformFilterExtractorDecorator decorator;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
     config1 = new ObjectMapper().readValue(config1Contents, LinkedHashMap.class);

@@ -27,8 +27,8 @@ import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,9 +37,7 @@ import java.util.Map;
 
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the ProfilerFunctions class.
@@ -103,7 +101,7 @@ public class ProfilerFunctionsTest {
     return executor.execute(expression, state, clazz);
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     state = new HashMap<>();
 
@@ -144,14 +142,16 @@ public class ProfilerFunctionsTest {
     assertEquals(0, profiler.getRouteCount());
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testProfilerInitNoArgs() {
-    run("PROFILER_INIT()", StandAloneProfiler.class);
+    assertThrows(ParseException.class, () -> run("PROFILER_INIT()", StandAloneProfiler.class));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testProfilerInitInvalidArg() {
-    run("PROFILER_INIT({ \"invalid\": 2 })", StandAloneProfiler.class);
+    assertThrows(
+        ParseException.class,
+        () -> run("PROFILER_INIT({ \"invalid\": 2 })", StandAloneProfiler.class));
   }
 
   @Test
@@ -272,17 +272,17 @@ public class ProfilerFunctionsTest {
     assertEquals(0, profiler.getRouteCount());
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testProfilerApplyWithNoArgs() {
-    run("PROFILER_APPLY()", StandAloneProfiler.class);
+    assertThrows(ParseException.class, () -> run("PROFILER_APPLY()", StandAloneProfiler.class));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testProfilerApplyWithInvalidArg() {
-    run("PROFILER_APPLY(undefined)", StandAloneProfiler.class);
+    assertThrows(ParseException.class, () -> run("PROFILER_APPLY(undefined)", StandAloneProfiler.class));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testProfilerApplyWithNullMessage() {
 
     // initialize the profiler
@@ -291,7 +291,7 @@ public class ProfilerFunctionsTest {
     state.put("profiler", profiler);
 
     // there is no 'messages' variable - should throw exception
-    run("PROFILER_APPLY(messages, profiler)", StandAloneProfiler.class);
+    assertThrows(ParseException.class, () -> run("PROFILER_APPLY(messages, profiler)", StandAloneProfiler.class));
   }
 
   @Test
@@ -320,13 +320,13 @@ public class ProfilerFunctionsTest {
     assertEquals(Collections.emptyList(), measurement.get("groups"));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testProfilerFlushNoArgs() {
-    run("PROFILER_FLUSH()", StandAloneProfiler.class);
+    assertThrows(ParseException.class, () -> run("PROFILER_FLUSH()", StandAloneProfiler.class));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testProfilerFlushInvalidArg() {
-    run("PROFILER_FLUSH(undefined)", StandAloneProfiler.class);
+    assertThrows(ParseException.class, () -> run("PROFILER_FLUSH(undefined)", StandAloneProfiler.class));
   }
 }

@@ -24,10 +24,12 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class OnlineStatisticsProviderTest {
 
@@ -96,19 +98,22 @@ public class OnlineStatisticsProviderTest {
     validateStatisticsProvider(aggregatedProvider, summaryStats, stats);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testOverflow() {
     OnlineStatisticsProvider statsProvider = new OnlineStatisticsProvider();
-    statsProvider.addValue(Double.MAX_VALUE + 1);
+    assertThrows(IllegalStateException.class, () -> statsProvider.addValue(Double.MAX_VALUE + 1));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testUnderflow() {
     OnlineStatisticsProvider statsProvider = new OnlineStatisticsProvider();
     double d = 3e-305;
-    for(int i = 0;i < 5;++i,d/=100000) {
-      statsProvider.addValue(d);
-    }
+//    for(int i = 0;i < 5;++i,d/=100000) {
+    assertThrows(IllegalStateException.class, () -> statsProvider.addValue(d));
+//    }
+//    for(int i = 0;i < 5;++i,d/=100000) {
+//      statsProvider.addValue(d);
+//    }
   }
 
   @Test

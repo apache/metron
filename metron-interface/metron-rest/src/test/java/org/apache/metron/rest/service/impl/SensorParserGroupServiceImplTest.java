@@ -25,9 +25,9 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.rest.service.SensorParserGroupService;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.Collection;
@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static org.apache.metron.common.configuration.ParserConfigurations.PARSER_GROUPS_CONF;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -54,7 +54,7 @@ public class SensorParserGroupServiceImplTest {
   private SensorParserConfigService sensorParserConfigService;
   private SensorParserGroupService sensorParserGroupService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     cache = mock(ConfigurationsCache.class);
     globalConfigService = mock(GlobalConfigService.class);

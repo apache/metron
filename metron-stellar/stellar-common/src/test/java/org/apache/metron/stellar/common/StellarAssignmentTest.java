@@ -20,7 +20,7 @@ package org.apache.metron.stellar.common;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.stellar.common.StellarAssignment;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class StellarAssignmentTest {
 

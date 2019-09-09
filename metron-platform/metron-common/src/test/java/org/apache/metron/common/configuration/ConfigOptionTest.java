@@ -19,20 +19,20 @@
 package org.apache.metron.common.configuration;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the default interface methods
  */
 public class ConfigOptionTest {
 
-  @Before
+  @BeforeEach
   public void setup() {
   }
 

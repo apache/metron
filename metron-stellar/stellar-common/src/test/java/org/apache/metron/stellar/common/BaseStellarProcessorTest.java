@@ -20,12 +20,12 @@ package org.apache.metron.stellar.common;
 
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("ALL")
 public class BaseStellarProcessorTest {
@@ -34,7 +34,7 @@ public class BaseStellarProcessorTest {
 
   BaseStellarProcessor<Object> processor;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     processor = new BaseStellarProcessor<>(Object.class);
   }

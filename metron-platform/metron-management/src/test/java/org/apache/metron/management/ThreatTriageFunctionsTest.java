@@ -30,8 +30,8 @@ import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ public class ThreatTriageFunctionsTest {
   Map<String, VariableResult> variables;
   Context context = null;
 
- @Before
+ @BeforeEach
   public void setup() {
     variables = ImmutableMap.of(
             "less", VariableResult.withExpression(true, "1 < 2"),

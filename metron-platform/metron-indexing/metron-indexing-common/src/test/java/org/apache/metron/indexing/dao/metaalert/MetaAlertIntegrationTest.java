@@ -58,7 +58,7 @@ import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.integration.utils.TestUtils;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 

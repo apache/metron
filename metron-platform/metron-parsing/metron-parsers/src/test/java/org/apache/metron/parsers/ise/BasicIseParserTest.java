@@ -18,7 +18,7 @@
 package org.apache.metron.parsers.ise;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import java.io.IOException;
@@ -31,12 +31,12 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class BasicIseParserTest extends AbstractParserConfigTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     inputStrings = super.readTestDataFromFile("src/test/resources/logData/IseParserTest.txt");
     parser = new BasicIseParser();

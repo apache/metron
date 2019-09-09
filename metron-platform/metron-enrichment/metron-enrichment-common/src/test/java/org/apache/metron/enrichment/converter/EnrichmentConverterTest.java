@@ -20,7 +20,7 @@ package org.apache.metron.enrichment.converter;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;

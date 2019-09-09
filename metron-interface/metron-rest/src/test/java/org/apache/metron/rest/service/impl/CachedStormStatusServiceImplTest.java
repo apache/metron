@@ -18,7 +18,7 @@
 
 package org.apache.metron.rest.service.impl;
 
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,8 +33,8 @@ import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologySummary;
 import org.apache.metron.rest.service.StormStatusService;
 import org.hamcrest.CoreMatchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -44,7 +44,7 @@ public class CachedStormStatusServiceImplTest {
   private StormStatusService stormService;
   private CachedStormStatusServiceImpl cachedStormStatusService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
     cachedStormStatusService = new CachedStormStatusServiceImpl(stormService, 150, 30);

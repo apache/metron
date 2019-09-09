@@ -38,8 +38,8 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class ThreatIntelAdapterTest {
 
   private JSONObject expectedMessage;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(atTableName, cf);

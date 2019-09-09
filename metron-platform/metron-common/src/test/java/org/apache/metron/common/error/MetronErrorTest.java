@@ -17,9 +17,9 @@
  */
 package org.apache.metron.common.error;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.net.InetAddress;
@@ -33,15 +33,15 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MetronErrorTest {
 
   private JSONObject message1 = new JSONObject();
   private JSONObject message2 = new JSONObject();
 
-  @Before
+  @BeforeEach
   public void setup() {
     message1.put("value", "message1");
     message2.put("value", "message2");

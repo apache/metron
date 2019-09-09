@@ -37,7 +37,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.metron.stellar.common.encoding.Encodings;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EncodingFunctionsTest {
 

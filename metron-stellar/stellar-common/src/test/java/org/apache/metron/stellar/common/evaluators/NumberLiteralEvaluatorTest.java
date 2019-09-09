@@ -20,9 +20,9 @@ package org.apache.metron.stellar.common.evaluators;
 
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.HashMap;
@@ -43,7 +43,7 @@ public class NumberLiteralEvaluatorTest {
   @Rule
   public final ExpectedException exception = ExpectedException.none();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     intLiteralContextNumberEvaluator = mock(IntLiteralEvaluator.class);
     doubleLiteralContextNumberEvaluator = mock(DoubleLiteralEvaluator.class);

@@ -42,9 +42,9 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertAddRemoveRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.rest.service.MetaAlertService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -105,7 +105,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
   @Multiline
   public static String metaAlertData;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     ImmutableMap<String, String> testData = ImmutableMap.of(
@@ -116,7 +116,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
     loadTestData(testData);
   }
 
-  @After
+  @AfterEach
   public void cleanup() {
     InMemoryMetaAlertDao.clear();
   }

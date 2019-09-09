@@ -55,12 +55,12 @@ import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
@@ -69,7 +69,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   private static SolrDao solrDao;
   private static SolrComponent solr;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBefore() throws Exception {
     // Solr doesn't need retries, it'll show up after a commit.
 
@@ -125,7 +125,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     metaDao = new SolrMetaAlertDao(solrDao, searchDao, updateDao, retrieveLatestDao);
   }
 
-  @Before
+  @BeforeEach
   public void setup()
       throws IOException, InterruptedException, SolrServerException, KeeperException {
     solr.addCollection(METAALERTS_COLLECTION,
@@ -133,7 +133,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     solr.addCollection(SENSOR_NAME, "./src/test/resources/config/test/conf");
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     SolrClientFactory.close();
     if (solr != null) {
@@ -141,7 +141,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void reset() {
     solr.reset();
   }

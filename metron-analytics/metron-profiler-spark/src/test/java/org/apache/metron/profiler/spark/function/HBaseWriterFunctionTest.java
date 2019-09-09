@@ -26,8 +26,8 @@ import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.spark.ProfileMeasurementAdapter;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -42,7 +42,7 @@ public class HBaseWriterFunctionTest {
 
   Properties profilerProperties;
 
-  @Before
+  @BeforeEach
   public void setup() {
     profilerProperties = getProfilerProperties();
 

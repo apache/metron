@@ -39,7 +39,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 

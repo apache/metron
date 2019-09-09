@@ -26,8 +26,8 @@ import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.hamcrest.core.Is.is;
 
 import java.util.*;
@@ -38,7 +38,7 @@ public class OrdinalFunctionsTest {
 
   private static Context context;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     context = new Context.Builder().build();
   }

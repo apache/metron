@@ -21,7 +21,7 @@ package org.apache.metron.writer.hdfs;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PathExtensionFileNameFormatTest {
 

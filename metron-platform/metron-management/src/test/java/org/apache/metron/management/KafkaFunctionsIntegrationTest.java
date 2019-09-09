@@ -28,12 +28,12 @@ import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.functions.MapFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TestName;
 
 import java.util.ArrayList;
@@ -47,10 +47,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the KafkaFunctions class.
@@ -75,19 +75,19 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   @Rule
   public TestName testName = new TestName();
 
-  @BeforeClass
+  @BeforeAll
   public static void setupExecutor() {
     executor = Executors.newFixedThreadPool(2);
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownExecutor() {
     if(executor != null && !executor.isShutdown()) {
       executor.shutdown();
     }
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupKafka() throws Exception {
 
     Properties properties = new Properties();
@@ -103,7 +103,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     runner.start();
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupFunctionResolver() {
 
     // used when executing Stellar expressions
@@ -117,7 +117,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
             .withClass(MapFunctions.MapGet.class);
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
 
     // messages that will be read/written during the tests
@@ -134,12 +134,12 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
     global.put("auto.offset.reset", "earliest");
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownAfterClass() throws Exception {
     runner.stop();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     runner.reset();
   }

@@ -26,9 +26,9 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class MultiIndexDaoTest {
   private Document document1;
   private Document document2;
 
-  @Before
+  @BeforeEach
   public void setup() {
     dao1 = mock(IndexDao.class);
     dao2 = mock(IndexDao.class);

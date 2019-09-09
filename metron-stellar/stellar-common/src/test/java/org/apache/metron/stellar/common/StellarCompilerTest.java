@@ -27,8 +27,8 @@ import org.apache.metron.stellar.common.evaluators.ComparisonExpressionWithOpera
 import org.apache.metron.stellar.common.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.stellar.common.generated.StellarParser;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -56,7 +56,7 @@ public class StellarCompilerTest {
   StellarCompiler.Expression expression;
 
   @SuppressWarnings("unchecked")
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     variableResolver = mock(VariableResolver.class);
     functionResolver = mock(FunctionResolver.class);

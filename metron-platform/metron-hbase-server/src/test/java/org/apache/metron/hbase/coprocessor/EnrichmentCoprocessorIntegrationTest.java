@@ -19,7 +19,7 @@
 package org.apache.metron.hbase.coprocessor;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,9 +51,9 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
@@ -84,7 +84,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
   @Multiline
   private static String globalConfig;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupAll() throws Exception {
     silenceLogging();
     // don't need the properties for anything else now, but could extract var if desired.
@@ -167,7 +167,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
     hbaseAdmin.enableTable(tableName);
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() throws Exception {
     HBaseUtil.INSTANCE.teardown(testUtil);
     componentRunner.stop();

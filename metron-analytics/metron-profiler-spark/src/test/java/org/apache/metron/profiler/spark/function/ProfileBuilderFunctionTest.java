@@ -26,17 +26,14 @@ import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.spark.ProfileMeasurementAdapter;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION_UNITS;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ProfileBuilderFunctionTest {
 
@@ -96,7 +93,7 @@ public class ProfileBuilderFunctionTest {
   @Multiline
   private static String invalidProfileJson;
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void shouldThrowExceptionIfInvalidProfile() throws Exception {
     // setup the message and profile
     JSONObject message = getMessage();
@@ -106,7 +103,7 @@ public class ProfileBuilderFunctionTest {
 
     // setup the route
     MessageRoute route = new MessageRoute(profile, entity, message, timestamp);
-    List<MessageRoute> routes = new ArrayList();
+    List<MessageRoute> routes = new ArrayList<>();
     routes.add(route);
     routes.add(route);
     routes.add(route);
@@ -114,7 +111,7 @@ public class ProfileBuilderFunctionTest {
 
     // an exception should be thrown, if there is a bug in the profile definition
     ProfileBuilderFunction function = new ProfileBuilderFunction(profilerProperties, getGlobals());
-    ProfileMeasurementAdapter measurement = function.call("profile1-192.168.1.1-0", routes.iterator());
+    assertThrows(IllegalStateException.class, () -> function.call("profile1-192.168.1.1-0", routes.iterator()));
   }
 
   private JSONObject getMessage() {

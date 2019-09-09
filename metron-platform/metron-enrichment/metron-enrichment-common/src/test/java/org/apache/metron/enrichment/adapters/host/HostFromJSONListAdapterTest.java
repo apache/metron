@@ -23,8 +23,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class HostFromJSONListAdapterTest {
 
@@ -55,7 +55,7 @@ public class HostFromJSONListAdapterTest {
   private String ip1 = "10.0.22.22";
 
 
-  @Before
+  @BeforeEach
   public void parseJSON() throws ParseException {
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);

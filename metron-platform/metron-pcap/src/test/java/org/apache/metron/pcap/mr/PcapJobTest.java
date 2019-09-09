@@ -52,8 +52,8 @@ import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -83,7 +83,7 @@ public class PcapJobTest {
   private Map<String, String> fixedFields;
   private PcapJob<Map<String, String>> testJob;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     MockitoAnnotations.initMocks(this);
     basePath = new Path("basepath");

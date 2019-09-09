@@ -20,7 +20,7 @@ package org.apache.metron.rest.service.impl;
 import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -42,9 +42,9 @@ import org.apache.metron.rest.model.AlertsUIUserSettings;
 import org.apache.metron.rest.service.AlertsUIService;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.env.Environment;
 
@@ -60,7 +60,7 @@ public class SearchServiceImplTest {
   AlertsUIService alertsUIService;
   SearchServiceImpl searchService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     dao = mock(IndexDao.class);
     environment = mock(Environment.class);

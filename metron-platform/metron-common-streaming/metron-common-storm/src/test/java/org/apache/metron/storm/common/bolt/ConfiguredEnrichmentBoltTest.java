@@ -26,8 +26,8 @@ import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.*;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,7 +64,7 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setupConfiguration() throws Exception {
     TestingServer testZkServer = new TestingServer(true);
     this.zookeeperUrl = testZkServer.getConnectString();

@@ -22,7 +22,7 @@ import org.apache.metron.TestConstants;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -81,7 +81,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
   protected JSONObject hostMessage;
   protected JSONObject hbaseEnrichmentMessage;
 
-  @Before
+  @BeforeEach
   public void parseBaseMessages() throws ParseException {
     JSONParser parser = new JSONParser();
     sampleMessage = (JSONObject) parser.parse(sampleMessageString);

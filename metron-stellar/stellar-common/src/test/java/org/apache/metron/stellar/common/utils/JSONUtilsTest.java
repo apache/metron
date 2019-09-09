@@ -19,8 +19,8 @@ package org.apache.metron.stellar.common.utils;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.HashMap;
@@ -41,7 +41,7 @@ public class JSONUtilsTest {
   private static String config;
   private static File configFile;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     tmpDir = UnitTestHelper.createTempDir(new File("target/jsonutilstest"));
     configFile = UnitTestHelper.write(new File(tmpDir, "config.json"), config);

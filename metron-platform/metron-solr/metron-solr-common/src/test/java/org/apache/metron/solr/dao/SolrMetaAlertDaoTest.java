@@ -47,9 +47,9 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.solr.client.solrj.SolrClient;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -60,7 +60,7 @@ public class SolrMetaAlertDaoTest {
   private static AccessConfig accessConfig = new AccessConfig();
   private SolrClient client;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBefore() {
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
@@ -70,7 +70,7 @@ public class SolrMetaAlertDaoTest {
   }
 
   @SuppressWarnings("unchecked")
-  @Before
+  @BeforeEach
   public void setUp() {
     client = mock(SolrClient.class);
     mockStatic(SolrClientFactory.class);

@@ -34,8 +34,8 @@ import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -47,7 +47,7 @@ public class HBaseConfigTest {
   private GlobalConfigService globalConfigService;
   private HBaseConfig hBaseConfig;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     globalConfigService = mock(GlobalConfigService.class);
     hBaseConfig = new HBaseConfig(globalConfigService);

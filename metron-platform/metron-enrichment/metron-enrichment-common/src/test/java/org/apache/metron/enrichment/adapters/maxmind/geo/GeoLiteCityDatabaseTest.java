@@ -36,12 +36,12 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 public class GeoLiteCityDatabaseTest {
@@ -110,7 +110,7 @@ public class GeoLiteCityDatabaseTest {
   @Rule
   public TemporaryFolder testFolder = new TemporaryFolder();
 
-  @BeforeClass
+  @BeforeAll
   public static void setupOnce() throws ParseException, IOException {
     JSONParser jsonParser = new JSONParser();
     expectedNoDmaMessage = (JSONObject) jsonParser.parse(expectedNoDmaMessageString);
@@ -127,12 +127,12 @@ public class GeoLiteCityDatabaseTest {
     fs = FileSystem.get(config);
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     FileUtils.deleteQuietly(geoHdfsFile_update);
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     testFolder.create();
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG

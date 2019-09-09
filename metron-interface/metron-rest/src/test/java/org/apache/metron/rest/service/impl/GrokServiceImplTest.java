@@ -18,7 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -35,9 +35,9 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.HdfsService;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
@@ -52,7 +52,7 @@ public class GrokServiceImplTest {
   private HdfsService hdfsService;
   private GrokService grokService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     environment = mock(Environment.class);
     grok = mock(Grok.class);

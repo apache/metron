@@ -35,9 +35,9 @@ import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Map;
@@ -49,10 +49,10 @@ import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 import static org.apache.metron.common.configuration.ConfigurationsUtils.writeProfilerConfigToZookeeper;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the ConfigurationFunctions class.
@@ -87,7 +87,7 @@ public class ConfigurationFunctionsTest {
   @Multiline
   private static String goodProfilerConfig;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupZookeeper() throws Exception {
 
     // zookeeper server
@@ -99,7 +99,7 @@ public class ConfigurationFunctionsTest {
     client.start();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     context = new Context.Builder()

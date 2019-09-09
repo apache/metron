@@ -18,10 +18,11 @@
 
 package org.apache.metron.test.utils;
 
-import java.io.IOException;
-import java.util.Map;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
+
+import java.io.IOException;
+import java.util.Map;
 
 public class ValidationUtils {
 

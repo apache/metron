@@ -20,9 +20,9 @@ package org.apache.metron.common.utils.file;
 import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -63,7 +63,7 @@ public class ReaderSpliteratorTest {
   public static String data;
   public static final File dataFile = new File("target/readerspliteratortest.data");
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() throws IOException {
     if(dataFile.exists()) {
       dataFile.delete();

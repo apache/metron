@@ -19,7 +19,7 @@ package org.apache.metron.common.configuration;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.Assert;
 
 import java.io.IOException;

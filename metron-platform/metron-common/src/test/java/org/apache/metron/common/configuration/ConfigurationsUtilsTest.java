@@ -19,7 +19,7 @@
 package org.apache.metron.common.configuration;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,11 +31,11 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ConfigurationsUtilsTest {
 
@@ -46,7 +46,7 @@ public class ConfigurationsUtilsTest {
   private Map<String, byte[]> expectedSensorParserConfigMap;
   private Map<String, byte[]> expectedSensorEnrichmentConfigMap;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
@@ -213,7 +213,7 @@ public class ConfigurationsUtilsTest {
     assertThat(actual, equalTo(expected));
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     client.close();
     testZkServer.close();

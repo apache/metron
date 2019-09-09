@@ -21,9 +21,9 @@ package org.apache.metron.enrichment.stellar;
 import org.apache.metron.enrichment.cache.ObjectCache;
 import org.apache.metron.enrichment.cache.ObjectCacheConfig;
 import org.apache.metron.stellar.dsl.Context;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -33,10 +33,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -53,7 +53,7 @@ public class ObjectGetTest {
   private ObjectCache objectCache;
   private Context context;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     objectGet = new ObjectGet();
     objectCache = mock(ObjectCache.class);

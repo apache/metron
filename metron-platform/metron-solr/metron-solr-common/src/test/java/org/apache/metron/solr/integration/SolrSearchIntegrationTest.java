@@ -41,16 +41,16 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class SolrSearchIntegrationTest extends SearchIntegrationTest {
   private static SolrComponent solrComponent;
   private static IndexDao dao;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupClass() throws Exception {
     indexComponent = startIndex();
     dao = createDao();
@@ -62,7 +62,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     loadTestData();
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     SolrClientFactory.close();
     if (solrComponent != null) {

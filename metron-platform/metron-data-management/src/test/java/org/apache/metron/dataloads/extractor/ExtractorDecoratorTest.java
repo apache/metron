@@ -18,8 +18,8 @@
 package org.apache.metron.dataloads.extractor;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -36,7 +36,7 @@ public class ExtractorDecoratorTest {
   @Mock
   Extractor extractor;
 
-  @Before
+  @BeforeEach
   public void before() {
     MockitoAnnotations.initMocks(this);
   }

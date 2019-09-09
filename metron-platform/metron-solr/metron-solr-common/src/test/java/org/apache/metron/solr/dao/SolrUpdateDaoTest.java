@@ -19,7 +19,7 @@ package org.apache.metron.solr.dao;
 
 import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -51,9 +51,9 @@ import org.apache.metron.solr.matcher.SolrInputDocumentMatcher;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.common.SolrInputDocument;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -73,7 +73,7 @@ public class SolrUpdateDaoTest extends UpdateDaoTest {
 
   private static AccessConfig accessConfig = new AccessConfig();
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBefore() {
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
@@ -94,7 +94,7 @@ public class SolrUpdateDaoTest extends UpdateDaoTest {
   }
 
   @SuppressWarnings("unchecked")
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     client = mock(SolrClient.class);
     solrRetrieveLatestDao = new SolrRetrieveLatestDao(client, accessConfig);

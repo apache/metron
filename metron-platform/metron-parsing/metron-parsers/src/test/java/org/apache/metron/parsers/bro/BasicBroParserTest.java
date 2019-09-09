@@ -18,7 +18,7 @@
 package org.apache.metron.parsers.bro;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -32,21 +32,21 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class BasicBroParserTest {
 	private BasicBroParser broParser = new BasicBroParser();
 	private JSONParser jsonParser = new JSONParser();
 
-	@BeforeClass
+	@BeforeAll
 	public static void setup() {
 		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.FATAL);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.ERROR);
 	}

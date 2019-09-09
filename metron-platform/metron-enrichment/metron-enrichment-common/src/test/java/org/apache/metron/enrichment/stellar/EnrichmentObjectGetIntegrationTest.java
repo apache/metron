@@ -24,9 +24,9 @@ import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.BufferedOutputStream;
@@ -34,7 +34,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EnrichmentObjectGetIntegrationTest {
 
@@ -43,7 +43,7 @@ public class EnrichmentObjectGetIntegrationTest {
 
     private File file;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         File tempDir = TestUtils.createTempDir(this.getClass().getName());
         file = new File(tempDir, "enrichment.ser");

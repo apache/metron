@@ -20,9 +20,9 @@
 
 package org.apache.metron.hbase.client;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.doThrow;
@@ -47,12 +47,12 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.ColumnList;
 import org.apache.metron.hbase.HBaseProjectionCriteria;
 import org.apache.metron.hbase.TableProvider;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the HBaseClient
@@ -74,7 +74,7 @@ public class HBaseClientTest {
   ColumnList cols1;
   ColumnList cols2;
 
-  @BeforeClass
+  @BeforeAll
   public static void startHBase() throws Exception {
     Configuration config = HBaseConfiguration.create();
     config.set("hbase.master.hostname", "localhost");
@@ -89,14 +89,14 @@ public class HBaseClientTest {
     client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
   }
 
-  @AfterClass
+  @AfterAll
   public static void stopHBase() throws Exception {
     util.deleteTable(tableName);
     util.shutdownMiniCluster();
     util.cleanupTestDir();
   }
 
-  @After
+  @AfterEach
   public void clearTable() throws Exception {
     List<Delete> deletions = new ArrayList<>();
     for(Result r : table.getScanner(new Scan())) {
@@ -105,7 +105,7 @@ public class HBaseClientTest {
     table.delete(deletions);
   }
 
-  @Before
+  @BeforeEach
   public void setupTuples() throws Exception {
     rowKey1 = Bytes.toBytes("rowKey1");
     cols1 = new ColumnList();

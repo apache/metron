@@ -28,8 +28,8 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -73,7 +73,7 @@ public class EnrichmentConfigFunctionsTest {
     });
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     variables = ImmutableMap.of(
             "upper", VariableResult.withExpression("FOO", "TO_UPPER('foo')"),

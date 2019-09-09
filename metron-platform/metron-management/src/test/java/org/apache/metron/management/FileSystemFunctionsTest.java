@@ -59,7 +59,7 @@ public class FileSystemFunctionsTest {
     });
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupFS() throws IOException {
     {
       hdfsBaseDir = Files.createTempDirectory("test_hdfs").toFile().getAbsoluteFile();
@@ -78,7 +78,7 @@ public class FileSystemFunctionsTest {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     if(type == FileSystemFunctions.FS_TYPE.HDFS) {
       prefix=hdfsPrefix;
@@ -101,7 +101,7 @@ public class FileSystemFunctionsTest {
     rm.initialize(null);
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     {
       hdfsCluster.shutdown();

@@ -39,10 +39,10 @@ import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
 
@@ -60,7 +60,7 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
           0x54,0x79,0x70,0x65
   };
 
-  @Before
+  @BeforeEach
   public void startHBase() throws Exception {
     AccessConfig accessConfig = new AccessConfig();
     accessConfig.setMaxSearchResults(1000);
@@ -76,7 +76,7 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
     hbaseDao.init(accessConfig);
   }
 
-  @After
+  @AfterEach
   public void clearTable() throws Exception {
     MockHBaseTableProvider.clear();
   }

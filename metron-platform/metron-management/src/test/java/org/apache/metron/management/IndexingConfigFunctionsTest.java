@@ -26,8 +26,8 @@ import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +45,7 @@ public class IndexingConfigFunctionsTest {
     return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     variables = ImmutableMap.of(
             "upper", VariableResult.withExpression("FOO", "TO_UPPER('foo')"),

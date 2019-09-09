@@ -36,10 +36,10 @@ import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 // Suppress ConstantConditions to avoid NPE warnings that only would occur on test failure anyway
@@ -54,14 +54,14 @@ public class HdfsWriterTest {
   private File folder;
   private FileNameFormat testFormat;
 
-  @BeforeClass
+  @BeforeAll
   public static void beforeAll() throws Exception {
     // See https://issues.apache.org/jira/browse/METRON-2036
     // The need for this should go away when JUnit 4.13 is released and we can upgrade.
     Thread.interrupted();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     // Ensure each test has a unique folder to work with.
     folder = tempFolder.newFolder();

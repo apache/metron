@@ -23,8 +23,8 @@ import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ public class UniformSamplerTest {
   static DescriptiveStatistics gaussianStats = new DescriptiveStatistics();
   static List<Double> gaussianSample = new ArrayList<>();
 
-  @BeforeClass
+  @BeforeAll
   public static void beforeClass() {
     Random rng = new Random(0);
     GaussianRandomGenerator gen = new GaussianRandomGenerator(new MersenneTwister(0));

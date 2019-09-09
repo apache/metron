@@ -25,10 +25,10 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.rest.service.SensorParserGroupService;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -119,7 +119,7 @@ public class SensorParserGroupControllerIntegrationTest {
   private String user = "user";
   private String password = "password";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     Method[] method = SensorParserGroup.class.getMethods();
@@ -270,7 +270,7 @@ public class SensorParserGroupControllerIntegrationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     this.globalConfigService.delete();
     this.sensorParserConfigService.delete("bro");

@@ -30,8 +30,8 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -106,7 +106,7 @@ public class ParallelEnricherTest {
     }
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() {
     ConcurrencyContext infrastructure = new ConcurrencyContext();
     infrastructure.initialize(5, 100, 10, null, null, false);

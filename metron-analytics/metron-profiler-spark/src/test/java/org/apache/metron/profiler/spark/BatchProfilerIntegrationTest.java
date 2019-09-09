@@ -32,11 +32,12 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.SparkException;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,25 +49,16 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.apache.metron.common.configuration.profiler.ProfilerConfig.fromJSON;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_COLUMN_FAMILY;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_NAME;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_BEGIN;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_END;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_READER;
-import static org.apache.metron.profiler.spark.reader.TelemetryReaders.JSON;
-import static org.apache.metron.profiler.spark.reader.TelemetryReaders.ORC;
-import static org.apache.metron.profiler.spark.reader.TelemetryReaders.PARQUET;
-import static org.junit.Assert.assertTrue;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.*;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * An integration test for the {@link BatchProfiler}.
  */
+@EnableRuleMigrationSupport
 public class BatchProfilerIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -78,7 +70,7 @@ public class BatchProfilerIntegrationTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
-  @BeforeClass
+  @BeforeAll
   public static void setupSpark() {
     SparkConf conf = new SparkConf()
             .setMaster("local")
@@ -90,14 +82,14 @@ public class BatchProfilerIntegrationTest {
             .getOrCreate();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownSpark() {
     if(spark != null) {
       spark.close();
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     readerProperties = new Properties();
     profilerProperties = new Properties();
@@ -318,14 +310,22 @@ public class BatchProfilerIntegrationTest {
   @Multiline
   private static String invalidProfileJson;
 
-  @Test(expected = SparkException.class)
-  public void testBatchProfilerWithInvalidProfile() throws Exception {
+  @Test
+  public void testBatchProfilerWithInvalidProfile() {
     profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), JSON.toString());
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
 
     // the batch profiler should error out, if there is a bug in *any* of the profiles
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(invalidProfileJson));
+    assertThrows(
+        SparkException.class,
+        () ->
+            profiler.run(
+                spark,
+                profilerProperties,
+                getGlobals(),
+                readerProperties,
+                fromJSON(invalidProfileJson)));
   }
 
   /**

@@ -23,7 +23,7 @@ import org.apache.metron.dataloads.extractor.stix.types.URIHandler;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mitre.cybox.objects.URIObjectType;
 
 import java.util.HashMap;

@@ -35,7 +35,7 @@ import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.Writer;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

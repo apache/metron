@@ -22,14 +22,14 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.Serializable;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +40,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   ComparisonExpressionEvaluator evaluator;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     evaluator = new ComparisonOperatorsEvaluator();
   }

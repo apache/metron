@@ -19,13 +19,13 @@
 package org.apache.metron.common.utils;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import org.apache.metron.integration.utils.TestUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class CompressionUtilsTest {
 
@@ -33,7 +33,7 @@ public class CompressionUtilsTest {
   private File tempDir;
   private File textFile;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     tempDir = TestUtils.createTempDir(this.getClass().getName());
     textFile = new File(tempDir, "test-text-file.txt");

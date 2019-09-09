@@ -31,9 +31,9 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class AsnEnrichmentFunctionsTest {
 
@@ -43,7 +43,7 @@ public class AsnEnrichmentFunctionsTest {
   private static JSONObject expectedMessage = new JSONObject();
   private static JSONObject expectedSubsetMessage = new JSONObject();
 
-  @BeforeClass
+  @BeforeAll
   @SuppressWarnings("unchecked")
   public static void setupOnce() {
     // Construct this explicitly here, otherwise it'll be a Long instead of Integer.
@@ -58,7 +58,7 @@ public class AsnEnrichmentFunctionsTest {
     asnHdfsFile = new File(new File(baseDir), "GeoLite2-ASN.tar.gz");
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG,
         () -> ImmutableMap.of(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath())

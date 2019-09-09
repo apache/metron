@@ -20,7 +20,7 @@ package org.apache.metron.enrichment.adapters.simplehbase;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SimpleHBaseConfigTest {
 

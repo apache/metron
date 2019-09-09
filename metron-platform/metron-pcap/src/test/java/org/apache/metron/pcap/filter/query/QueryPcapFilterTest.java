@@ -26,7 +26,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class QueryPcapFilterTest {
 

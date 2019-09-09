@@ -74,12 +74,12 @@ import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
   final static String KAFKA_TOPIC = "pcap";
@@ -144,7 +144,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
   /**
    * Sets up component infrastructure once for all tests.
    */
-  @BeforeClass
+  @BeforeAll
   public static void setupAll() throws Exception {
     System.out.println("Setting up test components");
     withHeaders = false;
@@ -186,7 +186,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
   /**
    * Cleans up component infrastructure after all tests finish running.
    */
-  @AfterClass
+  @AfterAll
   public static void teardownAll() throws Exception {
     System.out.println("Tearing down test infrastructure");
     System.out.println("Stopping runner");
@@ -294,7 +294,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
   /**
    * This is executed before each individual test.
    */
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     configuration = new FixedPcapConfig(PcapCli.PREFIX_STRATEGY);
     Configuration hadoopConf = new Configuration();

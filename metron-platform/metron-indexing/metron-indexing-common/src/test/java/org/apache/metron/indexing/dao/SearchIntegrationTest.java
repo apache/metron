@@ -37,10 +37,10 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 public abstract class SearchIntegrationTest {
@@ -927,7 +927,7 @@ public abstract class SearchIntegrationTest {
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void stop() {
     indexComponent.stop();
   }

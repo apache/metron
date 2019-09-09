@@ -20,8 +20,8 @@ package org.apache.metron.rest.controller;
 import java.nio.charset.StandardCharsets;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.service.HdfsService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,7 +61,7 @@ public class HdfsControllerIntegrationTest {
     private String path = "./target/hdfsTest.txt";
     private String fileContents = "file contents";
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     }

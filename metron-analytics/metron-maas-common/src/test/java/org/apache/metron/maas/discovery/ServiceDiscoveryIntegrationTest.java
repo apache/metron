@@ -29,10 +29,10 @@ import org.apache.curator.x.discovery.ServiceType;
 import org.apache.metron.maas.config.Endpoint;
 import org.apache.metron.maas.config.Model;
 import org.apache.metron.maas.config.ModelEndpoint;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,7 +43,7 @@ public class ServiceDiscoveryIntegrationTest {
   private CuratorFramework client;
   private ServiceDiscoverer discoverer;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
@@ -117,7 +117,7 @@ public class ServiceDiscoveryIntegrationTest {
     Assert.assertEquals(0, discoverer.listEndpoints(new Model("dummy", null)).keySet().size());
 
   }
-  @After
+  @AfterEach
   public void teardown() throws Exception {
 
     if(discoverer != null) {

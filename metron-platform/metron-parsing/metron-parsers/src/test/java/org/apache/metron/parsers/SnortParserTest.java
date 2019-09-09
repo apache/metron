@@ -20,7 +20,7 @@ package org.apache.metron.parsers;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
@@ -35,7 +35,7 @@ import org.apache.metron.parsers.snort.BasicSnortParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.Assert;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 public class SnortParserTest {

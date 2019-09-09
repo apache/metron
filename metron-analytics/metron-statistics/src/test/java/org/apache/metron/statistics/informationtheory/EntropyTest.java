@@ -17,9 +17,8 @@
  */
 package org.apache.metron.statistics.informationtheory;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 

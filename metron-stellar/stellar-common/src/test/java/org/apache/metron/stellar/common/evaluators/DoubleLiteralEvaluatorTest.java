@@ -20,12 +20,12 @@ package org.apache.metron.stellar.common.evaluators;
 
 import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class DoubleLiteralEvaluatorTest {
@@ -35,7 +35,7 @@ public class DoubleLiteralEvaluatorTest {
   NumberEvaluator<StellarParser.DoubleLiteralContext> evaluator;
   StellarParser.DoubleLiteralContext context;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     evaluator = new DoubleLiteralEvaluator();
     context = mock(StellarParser.DoubleLiteralContext.class);

@@ -32,8 +32,8 @@ import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.service.PcapService;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -126,7 +126,7 @@ public class PcapControllerIntegrationTest {
   private String user2 = "user2";
   private String password = "password";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     InMemoryJobManager jobManager = (InMemoryJobManager) wac.getBean("jobManager");

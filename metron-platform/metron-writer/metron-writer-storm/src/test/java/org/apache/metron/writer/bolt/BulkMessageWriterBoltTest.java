@@ -17,8 +17,8 @@
  */
 package org.apache.metron.writer.bolt;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.argThat;
@@ -57,8 +57,8 @@ import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -84,7 +84,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   private List<JSONObject> fullMessageList;
   private List<Tuple> tupleList;
 
-  @Before
+  @BeforeEach
   public void parseMessages() throws ParseException {
     JSONParser parser = new JSONParser();
     fullMessageList = new ArrayList<>();

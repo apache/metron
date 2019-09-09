@@ -36,12 +36,12 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.json.simple.parser.ParseException;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -124,7 +124,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   @Multiline
   public static String template;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBefore() throws Exception {
     // Ensure ES can retry as needed.
     MAX_RETRIES = 10;
@@ -152,7 +152,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     es.start();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     es.createIndexWithMapping(METAALERTS_INDEX, METAALERT_DOC, template.replace("%MAPPING_NAME%", METAALERT_TYPE));
     es.createIndexWithMapping(INDEX, "test_doc", template.replace("%MAPPING_NAME%", "test"));
@@ -165,14 +165,14 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     metaDao = elasticsearchMetaDao;
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     if (es != null) {
       es.stop();
     }
   }
 
-  @After
+  @AfterEach
   public void reset() {
     es.reset();
   }

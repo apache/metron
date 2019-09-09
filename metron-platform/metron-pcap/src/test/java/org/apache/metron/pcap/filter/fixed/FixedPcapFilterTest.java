@@ -27,7 +27,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.Constants;
 import org.apache.metron.pcap.PacketInfo;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FixedPcapFilterTest {
 

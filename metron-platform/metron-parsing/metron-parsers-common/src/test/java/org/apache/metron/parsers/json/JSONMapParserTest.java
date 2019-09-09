@@ -18,7 +18,7 @@
 package org.apache.metron.parsers.json;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import java.nio.charset.StandardCharsets;
@@ -32,14 +32,14 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class JSONMapParserTest {
 
   private JSONMapParser parser;
 
-  @Before
+  @BeforeEach
   public void setup() {
     parser = new JSONMapParser();
   }

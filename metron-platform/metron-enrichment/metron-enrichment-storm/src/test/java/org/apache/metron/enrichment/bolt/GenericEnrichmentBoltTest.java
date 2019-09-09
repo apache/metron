@@ -18,7 +18,7 @@
 package org.apache.metron.enrichment.bolt;
 
 import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -52,8 +52,8 @@ import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -130,7 +130,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
   private JSONObject enrichedField2;
   private JSONObject enrichedMessage;
 
-  @Before
+  @BeforeEach
   public void parseMessages() throws ParseException {
     JSONParser parser = new JSONParser();
     originalMessage = (JSONObject) parser.parse(originalMessageString);
@@ -143,7 +143,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
   public EnrichmentAdapter<CacheKey> enrichmentAdapter;
 
   @Override
-  @Before
+  @BeforeEach
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
   }

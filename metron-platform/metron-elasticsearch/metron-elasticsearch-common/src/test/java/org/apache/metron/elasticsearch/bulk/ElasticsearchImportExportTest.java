@@ -19,15 +19,15 @@
 package org.apache.metron.elasticsearch.bulk;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.integration.utils.TestUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ElasticsearchImportExportTest {
 
@@ -49,7 +49,7 @@ public class ElasticsearchImportExportTest {
   private static String expected;
   private File tempDir;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     tempDir = TestUtils.createTempDir(this.getClass().getName());
   }

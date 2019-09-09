@@ -19,8 +19,8 @@
 package org.apache.metron.parsers.websphere;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Year;
@@ -34,8 +34,8 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class GrokWebSphereParserTest {
 
@@ -43,7 +43,7 @@ public class GrokWebSphereParserTest {
 	private Map<String, Object> parserConfig;
 	private GrokWebSphereParser parser;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		parserConfig = new HashMap<>();
 		parserConfig.put("grokPath", "src/main/resources/patterns/websphere");

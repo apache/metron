@@ -22,7 +22,7 @@ package org.apache.metron.stellar.common.utils;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -25,9 +25,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.integration.utils.TestUtils;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.*;
@@ -46,7 +46,7 @@ public class ObjectCacheTest {
   private ObjectCache cache;
   private File tempDir;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     fs = FileSystem.get(new Configuration());
     data = new ArrayList<>();

@@ -19,8 +19,8 @@ package org.apache.metron.rest.user;
 
 
 import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_CF;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,9 +39,9 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 public class UserSettingsClientTest {
@@ -57,7 +57,7 @@ public class UserSettingsClientTest {
   private UserSettingsClient userSettingsClient;
   private static byte[] cf = Bytes.toBytes("cf");
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     userSettingsTable = mock(Table.class);
     globalConfigSupplier = () -> new HashMap<String, Object>() {{

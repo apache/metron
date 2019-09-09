@@ -17,7 +17,7 @@
  */
 package org.apache.metron.stellar.common.system;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.text.SimpleDateFormat;
@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 
 public class ClockTest {
 

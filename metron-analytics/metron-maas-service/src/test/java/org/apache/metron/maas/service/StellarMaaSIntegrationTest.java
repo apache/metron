@@ -28,14 +28,17 @@ import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceInstanceBuilder;
 import org.apache.curator.x.discovery.ServiceType;
-import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.maas.config.Endpoint;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.ModelEndpoint;
 import org.apache.metron.maas.discovery.ServiceDiscoverer;
 import org.apache.metron.maas.util.ConfigUtil;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -52,7 +55,7 @@ public class StellarMaaSIntegrationTest {
   private static ServiceDiscoverer discoverer;
   private static URL endpointUrl;
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() throws Exception {
     UnitTestHelper.setJavaLoggingLevel(WebApplicationImpl.class, Level.WARNING);
     MockDGAModel.start(8282);
@@ -165,7 +168,7 @@ public class StellarMaaSIntegrationTest {
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     MockDGAModel.shutdown();
     if(discoverer != null) {

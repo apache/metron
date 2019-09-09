@@ -29,12 +29,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 public class GeoLiteAsnDatabaseTest {
@@ -52,7 +52,7 @@ public class GeoLiteAsnDatabaseTest {
   @Rule
   public TemporaryFolder testFolder = new TemporaryFolder();
 
-  @BeforeClass
+  @BeforeAll
   @SuppressWarnings("unchecked")
   public static void setupOnce() throws IOException {
     // Construct this explicitly here, otherwise it'll be a Long instead of Integer.
@@ -66,12 +66,12 @@ public class GeoLiteAsnDatabaseTest {
     FileUtils.copyFile(asnHdfsFile, asnHdfsFile_update);
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     FileUtils.deleteQuietly(asnHdfsFile_update);
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     testFolder.create();
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG,

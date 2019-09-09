@@ -20,7 +20,7 @@ package org.apache.metron.pcap.query;
 import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INPUT_PATH_DEFAULT;
 import static org.apache.metron.pcap.config.PcapGlobalDefaults.BASE_INTERIM_RESULT_PATH_DEFAULT;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThat;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
@@ -52,8 +52,8 @@ import org.apache.metron.pcap.mr.PcapJob;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -66,7 +66,7 @@ public class PcapCliTest {
   private String execDir;
   private PrefixStrategy prefixStrategy;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     MockitoAnnotations.initMocks(this);
     execDir = System.getProperty("user.dir");

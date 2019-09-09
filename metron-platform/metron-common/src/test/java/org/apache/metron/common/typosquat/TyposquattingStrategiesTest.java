@@ -26,8 +26,8 @@ import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -55,7 +55,7 @@ public class TyposquattingStrategiesTest {
     put("github", new EnumMap<>(TyposquattingStrategies.class));
   }};
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() throws Exception {
     for(Map.Entry<String, EnumMap<TyposquattingStrategies, Set<String>>> kv : expected.entrySet()) {
       try(BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("src/test/resources/typosquat/" + kv.getKey() + ".csv"), StandardCharsets.UTF_8) ) )

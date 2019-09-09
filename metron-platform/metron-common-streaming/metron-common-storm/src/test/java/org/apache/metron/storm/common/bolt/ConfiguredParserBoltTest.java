@@ -29,8 +29,8 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,7 +62,7 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setupConfiguration() throws Exception {
     TestingServer testZkServer = new TestingServer(true);
     this.zookeeperUrl = testZkServer.getConnectString();

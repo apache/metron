@@ -124,7 +124,7 @@ public class ZKConfigurationsCacheIntegrationTest {
 
   public ZKServerComponent zkComponent;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     zkComponent = new ZKServerComponent();
     zkComponent.start();
@@ -164,7 +164,7 @@ public class ZKConfigurationsCacheIntegrationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void teardown() throws Exception {
     if(cache != null) {
       cache.close();

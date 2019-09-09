@@ -47,8 +47,8 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -107,7 +107,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupOnce() throws ParseException {
     String baseDir = UnitTestHelper.findDir(new File("../metron-enrichment-common"), "GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");

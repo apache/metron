@@ -20,13 +20,13 @@
 package org.apache.metron.profiler.clock;
 
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**
@@ -36,7 +36,7 @@ public class EventTimeOnlyClockFactoryTest {
 
   private EventTimeOnlyClockFactory clockFactory;
 
-  @Before
+  @BeforeEach
   public void setup() {
     clockFactory = new EventTimeOnlyClockFactory();
   }
@@ -52,11 +52,10 @@ public class EventTimeOnlyClockFactoryTest {
     assertTrue(clock instanceof EventTimeClock);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testCreateProcessingTimeClock() {
     // the profiler uses processing time by default
     ProfilerConfig config = new ProfilerConfig();
-    clockFactory.createClock(config);
-    fail("Expected exception");
+    assertThrows(IllegalStateException.class, () -> clockFactory.createClock(config));
   }
 }
