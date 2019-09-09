@@ -18,19 +18,17 @@
 
 package org.apache.metron.stellar.common.evaluators;
 
-import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.*;
 
 public class NumberLiteralEvaluatorTest {
   NumberEvaluator<StellarParser.IntLiteralContext> intLiteralContextNumberEvaluator;
@@ -58,7 +56,7 @@ public class NumberLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyIntLiteralContextIsProperlyEvaluated() throws Exception {
+  public void verifyIntLiteralContextIsProperlyEvaluated() {
     StellarParser.IntLiteralContext context = mock(StellarParser.IntLiteralContext.class);
     NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
@@ -67,7 +65,7 @@ public class NumberLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyDoubleLiteralContextIsProperlyEvaluated() throws Exception {
+  public void verifyDoubleLiteralContextIsProperlyEvaluated() {
     StellarParser.DoubleLiteralContext context = mock(StellarParser.DoubleLiteralContext.class);
     NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
@@ -76,7 +74,7 @@ public class NumberLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyFloatLiteralContextIsProperlyEvaluated() throws Exception {
+  public void verifyFloatLiteralContextIsProperlyEvaluated() {
     StellarParser.FloatLiteralContext context = mock(StellarParser.FloatLiteralContext.class);
     NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
@@ -85,7 +83,7 @@ public class NumberLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyLongLiteralContextIsProperlyEvaluated() throws Exception {
+  public void verifyLongLiteralContextIsProperlyEvaluated() {
     StellarParser.LongLiteralContext context = mock(StellarParser.LongLiteralContext.class);
     NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
@@ -94,7 +92,7 @@ public class NumberLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyExceptionThrownForUnsupportedContextType() throws Exception {
+  public void verifyExceptionThrownForUnsupportedContextType() {
     StellarParser.VariableContext context = mock(StellarParser.VariableContext.class);
 
     exception.expect(ParseException.class);

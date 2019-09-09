@@ -19,9 +19,9 @@
 package org.apache.metron.stellar.common.evaluators;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.metron.stellar.common.generated.StellarParser;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Token;
-import org.apache.metron.stellar.common.generated.StellarParser;
 import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
@@ -44,7 +44,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
   final ComparisonExpressionWithOperatorEvaluator evaluator = ComparisonExpressionWithOperatorEvaluator.INSTANCE;
 
   @Test
-  public void evaluateEqShouldProperlyCallEqualityOperatorsEvaluator() throws Exception {
+  public void evaluateEqShouldProperlyCallEqualityOperatorsEvaluator() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(1D);
 
@@ -60,7 +60,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
   }
 
   @Test
-  public void evaluateNotEqShouldProperlyCallEqualityOperatorsEvaluator() throws Exception {
+  public void evaluateNotEqShouldProperlyCallEqualityOperatorsEvaluator() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(1D);
 
@@ -76,7 +76,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
   }
 
   @Test
-  public void evaluateLessThanEqShouldProperlyCallEqualityOperatorsEvaluator() throws Exception {
+  public void evaluateLessThanEqShouldProperlyCallEqualityOperatorsEvaluator() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(0D);
 
@@ -92,7 +92,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
   }
 
   @Test
-  public void unexpectedOperatorShouldThrowException() throws Exception {
+  public void unexpectedOperatorShouldThrowException() {
     exception.expect(ParseException.class);
     exception.expectMessage("Unsupported operations. The following expression is invalid: ");
 
@@ -108,7 +108,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
   }
 
   @Test
-  public void nonExpectedOperatorShouldThrowException() throws Exception {
+  public void nonExpectedOperatorShouldThrowException() {
     exception.expect(ParseException.class);
     exception.expectMessage("Unsupported operations. The following expression is invalid: ");
 

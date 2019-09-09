@@ -29,9 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MagicUndefineGlobalTest {
 
@@ -64,7 +62,7 @@ public class MagicUndefineGlobalTest {
             "    %undefine    FOO "
     );
     for(String in : inputs) {
-      assertTrue("failed: " + in, magic.getMatcher().apply(in));
+      assertTrue(magic.getMatcher().apply(in), "failed: " + in);
     }
   }
 
@@ -77,7 +75,7 @@ public class MagicUndefineGlobalTest {
             "%define"
     );
     for(String in : inputs) {
-      assertFalse("failed: " + in, magic.getMatcher().apply(in));
+      assertFalse(magic.getMatcher().apply(in), "failed: " + in);
     }
   }
 

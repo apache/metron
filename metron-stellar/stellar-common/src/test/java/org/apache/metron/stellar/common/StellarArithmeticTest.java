@@ -22,52 +22,45 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Token;
-import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 public class StellarArithmeticTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Test
-  public void addingLongsShouldYieldLong() throws Exception {
+  public void addingLongsShouldYieldLong() {
     final long timestamp = 1452013350000L;
     String query = "TO_EPOCH_TIMESTAMP('2016-01-05 17:02:30', 'yyyy-MM-dd HH:mm:ss', 'UTC') + 2";
     assertEquals(timestamp + 2, run(query, new HashMap<>()));
   }
 
   @Test
-  public void addingIntegersShouldYieldAnInteger() throws Exception {
+  public void addingIntegersShouldYieldAnInteger() {
     String query = "1 + 2";
     assertEquals(3, run(query, new HashMap<>()));
   }
 
   @Test
-  public void addingDoublesShouldYieldADouble() throws Exception {
+  public void addingDoublesShouldYieldADouble() {
     String query = "1.0 + 2.0";
     assertEquals(3.0, run(query, new HashMap<>()));
   }
 
   @Test
-  public void addingDoubleAndIntegerWhereSubjectIsDoubleShouldYieldADouble() throws Exception {
+  public void addingDoubleAndIntegerWhereSubjectIsDoubleShouldYieldADouble() {
     String query = "2.1 + 1";
     assertEquals(3.1, run(query, new HashMap<>()));
   }
 
   @Test
-  public void addingDoubleAndIntegerWhereSubjectIsIntegerShouldYieldADouble() throws Exception {
+  public void addingDoubleAndIntegerWhereSubjectIsIntegerShouldYieldADouble() {
     String query = "1 + 2.1";
     assertEquals(3.1, run(query, new HashMap<>()));
   }
@@ -122,7 +115,7 @@ public class StellarArithmeticTest {
     }
     {
       String query = "TO_LONG(foo)";
-      Assert.assertNull(run(query, ImmutableMap.of("foo", "not a number")));
+      assertNull(run(query, ImmutableMap.of("foo", "not a number")));
     }
     {
       String query = "TO_LONG(foo)";
@@ -135,7 +128,7 @@ public class StellarArithmeticTest {
   }
 
   @Test
-  public void verifyExpectedReturnTypes() throws Exception {
+  public void verifyExpectedReturnTypes() {
     Token<Integer> integer = mock(Token.class);
     when(integer.getValue()).thenReturn(1);
 
@@ -180,7 +173,7 @@ public class StellarArithmeticTest {
   }
 
   @Test
-  public void happyPathFloatArithmetic() throws Exception {
+  public void happyPathFloatArithmetic() {
     Object run = run(".0f * 1", ImmutableMap.of());
     assertEquals(.0f * 1, run);
     assertEquals(Float.class, run.getClass());
@@ -200,7 +193,7 @@ public class StellarArithmeticTest {
 
   @SuppressWarnings("PointlessArithmeticExpression")
   @Test
-  public void happyPathLongArithmetic() throws Exception {
+  public void happyPathLongArithmetic() {
     assertEquals(0L * 1L, run("0L * 1L", ImmutableMap.of()));
     assertEquals(0l / 1L, run("0l / 1L", ImmutableMap.of()));
     assertEquals(1L - 1l, run("1L - 1l", ImmutableMap.of()));
@@ -209,14 +202,14 @@ public class StellarArithmeticTest {
 
   @SuppressWarnings("NumericOverflow")
   @Test
-  public void checkInterestingCases() throws Exception {
+  public void checkInterestingCases() {
     assertEquals((((((1L) + .5d)))) * 6.f, run("(((((1L) + .5d)))) * 6.f", ImmutableMap.of()));
     assertEquals((((((1L) + .5d)))) * 6.f / 0.f, run("(((((1L) + .5d)))) * 6.f / 0.f", ImmutableMap.of()));
     assertEquals(Double.class, run("(((((1L) + .5d)))) * 6.f / 0.f", ImmutableMap.of()).getClass());
   }
 
   @Test
-  public void makeSureStellarProperlyEvaluatesLiteralsToExpectedTypes() throws Exception {
+  public void makeSureStellarProperlyEvaluatesLiteralsToExpectedTypes() {
     {
       assertEquals(Float.class, run("6.f", ImmutableMap.of()).getClass());
       assertEquals(Float.class, run(".0f", ImmutableMap.of()).getClass());
@@ -267,59 +260,52 @@ public class StellarArithmeticTest {
   }
 
   @Test
-  public void parseExceptionMultipleLeadingZerosOnInteger() throws Exception {
-    exception.expect(ParseException.class);
-    run("000000", ImmutableMap.of());
+  public void parseExceptionMultipleLeadingZerosOnInteger() {
+    assertThrows(ParseException.class, () -> run("000000", ImmutableMap.of()));
   }
 
   @Test
-  public void parseExceptionMultipleLeadingZerosOnLong() throws Exception {
-    exception.expect(ParseException.class);
-    run("000000l", ImmutableMap.of());
+  public void parseExceptionMultipleLeadingZerosOnLong() {
+    assertThrows(ParseException.class, () -> run("000000l", ImmutableMap.of()));
   }
 
   @Test
-  public void parseExceptionMultipleLeadingZerosOnDouble() throws Exception {
-    exception.expect(ParseException.class);
-    run("000000d", ImmutableMap.of());
+  public void parseExceptionMultipleLeadingZerosOnDouble() {
+    assertThrows(ParseException.class, () -> run("000000d", ImmutableMap.of()));
   }
 
   @Test
-  public void parseExceptionMultipleLeadingZerosOnFloat() throws Exception {
-    exception.expect(ParseException.class);
-    run("000000f", ImmutableMap.of());
+  public void parseExceptionMultipleLeadingZerosOnFloat() {
+    assertThrows(ParseException.class, () -> run("000000f", ImmutableMap.of()));
   }
 
   @Test
-  public void parseExceptionMultipleLeadingNegativeSignsFloat() throws Exception {
-    exception.expect(ParseException.class);
-    run("--000000f", ImmutableMap.of());
+  public void parseExceptionMultipleLeadingNegativeSignsFloat() {
+    assertThrows(ParseException.class, () -> run("--000000f", ImmutableMap.of()));
   }
 
   @Test
-  public void parseExceptionMultipleLeadingNegativeSignsDouble() throws Exception {
-    exception.expect(ParseException.class);
-    run("--000000D", ImmutableMap.of());
+  public void parseExceptionMultipleLeadingNegativeSignsDouble() {
+    assertThrows(ParseException.class, () -> run("--000000D", ImmutableMap.of()));
   }
 
   @Test
-  public void parseExceptionMultipleLeadingNegativeSignsLong() throws Exception {
-    exception.expect(ParseException.class);
-    run("--000000L", ImmutableMap.of());
-  }
-
-  @Test(expected = ParseException.class)
-  public void unableToDivideByZeroWithIntegers() throws Exception {
-    run("0/0", ImmutableMap.of());
-  }
-
-  @Test(expected = ParseException.class)
-  public void unableToDivideByZeroWithLongs() throws Exception {
-    run("0L/0L", ImmutableMap.of());
+  public void parseExceptionMultipleLeadingNegativeSignsLong() {
+    assertThrows(ParseException.class, () -> run("--000000L", ImmutableMap.of()));
   }
 
   @Test
-  public void ableToDivideByZero() throws Exception {
+  public void unableToDivideByZeroWithIntegers() {
+    assertThrows(ParseException.class, () -> run("0/0", ImmutableMap.of()));
+  }
+
+  @Test
+  public void unableToDivideByZeroWithLongs() {
+    assertThrows(ParseException.class, () -> run("0L/0L", ImmutableMap.of()));
+  }
+
+  @Test
+  public void ableToDivideByZero() {
     assertEquals(0F/0F, run("0F/0F", ImmutableMap.of()));
     assertEquals(0D/0D, run("0D/0D", ImmutableMap.of()));
     assertEquals(0D/0F, run("0D/0F", ImmutableMap.of()));

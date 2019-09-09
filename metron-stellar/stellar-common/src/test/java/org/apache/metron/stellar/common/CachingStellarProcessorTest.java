@@ -92,7 +92,7 @@ public class CachingStellarProcessorTest {
    * The processor should work, even if no cache is present in the execution context.
    */
   @Test
-  public void testNoCache() throws Exception {
+  public void testNoCache() {
 
     // the execution context does not contain a cache
     Context contextNoCache = Context.EMPTY_CONTEXT();

@@ -20,313 +20,320 @@ package org.apache.metron.stellar.dsl.functions;
 
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class SetFunctionsTest {
 
-  @Test(expected=ParseException.class)
-  @SuppressWarnings("unchecked")
-  public void multisetInitTest_wrongType() throws Exception {
-    Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_INIT({ 'foo' : 'bar'})", new HashMap<>());
+  @Test
+  public void multisetInitTest_wrongType() {
+    assertThrows(
+        ParseException.class,
+        () -> StellarProcessorUtils.run("MULTISET_INIT({ 'foo' : 'bar'})", new HashMap<>()));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void multisetInitTest() throws Exception {
+  public void multisetInitTest() {
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_INIT()", new HashMap<>());
-      Assert.assertEquals(0, s.size());
+      assertEquals(0, s.size());
     }
     //int initialization
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_INIT([1,2,3,2])", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.containsKey(1));
-      Assert.assertEquals(1,(int)s.get(1));
-      Assert.assertTrue(s.containsKey(2));
-      Assert.assertEquals(2,(int)s.get(2));
-      Assert.assertTrue(s.containsKey(3));
-      Assert.assertEquals(1,(int)s.get(3));
+      assertEquals(3, s.size());
+      assertTrue(s.containsKey(1));
+      assertEquals(1,(int)s.get(1));
+      assertTrue(s.containsKey(2));
+      assertEquals(2,(int)s.get(2));
+      assertTrue(s.containsKey(3));
+      assertEquals(1,(int)s.get(3));
     }
     //string initialization
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_INIT(['one','two','three','two'])", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.containsKey("one"));
-      Assert.assertEquals(1,(int)s.get("one"));
-      Assert.assertTrue(s.containsKey("two"));
-      Assert.assertEquals(2,(int)s.get("two"));
-      Assert.assertTrue(s.containsKey("three"));
-      Assert.assertEquals(1,(int)s.get("three"));
+      assertEquals(3, s.size());
+      assertTrue(s.containsKey("one"));
+      assertEquals(1,(int)s.get("one"));
+      assertTrue(s.containsKey("two"));
+      assertEquals(2,(int)s.get("two"));
+      assertTrue(s.containsKey("three"));
+      assertEquals(1,(int)s.get("three"));
 
     }
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void multisetAddTest() throws Exception {
+  public void multisetAddTest() {
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_ADD(MULTISET_INIT(), 1)", new HashMap<>());
-      Assert.assertEquals(1, s.size());
-      Assert.assertTrue(s.containsKey(1));
-      Assert.assertEquals(1,(int)s.get(1));
+      assertEquals(1, s.size());
+      assertTrue(s.containsKey(1));
+      assertEquals(1,(int)s.get(1));
     }
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_ADD(null, 1)", new HashMap<>());
-      Assert.assertEquals(1, s.size());
-      Assert.assertTrue(s.containsKey(1));
-      Assert.assertEquals(1,(int)s.get(1));
+      assertEquals(1, s.size());
+      assertTrue(s.containsKey(1));
+      assertEquals(1,(int)s.get(1));
     }
     //int
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_ADD(MULTISET_INIT([1,2,3,4,4]), 4)", new HashMap<>());
-      Assert.assertEquals(4, s.size());
-      Assert.assertTrue(s.containsKey(1));
-      Assert.assertEquals(1,(int)s.get(1));
-      Assert.assertTrue(s.containsKey(2));
-      Assert.assertEquals(1,(int)s.get(2));
-      Assert.assertTrue(s.containsKey(3));
-      Assert.assertEquals(1,(int)s.get(3));
-      Assert.assertTrue(s.containsKey(4));
-      Assert.assertEquals(3,(int)s.get(4));
+      assertEquals(4, s.size());
+      assertTrue(s.containsKey(1));
+      assertEquals(1,(int)s.get(1));
+      assertTrue(s.containsKey(2));
+      assertEquals(1,(int)s.get(2));
+      assertTrue(s.containsKey(3));
+      assertEquals(1,(int)s.get(3));
+      assertTrue(s.containsKey(4));
+      assertEquals(3,(int)s.get(4));
     }
     //string
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_ADD(MULTISET_INIT(['one','two','three', 'four', 'four']), 'four')", new HashMap<>());
-      Assert.assertEquals(4, s.size());
-      Assert.assertTrue(s.containsKey("one"));
-      Assert.assertEquals(1,(int)s.get("one"));
-      Assert.assertTrue(s.containsKey("two"));
-      Assert.assertEquals(1,(int)s.get("two"));
-      Assert.assertTrue(s.containsKey("three"));
-      Assert.assertEquals(1,(int)s.get("three"));
-      Assert.assertTrue(s.containsKey("four"));
-      Assert.assertEquals(3,(int)s.get("four"));
+      assertEquals(4, s.size());
+      assertTrue(s.containsKey("one"));
+      assertEquals(1,(int)s.get("one"));
+      assertTrue(s.containsKey("two"));
+      assertEquals(1,(int)s.get("two"));
+      assertTrue(s.containsKey("three"));
+      assertEquals(1,(int)s.get("three"));
+      assertTrue(s.containsKey("four"));
+      assertEquals(3,(int)s.get("four"));
     }
   }
-@Test
-@SuppressWarnings("unchecked")
-  public void multisetRemoveTest() throws Exception {
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void multisetRemoveTest() {
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_REMOVE(MULTISET_INIT([1]), 1)", new HashMap<>());
-      Assert.assertEquals(0, s.size());
+      assertEquals(0, s.size());
     }
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_REMOVE(null, 1)", new HashMap<>());
-      Assert.assertEquals(0, s.size());
+      assertEquals(0, s.size());
     }
     //int
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_REMOVE(MULTISET_INIT([1,2,3,2]), 2)", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.containsKey(1));
-      Assert.assertEquals(1, (int)s.get(1));
-      Assert.assertTrue(s.containsKey(2));
-      Assert.assertEquals(1, (int)s.get(2));
-      Assert.assertTrue(s.containsKey(3));
-      Assert.assertEquals(1, (int)s.get(3));
+      assertEquals(3, s.size());
+      assertTrue(s.containsKey(1));
+      assertEquals(1, (int)s.get(1));
+      assertTrue(s.containsKey(2));
+      assertEquals(1, (int)s.get(2));
+      assertTrue(s.containsKey(3));
+      assertEquals(1, (int)s.get(3));
     }
     //string
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_REMOVE(MULTISET_INIT(['one','two','three', 'two']), 'two')", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.containsKey("one"));
-      Assert.assertEquals(1, (int)s.get("one"));
-      Assert.assertTrue(s.containsKey("two"));
-      Assert.assertEquals(1, (int)s.get("two"));
-      Assert.assertTrue(s.containsKey("three"));
-      Assert.assertEquals(1, (int)s.get("three"));
+      assertEquals(3, s.size());
+      assertTrue(s.containsKey("one"));
+      assertEquals(1, (int)s.get("one"));
+      assertTrue(s.containsKey("two"));
+      assertEquals(1, (int)s.get("two"));
+      assertTrue(s.containsKey("three"));
+      assertEquals(1, (int)s.get("three"));
     }
   }
 
-  @Test(expected=ParseException.class)
-  @SuppressWarnings("unchecked")
-  public void multisetMergeTest_wrongType() throws Exception {
-
-    Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_MERGE({ 'bar' : 'foo' } )", new HashMap<>());
+  @Test
+  public void multisetMergeTest_wrongType() {
+    assertThrows(
+        ParseException.class,
+        () -> StellarProcessorUtils.run("MULTISET_MERGE({ 'bar' : 'foo' } )", new HashMap<>()));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void multisetMergeTest() throws Exception {
+  public void multisetMergeTest() {
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_MERGE([MULTISET_INIT(), MULTISET_INIT(null), null])", new HashMap<>());
-      Assert.assertEquals(0, s.size());
+      assertEquals(0, s.size());
     }
     //int
     {
       Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_MERGE([MULTISET_INIT([1,2]), MULTISET_INIT([2,3]), null, MULTISET_INIT()])", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.containsKey(1));
-      Assert.assertEquals(1, (int)s.get(1));
-      Assert.assertTrue(s.containsKey(2));
-      Assert.assertEquals(2, (int)s.get(2));
-      Assert.assertTrue(s.containsKey(3));
-      Assert.assertEquals(1, (int)s.get(3));
+      assertEquals(3, s.size());
+      assertTrue(s.containsKey(1));
+      assertEquals(1, (int)s.get(1));
+      assertTrue(s.containsKey(2));
+      assertEquals(2, (int)s.get(2));
+      assertTrue(s.containsKey(3));
+      assertEquals(1, (int)s.get(3));
     }
     //string
     {
       Map<Object, Integer> s = (Map<Object, Integer>)StellarProcessorUtils.run("MULTISET_MERGE([MULTISET_INIT(['one','two']), MULTISET_INIT(['two', 'three'])])", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.containsKey("one"));
-      Assert.assertEquals(1, (int)s.get("one"));
-      Assert.assertTrue(s.containsKey("two"));
-      Assert.assertEquals(2, (int)s.get("two"));
-      Assert.assertTrue(s.containsKey("three"));
-      Assert.assertEquals(1, (int)s.get("three"));
+      assertEquals(3, s.size());
+      assertTrue(s.containsKey("one"));
+      assertEquals(1, (int)s.get("one"));
+      assertTrue(s.containsKey("two"));
+      assertEquals(2, (int)s.get("two"));
+      assertTrue(s.containsKey("three"));
+      assertEquals(1, (int)s.get("three"));
     }
   }
 
-  @Test(expected=ParseException.class)
-  public void setInitTest_wrongType() throws Exception {
-      Set s = (Set) StellarProcessorUtils.run("SET_INIT({ 'foo' : 2})", new HashMap<>());
+  @Test
+  public void setInitTest_wrongType() {
+    assertThrows(
+        ParseException.class,
+        () -> StellarProcessorUtils.run("SET_INIT({ 'foo' : 2})", new HashMap<>()));
   }
 
   @Test
-  public void setInitTest() throws Exception {
+  public void setInitTest() {
     {
       Set s = (Set) StellarProcessorUtils.run("SET_INIT()", new HashMap<>());
-      Assert.assertEquals(0, s.size());
+      assertEquals(0, s.size());
     }
     //int initialization
     {
       Set s = (Set) StellarProcessorUtils.run("SET_INIT([1,2,3])", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.contains(1));
-      Assert.assertTrue(s.contains(2));
-      Assert.assertTrue(s.contains(3));
+      assertEquals(3, s.size());
+      assertTrue(s.contains(1));
+      assertTrue(s.contains(2));
+      assertTrue(s.contains(3));
     }
     //string initialization
     {
       Set s = (Set) StellarProcessorUtils.run("SET_INIT(['one','two','three'])", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.contains("one"));
-      Assert.assertTrue(s.contains("two"));
-      Assert.assertTrue(s.contains("three"));
+      assertEquals(3, s.size());
+      assertTrue(s.contains("one"));
+      assertTrue(s.contains("two"));
+      assertTrue(s.contains("three"));
     }
   }
 
   @Test
-  public void multisetToSetTest() throws Exception {
+  public void multisetToSetTest() {
     {
       Set s = (Set) StellarProcessorUtils.run("MULTISET_TO_SET(MULTISET_ADD(MULTISET_INIT(), 1))", new HashMap<>());
-      Assert.assertEquals(1, s.size());
-      Assert.assertTrue(s.contains(1));
+      assertEquals(1, s.size());
+      assertTrue(s.contains(1));
     }
     {
       Set s = (Set) StellarProcessorUtils.run("MULTISET_TO_SET(MULTISET_ADD(null, 1))", new HashMap<>());
-      Assert.assertEquals(1, s.size());
-      Assert.assertTrue(s.contains(1));
+      assertEquals(1, s.size());
+      assertTrue(s.contains(1));
     }
     //int
     {
       Set s = (Set) StellarProcessorUtils.run("MULTISET_TO_SET(MULTISET_ADD(MULTISET_INIT([1,2,3]), 4))", new HashMap<>());
-      Assert.assertEquals(4, s.size());
-      Assert.assertTrue(s.contains(1));
-      Assert.assertTrue(s.contains(2));
-      Assert.assertTrue(s.contains(3));
-      Assert.assertTrue(s.contains(4));
+      assertEquals(4, s.size());
+      assertTrue(s.contains(1));
+      assertTrue(s.contains(2));
+      assertTrue(s.contains(3));
+      assertTrue(s.contains(4));
     }
     //string
     {
       Set s = (Set) StellarProcessorUtils.run("MULTISET_TO_SET(MULTISET_ADD(MULTISET_INIT(['one','two','three']), 'four'))", new HashMap<>());
-      Assert.assertEquals(4, s.size());
-      Assert.assertTrue(s.contains("one"));
-      Assert.assertTrue(s.contains("two"));
-      Assert.assertTrue(s.contains("three"));
-      Assert.assertTrue(s.contains("four"));
+      assertEquals(4, s.size());
+      assertTrue(s.contains("one"));
+      assertTrue(s.contains("two"));
+      assertTrue(s.contains("three"));
+      assertTrue(s.contains("four"));
     }
   }
 
   @Test
-  public void setAddTest() throws Exception {
+  public void setAddTest() {
     {
       Set s = (Set) StellarProcessorUtils.run("SET_ADD(SET_INIT(), 1)", new HashMap<>());
-      Assert.assertEquals(1, s.size());
-      Assert.assertTrue(s.contains(1));
+      assertEquals(1, s.size());
+      assertTrue(s.contains(1));
     }
     {
       Set s = (Set) StellarProcessorUtils.run("SET_ADD(null, 1)", new HashMap<>());
-      Assert.assertEquals(1, s.size());
-      Assert.assertTrue(s.contains(1));
+      assertEquals(1, s.size());
+      assertTrue(s.contains(1));
     }
     //int
     {
       Set s = (Set) StellarProcessorUtils.run("SET_ADD(SET_INIT([1,2,3]), 4)", new HashMap<>());
-      Assert.assertEquals(4, s.size());
-      Assert.assertTrue(s.contains(1));
-      Assert.assertTrue(s.contains(2));
-      Assert.assertTrue(s.contains(3));
-      Assert.assertTrue(s.contains(4));
+      assertEquals(4, s.size());
+      assertTrue(s.contains(1));
+      assertTrue(s.contains(2));
+      assertTrue(s.contains(3));
+      assertTrue(s.contains(4));
     }
     //string
     {
       Set s = (Set) StellarProcessorUtils.run("SET_ADD(SET_INIT(['one','two','three']), 'four')", new HashMap<>());
-      Assert.assertEquals(4, s.size());
-      Assert.assertTrue(s.contains("one"));
-      Assert.assertTrue(s.contains("two"));
-      Assert.assertTrue(s.contains("three"));
-      Assert.assertTrue(s.contains("four"));
+      assertEquals(4, s.size());
+      assertTrue(s.contains("one"));
+      assertTrue(s.contains("two"));
+      assertTrue(s.contains("three"));
+      assertTrue(s.contains("four"));
     }
   }
 
   @Test
-  public void setRemoveTest() throws Exception {
+  public void setRemoveTest() {
     {
       Set s = (Set) StellarProcessorUtils.run("SET_REMOVE(SET_INIT([1]), 1)", new HashMap<>());
-      Assert.assertEquals(0, s.size());
+      assertEquals(0, s.size());
     }
     {
       Set s = (Set) StellarProcessorUtils.run("SET_REMOVE(null, 1)", new HashMap<>());
-      Assert.assertEquals(0, s.size());
+      assertEquals(0, s.size());
     }
     //int
     {
       Set s = (Set) StellarProcessorUtils.run("SET_REMOVE(SET_INIT([1,2,3]), 2)", new HashMap<>());
-      Assert.assertEquals(2, s.size());
-      Assert.assertTrue(s.contains(1));
-      Assert.assertTrue(s.contains(3));
+      assertEquals(2, s.size());
+      assertTrue(s.contains(1));
+      assertTrue(s.contains(3));
     }
     //string
     {
       Set s = (Set) StellarProcessorUtils.run("SET_REMOVE(SET_INIT(['one','two','three']), 'three')", new HashMap<>());
-      Assert.assertEquals(2, s.size());
-      Assert.assertTrue(s.contains("one"));
-      Assert.assertTrue(s.contains("two"));
+      assertEquals(2, s.size());
+      assertTrue(s.contains("one"));
+      assertTrue(s.contains("two"));
     }
   }
 
-  @Test(expected=ParseException.class)
-  public void setMergeTest_wrongType() throws Exception {
-    Set s = (Set) StellarProcessorUtils.run("SET_MERGE({ 'foo' : 'bar'} )", new HashMap<>());
+  @Test
+  public void setMergeTest_wrongType() {
+    assertThrows(
+        ParseException.class,
+        () -> StellarProcessorUtils.run("SET_MERGE({ 'foo' : 'bar'} )", new HashMap<>()));
   }
 
   @Test
-  public void setMergeTest() throws Exception {
+  public void setMergeTest() {
     {
       Set s = (Set) StellarProcessorUtils.run("SET_MERGE([SET_INIT(), SET_INIT(null), null])", new HashMap<>());
-      Assert.assertEquals(0, s.size());
+      assertEquals(0, s.size());
     }
     //int
     {
       Set s = (Set) StellarProcessorUtils.run("SET_MERGE([SET_INIT([1,2]), SET_INIT([3]), null, SET_INIT()])", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.contains(1));
-      Assert.assertTrue(s.contains(2));
-      Assert.assertTrue(s.contains(3));
+      assertEquals(3, s.size());
+      assertTrue(s.contains(1));
+      assertTrue(s.contains(2));
+      assertTrue(s.contains(3));
     }
     //string
     {
       Set s = (Set) StellarProcessorUtils.run("SET_MERGE([SET_INIT(['one','two']), SET_INIT(['three'])])", new HashMap<>());
-      Assert.assertEquals(3, s.size());
-      Assert.assertTrue(s.contains("one"));
-      Assert.assertTrue(s.contains("two"));
-      Assert.assertTrue(s.contains("three"));
+      assertEquals(3, s.size());
+      assertTrue(s.contains("one"));
+      assertTrue(s.contains("two"));
+      assertTrue(s.contains("three"));
     }
   }
 }

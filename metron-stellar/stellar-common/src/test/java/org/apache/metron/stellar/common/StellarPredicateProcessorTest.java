@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class StellarPredicateProcessorTest {
   @SuppressWarnings("EmptyCatchBlock")
   @Test
-  public void testValidation() throws Exception {
+  public void testValidation() {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
     try {
       processor.validate("enrichedField1 == 'enrichedValue1");

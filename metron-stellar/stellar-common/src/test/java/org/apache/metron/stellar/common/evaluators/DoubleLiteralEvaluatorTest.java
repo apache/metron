@@ -18,10 +18,10 @@
 
 package org.apache.metron.stellar.common.evaluators;
 
-import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.metron.stellar.dsl.Token;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
@@ -42,7 +42,7 @@ public class DoubleLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyHappyPathEvaluation() throws Exception {
+  public void verifyHappyPathEvaluation() {
     when(context.getText()).thenReturn("100D");
 
     Token<? extends Number> evaluated = evaluator.evaluate(context, null);
@@ -53,7 +53,7 @@ public class DoubleLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyNumberFormationExceptionWithEmptyString() throws Exception {
+  public void verifyNumberFormationExceptionWithEmptyString() {
     exception.expect(NumberFormatException.class);
 
     when(context.getText()).thenReturn("");
@@ -61,7 +61,7 @@ public class DoubleLiteralEvaluatorTest {
   }
 
   @Test
-  public void throwIllegalArgumentExceptionWhenContextIsNull() throws Exception {
+  public void throwIllegalArgumentExceptionWhenContextIsNull() {
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage("Cannot evaluate a context that is null.");
 

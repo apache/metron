@@ -28,7 +28,7 @@ import java.util.Map;
 public class ConcatMapTest {
 
   @Test
-  public void testToString() throws Exception {
+  public void testToString() {
     Map<String, Object> v1 = new HashMap<>();
     v1.put("k1", "v1");
     Map<String, Object> v2 = new HashMap<>();

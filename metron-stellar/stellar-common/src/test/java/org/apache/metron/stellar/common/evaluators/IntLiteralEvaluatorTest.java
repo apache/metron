@@ -18,18 +18,15 @@
 
 package org.apache.metron.stellar.common.evaluators;
 
-import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.metron.stellar.dsl.Token;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class IntLiteralEvaluatorTest {
   @Rule
@@ -45,7 +42,7 @@ public class IntLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyHappyPathEvaluation() throws Exception {
+  public void verifyHappyPathEvaluation() {
     when(context.getText()).thenReturn("100");
 
     Token<? extends Number> evaluated = evaluator.evaluate(context, null);
@@ -56,7 +53,7 @@ public class IntLiteralEvaluatorTest {
   }
 
   @Test
-  public void verifyNumberFormationExceptionWithEmptyString() throws Exception {
+  public void verifyNumberFormationExceptionWithEmptyString() {
     exception.expect(NumberFormatException.class);
 
     when(context.getText()).thenReturn("");
@@ -64,7 +61,7 @@ public class IntLiteralEvaluatorTest {
   }
 
   @Test
-  public void throwIllegalArgumentExceptionWhenContextIsNull() throws Exception {
+  public void throwIllegalArgumentExceptionWhenContextIsNull() {
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage("Cannot evaluate a context that is null.");
 

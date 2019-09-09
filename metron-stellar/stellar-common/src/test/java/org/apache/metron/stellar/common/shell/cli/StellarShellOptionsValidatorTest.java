@@ -24,10 +24,11 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class StellarShellOptionsValidatorTest {
 
@@ -96,89 +97,61 @@ public class StellarShellOptionsValidatorTest {
     StellarShellOptionsValidator.validateOptions(commandLine);
     // these should not
 
-    boolean thrown = false;
+    assertDoesNotThrow(
+        () -> {
+          CommandLine cl = parser.parse(options, invalidZNameArg);
+          StellarShellOptionsValidator.validateOptions(cl);
+        },
+            "Did not catch failure for providing invalid host name ");
 
+    assertDoesNotThrow(() -> {
+      CommandLine cl = parser.parse(options, invalidZIPArg);
+      StellarShellOptionsValidator.validateOptions(cl);
+      },
+            "Did not catch failure for providing invalid ip address ");
 
-    try {
-      commandLine = parser.parse(options, invalidZNameArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for providing invalid host name ", thrown);
-    thrown = false;
+    assertDoesNotThrow(() -> {
+      CommandLine cl = parser.parse(options, invalidZMissingNameArg);
+      StellarShellOptionsValidator.validateOptions(cl);
+      },
+            "Did not catch failure for only providing port ");
 
-    try {
-      commandLine = parser.parse(options, invalidZIPArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for providing invalid ip address ", thrown);
-    thrown = false;
+    assertDoesNotThrow(() -> {
+      CommandLine cl = parser.parse(options, invalidZZeroPortArg);
+      StellarShellOptionsValidator.validateOptions(cl);
+      },
+            "Did not catch failure for 0 port ");
 
-    try {
-      commandLine = parser.parse(options, invalidZMissingNameArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for only providing port ", thrown);
-    thrown = false;
+    assertDoesNotThrow(() -> {
+      CommandLine cl = parser.parse(options, invalidZHugePortArg);
+      StellarShellOptionsValidator.validateOptions(cl);
+      },
+            "Did not catch failure for port out of range ");
 
-    try {
-      commandLine = parser.parse(options, invalidZZeroPortArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for 0 port ", thrown);
-    thrown = false;
+    assertDoesNotThrow(() -> {
+      CommandLine cl = parser.parse(options, invalidVFileArg);
+      StellarShellOptionsValidator.validateOptions(cl);
+      },
+            "Did not catch failure for passing non-existant file to -v ");
 
-    try {
-      commandLine = parser.parse(options, invalidZHugePortArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for port out of range ", thrown);
-    thrown = false;
+    assertDoesNotThrow(() -> {
+      CommandLine cl = parser.parse(options, invalidVFileArg);
+      StellarShellOptionsValidator.validateOptions(cl);
+      },
+            "Did not catch failure for passing non-existant file to -v ");
 
-    try {
-      commandLine = parser.parse(options, invalidVFileArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for passing non-existant file to -v ", thrown);
-    thrown = false;
+    assertDoesNotThrow(() -> {
+      CommandLine cl = parser.parse(options, invalidIrcFileArg);
+      StellarShellOptionsValidator.validateOptions(cl);
+      },
+            "Did not catch failure for passing non-existant file to -irc ");
 
-    try {
-      commandLine = parser.parse(options, invalidVFileArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for passing non-existant file to -v ", thrown);
-    thrown = false;
-
-    try {
-      commandLine = parser.parse(options, invalidIrcFileArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for passing non-existant file to -irc ", thrown);
-    thrown = false;
-
-    try {
-      commandLine = parser.parse(options, invalidPFileArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for passing non-existant file to -p ", thrown);
-    thrown = false;
+    assertDoesNotThrow(
+        () -> {
+          CommandLine cl = parser.parse(options, invalidPFileArg);
+          StellarShellOptionsValidator.validateOptions(cl);
+        },
+        "Did not catch failure for passing non-existant file to -p ");
   }
 
 }

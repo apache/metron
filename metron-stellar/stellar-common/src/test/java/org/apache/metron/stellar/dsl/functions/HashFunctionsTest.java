@@ -23,7 +23,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.utils.hashing.tlsh.TLSHHasher;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
@@ -42,65 +41,65 @@ public class HashFunctionsTest {
   final HashFunctions.ListSupportedHashTypes listSupportedHashTypes = new HashFunctions.ListSupportedHashTypes();
   final HashFunctions.Hash hash = new HashFunctions.Hash();
 
-  @Test(expected = IllegalArgumentException.class)
-  public void nullArgumentsShouldFail() throws Exception {
-    listSupportedHashTypes.apply(null);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void getSupportedHashAlgorithmsCalledWithParametersShouldFail() throws Exception {
-    listSupportedHashTypes.apply(Collections.singletonList("bogus"));
+  @Test
+  public void nullArgumentsShouldFail() {
+    assertThrows(IllegalArgumentException.class, () -> listSupportedHashTypes.apply(null));
   }
 
   @Test
-  public void listSupportedHashTypesReturnsAtMinimumTheHashingAlgorithmsThatMustBeSupported() throws Exception {
+  public void getSupportedHashAlgorithmsCalledWithParametersShouldFail() {
+    assertThrows(IllegalArgumentException.class, () -> listSupportedHashTypes.apply(Collections.singletonList("bogus")));
+  }
+
+  @Test
+  public void listSupportedHashTypesReturnsAtMinimumTheHashingAlgorithmsThatMustBeSupported() {
     final List<String> requiredAlgorithmsByJava = Arrays.asList("MD5", "SHA", "SHA-256"); // These are required for all Java platforms (see java.security.MessageDigest). Note: SHA is SHA-1
     final Collection<String> supportedHashes = listSupportedHashTypes.apply(Collections.emptyList());
     requiredAlgorithmsByJava.forEach(a -> assertTrue(supportedHashes.contains(a)));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void nullArgumentListShouldThrowException() throws Exception {
-    hash.apply(null);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void emptyArgumentListShouldThrowException() throws Exception {
-    hash.apply(Collections.emptyList());
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void singleArgumentListShouldThrowException() throws Exception {
-    hash.apply(Collections.singletonList("some value."));
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void argumentListWithMoreThanTwoValuesShouldThrowException3() throws Exception {
-    hash.apply(Arrays.asList("1", "2", "3"));
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void argumentListWithMoreThanTwoValuesShouldThrowException4() throws Exception {
-    hash.apply(Arrays.asList("1", "2", "3", "4"));
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void invalidAlgorithmArgumentShouldThrowException() throws Exception {
-    hash.apply(Arrays.asList("value to hash", "invalidAlgorithm"));
+  @Test
+  public void nullArgumentListShouldThrowException() {
+    assertThrows(IllegalArgumentException.class, () -> hash.apply(null));
   }
 
   @Test
-  public void invalidNullAlgorithmArgumentShouldReturnNull() throws Exception {
+  public void emptyArgumentListShouldThrowException() {
+    assertThrows(IllegalArgumentException.class, () -> hash.apply(Collections.emptyList()));
+  }
+
+  @Test
+  public void singleArgumentListShouldThrowException() {
+    assertThrows(IllegalArgumentException.class, () -> hash.apply(Collections.singletonList("some value.")));
+  }
+
+  @Test
+  public void argumentListWithMoreThanTwoValuesShouldThrowException3() {
+    assertThrows(IllegalArgumentException.class, () -> hash.apply(Arrays.asList("1", "2", "3")));
+  }
+
+  @Test
+  public void argumentListWithMoreThanTwoValuesShouldThrowException4() {
+    assertThrows(IllegalArgumentException.class, () -> hash.apply(Arrays.asList("1", "2", "3", "4")));
+  }
+
+  @Test
+  public void invalidAlgorithmArgumentShouldThrowException() {
+    assertThrows(IllegalArgumentException.class, () -> hash.apply(Arrays.asList("value to hash", "invalidAlgorithm")));
+  }
+
+  @Test
+  public void invalidNullAlgorithmArgumentShouldReturnNull() {
     assertNull(hash.apply(Arrays.asList("value to hash", null)));
   }
 
   @Test
-  public void nullInputForValueToHashShouldReturnHashedEncodedValueOf0x00() throws Exception {
+  public void nullInputForValueToHashShouldReturnHashedEncodedValueOf0x00() {
     assertEquals(StringUtils.repeat('0', 32), hash.apply(Arrays.asList(null, "md5")));
   }
 
   @Test
-  public void nullInputForValueToHashShouldReturnHashedEncodedValueOf0x00InDirectStellarCall() throws Exception {
+  public void nullInputForValueToHashShouldReturnHashedEncodedValueOf0x00InDirectStellarCall() {
     final String algorithm = "'md5'";
     final Map<String, Object> variables = new HashMap<>();
     variables.put("toHash", null);
@@ -109,7 +108,7 @@ public class HashFunctionsTest {
   }
 
   @Test
-  public void allAlgorithmsForMessageDigestShouldBeAbleToHash() throws Exception {
+  public void allAlgorithmsForMessageDigestShouldBeAbleToHash() {
     final String valueToHash = "My value to hash";
     final Set<String> algorithms = Security.getAlgorithms("MessageDigest");
 
@@ -126,7 +125,7 @@ public class HashFunctionsTest {
   }
 
   @Test
-  public void allAlgorithmsForMessageDigestShouldBeAbleToHashDirectStellarCall() throws Exception {
+  public void allAlgorithmsForMessageDigestShouldBeAbleToHashDirectStellarCall() {
     final String valueToHash = "My value to hash";
     final Set<String> algorithms = Security.getAlgorithms("MessageDigest");
 
@@ -190,7 +189,7 @@ public class HashFunctionsTest {
   }
 
   @Test
-  public void aNonNullNonSerializableObjectReturnsAValueOfNull() throws Exception {
+  public void aNonNullNonSerializableObjectReturnsAValueOfNull() {
     final Map<String, Object> variables = new HashMap<>();
     variables.put("toHash", new Object());
     assertNull(run("HASH(toHash, 'md5')", variables));
@@ -208,7 +207,7 @@ public class HashFunctionsTest {
   String TLSH_EXPECTED = "6FF02BEF718027B0160B4391212923ED7F1A463D563B1549B86CF62973B197AD2731F8";
 
   @Test
-  public void tlsh_happyPath() throws Exception {
+  public void tlsh_happyPath() {
     final Map<String, Object> variables = new HashMap<>();
 
     variables.put("toHash", TLSH_DATA);
@@ -221,21 +220,21 @@ public class HashFunctionsTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void tlsh_multiBin() throws Exception {
+  public void tlsh_multiBin() {
     final Map<String, Object> variables = new HashMap<>();
 
     variables.put("toHash", TLSH_DATA);
     Map<String, String> out = (Map<String, String>)run("HASH(toHash, 'tlsh', { 'hashes' : [ 8, 16, 32 ]} )", variables);
 
-    Assert.assertTrue(out.containsKey(TLSHHasher.TLSH_KEY));
+    assertTrue(out.containsKey(TLSHHasher.TLSH_KEY));
     for(int h : ImmutableList.of(8, 16, 32)) {
-      Assert.assertTrue(out.containsKey(TLSHHasher.TLSH_BIN_KEY + "_" + h));
+      assertTrue(out.containsKey(TLSHHasher.TLSH_BIN_KEY + "_" + h));
     }
   }
 
 
   @Test
-  public void tlsh_multithread() throws Exception {
+  public void tlsh_multithread() {
     //we want to ensure that everything is threadsafe, so we'll spin up some random data
     //generate some hashes and then do it all in parallel and make sure it all matches.
     Map<Map.Entry<byte[], Map<String, Object>>, String> hashes = new HashMap<>();
@@ -249,7 +248,7 @@ public class HashFunctionsTest {
           put(TLSHHasher.Config.CHECKSUM.key, r.nextBoolean() ? 1 : 3);
       }};
       String hash = (String)run("HASH(data, 'tlsh', config)", ImmutableMap.of("config", config, "data", d));
-      Assert.assertNotNull(hash);
+      assertNotNull(hash);
       hashes.put(new AbstractMap.SimpleEntry<>(d, config), hash);
     }
     ForkJoinPool forkJoinPool = new ForkJoinPool(5);
@@ -260,7 +259,7 @@ public class HashFunctionsTest {
                      Map<String, Object> config = kv.getKey().getValue();
                      byte[] data = kv.getKey().getKey();
                      String hash = (String)run("HASH(data, 'tlsh', config)", ImmutableMap.of("config", config, "data", data));
-                     Assert.assertEquals(hash, kv.getValue());
+                     assertEquals(hash, kv.getValue());
                    }
             )
     );
@@ -268,40 +267,40 @@ public class HashFunctionsTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void tlsh_similarity() throws Exception {
+  public void tlsh_similarity() {
     for(Map.Entry<String, String> kv : ImmutableMap.of("been", "ben", "document", "dokumant", "code", "cad").entrySet()) {
       Map<String, Object> variables = ImmutableMap.of("toHash", TLSH_DATA, "toHashSimilar", TLSH_DATA.replace(kv.getKey(), kv.getValue()));
       Map<String, Object> bin1 = (Map<String, Object>) run("HASH(toHashSimilar, 'tlsh', { 'hashes' : 4, 'bucketSize' : 128 })", variables);
       Map<String, Object> bin2 = (Map<String, Object>) run("HASH(toHash, 'tlsh', { 'hashes' : [ 4 ], 'bucketSize' : 128 })", variables);
-      assertEquals(kv.getKey() + " != " + kv.getValue() + " because " + bin1.get("tlsh") + " != " + bin2.get("tlsh"), bin1.get("tlsh_bin"), bin2.get("tlsh_bin"));
+      assertEquals(bin1.get("tlsh_bin"), bin2.get("tlsh_bin"), kv.getKey() + " != " + kv.getValue() + " because " + bin1.get("tlsh") + " != " + bin2.get("tlsh"));
       assertNotEquals(bin1.get("tlsh"), bin2.get("tlsh"));
       Map<String, Object> distVariables = ImmutableMap.of("hash1", bin1.get(TLSHHasher.TLSH_KEY), "hash2", bin2.get(TLSHHasher.TLSH_KEY));
       {
         //ensure the diff is minimal
         Integer diff = (Integer) run("TLSH_DIST( hash1, hash2)", distVariables);
         Integer diffReflexive = (Integer) run("TLSH_DIST( hash2, hash1)", distVariables);
-        Assert.assertTrue("diff == " + diff, diff < 100);
-        Assert.assertEquals(diff, diffReflexive);
+        assertTrue(diff < 100, "diff == " + diff);
+        assertEquals(diff, diffReflexive);
       }
 
       {
         //ensure that d(x,x) == 0
         Integer diff = (Integer) run("TLSH_DIST( hash1, hash1)", distVariables);
-        Assert.assertEquals((int)0, (int)diff);
+        assertEquals((int)0, (int)diff);
       }
     }
   }
 
-  @Test(expected=Exception.class)
-  public void tlshDist_invalidInput() throws Exception {
+  @Test
+  public void tlshDist_invalidInput() {
     final Map<String, Object> variables = new HashMap<>();
     variables.put("hash1", 1);
     variables.put("hash2", TLSH_EXPECTED);
-    run("TLSH_DIST( hash1, hash1)", variables);
+    assertThrows(Exception.class, () -> run("TLSH_DIST( hash1, hash1)", variables));
   }
 
   @Test
-  public void tlsh_insufficientComplexity() throws Exception {
+  public void tlsh_insufficientComplexity() {
     final Map<String, Object> variables = new HashMap<>();
     String data = "Metron is the best";
     variables.put("toHash", data);
@@ -309,7 +308,7 @@ public class HashFunctionsTest {
   }
 
   @Test
-  public void tlsh_nullInput() throws Exception {
+  public void tlsh_nullInput() {
     final Map<String, Object> variables = new HashMap<>();
     String data = null;
     variables.put("toHash", data);

@@ -25,8 +25,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +34,7 @@ public class ArithmeticEvaluatorTest {
   ArithmeticEvaluator evaluator = ArithmeticEvaluator.INSTANCE;
 
   @Test
-  public void evaluateDoubleShouldReturnDoubleAdd() throws Exception {
+  public void evaluateDoubleShouldReturnDoubleAdd() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -51,7 +50,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateIntegerShouldReturnIntegerAdd() throws Exception {
+  public void evaluateIntegerShouldReturnIntegerAdd() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -67,7 +66,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateFloatsShouldReturnFloatAdd() throws Exception {
+  public void evaluateFloatsShouldReturnFloatAdd() {
     Token<Float> l = mock(Token.class);
     when(l.getValue()).thenReturn(1F);
 
@@ -83,7 +82,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateLongsShouldReturnLongAdd() throws Exception {
+  public void evaluateLongsShouldReturnLongAdd() {
     Token<Long> l = mock(Token.class);
     when(l.getValue()).thenReturn(1L);
 
@@ -99,7 +98,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateIntegerShouldReturnDoubleMul() throws Exception {
+  public void evaluateIntegerShouldReturnDoubleMul() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -115,7 +114,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateIntegerShouldReturnIntegerMul() throws Exception {
+  public void evaluateIntegerShouldReturnIntegerMul() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -131,7 +130,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateFloatsShouldReturnFloatMul() throws Exception {
+  public void evaluateFloatsShouldReturnFloatMul() {
     Token<Float> l = mock(Token.class);
     when(l.getValue()).thenReturn(1F);
 
@@ -147,7 +146,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateLongsShouldReturnLongMul() throws Exception {
+  public void evaluateLongsShouldReturnLongMul() {
     Token<Long> l = mock(Token.class);
     when(l.getValue()).thenReturn(1L);
 
@@ -163,7 +162,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateDoubleShouldReturnDoubleSub() throws Exception {
+  public void evaluateDoubleShouldReturnDoubleSub() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -179,7 +178,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateIntegerShouldReturnIntegerSub() throws Exception {
+  public void evaluateIntegerShouldReturnIntegerSub() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -195,7 +194,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateFloatsShouldReturnFloatSub() throws Exception {
+  public void evaluateFloatsShouldReturnFloatSub() {
     Token<Float> l = mock(Token.class);
     when(l.getValue()).thenReturn(1F);
 
@@ -211,7 +210,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateLongsShouldReturnLongSub() throws Exception {
+  public void evaluateLongsShouldReturnLongSub() {
     Token<Long> l = mock(Token.class);
     when(l.getValue()).thenReturn(1L);
 
@@ -227,7 +226,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateDoubleShouldReturnDoubleDiv() throws Exception {
+  public void evaluateDoubleShouldReturnDoubleDiv() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -243,7 +242,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateIntegerShouldReturnIntegerDiv() throws Exception {
+  public void evaluateIntegerShouldReturnIntegerDiv() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -259,7 +258,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateFloatsShouldReturnFloatDiv() throws Exception {
+  public void evaluateFloatsShouldReturnFloatDiv() {
     Token<Float> l = mock(Token.class);
     when(l.getValue()).thenReturn(1F);
 
@@ -275,7 +274,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateLongsShouldReturnLongDiv() throws Exception {
+  public void evaluateLongsShouldReturnLongDiv() {
     Token<Long> l = mock(Token.class);
     when(l.getValue()).thenReturn(1L);
 
@@ -290,25 +289,35 @@ public class ArithmeticEvaluatorTest {
     assertEquals(0L, evaluated.getValue());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void evaluateShouldThroughIllegalArgumentExceptionWhenInputIsNull() throws Exception {
-    evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(null), null);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void evaluateShouldThroughIllegalArgumentExceptionWhenInputsKeyIsNull() throws Exception {
-    Pair<Token<? extends Number>, Token<? extends Number>> p = Pair.of(null, mock(Token.class));
-    evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(null), p);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void evaluateShouldThroughIllegalArgumentExceptionWhenInputsValueIsNull() throws Exception {
-    Pair<Token<? extends Number>, Token<? extends Number>> p = Pair.of(mock(Token.class), null);
-    evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(null), p);
+  @Test
+  public void evaluateShouldThroughIllegalArgumentExceptionWhenInputIsNull() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            evaluator.evaluate(
+                ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(null), null));
   }
 
   @Test
-  public void evaluateShouldConvertShortsToIntegersType() throws Exception {
+  public void evaluateShouldThroughIllegalArgumentExceptionWhenInputsKeyIsNull() {
+    Pair<Token<? extends Number>, Token<? extends Number>> p = Pair.of(null, mock(Token.class));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(null), p));
+  }
+
+  @Test
+  public void evaluateShouldThroughIllegalArgumentExceptionWhenInputsValueIsNull() {
+    Pair<Token<? extends Number>, Token<? extends Number>> p = Pair.of(mock(Token.class), null);
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            evaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(null), p));
+  }
+
+  @Test
+  public void evaluateShouldConvertShortsToIntegersType() {
     Token<Short> l = mock(Token.class);
     when(l.getValue()).thenReturn((short) 2);
 
@@ -334,7 +343,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateIntegerShouldReturnIntegerWhenLeftsValueIsNull() throws Exception {
+  public void evaluateIntegerShouldReturnIntegerWhenLeftsValueIsNull() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(null);
 
@@ -350,7 +359,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void evaluateIntegerShouldReturnIntegerWhenRightsValueIsNull() throws Exception {
+  public void evaluateIntegerShouldReturnIntegerWhenRightsValueIsNull() {
     Token<Integer> l = mock(Token.class);
     when(l.getValue()).thenReturn(1);
 
@@ -366,7 +375,7 @@ public class ArithmeticEvaluatorTest {
   }
 
   @Test
-  public void verifyExpectedReturnTypes() throws Exception {
+  public void verifyExpectedReturnTypes() {
     Token<Integer> integer = mock(Token.class);
     when(integer.getValue()).thenReturn(1);
 

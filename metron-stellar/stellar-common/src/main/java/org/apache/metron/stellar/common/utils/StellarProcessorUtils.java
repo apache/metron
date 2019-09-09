@@ -22,23 +22,10 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.stellar.common.StellarPredicateProcessor;
 import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.DefaultVariableResolver;
-import org.apache.metron.stellar.dsl.MapVariableResolver;
-import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.junit.Assert;
+import org.apache.metron.stellar.dsl.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.AbstractMap;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Spliterators;
+import java.io.*;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
@@ -46,9 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Utilities for executing and validating Stellar expressions.
@@ -139,7 +124,7 @@ public class StellarProcessorUtils {
 
     byte[] raw = SerDeUtils.toBytes(value);
     Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(msg, value, actual);
+    assertEquals(value, actual, msg);
   }
 
   /**
@@ -228,8 +213,7 @@ public class StellarProcessorUtils {
 
   public static void validate(String expression, Context context) {
     StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue("Invalid expression; expr=" + expression,
-            processor.validate(expression, context));
+    assertTrue(processor.validate(expression, context), "Invalid expression; expr=" + expression);
   }
 
   public static void validate(String rule) {
@@ -250,7 +234,7 @@ public class StellarProcessorUtils {
 
   public static boolean runPredicate(String rule, VariableResolver resolver, Context context) {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule));
+    assertTrue(processor.validate(rule), rule + " not valid.");
     return processor.parse(rule, resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
@@ -269,9 +253,9 @@ public class StellarProcessorUtils {
     String reason = stellarStatement + " != " + expected + " with variables: " + variables;
 
     if (expected instanceof Double) {
-      Assert.assertEquals(reason, (Double) expected, (Double) run(stellarStatement, variables), 1e-6);
+      assertEquals((Double) expected, (Double) run(stellarStatement, variables), 1e-6, reason);
     } else {
-      Assert.assertEquals(reason, expected, run(stellarStatement, variables));
+      assertEquals(expected, run(stellarStatement, variables), reason);
     }
   }
 

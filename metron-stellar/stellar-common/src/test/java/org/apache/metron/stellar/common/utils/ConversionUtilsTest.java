@@ -18,7 +18,6 @@
 
 package org.apache.metron.stellar.common.utils;
 
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 

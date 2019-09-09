@@ -19,8 +19,6 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.common.StellarProcessor;
@@ -28,11 +26,13 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MathFunctionsTest {
 
@@ -44,7 +44,7 @@ public class MathFunctionsTest {
   public static Object run(String rule, Map<String, Object> variables) {
     Context context = Context.EMPTY_CONTEXT();
     StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
+    assertTrue(processor.validate(rule, context), rule + " not valid.");
     return processor.parse(rule, new DefaultVariableResolver(v -> variables.get(v),v -> variables.containsKey(v)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
@@ -173,19 +173,19 @@ public class MathFunctionsTest {
 
   @Test
   public void testIsNaN() {
-    Assert.assertTrue(runPredicate("IS_NAN(NaN)", new HashMap<>()));
-    Assert.assertFalse(runPredicate("IS_NAN(1.0)", new HashMap<>()));
-    Assert.assertTrue(runPredicate("IS_NAN(0.0/0.0)",new HashMap<>()));
+    assertTrue(runPredicate("IS_NAN(NaN)", new HashMap<>()));
+    assertFalse(runPredicate("IS_NAN(1.0)", new HashMap<>()));
+    assertTrue(runPredicate("IS_NAN(0.0/0.0)",new HashMap<>()));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testIsNanWithNotNumberType() {
-    runPredicate("IS_NAN('casey')", new HashMap<>());
+    assertThrows(ParseException.class, () -> runPredicate("IS_NAN('casey')", new HashMap<>()));
   }
 
-  @Test(expected= ParseException.class)
+  @Test
   public void testIsNanWithNoArgs() {
-    runPredicate("IS_NAN()", new HashMap<>());
+    assertThrows(ParseException.class, () -> runPredicate("IS_NAN()", new HashMap<>()));
   }
 
   public void assertValues(String func, Map<Double, Double> expected) {
@@ -196,9 +196,15 @@ public class MathFunctionsTest {
          )
       {
         if (Double.isNaN(test.getValue())) {
-          Assert.assertTrue(expr + " != NaN, where value == " + test.getKey(), Double.isNaN(toDouble(run(expr, ImmutableMap.of("value", test.getKey())))));
+          assertTrue(
+              Double.isNaN(toDouble(run(expr, ImmutableMap.of("value", test.getKey())))),
+              expr + " != NaN, where value == " + test.getKey());
         } else {
-          Assert.assertEquals(expr + " != " + test.getValue() + " (where value == " + test.getKey() + ")", test.getValue(), toDouble(run(expr, ImmutableMap.of("value", test.getKey()))), EPSILON);
+          assertEquals(
+              test.getValue(),
+              toDouble(run(expr, ImmutableMap.of("value", test.getKey()))),
+              EPSILON,
+              expr + " != " + test.getValue() + " (where value == " + test.getKey() + ")");
         }
       }
     }

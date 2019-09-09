@@ -18,21 +18,21 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.metron.stellar.dsl.BaseStellarFunction;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
-import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class BaseFunctionResolverTest {
 
@@ -104,7 +104,7 @@ public class BaseFunctionResolverTest {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
       closeCallCount++;
       if (throwException) {
         throw new NullPointerException("A most annoying exception.");
@@ -130,9 +130,6 @@ public class BaseFunctionResolverTest {
     assertThat(IAmAnotherFunction.closeCallCount, equalTo(1));
   }
 
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Test
   public void close_collects_all_exceptions_thrown_on_loaded_function_close_methods()
       throws IOException {
@@ -140,8 +137,7 @@ public class BaseFunctionResolverTest {
     IAmAnotherFunction.throwException = true;
     resolver.withClass(IAmAFunction.class);
     resolver.withClass(IAmAnotherFunction.class);
-    exception.expect(IOException.class);
-    resolver.close();
+    assertThrows(IOException.class, () -> resolver.close());
   }
 
   @Test
@@ -153,7 +149,7 @@ public class BaseFunctionResolverTest {
     resolver.withClass(IAmAnotherFunction.class);
     try {
       resolver.close();
-      Assert.fail("Should have thrown an exception.");
+      fail("Should have thrown an exception.");
     } catch (IOException e) {
       // intentionally empty
     }

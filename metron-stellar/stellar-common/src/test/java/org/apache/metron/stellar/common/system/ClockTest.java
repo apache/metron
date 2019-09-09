@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ClockTest {
 

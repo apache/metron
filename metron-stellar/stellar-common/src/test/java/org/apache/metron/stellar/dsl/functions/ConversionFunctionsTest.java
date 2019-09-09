@@ -23,11 +23,12 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ConversionFunctionsTest {
 
   @Test
-  public void conversionFunctionsShouldProperlyConvertToSpecificType() throws Exception {
+  public void conversionFunctionsShouldProperlyConvertToSpecificType() {
     assertEquals(1D, new ConversionFunctions.TO_DOUBLE().apply(Collections.singletonList(1)));
     assertEquals(1F, new ConversionFunctions.TO_FLOAT().apply(Collections.singletonList(1.0D)));
     assertEquals(1, new ConversionFunctions.TO_INTEGER().apply(Collections.singletonList(1.0D)));
@@ -35,10 +36,10 @@ public class ConversionFunctionsTest {
   }
 
   @Test
-  public void conversionFunctionsShouldProperlyHandleNull() throws Exception {
-    assertEquals(null, new ConversionFunctions.TO_DOUBLE().apply(Collections.singletonList(null)));
-    assertEquals(null, new ConversionFunctions.TO_FLOAT().apply(Collections.singletonList(null)));
-    assertEquals(null, new ConversionFunctions.TO_INTEGER().apply(Collections.singletonList(null)));
-    assertEquals(null, new ConversionFunctions.TO_LONG().apply(Collections.singletonList(null)));
+  public void conversionFunctionsShouldProperlyHandleNull() {
+    assertNull(new ConversionFunctions.TO_DOUBLE().apply(Collections.singletonList(null)));
+    assertNull(new ConversionFunctions.TO_FLOAT().apply(Collections.singletonList(null)));
+    assertNull(new ConversionFunctions.TO_INTEGER().apply(Collections.singletonList(null)));
+    assertNull(new ConversionFunctions.TO_LONG().apply(Collections.singletonList(null)));
   }
 }
