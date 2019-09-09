@@ -178,13 +178,14 @@ describe('AlertsListComponent', () => {
         } } },
         { provide: DialogService, useClass: () => { return {} } },
         { provide: QueryBuilder, useClass: () => { return {
+          filteringMode: FilteringMode.BUILDER,
+          filters: [],
+          query: '*',
           addOrUpdateFilter: () => {},
           clearSearch: () => {},
           generateSelect: () => {},
           isTimeStampFieldPresent: () => {},
-          filteringMode: FilteringMode.BUILDER,
-          filters: [],
-          query: '*'
+          getManualQuery: () => {},
         } } },
         { provide: AutoPollingService, useClass: () => { return {
           data: new Subject<SearchResponse>(),
