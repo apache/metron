@@ -51,6 +51,7 @@ export class ParserConfigModel implements ParserModel {
   startStopInProgress: boolean;
   group: string;
   description: string;
+  timestampField: string;
 
   constructor(id: string, config: any = {}) {
 
@@ -65,6 +66,7 @@ export class ParserConfigModel implements ParserModel {
     this.fieldTransformations = config.fieldTransformations || [];
     this.spoutConfig = config.spoutConfig || {};
     this.stormConfig = config.stormConfig || {};
+    this.timestampField = 'timestamp';
   }
 
   clone(params = {}): ParserConfigModel {
