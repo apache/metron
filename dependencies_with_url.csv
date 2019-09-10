@@ -576,11 +576,3 @@ org.glassfish.jersey.core:jersey-server:jar:2.25.1:compile,Eclipse Public Licens
 org.glassfish.jersey.media:jersey-media-jaxb:jar:2.25.1:compile,Eclipse Public License 2.0,https://jersey.github.io/
 org.glassfish.web:javax.servlet.jsp:jar:2.3.2:compile,Eclipse Public License 2.0,https://jersey.github.io/
 org.glassfish:javax.el:jar:3.0.1-b11:compile,Eclipse Public License 2.0,https://jersey.github.io/
-
-
-
-
-
-
-
-
