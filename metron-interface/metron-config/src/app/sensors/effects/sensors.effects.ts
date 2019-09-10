@@ -148,7 +148,7 @@ export class SensorsEffects {
    * a few differences. This helper method is for dealing with the differences and includes the
    * majority of the functionality (DRY).
    */
-  private getControlMapHandlerFor(type: 'start' | 'stop' | 'enable' | 'disable') {
+  private getControlMapHandlerFor(type: 'start' | 'stop' | 'enable' | 'disable'): any {
     let serviceMethod;
     let actionMessage;
     let statusString;

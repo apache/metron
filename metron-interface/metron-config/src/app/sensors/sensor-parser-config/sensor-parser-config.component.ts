@@ -32,7 +32,7 @@ import { IndexingConfigurations } from '../../model/sensor-indexing-config';
 import { RestError } from '../../model/rest-error';
 import { HdfsService } from '../../service/hdfs.service';
 import { GrokValidationService } from '../../service/grok-validation.service';
-import { SensorState } from '../reducers';
+import { State } from '../reducers';
 import { Store, select } from '@ngrx/store';
 import { ParserMetaInfoModel } from '../models/parser-meta-info.model';
 import { filter } from 'rxjs/operators';
@@ -116,7 +116,7 @@ export class SensorParserConfigComponent implements OnInit {
     private router: Router,
     private kafkaService: KafkaService,
     private hdfsService: HdfsService,
-    private store: Store<SensorState>,
+    private store: Store<State>,
   ) {}
 
   ngOnInit() {

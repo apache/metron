@@ -632,7 +632,7 @@ export const isDirty = createSelector(
 
 export const getParserConfig = () => createSelector(
   getParsers,
-  (parsers: ParserMetaInfoModel[], props) => {
+  (parsers: ParserMetaInfoModel[], props): ParserMetaInfoModel => {
     return parsers.find(parser => parser.config.getName() === props.id);
   }
 );
