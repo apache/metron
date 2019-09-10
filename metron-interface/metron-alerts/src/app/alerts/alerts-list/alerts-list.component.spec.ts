@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { AlertsListComponent } from './alerts-list.component';
-import { ComponentFixture, async, TestBed, fakeAsync } from '@angular/core/testing';
+import { ComponentFixture, async, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Component, Input, Directive } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { SearchService } from 'app/service/search.service';
@@ -39,6 +39,7 @@ import { Router } from '@angular/router';
 import { Alert } from 'app/model/alert';
 import { AlertSource } from 'app/model/alert-source';
 import { SearchRequest } from 'app/model/search-request';
+import { query } from '@angular/core/src/render3';
 
 @Component({
   selector: 'app-auto-polling',
@@ -181,11 +182,14 @@ describe('AlertsListComponent', () => {
           filteringMode: FilteringMode.BUILDER,
           filters: [],
           query: '*',
+          get searchRequest() {
+            return new SearchResponse();
+          },
           addOrUpdateFilter: () => {},
           clearSearch: () => {},
-          generateSelect: () => {},
           isTimeStampFieldPresent: () => {},
           getManualQuery: () => {},
+          setManualQuery: () => {},
         } } },
         { provide: AutoPollingService, useClass: () => { return {
           data: new Subject<SearchResponse>(),
@@ -251,52 +255,49 @@ describe('AlertsListComponent', () => {
       expect(component.isQueryBuilderModeManual()).toBe(false);
     });
 
-    it('should pass the manual query value when mode is manual', () => {
-      const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
-      const el = input.nativeElement;
+    it('should show manual input dom element depending on mode', () => {
+      let input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
 
-      const queryBuilderFake = TestBed.get(QueryBuilder);
-      spyOn(queryBuilderFake, 'generateSelect').and.returnValue('*');
-
-      expect(component.queryForTreeView()).toBe('*');
+      expect(input).toBeFalsy();
 
       component.toggleQueryBuilderMode();
-      expect(component.isQueryBuilderModeManual()).toBe(true);
+      fixture.detectChanges();
+      input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
 
-      el.value = 'test';
-      expect(component.queryForTreeView()).toBe('test');
+      expect(input).toBeTruthy();
+
+      component.toggleQueryBuilderMode();
+      fixture.detectChanges();
+      input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+
+      expect(input).toBeFalsy();
     });
 
-    it('should use manual query string on search if mode is manual', () => {
-      const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
-      const el = input.nativeElement;
-      const newSearch = new SearchRequest();
-
-      spyOn(searchService, 'search').and.returnValue(of());
-      spyOn(component, 'setSearchRequestSize');
+    it('should bind default manual query from query builder', () => {
+      spyOn(queryBuilder, 'getManualQuery').and.returnValue('test manual query string')
 
       component.toggleQueryBuilderMode();
+      fixture.detectChanges();
+      let input: HTMLInputElement = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]')).nativeElement;
 
-      el.value = 'test';
-      component.pagination.size = 25;
-      newSearch.query = 'test'
-      newSearch.size = 25
-      newSearch.from = 0;
+      expect(input.value).toBe('test manual query string');
+    });
+
+    it('should pass the manual query value to the query builder when editing mode is manual', fakeAsync(() => {
+      spyOn(queryBuilder, 'setManualQuery');
+      component.toggleQueryBuilderMode();
 
       fixture.detectChanges();
-      component.search();
-      expect(searchService.search).toHaveBeenCalledWith(newSearch);
-    });
+      const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+      const el = input.nativeElement;
 
-    xit('should poll with new search request if isRefreshPaused is true and manualSearch is present', () => {
-      // const searchServiceSpy = spyOn(searchService, 'pollSearch').and.returnValue(of());
-      // const newSearch = new SearchRequest();
+      el.value = 'test';
+      (el as HTMLElement).dispatchEvent(new Event('keyup'));
+      fixture.detectChanges();
+      tick(300);
 
-      // component.isRefreshPaused = false;
-      // fixture.detectChanges();
-      // component.tryStartPolling(newSearch);
-      // expect(searchServiceSpy).toHaveBeenCalledWith(newSearch);
-    });
+      expect(queryBuilder.setManualQuery).toHaveBeenCalledWith('test');
+    }));
   });
 
   describe('handling pending search requests', () => {
@@ -366,17 +367,20 @@ describe('AlertsListComponent', () => {
       expect(component.staleDataState).toBe(false);
     });
 
-    xit('should show manual input dom element depending on mode', () => {
+    it('should set stale date true when query changes in manual mode', fakeAsync(() => {
+      component.toggleQueryBuilderMode();
 
-    });
+      fixture.detectChanges();
+      const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+      const el = input.nativeElement;
 
-    xit('should bind default manual query from query builder', () => {
+      el.value = 'test';
+      (el as HTMLElement).dispatchEvent(new Event('keyup'));
+      fixture.detectChanges();
+      tick(300);
 
-    });
-
-    xit('should set stale date state when query changes in manual mode', () => {
-
-    });
+      expect(component.staleDataState).toBe(true);
+    }));
 
     it('should show warning if data is in a stale state', () => {
       expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBe(null);

@@ -21,7 +21,7 @@ import { TIMESTAMP_FIELD_NAME } from '../../utils/constants';
 import { Utils } from 'app/utils/utils';
 
 
-describe('query-builder', () => {
+describe('QueryBuilder', () => {
 
   it('should be able to handle multiple filters', () => {
     const queryBuilder = new QueryBuilder();
@@ -99,7 +99,7 @@ describe('query-builder', () => {
     queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]'));
     queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863700000 TO 1552960000000]'));
 
-    expect(queryBuilder.generateSelect()).toBe('(timestamp:[1552863700000 TO 1552960000000] OR ' +
+    expect(queryBuilder.query).toBe('(timestamp:[1552863700000 TO 1552960000000] OR ' +
       'metron_alert.timestamp:[1552863700000 TO 1552960000000])');
   });
 

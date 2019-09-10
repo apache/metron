@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {forkJoin, noop, fromEvent} from 'rxjs';
-import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef, AfterViewInit} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Subscription} from 'rxjs';
 
@@ -73,7 +73,17 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
-  @ViewChild('manualQuery') manualQuery: ElementRef;
+
+  private _manualQueryInputEl: ElementRef;
+  @ViewChild('manualQuery') set manualQuery(el: ElementRef) {
+    if (el) {
+      this._manualQueryInputEl = el;
+      this.addManualQueryFieldChangeStream(el.nativeElement);
+    }
+  };
+  get manualQuery(): ElementRef {
+    return this._manualQueryInputEl;
+  }
 
   tableMetaData = new TableMetadata();
   pagination: Pagination = new Pagination();
@@ -113,7 +123,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     })
   }
 
-  addAlertChangedListner() {
+  addAlertChangedListener() {
     this.metaAlertsService.alertChanged$.subscribe(alertSource => {
       if (alertSource['status'] === 'inactive') {
         this.removeAlert(alertSource)
@@ -126,7 +136,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     });
   }
 
-  addAlertColChangedListner() {
+  addAlertColChangedListener() {
     this.configureTableService.tableChanged$.subscribe(colChanged => {
       if (colChanged) {
         this.getAlertColumnNames(false);
@@ -134,7 +144,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     });
   }
 
-  addLoadSavedSearchListner() {
+  addLoadSavedSearchListener() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
       this.queryBuilder.searchRequest = savedSearch.searchRequest;
       this.queryBuilder.filters = savedSearch.filters;
@@ -216,19 +226,23 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
     this.setDefaultTimeRange(this.DEFAULT_TIME_RANGE);
     this.getAlertColumnNames(true);
-    this.addAlertColChangedListner();
-    this.addLoadSavedSearchListner();
-    this.addAlertChangedListner();
-    this.addManualQueryFieldChangeStream()
+    this.addAlertColChangedListener();
+    this.addLoadSavedSearchListener();
+    this.addAlertChangedListener();
   }
 
-  private addManualQueryFieldChangeStream() {
-    fromEvent<KeyboardEvent>(this.manualQuery.nativeElement, 'keyup').pipe(
+  private addManualQueryFieldChangeStream(inputDomEl: HTMLInputElement) {
+    fromEvent<KeyboardEvent>(inputDomEl, 'keyup').pipe(
       map(event => (event.target as HTMLInputElement).value),
       debounceTime(300),
     ).subscribe((manualQuery) => {
-      this.queryBuilder.setManualQuery(manualQuery);
+      this.onManualQueryInputChange(manualQuery);
     });
+  }
+
+  private onManualQueryInputChange(value: string) {
+    this.queryBuilder.setManualQuery(value);
+    this.staleDataState = true;
   }
 
   private setDefaultTimeRange(timeRangeId: string) {
@@ -325,7 +339,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   prepareColumnData(configuredColumns: ColumnMetadata[], defaultColumns: ColumnMetadata[]) {
     this.alertsColumns = (configuredColumns && configuredColumns.length > 0) ? configuredColumns : defaultColumns;
-    this.queryBuilder.setFields(this.getColumnNamesForQuery());
     this.calcColumnsToDisplay();
   }
 
@@ -392,7 +405,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
     this.setSearchRequestSize();
 
-    this.pendingSearch = this.searchService.search(this.getSearchRequest()).subscribe(results => {
+    this.pendingSearch = this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
       this.pendingSearch = null;
       this.staleDataState = false;
@@ -405,21 +418,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     if (this.autoPollingSvc.getIsPollingActive()) {
       this.autoPollingSvc.dropNextAndContinue();
     }
-  }
-
-  private getSearchRequest(): SearchRequest {
-    let searchRequest: SearchRequest;
-
-    if (this.queryBuilder.filteringMode === FilteringMode.MANUAL) {
-      searchRequest = new SearchRequest();
-      searchRequest.query = this.manualQuery.nativeElement.value;
-      searchRequest.size = this.pagination.size;
-      searchRequest.from = 0;
-    } else {
-      searchRequest = this.queryBuilder.searchRequest;
-    }
-
-    return searchRequest;
   }
 
   setSearchRequestSize() {
@@ -554,7 +552,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.setSelectedTimeRange([this.selectedTimeRange]);
     if (this.queryBuilder.filteringMode === FilteringMode.BUILDER) {
       this.queryBuilder.filteringMode = FilteringMode.MANUAL;
-      // this.manualQuery.nativeElement.value = this.queryBuilder.query;
     } else {
       this.queryBuilder.filteringMode = FilteringMode.BUILDER;
       // FIXME: this could lead to a large blocking load depending on the response time
@@ -564,11 +561,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   queryForTreeView() {
-    if (this.queryBuilder.filteringMode === FilteringMode.BUILDER) {
-      return this.queryBuilder.generateSelect();
-    } else {
-      return this.manualQuery.nativeElement.value;
-    }
+    return this.queryBuilder.query;
   }
 
 }

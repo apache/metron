@@ -21,8 +21,11 @@
                         <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
                     </span>
                     <div appAceEditor *ngIf="!isQueryBuilderModeManual()" class="flex-fill" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
-                    <div class="flex-fill" [class.d-none]="!isQueryBuilderModeManual()">
-                        <input class="manual-query-input" [value]="queryBuilder.getManualQuery()" data-qe-id="manual-query-input" type="text" #manualQuery >
+                    <div class="flex-fill" *ngIf="isQueryBuilderModeManual()">
+                        <input #manualQuery type="text"
+                            class="manual-query-input"
+                            [value]="queryBuilder.getManualQuery()"
+                            data-qe-id="manual-query-input">
                     </div>
                     <span class="input-group-append">
                         <button class="btn btn-secondary btn-options" (click)="toggleQueryBuilderMode()">
