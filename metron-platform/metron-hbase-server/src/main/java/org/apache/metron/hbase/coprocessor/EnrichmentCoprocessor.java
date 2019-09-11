@@ -67,6 +67,7 @@ import org.slf4j.LoggerFactory;
  * </ul>
  *
  * @see <a href="https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionObserver.html">https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionObserver.html</a>
+ * @see <a href="https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionCoprocessor.html">https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionCoprocessor.html</a>
  * @see EnrichmentConfigurations Available options.
  */
 public class EnrichmentCoprocessor implements RegionObserver, RegionCoprocessor {
