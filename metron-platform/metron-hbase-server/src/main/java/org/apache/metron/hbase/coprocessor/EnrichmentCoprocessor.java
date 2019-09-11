@@ -74,7 +74,7 @@ public class EnrichmentCoprocessor implements RegionObserver, RegionCoprocessor 
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   // pass in via coprocessor config options - via hbase shell or hbase-site.xml
-  // see more here - https://hbase.apache.org/1.1/book.html#load_coprocessor_in_shell
+  // see more here - https://hbase.apache.org/2.0/book.html#load_coprocessor_in_shell
   public static final String ZOOKEEPER_URL = "zookeeperUrl";
   public static final String COLUMN_QUALIFIER = "v";
   private Cache<String, String> cache;
