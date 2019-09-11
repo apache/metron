@@ -37,7 +37,7 @@ export class QueryBuilder {
   private _manualQuery;
   private _filters: Filter[] = [];
 
-  filteringMode: FilteringMode = FilteringMode.BUILDER;
+  private filteringMode: FilteringMode = FilteringMode.BUILDER;
 
   get query(): string {
     return this.searchRequest.query;
@@ -161,13 +161,21 @@ export class QueryBuilder {
     this.searchRequest.sort = [sortField];
   }
 
+  setFilteringMode(mode: FilteringMode) {
+    this.filteringMode = mode;
+  }
+
+  getFilteringMode() {
+    return this.filteringMode;
+  }
+
   setManualQuery(query: string) {
     this._manualQuery = query;
   }
 
   getManualQuery(): string {
     if (!this._manualQuery) {
-      this._manualQuery = this.getBuilderQueryString();
+      this._manualQuery = this.getBuilderQueryString() || '*';
     }
     return this._manualQuery;
   }

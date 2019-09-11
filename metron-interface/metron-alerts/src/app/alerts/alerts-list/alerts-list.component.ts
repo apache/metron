@@ -546,16 +546,16 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   isQueryBuilderModeManual() {
-    return this.queryBuilder.filteringMode === FilteringMode.MANUAL;
+    return this.queryBuilder.getFilteringMode() === FilteringMode.MANUAL;
   }
 
   toggleQueryBuilderMode() {
     // FIXME setting timerange on toggle feels like a hack
     this.setSelectedTimeRange([this.selectedTimeRange]);
-    if (this.queryBuilder.filteringMode === FilteringMode.BUILDER) {
-      this.queryBuilder.filteringMode = FilteringMode.MANUAL;
+    if (this.queryBuilder.getFilteringMode() === FilteringMode.BUILDER) {
+      this.queryBuilder.setFilteringMode(FilteringMode.MANUAL);
     } else {
-      this.queryBuilder.filteringMode = FilteringMode.BUILDER;
+      this.queryBuilder.setFilteringMode(FilteringMode.BUILDER);
       // FIXME: this could lead to a large blocking load depending on the response time
       this.queryBuilder.clearSearch();
       this.search();

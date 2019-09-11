@@ -179,7 +179,6 @@ describe('AlertsListComponent', () => {
         } } },
         { provide: DialogService, useClass: () => { return {} } },
         { provide: QueryBuilder, useClass: () => { return {
-          filteringMode: FilteringMode.BUILDER,
           filters: [],
           query: '*',
           get searchRequest() {
@@ -190,6 +189,8 @@ describe('AlertsListComponent', () => {
           isTimeStampFieldPresent: () => {},
           getManualQuery: () => {},
           setManualQuery: () => {},
+          getFilteringMode: () => {},
+          setFilteringMode: () => {},
         } } },
         { provide: AutoPollingService, useClass: () => { return {
           data: new Subject<SearchResponse>(),
@@ -245,13 +246,24 @@ describe('AlertsListComponent', () => {
   describe('filtering by query builder or manual query', () => {
     it('should be able to toggle the query builder mode', () => {
       spyOn(component, 'setSearchRequestSize');
+      spyOn(queryBuilder, 'setFilteringMode');
 
-      expect(component.isQueryBuilderModeManual()).toBe(false);
+      queryBuilder.getFilteringMode = () => FilteringMode.BUILDER;
 
       component.toggleQueryBuilderMode();
+      expect(queryBuilder.setFilteringMode).toHaveBeenCalledWith(FilteringMode.MANUAL);
+
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+
+      component.toggleQueryBuilderMode();
+      expect(queryBuilder.setFilteringMode).toHaveBeenCalledWith(FilteringMode.BUILDER);
+    });
+
+    it('isQueryBuilderModeManual should return true if queryBuilder is in manual mode', () => {
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
       expect(component.isQueryBuilderModeManual()).toBe(true);
 
-      component.toggleQueryBuilderMode();
+      queryBuilder.getFilteringMode = () => FilteringMode.BUILDER;
       expect(component.isQueryBuilderModeManual()).toBe(false);
     });
 
@@ -260,13 +272,13 @@ describe('AlertsListComponent', () => {
 
       expect(input).toBeFalsy();
 
-      component.toggleQueryBuilderMode();
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
       fixture.detectChanges();
       input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
 
       expect(input).toBeTruthy();
 
-      component.toggleQueryBuilderMode();
+      queryBuilder.getFilteringMode = () => FilteringMode.BUILDER;
       fixture.detectChanges();
       input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
 
@@ -276,7 +288,7 @@ describe('AlertsListComponent', () => {
     it('should bind default manual query from query builder', () => {
       spyOn(queryBuilder, 'getManualQuery').and.returnValue('test manual query string')
 
-      component.toggleQueryBuilderMode();
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
       fixture.detectChanges();
       let input: HTMLInputElement = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]')).nativeElement;
 
@@ -285,9 +297,10 @@ describe('AlertsListComponent', () => {
 
     it('should pass the manual query value to the query builder when editing mode is manual', fakeAsync(() => {
       spyOn(queryBuilder, 'setManualQuery');
-      component.toggleQueryBuilderMode();
 
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
       fixture.detectChanges();
+
       const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
       const el = input.nativeElement;
 
@@ -368,7 +381,7 @@ describe('AlertsListComponent', () => {
     });
 
     it('should set stale date true when query changes in manual mode', fakeAsync(() => {
-      component.toggleQueryBuilderMode();
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
 
       fixture.detectChanges();
       const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
