@@ -40,12 +40,10 @@ export class QueryBuilder {
   filteringMode: FilteringMode = FilteringMode.BUILDER;
 
   get query(): string {
-    console.log('getting query...');
     return this.searchRequest.query;
   }
 
   get displayQuery(): string {
-    console.log('getting display query...');
     return this.generateSelectForDisplay();
   }
 
@@ -81,6 +79,7 @@ export class QueryBuilder {
 
   clearSearch() {
     this._filters = [];
+    this._manualQuery = null;
   }
 
   addOrUpdateFilter(filter: Filter) {
@@ -111,7 +110,6 @@ export class QueryBuilder {
   }
 
   private getQueryString() {
-    console.log('invoking getQueryString...');
     if (this.filteringMode === FilteringMode.MANUAL) {
       return this.getManualQuery();
     } else {
@@ -120,7 +118,6 @@ export class QueryBuilder {
   }
 
   private getBuilderQueryString() {
-    console.log('invoking getBuilderQueryString...');
     return this._filters.map(filter => filter.getQueryString()).join(' AND ');
   }
 
@@ -169,7 +166,6 @@ export class QueryBuilder {
   }
 
   getManualQuery(): string {
-    console.log('invoking getManualQuery...');
     if (!this._manualQuery) {
       this._manualQuery = this.getBuilderQueryString();
     }

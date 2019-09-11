@@ -74,15 +74,16 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
 
-  private _manualQueryInputEl: ElementRef;
+  private manualQueryFieldChangeSubs: Subscription;
+  private manualQueryInputEl: ElementRef;
   @ViewChild('manualQuery') set manualQuery(el: ElementRef) {
-    if (el) {
-      this._manualQueryInputEl = el;
-      this.addManualQueryFieldChangeStream(el.nativeElement);
+    if (el && !this.manualQueryInputEl) {
+      this.manualQueryInputEl = el;
+      this.manualQueryFieldChangeSubs = this.addManualQueryFieldChangeStream(el.nativeElement);
     }
   };
   get manualQuery(): ElementRef {
-    return this._manualQueryInputEl;
+    return this.manualQueryInputEl;
   }
 
   tableMetaData = new TableMetadata();
@@ -210,6 +211,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.autoPollingSvc.onDestroy();
     this.removeAlertChangedListner();
     this.configSubscription.unsubscribe();
+    this.manualQueryFieldChangeSubs.unsubscribe();
   }
 
   ngOnInit() {
@@ -232,7 +234,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   private addManualQueryFieldChangeStream(inputDomEl: HTMLInputElement) {
-    fromEvent<KeyboardEvent>(inputDomEl, 'keyup').pipe(
+    return fromEvent<KeyboardEvent>(inputDomEl, 'keyup').pipe(
       map(event => (event.target as HTMLInputElement).value),
       debounceTime(300),
     ).subscribe((manualQuery) => {
