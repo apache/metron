@@ -37,6 +37,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.enrichment.cache.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.hbase.HBaseUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +86,7 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 			rs = table.get(get);
 
 			for (Cell cell : rs.rawCells()) {
-				output.put(new String(getQualifier(cell), StandardCharsets.UTF_8), "Y");
+				output.put(new String(HBaseUtils.getQualifier(cell), StandardCharsets.UTF_8), "Y");
 			}
 
 		} catch (IOException e) {
@@ -93,13 +94,6 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 			e.printStackTrace();
 		}
 		return output;
-	}
-
-	private static byte[] getQualifier(Cell cell) {
-		int length = cell.getQualifierLength();
-		int offset = cell.getQualifierOffset();
-		byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
-		return bytes;
 	}
 
 	@Override

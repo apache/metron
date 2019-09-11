@@ -28,6 +28,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.LookupKey;
 import org.apache.metron.enrichment.lookup.LookupValue;
+import org.apache.metron.hbase.HBaseUtils;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -40,7 +41,7 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     @Nullable
     @Override
     public Map.Entry<byte[], byte[]> apply(@Nullable Cell cell) {
-      return new AbstractMap.SimpleEntry<>(getQualifier(cell), getValue(cell));
+      return new AbstractMap.SimpleEntry<>(HBaseUtils.getQualifier(cell), HBaseUtils.getValue(cell));
     }
   };
   @Override
@@ -53,19 +54,7 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     return put;
   }
 
-  private static byte[] getQualifier(Cell cell) {
-    int length = cell.getQualifierLength();
-    int offset = cell.getQualifierOffset();
-    byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
-    return bytes;
-  }
 
-  private static byte[] getValue(Cell cell) {
-    int length = cell.getValueLength();
-    int offset = cell.getValueOffset();
-    byte[] bytes = Arrays.copyOfRange(cell.getRowArray(), offset, offset + length);
-    return bytes;
-  }
 
 
   public LookupKV<KEY_T, VALUE_T> fromPut(Put put, String columnFamily, KEY_T key, VALUE_T value) throws IOException {
