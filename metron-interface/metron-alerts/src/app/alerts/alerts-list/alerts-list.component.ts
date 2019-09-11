@@ -407,15 +407,16 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
     this.setSearchRequestSize();
 
-    this.pendingSearch = this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
-      this.setData(results);
-      this.pendingSearch = null;
-      this.staleDataState = false;
-    }, error => {
-      this.setData(new SearchResponse());
-      this.pendingSearch = null;
-      this.dialogService.launchDialog(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
-    });
+    this.pendingSearch = this.searchService.search(this.queryBuilder.searchRequest).subscribe(
+      results => {
+        this.setData(results);
+        this.pendingSearch = null;
+        this.staleDataState = false;
+      }, error => {
+        this.setData(new SearchResponse());
+        this.pendingSearch = null;
+        this.dialogService.launchDialog('Server were unable to apply query string.', DialogType.Error);
+      });
 
     if (this.autoPollingSvc.getIsPollingActive()) {
       this.autoPollingSvc.dropNextAndContinue();

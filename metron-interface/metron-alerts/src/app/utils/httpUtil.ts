@@ -18,8 +18,8 @@
  */
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {RestError} from '../model/rest-error';
-import {throwError as observableThrowError, Observable} from 'rxjs';
-import {AppConfigService} from "../service/app-config.service";
+import {throwError, Observable} from 'rxjs';
+import {AppConfigService} from '../service/app-config.service';
 
 export class HttpUtil {
 
@@ -33,9 +33,12 @@ export class HttpUtil {
     return body || {};
   }
 
+  /**
+   * @depricated Turning all errors to 404 and hiding actual errors from the consumers
+   *             could limit how we can recover or react to errors.
+   *             Use sessionExpiration instead and/or introduce new composable error handlers.
+   */
   public static handleError(res: HttpErrorResponse): Observable<RestError> {
-    // In a real world app, we might use a remote logging infrastructure
-    // We'd also dig deeper into the error to get a better message
     let restError: RestError;
     if (res.status === 401) {
       HttpUtil.navigateToLogin();
@@ -45,7 +48,14 @@ export class HttpUtil {
       restError = new RestError();
       restError.status = 404;
     }
-    return observableThrowError(restError);
+    return throwError(restError);
+  }
+
+  public static sessionExpiration(res: HttpErrorResponse): Observable<RestError> {
+    if (res.status === 401) {
+      HttpUtil.navigateToLogin();
+    }
+    return throwError(res);
   }
 
   public static navigateToLogin() {

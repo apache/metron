@@ -78,9 +78,10 @@ export class SearchService {
 
   public search(searchRequest: SearchRequest): Observable<SearchResponse> {
     let url = this.appConfigService.getApiRoot() + '/search/search';
+
     return this.http.post(url, searchRequest).pipe(
-    map(HttpUtil.extractData),
-    catchError(HttpUtil.handleError),
-    onErrorResumeNext());
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.sessionExpiration),
+    );
   }
 }
