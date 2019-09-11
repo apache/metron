@@ -36,6 +36,7 @@ public class KafkaUtil {
                 Thread.sleep(sleepBetween);
             }
         }
+        // wait for all messages to be sent
+        producer.flush();
     }
-
 }
