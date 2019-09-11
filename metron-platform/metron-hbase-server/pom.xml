@@ -282,6 +282,7 @@
                                         <exclude>org/slf4j/**</exclude>
                                         <exclude>META-INF/maven/org.slf4j/**</exclude>
                                         <exclude>META-INF/license/LICENSE.slf4j.txt</exclude>
+                                        <!-- hadoop deps from metron-common are not needed here and cause classpath conflicts with hbase -->
                                         <exclude>org/apache/hadoop/**</exclude>
                                     </excludes>
                                 </filter>

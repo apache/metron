@@ -332,6 +332,9 @@
                                     <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <!-- need to also relocate Guava's `thirdparty` packages. otherwise, the class
+                                         `thirdparty.publicsuffix.PublicSuffixPatterns` cannot be found after
+                                         relocation of Guava's `com.google.commmon` packages. -->
                                     <pattern>com.google.thirdparty</pattern>
                                     <shadedPattern>org.apache.metron.guava.thirdparty.${guava_version}</shadedPattern>
                                 </relocation>

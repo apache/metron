@@ -41,11 +41,15 @@
             <version>3.2</version>
         </dependency>
         <dependency>
+          <!-- prevents hbase and kafka from pulling in newer versions of jackson
+               (2.9.x) which conflict with metron's ${global_jackson_version}-->
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${global_jackson_version}</version>
         </dependency>
         <dependency>
+            <!-- prevents hbase and kafka from pulling in newer versions of jackson
+                 (2.9.x) which conflict with metron's ${global_jackson_version}-->
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>${global_jackson_version}</version>
@@ -231,6 +235,8 @@
             <version>${global_caffeine_version}</version>
         </dependency>
         <dependency>
+          <!-- prevents storm and hadoop from pulling in newer versions of slf4j-api
+               (1.7.x) which conflict with kafka and metron's ${global_jackson_version}-->
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${global_slf4j_version}</version>
