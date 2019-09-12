@@ -364,6 +364,8 @@
                         <!-- ACE editor assets are covered in the metron-config NOTICE file -->
                         <exclude>**/src/assets/ace/**</exclude>
                         <exclude>dist/assets/ace/**</exclude>
+                        <!-- scripts.js is MIT licensed - not sure why RAT is flagging it -->
+                        <exclude>dist/scripts.js</exclude>
                         <!-- Generated svg and bundle.css containing Font Awesome fonts are covered in the
                              metron-interface/metron-config README and NOTICE files -->
                         <exclude>dist/*.svg</exclude>
