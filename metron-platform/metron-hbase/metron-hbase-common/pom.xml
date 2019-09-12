@@ -53,6 +53,7 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
                 <exclusion>
+                    <!-- to avoid pulling in guava 12 -->
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
@@ -94,6 +95,7 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
                 <exclusion>
+                    <!-- to avoid pulling in guava 11 -->
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
@@ -107,6 +109,7 @@
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
+                    <!-- to avoid pulling in guava 11 -->
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
