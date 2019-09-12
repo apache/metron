@@ -16,12 +16,15 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Subscription, Subject, Observable, interval } from 'rxjs';
+import { Subscription, Subject, Observable, interval, onErrorResumeNext } from 'rxjs';
 import { SearchService } from 'app/service/search.service';
 import { QueryBuilder } from '../query-builder';
 import { SearchResponse } from 'app/model/search-response';
 import { switchMap, filter, takeWhile, tap } from 'rxjs/operators';
 import { POLLING_DEFAULT_STATE } from 'app/utils/constants';
+import { RestError } from 'app/model/rest-error';
+import { DialogType } from 'app/shared/metron-dialog/metron-dialog.component';
+import { DialogService } from 'app/service/dialog.service';
 
 interface AutoPollingStateModel {
   isActive: boolean,
@@ -42,7 +45,9 @@ export class AutoPollingService {
   public readonly AUTO_POLLING_STORAGE_KEY = 'autoPolling';
 
   constructor(private searchService: SearchService,
-              private queryBuilder: QueryBuilder) {
+              private queryBuilder: QueryBuilder,
+              private dialogService: DialogService,
+              ) {
                 this.restoreState();
               }
 
@@ -132,7 +137,19 @@ export class AutoPollingService {
   }
 
   private activate() {
-    this.pollingIntervalSubs = this.startPolling().subscribe(this.onResult.bind(this));
+    this.pollingIntervalSubs = this.startPolling()
+      .subscribe(
+        this.onResult.bind(this),
+        this.onError
+      );
+  }
+
+  private onError(error: RestError) {
+    this.stop();
+    this.dialogService.launchDialog(
+      'Server were unable to apply query string. ' +
+      'Evaluate query string and restart polling.'
+      , DialogType.Error);
   }
 
   private onResult(result: SearchResponse) {
