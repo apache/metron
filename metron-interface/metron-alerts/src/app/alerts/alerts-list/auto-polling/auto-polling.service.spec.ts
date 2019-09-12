@@ -23,6 +23,7 @@ import { QueryBuilder } from '../query-builder';
 import { SearchResponse } from 'app/model/search-response';
 import { SearchRequest } from 'app/model/search-request';
 import { Spy } from 'jasmine-core';
+import { DialogService } from 'app/service/dialog.service';
 
 class QueryBuilderFake {
   private _filter = '';
@@ -63,6 +64,7 @@ describe('AutoPollingService', () => {
     TestBed.configureTestingModule({
       providers: [
         AutoPollingService,
+        { provide: DialogService, useClass: () => {} },
         { provide: SearchService, useClass: () => { return {
           search: () => of(new SearchResponse()),
         } } },
@@ -441,10 +443,11 @@ describe('AutoPollingService', () => {
 
     it('should restore polling state on construction', () => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
+      const dialogServiceFake = TestBed.get(QueryBuilder);
 
       spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":443}');
 
-      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake);
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
 
       expect(localStorage.getItem).toHaveBeenCalledWith('autoPolling');
       expect(localAutoPollingSvc.getIsPollingActive()).toBe(true);
@@ -453,11 +456,12 @@ describe('AutoPollingService', () => {
 
     it('should start polling on construction when persisted isActive==true', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
+      const dialogServiceFake = TestBed.get(QueryBuilder);
 
       spyOn(searchServiceFake, 'search').and.callThrough();
       spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":10}');
 
-      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake);
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
 
       expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
 
@@ -472,11 +476,12 @@ describe('AutoPollingService', () => {
 
     it('should start polling on construction with the persisted interval', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
+      const dialogServiceFake = TestBed.get(QueryBuilder);
 
       spyOn(searchServiceFake, 'search').and.callThrough();
       spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":4}');
 
-      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake);
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
 
       expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
 
