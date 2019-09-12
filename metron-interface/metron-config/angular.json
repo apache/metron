@@ -44,6 +44,7 @@
               "progress": true,
               "vendorChunk": true,
               "buildOptimizer": false,
+              "es5BrowserSupport": false,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
