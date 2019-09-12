@@ -241,7 +241,6 @@ public class RestFunctionsIntegrationTest {
   @SuppressWarnings("unchecked")
   public void restGetShouldTimeout() {
     String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
-
     mockServerClient.when(
             request()
                     .withMethod("GET")
@@ -252,7 +251,7 @@ public class RestFunctionsIntegrationTest {
 
     Map<String, Object> globalConfig = new HashMap<String, Object>() {{
       put(STELLAR_REST_SETTINGS, new HashMap<String, Object>() {{
-        put(TIMEOUT, 100);
+        put(TIMEOUT, 10);
       }});
     }};
 
@@ -264,7 +263,7 @@ public class RestFunctionsIntegrationTest {
 
   /**
    * {
-   * "timeout": 100
+   * "timeout": 10
    * }
    */
   @Multiline
