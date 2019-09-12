@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Durability;
@@ -83,7 +84,7 @@ public class HBaseClientTest {
     util.startMiniCluster();
     admin = util.getHBaseAdmin();
     // create the table
-    table = util.createTable(Bytes.toBytes(tableName), cf);
+    table = util.createTable(TableName.valueOf(tableName), cf);
     util.waitTableEnabled(table.getName());
     // setup the client
     client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
@@ -91,7 +92,7 @@ public class HBaseClientTest {
 
   @AfterClass
   public static void stopHBase() throws Exception {
-    util.deleteTable(tableName);
+    util.deleteTable(TableName.valueOf(tableName));
     util.shutdownMiniCluster();
     util.cleanupTestDir();
   }

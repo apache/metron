@@ -149,6 +149,8 @@
                 <global_storm_kafka_version>1.2.3</global_storm_kafka_version>
                 <global_zeppelin_version>0.8.0</global_zeppelin_version>
                 <global_solr_version>7.4.0</global_solr_version>
+                <global_hbase_version>2.0.2</global_hbase_version>
+                <global_hbase_guava_version>17.0</global_hbase_guava_version>
             </properties>
         </profile>
         <profile>
@@ -163,6 +165,8 @@
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
                 <global_zeppelin_version>0.7.3</global_zeppelin_version>
                 <global_solr_version>6.6.2</global_solr_version>
+                <global_hbase_version>2.0.2</global_hbase_version>
+                <global_hbase_guava_version>17.0</global_hbase_guava_version>
             </properties>
         </profile>
     </profiles>

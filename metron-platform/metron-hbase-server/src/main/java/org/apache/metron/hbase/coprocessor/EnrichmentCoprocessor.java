@@ -25,16 +25,19 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.Optional;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.CoprocessorEnvironment;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.coprocessor.BaseRegionObserver;
 import org.apache.hadoop.hbase.coprocessor.CoprocessorException;
 import org.apache.hadoop.hbase.coprocessor.ObserverContext;
+import org.apache.hadoop.hbase.coprocessor.RegionCoprocessor;
 import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
-import org.apache.hadoop.hbase.regionserver.wal.WALEdit;
+import org.apache.hadoop.hbase.coprocessor.RegionObserver;
+import org.apache.hadoop.hbase.wal.WALEdit;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -64,13 +67,14 @@ import org.slf4j.LoggerFactory;
  * </ul>
  *
  * @see <a href="https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionObserver.html">https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionObserver.html</a>
+ * @see <a href="https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionCoprocessor.html">https://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/coprocessor/RegionCoprocessor.html</a>
  * @see EnrichmentConfigurations Available options.
  */
-public class EnrichmentCoprocessor extends BaseRegionObserver {
+public class EnrichmentCoprocessor implements RegionObserver, RegionCoprocessor {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   // pass in via coprocessor config options - via hbase shell or hbase-site.xml
-  // see more here - https://hbase.apache.org/1.1/book.html#load_coprocessor_in_shell
+  // see more here - https://hbase.apache.org/2.0/book.html#load_coprocessor_in_shell
   public static final String ZOOKEEPER_URL = "zookeeperUrl";
   public static final String COLUMN_QUALIFIER = "v";
   private Cache<String, String> cache;
@@ -98,6 +102,11 @@ public class EnrichmentCoprocessor extends BaseRegionObserver {
    */
   public EnrichmentCoprocessor(GlobalConfigService globalConfigService) {
     this.globalConfigService = globalConfigService;
+  }
+
+  @Override
+  public Optional<RegionObserver> getRegionObserver() {
+    return Optional.of(this);
   }
 
   @Override

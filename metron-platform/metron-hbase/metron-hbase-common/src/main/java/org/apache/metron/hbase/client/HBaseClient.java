@@ -254,10 +254,10 @@ public class HBaseClient implements Closeable {
     for (ColumnList.Column col : cols.getColumns()) {
 
       if (col.getTs() > 0) {
-        put.add(col.getFamily(), col.getQualifier(), col.getTs(), col.getValue());
+        put.addColumn(col.getFamily(), col.getQualifier(), col.getTs(), col.getValue());
 
       } else {
-        put.add(col.getFamily(), col.getQualifier(), col.getValue());
+        put.addColumn(col.getFamily(), col.getQualifier(), col.getValue());
       }
     }
   }

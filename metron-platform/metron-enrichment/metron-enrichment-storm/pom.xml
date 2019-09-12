@@ -26,26 +26,42 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <slf4j.version>1.7.7</slf4j.version>
         <storm.hdfs.version>0.1.2</storm.hdfs.version>
         <commons-compress.version>1.13</commons-compress.version>
         <geoip.version>2.8.0</geoip.version>
         <guava.version>${global_hbase_guava_version}</guava.version>
     </properties>
     <dependencies>
+
         <!-- Dependencies needed preferentially -->
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.2</version>
         </dependency>
-
-        <!-- Metron -->
+        <dependency>
+          <!-- prevents hbase and kafka from pulling in newer versions of jackson
+               (2.9.x) which conflict with metron's ${global_jackson_version}-->
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${global_jackson_version}</version>
+        </dependency>
+        <dependency>
+            <!-- prevents hbase and kafka from pulling in newer versions of jackson
+                 (2.9.x) which conflict with metron's ${global_jackson_version}-->
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${global_jackson_version}</version>
+        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${global_guava_version}</version>
         </dependency>
+
+        <!-- Metron -->
+
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-enrichment-common</artifactId>
@@ -219,14 +235,12 @@
             <version>${global_caffeine_version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${global_jackson_version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${global_jackson_version}</version>
+          <!-- prevents storm and hadoop from pulling in newer versions of slf4j-api
+               (1.7.x) which conflict with kafka and metron's ${global_jackson_version}-->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${global_slf4j_version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>

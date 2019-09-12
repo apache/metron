@@ -141,10 +141,10 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
     Map.Entry<HBaseTestingUtility, Configuration> kv = HBaseUtil.INSTANCE.create(true, extraConfig);
     testUtil = kv.getKey();
     hBaseConfig = kv.getValue();
-    enrichmentTable = testUtil.createTable(Bytes.toBytes(ENRICHMENT_TABLE), Bytes.toBytes(
+    enrichmentTable = testUtil.createTable(TableName.valueOf(ENRICHMENT_TABLE), Bytes.toBytes(
         COLUMN_FAMILY));
     enrichmentListTable = testUtil
-        .createTable(Bytes.toBytes(ENRICHMENT_LIST_TABLE), Bytes.toBytes(COLUMN_FAMILY));
+        .createTable(TableName.valueOf(ENRICHMENT_LIST_TABLE), Bytes.toBytes(COLUMN_FAMILY));
 
     for (Result r : enrichmentTable.getScanner(Bytes.toBytes(COLUMN_FAMILY))) {
       Delete d = new Delete(r.getRow());

@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.hbase.TableProvider;
 
@@ -37,7 +38,7 @@ public class MockHBaseTableProvider implements Serializable, TableProvider {
   }
 
   public static Table addToCache(String tableName, String... columnFamilies) {
-    MockHTable ret =  new MockHTable(tableName, columnFamilies);
+    MockHTable ret =  new MockHTable(TableName.valueOf(tableName), columnFamilies);
     _cache.put(tableName, ret);
     return ret;
   }

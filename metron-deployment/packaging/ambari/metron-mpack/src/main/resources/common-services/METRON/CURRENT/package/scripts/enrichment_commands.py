@@ -226,7 +226,7 @@ class EnrichmentCommands:
                                    recursive_chown = True)
 
         Logger.info("Loading HBase coprocessor for enrichments")
-        Logger.info("See https://hbase.apache.org/1.1/book.html#load_coprocessor_in_shell for more detail")
+        Logger.info("See https://hbase.apache.org/2.0/book.html#load_coprocessor_in_shell for more detail")
 
         Logger.info("HBase coprocessor setup - first disabling the enrichments HBase table.")
         command_template = "echo \"disable '{0}'\" | hbase shell -n"
