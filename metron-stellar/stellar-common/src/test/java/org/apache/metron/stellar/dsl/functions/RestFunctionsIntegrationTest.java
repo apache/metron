@@ -248,7 +248,6 @@ public class RestFunctionsIntegrationTest {
                     .withPath("/get"))
             .respond(response()
                     .withDelay(TimeUnit.MILLISECONDS, 1000)
-                    .applyDelay()
                     .withBody("{\"get\":\"success\"}"));
 
     Map<String, Object> globalConfig = new HashMap<String, Object>() {{
@@ -284,7 +283,6 @@ public class RestFunctionsIntegrationTest {
                     .withPath("/get"))
             .respond(response()
                     .withDelay(TimeUnit.MILLISECONDS, 1000)
-                    .applyDelay()
                     .withBody("{\"get\":\"success\"}"));
 
     String expression = String.format("REST_GET('%s', %s)", uri, timeoutConfig);
