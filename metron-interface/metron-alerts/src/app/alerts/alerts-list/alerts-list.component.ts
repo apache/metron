@@ -211,7 +211,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.autoPollingSvc.onDestroy();
     this.removeAlertChangedListner();
     this.configSubscription.unsubscribe();
-    this.manualQueryFieldChangeSubs.unsubscribe();
+
+    if (this.manualQueryFieldChangeSubs) {
+      this.manualQueryFieldChangeSubs.unsubscribe();
+    }
   }
 
   ngOnInit() {
