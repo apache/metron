@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "angular-cli": {},
   "scripts": {
-    "build": "./node_modules/@angular/cli/bin/ng build --prod",
+    "build": "./node_modules/@angular/cli/bin/ng build",
     "start": "ng serve --aot",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test --browsers=Chrome",

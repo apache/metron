@@ -7,7 +7,7 @@
   },
   "angular-cli": {},
   "scripts": {
-    "build": "ng build --prod",
+    "build": "ng build",
     "start": "ng serve",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test --browsers=Chrome",

@@ -27,6 +27,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <node.version>v9.11.1</node.version>
         <npm.version>6.2.0</npm.version>
+        <angular.build.profile>devbuild</angular.build.profile>
     </properties>
     <dependencies>
     </dependencies>
@@ -67,7 +68,7 @@
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>run build</arguments>
+                            <arguments>run build -- --configuration=${angular.build.profile}</arguments>
                         </configuration>
                     </execution>
                     <execution>

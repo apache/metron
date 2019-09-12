@@ -33,6 +33,26 @@
             ]
           },
           "configurations": {
+            "devbuild": {
+              "optimization": false,
+              "outputHashing": "none",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "showCircularDependencies": false,
+              "aot": true,
+              "extractLicenses": false,
+              "statsJson": false,
+              "progress": true,
+              "vendorChunk": true,
+              "buildOptimizer": false,
+               "fileReplacements": [
+                 {
+                   "replace": "src/environments/environment.ts",
+                   "with": "src/environments/environment.prod.ts"
+                 }
+               ]
+            },
             "production": {
               "optimization": true,
               "outputHashing": "all",
