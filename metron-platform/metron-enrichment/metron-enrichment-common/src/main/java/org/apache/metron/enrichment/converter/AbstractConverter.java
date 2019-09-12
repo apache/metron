@@ -54,9 +54,6 @@ public abstract class AbstractConverter<KEY_T extends LookupKey, VALUE_T extends
     return put;
   }
 
-
-
-
   public LookupKV<KEY_T, VALUE_T> fromPut(Put put, String columnFamily, KEY_T key, VALUE_T value) throws IOException {
     key.fromBytes(put.getRow());
     byte[] cf = Bytes.toBytes(columnFamily);
