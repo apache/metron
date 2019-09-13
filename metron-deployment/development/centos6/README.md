@@ -91,6 +91,15 @@ Any platform that supports these tools is suitable, but the following instructio
     env ANSIBLE_ARGS='--extra-vars "SKIP_RPMLINT=1"' vagrant up
     ```
 
+### Deployment debugging
+
+1.  To enable more verbose logging of ansible actions during the deployment, use
+    ```
+    env ANSIBLE_ARGS=' -vvvv' vagrant up
+    ```
+    As this can produce large amounts of logging, it is best to redirect output to a file for later analysis.
+    
+
 ### Explore Metron
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
