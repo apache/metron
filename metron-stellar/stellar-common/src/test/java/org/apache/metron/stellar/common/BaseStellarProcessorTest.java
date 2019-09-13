@@ -20,19 +20,13 @@ package org.apache.metron.stellar.common;
 
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("ALL")
 public class BaseStellarProcessorTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   BaseStellarProcessor<Object> processor;
 
   @BeforeEach
@@ -73,34 +67,26 @@ public class BaseStellarProcessorTest {
 
   @Test
   public void validateShouldProperlyThrowExceptionOnInvalidStellarExpression() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unable to parse ': ");
-
-    processor.validate("'", true, Context.EMPTY_CONTEXT());
+    ParseException e = assertThrows(ParseException.class, () -> processor.validate("'", true, Context.EMPTY_CONTEXT()));
+    assertTrue(e.getMessage().contains("Unable to parse ': "));
   }
 
   @Test
   public void validateShouldProperlyThrowExceptionByDefaultOnInvalidStellarExpression() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unable to parse ': ");
-
-    processor.validate("'", Context.EMPTY_CONTEXT());
+    ParseException e = assertThrows(ParseException.class, () -> processor.validate("'", Context.EMPTY_CONTEXT()));
+    assertTrue(e.getMessage().contains("Unable to parse ': "));
   }
 
   @Test
   public void validateShouldProperlyThrowExceptionByDefaultOnInvalidStellarExpression2() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unable to parse ': ");
-
-    processor.validate("'");
+    ParseException e = assertThrows(ParseException.class, () -> processor.validate("'"));
+    assertTrue(e.getMessage().contains("Unable to parse ': "));
   }
 
   @Test
   public void validateMethodShouldFailOnUnknownFunctions() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage(" Unable to resolve function named 'UNKNOWN_FUNCTION'.");
-
-    assertTrue(processor.validate("1 < UNKNOWN_FUNCTION(3)", Context.EMPTY_CONTEXT()));
+    ParseException e = assertThrows(ParseException.class, () -> processor.validate("1 < UNKNOWN_FUNCTION(3)", Context.EMPTY_CONTEXT()));
+    assertTrue(e.getMessage().contains(" Unable to resolve function named 'UNKNOWN_FUNCTION'."));
   }
 
   @Test

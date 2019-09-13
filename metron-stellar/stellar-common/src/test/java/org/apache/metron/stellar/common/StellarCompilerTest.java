@@ -28,9 +28,6 @@ import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -38,13 +35,8 @@ import java.util.Deque;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.*;
 
-
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({Deque.class, ArithmeticEvaluator.class, NumberLiteralEvaluator.class, ComparisonExpressionWithOperatorEvaluator.class})
 public class StellarCompilerTest {
   VariableResolver variableResolver;
   FunctionResolver functionResolver;

@@ -25,18 +25,11 @@ import org.apache.metron.stellar.dsl.Token;
 import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings({"unchecked"})
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ComparisonExpressionWithOperatorEvaluator.class, ComparisonExpressionWithOperatorEvaluator.Strategy.class})
 public class ComparisonExpressionWithOperatorEvaluatorTest {
   @Rule
   public final ExpectedException exception = ExpectedException.none();
@@ -104,14 +97,12 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
 
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
 
-    evaluator.evaluate(left, right, op, null);
+    ParseException e = assertThrows(ParseException.class, () -> evaluator.evaluate(left, right, op, null));
+    assertTrue(e.getMessage().contains("Unsupported operations. The following expression is invalid: "));
   }
 
   @Test
   public void nonExpectedOperatorShouldThrowException() {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operations. The following expression is invalid: ");
-
     Token<String> left = mock(Token.class);
     when(left.getValue()).thenReturn("adsf");
 
@@ -121,6 +112,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.LTE()).thenReturn(mock(TerminalNode.class));
 
-    evaluator.evaluate(left, right, op, null);
+    ParseException e = assertThrows(ParseException.class, () -> evaluator.evaluate(left, right, op, null));
+    assertTrue(e.getMessage().contains("Unsupported operations. The following expression is invalid: "));
   }
 }

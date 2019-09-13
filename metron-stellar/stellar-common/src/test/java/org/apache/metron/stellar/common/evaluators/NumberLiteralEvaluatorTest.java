@@ -28,6 +28,8 @@ import org.junit.rules.ExpectedException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class NumberLiteralEvaluatorTest {
@@ -95,10 +97,8 @@ public class NumberLiteralEvaluatorTest {
   public void verifyExceptionThrownForUnsupportedContextType() {
     StellarParser.VariableContext context = mock(StellarParser.VariableContext.class);
 
-    exception.expect(ParseException.class);
-    exception.expectMessage("Does not support evaluation for type " + context.getClass());
-
-    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
+    ParseException e = assertThrows(ParseException.class, () -> NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null));
+    assertEquals("Does not support evaluation for type " + context.getClass(), e.getMessage());
 
     verifyZeroInteractions(longLiteralContextNumberEvaluator, doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
   }

@@ -28,6 +28,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -148,7 +149,7 @@ public class DefaultStellarStatefulExecutorTest {
    * a PredicateProcessor and the other a TransformationProcessor.  The StellarStatefulExecutor
    * abstracts away that complication.
    */
-  @Ignore  //until field validations avail to Stellar
+  @Disabled  //until field validations avail to Stellar
   @Test
   public void testExecutePredicate() {
     boolean actual = executor.execute("IS_INTEGER(2)", message, Boolean.class);

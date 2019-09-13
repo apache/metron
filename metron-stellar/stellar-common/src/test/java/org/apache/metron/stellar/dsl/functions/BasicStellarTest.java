@@ -1120,9 +1120,15 @@ public class BasicStellarTest {
     final Map<String, String> variableMap = new HashMap<String, String>() {{
       put("protocol", "http");
     }};
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("The rule 'TO_UPPER(protocol)' does not return a boolean value.");
-    runPredicate("TO_UPPER(protocol)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v)));
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runPredicate(
+                    "TO_UPPER(protocol)",
+                    new DefaultVariableResolver(
+                        v -> variableMap.get(v), v -> variableMap.containsKey(v))));
+    assertEquals("The rule 'TO_UPPER(protocol)' does not return a boolean value.", e.getMessage());
   }
 
   @Test

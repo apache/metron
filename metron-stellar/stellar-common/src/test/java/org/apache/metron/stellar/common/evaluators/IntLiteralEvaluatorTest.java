@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class IntLiteralEvaluatorTest {
@@ -54,18 +55,14 @@ public class IntLiteralEvaluatorTest {
 
   @Test
   public void verifyNumberFormationExceptionWithEmptyString() {
-    exception.expect(NumberFormatException.class);
-
     when(context.getText()).thenReturn("");
-    evaluator.evaluate(context, null);
+    assertThrows(NumberFormatException.class, () -> evaluator.evaluate(context, null));
   }
 
   @Test
   public void throwIllegalArgumentExceptionWhenContextIsNull() {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Cannot evaluate a context that is null.");
-
-    evaluator.evaluate(null, null);
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(null, null));
+    assertEquals("Cannot evaluate a context that is null.", e.getMessage());
   }
 
 }
