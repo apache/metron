@@ -140,7 +140,7 @@ export class AutoPollingService {
     this.pollingIntervalSubs = this.startPolling()
       .subscribe(
         this.onResult.bind(this),
-        this.onError
+        this.onError.bind(this),
       );
   }
 

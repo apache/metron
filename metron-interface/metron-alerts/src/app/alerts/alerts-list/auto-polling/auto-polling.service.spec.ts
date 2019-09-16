@@ -18,12 +18,14 @@
 import { AutoPollingService } from './auto-polling.service';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { SearchService } from 'app/service/search.service';
-import { Subject, of } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { QueryBuilder } from '../query-builder';
 import { SearchResponse } from 'app/model/search-response';
 import { SearchRequest } from 'app/model/search-request';
 import { Spy } from 'jasmine-core';
 import { DialogService } from 'app/service/dialog.service';
+import { RestError } from 'app/model/rest-error';
+import { DialogType } from 'app/model/dialog-type';
 
 class QueryBuilderFake {
   private _filter = '';
@@ -240,6 +242,25 @@ describe('AutoPollingService', () => {
       queryBuilderFake.setFilter('*');
       tick(getIntervalInMS());
       expect((searchServiceFake.search as Spy).calls.argsFor(2)[0].query).toBe('*');
+
+      autoPollingService.stop();
+    }));
+
+    it('should show notification on http error', fakeAsync(() => {
+      const fakeDialogService = TestBed.get(DialogService);
+      fakeDialogService.launchDialog = () => {};
+      spyOn(fakeDialogService, 'launchDialog');
+
+      autoPollingService.start();
+
+      spyOn(searchServiceFake, 'search').and.returnValue(throwError(new RestError()));
+
+      tick(getIntervalInMS());
+
+      expect(fakeDialogService.launchDialog).toHaveBeenCalledWith(
+        'Server were unable to apply query string. Evaluate query string and restart polling.',
+        DialogType.Error
+      );
 
       autoPollingService.stop();
     }));
