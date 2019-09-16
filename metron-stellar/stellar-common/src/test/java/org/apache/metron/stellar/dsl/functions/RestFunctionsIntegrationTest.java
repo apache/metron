@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.*;
@@ -240,17 +241,17 @@ public class RestFunctionsIntegrationTest {
   @SuppressWarnings("unchecked")
   public void restGetShouldTimeout() {
     String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
-
     mockServerClient.when(
             request()
                     .withMethod("GET")
                     .withPath("/get"))
             .respond(response()
+                    .withDelay(TimeUnit.MILLISECONDS, 1000)
                     .withBody("{\"get\":\"success\"}"));
 
     Map<String, Object> globalConfig = new HashMap<String, Object>() {{
       put(STELLAR_REST_SETTINGS, new HashMap<String, Object>() {{
-        put(TIMEOUT, 1);
+        put(TIMEOUT, 10);
       }});
     }};
 
@@ -262,7 +263,7 @@ public class RestFunctionsIntegrationTest {
 
   /**
    * {
-   * "timeout": 1
+   * "timeout": 10
    * }
    */
   @Multiline
@@ -274,7 +275,16 @@ public class RestFunctionsIntegrationTest {
   @Test
   @SuppressWarnings("unchecked")
   public void restGetShouldTimeoutWithSuppliedTimeout() {
-    String expression = String.format("REST_GET('%s', %s)", getUri, timeoutConfig);
+    String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
+    mockServerClient.when(
+            request()
+                    .withMethod("GET")
+                    .withPath("/get"))
+            .respond(response()
+                    .withDelay(TimeUnit.MILLISECONDS, 1000)
+                    .withBody("{\"get\":\"success\"}"));
+
+    String expression = String.format("REST_GET('%s', %s)", uri, timeoutConfig);
     Map<String, Object> actual = (Map<String, Object>) run(expression, context);
     assertNull(actual);
   }
