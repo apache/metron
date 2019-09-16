@@ -23,7 +23,7 @@ import { SearchRequest } from 'app/model/search-request';
 import { noop } from 'rxjs';
 import { HttpUtil } from 'app/utils/httpUtil';
 
-fdescribe('SearchService', () => {
+describe('SearchService', () => {
 
   let searchService: SearchService;
   let mockBackend: HttpTestingController;
