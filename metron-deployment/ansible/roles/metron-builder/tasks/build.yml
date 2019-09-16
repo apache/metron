@@ -15,12 +15,12 @@
 #  limitations under the License.
 #
 ---
-- name: Build Metron
+- name: Build Metron -DANGULAR_BUILD_PROFILE={{ ANGULAR_BUILD_PROFILE if ANGULAR_BUILD_PROFILE is defined else 'production' }}
   shell: "{{ item }}"
   args:
     chdir: "{{ metron_build_dir }}"
   with_items:
-    - mvn package -DskipTests -T 2C -P HDP-2.5.0.0,mpack
+    - mvn package -DskipTests -T 2C -P HDP-2.5.0.0,mpack -DANGULAR_BUILD_PROFILE={{ ANGULAR_BUILD_PROFILE if ANGULAR_BUILD_PROFILE is defined else 'production' }}
   become: false
   run_once: true
   delegate_to: localhost

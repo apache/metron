@@ -39,7 +39,7 @@
               "namedChunks": false,
               "showCircularDependencies": false,
               "aot": true,
-              "extractLicenses": false,
+              "extractLicenses": true,
               "statsJson": false,
               "progress": true,
               "vendorChunk": true,
