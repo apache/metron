@@ -313,10 +313,6 @@ describe('AlertsListComponent', () => {
     }));
   });
 
-  xit('search error handling', () => {
-
-  });
-
   describe('handling pending search requests', () => {
     it('should set pendingSearch on search', () => {
       spyOn(searchService, 'search').and.returnValue(of(new SearchResponse()));
