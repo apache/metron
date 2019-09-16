@@ -30,7 +30,7 @@ import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
 import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
 import { By } from '@angular/platform-browser';
-import { Observable, Subject, of } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 import { Filter } from 'app/model/filter';
 import { QueryBuilder, FilteringMode } from './query-builder';
 import { SearchResponse } from 'app/model/search-response';
@@ -40,6 +40,8 @@ import { Alert } from 'app/model/alert';
 import { AlertSource } from 'app/model/alert-source';
 import { SearchRequest } from 'app/model/search-request';
 import { query } from '@angular/core/src/render3';
+import { RestError } from 'app/model/rest-error';
+import { DialogType } from 'app/shared/metron-dialog/metron-dialog.component';
 
 @Component({
   selector: 'app-auto-polling',
@@ -347,7 +349,6 @@ describe('AlertsListComponent', () => {
   });
 
   describe('stale data state', () => {
-
     it('should set staleDataState flag to true on filter change', () => {
       expect(component.staleDataState).toBe(false);
       component.onAddFilter(new Filter('ip_src_addr', '0.0.0.0'));
@@ -407,7 +408,6 @@ describe('AlertsListComponent', () => {
   });
 
   describe('auto polling', () => {
-
     it('should refresh view on data emit', () => {
       const fakeResponse = new SearchResponse();
       spyOn(component, 'setData');
@@ -586,6 +586,19 @@ describe('AlertsListComponent', () => {
 
       expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(false);
     }));
+  });
 
+  describe('search', () => {
+    it('should show notification on http error', fakeAsync(() => {
+      const fakeDialogService = TestBed.get(DialogService);
+
+      spyOn(searchService, 'search').and.returnValue(throwError(new RestError()));
+      fakeDialogService.launchDialog = () => {};
+      spyOn(fakeDialogService, 'launchDialog');
+
+      component.search();
+
+      expect(fakeDialogService.launchDialog).toHaveBeenCalledWith('Server were unable to apply query string.', DialogType.Error);
+    }));
   });
 });
