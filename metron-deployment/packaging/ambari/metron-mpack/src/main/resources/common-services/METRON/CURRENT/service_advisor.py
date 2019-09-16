@@ -18,7 +18,7 @@ limitations under the License.
 """
 import os
 import traceback
-
+import sys
 import imp
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -195,3 +195,49 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         }
 
         return storm_site_desired_values
+
+    # need to override this method from ServiceAdvisor to work around https://issues.apache.org/jira/browse/AMBARI-25375
+    def colocateService(self, hostsComponentsMap, serviceComponents):
+        self.validateMetronComponentLayout(hostsComponentsMap, serviceComponents)
+
+
+    # This method is added as work around for https://issues.apache.org/jira/browse/AMBARI-25375
+    # Note: This only affects the recommendations in Ambari -
+    # users can still modify the hosts for the components as they see fit
+    def validateMetronComponentLayout(self, hostsComponentsMap, serviceComponents):
+        metronComponents = [
+            {'name': 'METRON_ALERTS_UI'},
+            {'name': 'METRON_CLIENT'},
+            {'name': 'METRON_ENRICHMENT_MASTER'},
+            {'name': 'METRON_INDEXING'},
+            {'name': 'METRON_MANAGEMENT_UI'},
+            {'name': 'METRON_PARSERS'},
+            {'name': 'METRON_PCAP'},
+            {'name': 'METRON_PROFILER'},
+            {'name': 'METRON_REST'}
+        ]
+
+
+        #Some hostnames end up empty, which causes the lookup to NPE. For whatever reason,
+        #enrichment seems to consistently get its hostname populated, so we'll use it to get around the limitation.
+        enrichment = {'name': 'METRON_ENRICHMENT_MASTER'}
+        found = False
+        for host in hostsComponentsMap.keys():
+            if enrichment in hostsComponentsMap[host]:
+                for metron_component in metronComponents:
+                    if (metron_component not in hostsComponentsMap[host]):
+                        hostsComponentsMap[host].append(metron_component)
+                found = True
+                break
+
+
+        #The fallback option if enrichment or none of the metron components failed to find hosts
+        #will find the host with less component density and add all the metron components to the host.
+        if not found:
+            less_density_host = None
+            density = sys.maxsize
+            for host in hostsComponentsMap.keys():
+                if len(hostsComponentsMap[host]) < density:
+                    less_density_host = host
+            hostsComponentsMap[less_density_host].append(metronComponents)
+
