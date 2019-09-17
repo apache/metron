@@ -70,7 +70,9 @@ public class MaasIntegrationTest {
 
   @BeforeClass
   public static void setupBeforeClass() throws Exception {
-    UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
+//    UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
+    UnitTestHelper.setJavaLoggingLevel(Level.FINE);
+    UnitTestHelper.setLog4jLevel(org.apache.log4j.Level.INFO);
     LOG.info("Starting up YARN cluster");
 
     zkServerComponent = new ZKServerComponent();
@@ -180,10 +182,12 @@ public class MaasIntegrationTest {
       List<ApplicationReport> apps = yarnClient.getApplications();
       if (apps.size() == 0 ) {
         Thread.sleep(10);
+        LOG.info("No YARN apps found yet, retrying.");
         continue;
       }
       ApplicationReport appReport = apps.get(0);
       if(appReport.getHost().equals("N/A")) {
+        LOG.info("YARN apps found but not ready yet, retrying.");
         Thread.sleep(10);
         continue;
       }
@@ -193,8 +197,10 @@ public class MaasIntegrationTest {
                       + appReport.getRpcPort() + "'.";
       if (checkHostname(appReport.getHost()) && appReport.getRpcPort() == -1) {
         verified = true;
+        LOG.info("Yarn app verified");
       }
       if (appReport.getYarnApplicationState() == YarnApplicationState.FINISHED) {
+        LOG.info("Yarn app state returned FINISHED");
         break;
       }
     }
@@ -223,14 +229,17 @@ public class MaasIntegrationTest {
           try {
             List<ModelEndpoint> endpoints = discoverer.getEndpoints(new Model("dummy", "1.0"));
             if (endpoints != null && endpoints.size() == 1) {
-              LOG.trace("Found endpoints: " + endpoints.get(0));
+              LOG.info("Found endpoints: " + endpoints.get(0));
               String output = makeRESTcall(new URL(endpoints.get(0).getEndpoint().getUrl() + "/echo/casey"));
               if (output.contains("casey")) {
                 passed = true;
                 break;
               }
+            } else {
+              LOG.info("Did not find endpoints, retrying");
             }
           } catch (Exception e) {
+            LOG.info("Rest call failed", e);
           }
           Thread.sleep(2000);
         }
