@@ -18,7 +18,7 @@ limitations under the License.
 """
 import os
 import traceback
-
+import sys
 import imp
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -195,3 +195,56 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         }
 
         return storm_site_desired_values
+
+    # need to override this method from ServiceAdvisor to work around https://issues.apache.org/jira/browse/AMBARI-25375
+    def colocateService(self, hostsComponentsMap, serviceComponents):
+        self.validateMetronComponentLayout(hostsComponentsMap, serviceComponents)
+
+
+    # This method is added as work around for https://issues.apache.org/jira/browse/AMBARI-25375
+    # Note: This only affects the recommendations in Ambari -
+    # users can still modify the hosts for the components as they see fit
+    def validateMetronComponentLayout(self, hostsComponentsMap, serviceComponents):
+        metronComponents = [
+            {'name': 'METRON_ALERTS_UI'},
+            {'name': 'METRON_CLIENT'},
+            {'name': 'METRON_ENRICHMENT_MASTER'},
+            {'name': 'METRON_INDEXING'},
+            {'name': 'METRON_MANAGEMENT_UI'},
+            {'name': 'METRON_PARSERS'},
+            {'name': 'METRON_PCAP'},
+            {'name': 'METRON_PROFILER'},
+            {'name': 'METRON_REST'}
+        ]
+
+        # find any metron components that have not been assigned to a host
+        unassignedMetronComponents = []
+        for component in metronComponents:
+          if (component not in hostsComponentsMap.values()):
+            unassignedMetronComponents.append(component)
+
+        if len(unassignedMetronComponents) > 0:
+          # assign each unassigned metron component to a host
+          default_host = self.getDefaultHost(metronComponents, hostsComponentsMap)
+          for unassigned in unassignedMetronComponents:
+              self.logger.info("Anassigned component {0} to host {1}".format(unassigned, default_host))
+              hostsComponentsMap[default_host].append(unassigned)
+
+
+    def getDefaultHost(self, metronComponents, hostsComponentsMap):
+        # fist, attempt to colocate metron; suggest a host where metron is already assigned
+        default_host = None
+        for component in metronComponents:
+            if default_host is None:
+                for host, hostComponents in hostsComponentsMap.items():
+                    if component in hostComponents:
+                      default_host = host
+                      break
+
+        # if there are no assigned metron components, just choose the first known host
+        if default_host is None:
+            default_host = hostsComponentsMap.keys()[0]
+            self.logger.info("No hosts found with Metron components. Using first known host: host={0}".format(default_host))
+
+        return default_host
+
