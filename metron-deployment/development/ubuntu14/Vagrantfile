@@ -97,5 +97,6 @@ Vagrant.configure(2) do |config|
     ansible.skip_tags = ansibleSkipTags.split(",") if ansibleSkipTags != ''
     ansible.inventory_path = "ansible/inventory"
     ansible.compatibility_mode = "auto"
+    ansible.raw_arguments = Shellwords.shellsplit(ENV['ANSIBLE_ARGS']) if ENV['ANSIBLE_ARGS']
   end
 end
