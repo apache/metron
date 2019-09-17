@@ -217,27 +217,34 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             {'name': 'METRON_REST'}
         ]
 
+        # find any metron components that have not been assigned to a host
+        unassignedMetronComponents = []
+        for component in metronComponents:
+          if (component not in hostsComponentsMap.values()):
+            unassignedMetronComponents.append(component)
 
-        #Some hostnames end up empty, which causes the lookup to NPE. For whatever reason,
-        #enrichment seems to consistently get its hostname populated, so we'll use it to get around the limitation.
-        enrichment = {'name': 'METRON_ENRICHMENT_MASTER'}
-        found = False
-        for host in hostsComponentsMap.keys():
-            if enrichment in hostsComponentsMap[host]:
-                for metron_component in metronComponents:
-                    if (metron_component not in hostsComponentsMap[host]):
-                        hostsComponentsMap[host].append(metron_component)
-                found = True
-                break
+        if len(unassignedMetronComponents) > 0:
+          # assign each unassigned metron component to a host
+          default_host = self.getDefaultHost(metronComponents, hostsComponentsMap)
+          for unassigned in unassignedMetronComponents:
+              self.logger.info("Anassigned component {0} to host {1}".format(unassigned, default_host))
+              hostsComponentsMap[default_host].append(unassigned)
 
 
-        #The fallback option if enrichment or none of the metron components failed to find hosts
-        #will find the host with less component density and add all the metron components to the host.
-        if not found:
-            less_density_host = None
-            density = sys.maxsize
-            for host in hostsComponentsMap.keys():
-                if len(hostsComponentsMap[host]) < density:
-                    less_density_host = host
-            hostsComponentsMap[less_density_host].append(metronComponents)
+    def getDefaultHost(self, metronComponents, hostsComponentsMap):
+        # fist, attempt to colocate metron; suggest a host where metron is already assigned
+        default_host = None
+        for component in metronComponents:
+            if default_host is None:
+                for host, hostComponents in hostsComponentsMap.items():
+                    if component in hostComponents:
+                      default_host = host
+                      break
+
+        # if there are no assigned metron components, just choose the first known host
+        if default_host is None:
+            default_host = hostsComponentsMap.keys()[0]
+            self.logger.info("No hosts found with Metron components. Using first known host: host={0}".format(default_host))
+
+        return default_host
 
