@@ -54,43 +54,46 @@ context('Automatic data polling on Alerts View', () => {
   });
 
   it('auto polling should keep polling after start depending on polling interval', () => {
+    cy.clock(new Date().getTime());
+
     cy.visit('login');
     cy.get('[name="user"]').type('user');
     cy.get('[name="password"]').type('password');
     cy.contains('LOG IN').click();
 
-    cy.clock();
-
     cy.route({
       url: '/api/v1/search/search',
       method: 'POST',
       response: 'fixture:search.json',
-    });
+    }).as('initReq');;
 
     cy.get('app-auto-polling > .btn').click();
 
     cy.route({
       url: '/api/v1/search/search',
       method: 'POST',
-      response: 'fixture:search.json',
-    }).as('secondPollingRequest');
+      response: 'fixture:search-1.1.json',
+    }).as('1stPoll');
 
-    cy.wait('@secondPollingRequest').then((req) => {
-      expect(req).to.not.be.undefined;
-    });
+    cy.tick(10000);
 
-    cy.tick(9500);
+    cy.contains('test-id-1.1').should('be.visible');
 
     cy.route({
       url: '/api/v1/search/search',
       method: 'POST',
-      response: 'fixture:search.json',
-    }).as('thirdPollingRequest');
-
-    cy.wait('@thirdPollingRequest').then((req) => {
-      expect(req).to.not.be.undefined;
-    });
+      response: 'fixture:search-1.2.json',
+    }).as('2ndPoll');;
 
     cy.tick(10000);
+
+    cy.contains('test-id-2.1').should('be.visible');
+
+    cy.wait(30000);
+    // cy.wait('@thirdPollingRequest').then((req) => {
+    //   expect(req).to.not.be.undefined;
+    // });
+
+    // cy.tick(10000);
   });
 });
