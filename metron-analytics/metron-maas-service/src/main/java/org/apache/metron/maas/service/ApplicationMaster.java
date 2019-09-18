@@ -533,6 +533,7 @@ public class ApplicationMaster {
         }
       }
       else if(request.getAction() == Action.REMOVE) {
+        LOG.info("Removing containers");
         listener.removeContainers(request.getNumInstances(), request);
       }
     }

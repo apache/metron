@@ -20,25 +20,6 @@ package org.apache.metron.maas.submit;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import org.apache.commons.cli.*;
-import org.apache.commons.io.IOUtils;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.metron.maas.config.*;
-import org.apache.metron.maas.discovery.ServiceDiscoverer;
-import org.apache.metron.maas.service.Constants;
-import org.apache.metron.maas.service.Log4jPropertyHelper;
-import org.apache.metron.maas.util.ConfigUtil;
-import org.apache.metron.maas.queue.Queue;
-import org.apache.metron.maas.queue.ZKQueue;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,6 +29,33 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.io.IOUtils;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.metron.maas.config.Action;
+import org.apache.metron.maas.config.MaaSConfig;
+import org.apache.metron.maas.config.Model;
+import org.apache.metron.maas.config.ModelEndpoint;
+import org.apache.metron.maas.config.ModelRequest;
+import org.apache.metron.maas.discovery.ServiceDiscoverer;
+import org.apache.metron.maas.queue.Queue;
+import org.apache.metron.maas.queue.ZKQueue;
+import org.apache.metron.maas.service.Constants;
+import org.apache.metron.maas.service.Log4jPropertyHelper;
+import org.apache.metron.maas.util.ConfigUtil;
 
 public class ModelSubmission {
   public enum ModelSubmissionOptions {
@@ -228,7 +236,9 @@ public class ModelSubmission {
         updateHDFS(fs, localDir, hdfsPath);
       }
       Queue<ModelRequest> queue = config.createQueue(ImmutableMap.of(ZKQueue.ZK_CLIENT, client));
+      System.out.println("Enqueuing model request: " + request.getAction().toString());
       queue.enqueue(request);
+      System.out.println("Done enqueuing model request: " + request.getAction().toString());
     } finally {
       if (client != null) {
         client.close();
