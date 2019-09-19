@@ -18,7 +18,7 @@
  */
 import * as appConfigJSON from '../../../src/assets/app-config.json';
 
-context('Automatic data polling on Alerts View', () => {
+describe('Automatic data polling on Alerts View', () => {
 
   const configuringDefaultStubs = () => {
     cy.route({
@@ -36,64 +36,63 @@ context('Automatic data polling on Alerts View', () => {
     configuringDefaultStubs();
   });
 
-  it('auto polling should start by clicking on play icon', () => {
-    cy.visit('login');
-    cy.get('[name="user"]').type('user');
-    cy.get('[name="password"]').type('password');
-    cy.contains('LOG IN').click();
-
-    cy.route({
-      url: '/api/v1/search/search',
-      method: 'POST',
-      onRequest: (req) => {
-        expect(req).to.not.be.undefined;
-      }
-    });
-
-    cy.get('app-auto-polling > .btn').click();
-  });
-
   it('auto polling should keep polling after start depending on polling interval', () => {
-    cy.clock(new Date().getTime());
-
     cy.visit('login');
     cy.get('[name="user"]').type('user');
     cy.get('[name="password"]').type('password');
     cy.contains('LOG IN').click();
 
+    // defining response for initial poll request
     cy.route({
       url: '/api/v1/search/search',
       method: 'POST',
       response: 'fixture:search.json',
-    }).as('initReq');;
+    }).as('initReq');
 
+    cy.log('Turning polling on');
     cy.get('app-auto-polling > .btn').click();
 
+    cy.log('changing interval to 5 sec');
+    cy.get('.settings').click();
+    cy.get('[value="5"]').click();
+    cy.get('.settings').click();
+
+    // defining respons for the first scheduled poll
     cy.route({
       url: '/api/v1/search/search',
       method: 'POST',
       response: 'fixture:search-1.1.json',
     }).as('1stPoll');
 
-    cy.tick(10000);
-
+    // Waiting 5.5 sec for the request
+    cy.wait('@1stPoll', { timeout: 5500 });
+    // Validating dom change
     cy.contains('test-id-1.1').should('be.visible');
 
+    // defining respons for the second scheduled poll
     cy.route({
       url: '/api/v1/search/search',
       method: 'POST',
       response: 'fixture:search-1.2.json',
     }).as('2ndPoll');;
 
-    cy.tick(10000);
-
+    // Waiting 5.5 sec for the request
+    cy.wait('@2ndPoll', { timeout: 5500 });
+    // Validating dom change
     cy.contains('test-id-2.1').should('be.visible');
 
-    cy.wait(30000);
-    // cy.wait('@thirdPollingRequest').then((req) => {
-    //   expect(req).to.not.be.undefined;
-    // });
+    // turning off polling
+    cy.get('app-auto-polling > .btn').click();
 
-    // cy.tick(10000);
+    cy.route({
+      url: '/api/v1/search/search',
+      method: 'POST',
+      response: 'fixture:search.json',
+    });
+
+    cy.wait(5500).then(() => {
+      // same element should be visible bc the polling is turned off
+    cy.contains('test-id-2.1').should('be.visible');
+    })
   });
 });
