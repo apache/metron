@@ -31,11 +31,6 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>${global_zookeeper_version}</version>
-        </dependency>
-        <dependency>
           <groupId>com.github.ben-manes.caffeine</groupId>
           <artifactId>caffeine</artifactId>
           <version>${global_caffeine_version}</version>
