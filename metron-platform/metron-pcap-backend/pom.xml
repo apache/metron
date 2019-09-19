@@ -93,12 +93,12 @@
             <version>${global_hadoop_version}</version>
             <exclusions>
                 <exclusion>
-                    <!-- to avoid pulling in curator 2.12.0 -->
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
                     <groupId>org.apache.curator</groupId>
                     <artifactId>curator-client</artifactId>
                 </exclusion>
                 <exclusion>
-                    <!-- to avoid pulling in curator 2.12.0 -->
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
                     <groupId>org.apache.curator</groupId>
                     <artifactId>curator-recipes</artifactId>
                 </exclusion>

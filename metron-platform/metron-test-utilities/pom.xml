@@ -53,12 +53,12 @@
       <version>${global_hadoop_version}</version>
       <exclusions>
         <exclusion>
-            <!-- to avoid pulling in curator 2.12.0 -->
+            <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
         </exclusion>
         <exclusion>
-            <!-- need to exclude zookeeper 3.4.9 -->
+            <!-- need to exclude zookeeper 3.4.9 with hadoop 3.1.x -->
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
         </exclusion>

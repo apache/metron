@@ -34,7 +34,7 @@
           <version>${global_spark_version}</version>
           <exclusions>
               <exclusion>
-                  <!-- to avoid pulling in curator 2.12.0 -->
+                  <!-- to avoid pulling in curator 2.12.0 with spark 2.3.x -->
                   <groupId>org.apache.curator</groupId>
                   <artifactId>curator-recipes</artifactId>
               </exclusion>
