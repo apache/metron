@@ -245,21 +245,6 @@
                     <artifactId>commons-lang</artifactId>
                     <groupId>commons-lang</groupId>
                 </exclusion>
-                <exclusion>
-                    <!-- to avoid pulling in curator 2.12.0 -->
-                    <groupId>org.apache.curator</groupId>
-                    <artifactId>curator-framework</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- to avoid pulling in curator 2.12.0 -->
-                    <groupId>org.apache.curator</groupId>
-                    <artifactId>curator-client</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- to avoid pulling in curator 2.12.0 -->
-                    <groupId>org.apache.curator</groupId>
-                    <artifactId>curator-recipes</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
