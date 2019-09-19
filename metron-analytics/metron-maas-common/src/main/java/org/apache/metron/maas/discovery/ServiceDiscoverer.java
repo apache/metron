@@ -197,6 +197,7 @@ public class ServiceDiscoverer implements Closeable{
       //}
       ServiceInstance<ModelEndpoint> ep = containerToEndpoint.get(containerId);
       if(ep != null) {
+        serviceDiscovery.registerService(ep);
         serviceDiscovery.unregisterService(ep);
       }
       else {

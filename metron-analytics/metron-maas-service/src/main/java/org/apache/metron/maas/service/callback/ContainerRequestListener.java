@@ -118,7 +118,6 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
               + containerStatus.getDiagnostics());
       removeContainer(containerStatus.getContainerId());
       LOG.info("REMOVING CONTAINER " + containerStatus.getContainerId());
-      serviceDiscoverer.unregisterByContainer(containerStatus.getContainerId() + "");
       // non complete containers should not be here
       assert (containerStatus.getState() == ContainerState.COMPLETE);
       // increment counters for completed/failed containers
