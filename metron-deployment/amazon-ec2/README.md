@@ -190,6 +190,7 @@ key_file: ~/.ssh/metron-private-key.pub
 Common Errors
 -------------
 
+
 ### Error: [unsupported_operation_exception] custom format isn't supported
 
 This error might be seen within Metron's default dashboard in Kibana 4.  This occurs when the index templates do not exist for the Snort, Bro or YAF indices in Elasticsearch.  
@@ -320,3 +321,15 @@ fatal: [ec2-52-26-113-221.us-west-2.compute.amazonaws.com]: UNREACHABLE! => {
 #### Solution
 
 This most often indicates that Ansible cannot connect to the host with the SSH key that it has access to.  This could occur if hosts are provisioned with one SSH key, but the playbook is executed subsequently with a different SSH key.  The issue can be addressed by either altering the `key_file` variable to point to the key that was used to provision the hosts or by simply terminating all hosts and re-running the playbook.
+
+
+### Error: 'Failed to connect to the host via ssh: percent_expand: unknown key %C\r'
+
+'%C' in the control_path of ansible.cfg might not be recognizable in certain distributions of Linux. The control_path is used for SSH connectivity between the host and the nodes being deployed to EC2. 
+
+#### Solution
+Update the control_path in /amazon-ec2/ansible.cfg to the following: 
+```
+[ssh_connection]
+control_path = ~/.ssh/ansible-ssh-%%h-%%r
+```
