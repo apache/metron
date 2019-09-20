@@ -75,14 +75,33 @@
         <version>${global_flux_version}</version>
       </dependency>
       <dependency>
+          <groupId>org.apache.zookeeper</groupId>
+          <artifactId>zookeeper</artifactId>
+          <version>${global_zookeeper_version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-client</artifactId>
         <version>${global_curator_version}</version>
+        <exclusions>
+            <exclusion>
+                <!-- need to exclude zookeeper 3.5.x http://curator.apache.org/zk-compatibility.html -->
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+            </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-test</artifactId>
-        <version>${global_curator_version}</version>
+        <version>${global_curator_test_version}</version>
+        <exclusions>
+            <exclusion>
+                <!-- need to exclude zookeeper 3.5.x http://curator.apache.org/zk-compatibility.html -->
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+            </exclusion>
+        </exclusions>
         <scope>test</scope>
       </dependency>
       <dependency>
