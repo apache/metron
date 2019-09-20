@@ -168,6 +168,21 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-framework</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-recipes</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -186,6 +201,16 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-recipes</artifactId>
                 </exclusion>
             </exclusions>
             <scope>provided</scope>
@@ -249,6 +274,21 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-framework</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-recipes</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

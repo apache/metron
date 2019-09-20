@@ -44,6 +44,26 @@
               <groupId>asm</groupId>
               <artifactId>asm</artifactId>
             </exclusion>
+            <exclusion>
+                <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+            </exclusion>
+            <exclusion>
+                <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+            </exclusion>
+            <exclusion>
+                <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+            </exclusion>
+            <exclusion>
+                <!-- need to exclude zookeeper 3.4.9 with hadoop 3.1.x -->
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+            </exclusion>
           </exclusions>
         </dependency>
         <dependency>
@@ -51,6 +71,33 @@
             <artifactId>hadoop-auth</artifactId>
             <version>${global_hadoop_version}</version>
             <scope>test</scope>
+            <exclusions>
+              <exclusion>
+                  <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                  <groupId>org.apache.curator</groupId>
+                  <artifactId>curator-client</artifactId>
+              </exclusion>
+              <exclusion>
+                  <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                  <groupId>org.apache.curator</groupId>
+                  <artifactId>curator-recipes</artifactId>
+              </exclusion>
+              <exclusion>
+                  <!-- to avoid pulling in curator 2.12.0 with hadoop 3.1.x -->
+                  <groupId>org.apache.curator</groupId>
+                  <artifactId>curator-framework</artifactId>
+              </exclusion>
+              <exclusion>
+                  <!-- need to exclude zookeeper 3.4.9 with hadoop 3.1.x -->
+                  <groupId>org.apache.zookeeper</groupId>
+                  <artifactId>zookeeper</artifactId>
+              </exclusion>
+              <exclusion>
+                  <!-- need to exclude zookeeper 3.4.9 -->
+                  <groupId>org.apache.zookeeper</groupId>
+                  <artifactId>zookeeper</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
@@ -129,20 +176,58 @@
             <version>1.6</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-client</artifactId>
-            <version>${global_curator_version}</version>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${global_zookeeper_version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>${global_curator_version}</version>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-client</artifactId>
+          <version>${global_curator_version}</version>
+          <exclusions>
+              <exclusion>
+                  <!-- need to exclude zookeeper 3.5.x http://curator.apache.org/zk-compatibility.html -->
+                  <groupId>org.apache.zookeeper</groupId>
+                  <artifactId>zookeeper</artifactId>
+              </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-recipes</artifactId>
+          <version>${global_curator_version}</version>
+          <exclusions>
+              <exclusion>
+                  <!-- need to exclude zookeeper 3.5.x http://curator.apache.org/zk-compatibility.html -->
+                  <groupId>org.apache.zookeeper</groupId>
+                  <artifactId>zookeeper</artifactId>
+              </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-framework</artifactId>
+          <version>${global_curator_version}</version>
+          <exclusions>
+              <exclusion>
+                  <!-- need to exclude zookeeper 3.5.x http://curator.apache.org/zk-compatibility.html -->
+                  <groupId>org.apache.zookeeper</groupId>
+                  <artifactId>zookeeper</artifactId>
+              </exclusion>
+          </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-test</artifactId>
-            <version>${global_curator_version}</version>
+            <version>${global_curator_test_version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- need to exclude zookeeper 3.5.x http://curator.apache.org/zk-compatibility.html -->
+                    <groupId>org.apache.zookeeper</groupId>
+                    <artifactId>zookeeper</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jboss.aesh</groupId>
