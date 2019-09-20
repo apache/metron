@@ -56,6 +56,21 @@
                     <artifactId>caffeine</artifactId>
                     <groupId>com.github.ben-manes.caffeine</groupId>
                 </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.8.0 with solr 7.4.0 -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-framework</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.8.0 with solr 7.4.0 -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- to avoid pulling in curator 2.8.0 with solr 7.4.0 -->
+                    <groupId>org.apache.curator</groupId>
+                    <artifactId>curator-recipes</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
