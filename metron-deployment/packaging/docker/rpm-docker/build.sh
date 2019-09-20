@@ -44,7 +44,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-rpmlint -i SPECS/metron.spec RPMS/*/metron* SRPMS/metron
+if [ -z "${SKIP_RPMLINT}" ] || [ $SKIP_RPMLINT -eq 0 ]; then
+  rpmlint -i SPECS/metron.spec RPMS/*/metron* SRPMS/metron]
+else
+  echo -n "SKIP_RPMLINT is non null and not equal to 0 - bypassing rpmlint"
+fi
 
 # Ensure original user permissions are maintained after build
 if [ $OWNER_UID -ne 0 ]; then
