@@ -34,7 +34,7 @@ export class HttpUtil {
   }
 
   /**
-   * @depricated Turning all errors to 404 and hiding actual errors from the consumers
+   * @deprecated Turning all errors to 404 and hiding actual errors from the consumers
    *             could limit how we can recover or react to errors.
    *             Use sessionExpiration instead and/or introduce new composable error handlers.
    */
