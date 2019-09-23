@@ -15,8 +15,10 @@
 #  limitations under the License.
 #
 ---
-- name: Build Metron RPM Packages
+- name: Build Metron RPM Packages {{ '(skipping rpmlint)' if SKIP_RPMLINT is defined else '' }}
   shell: "{{ item }}"
+  environment:
+    SKIP_RPMLINT: "{{ SKIP_RPMLINT if SKIP_RPMLINT is defined else '' }}"
   args:
     chdir: "{{ metron_build_dir }}/metron-deployment"
   with_items:
