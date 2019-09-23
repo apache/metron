@@ -40,6 +40,11 @@
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
+                <!-- conflicts with 1.9.3 from hadoop -->
+                <exclusion>
+                    <artifactId>commons-beanutils</artifactId>
+                    <groupId>commons-beanutils</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
