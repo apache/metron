@@ -80,7 +80,7 @@ Any platform that supports these tools is suitable, but the following instructio
 
 ### Deployment optimizations
 
-1. Set environment variable 
+1.  Skipping RPMLINT: Set environment variable 
     ```
     export ANSIBLE_ARGS='--extra-vars "SKIP_RPMLINT=1"'
     ```
@@ -91,6 +91,20 @@ Any platform that supports these tools is suitable, but the following instructio
     env ANSIBLE_ARGS='--extra-vars "SKIP_RPMLINT=1"' vagrant up
     ```
 
+1.  Skipping npm runtime optimisation:  Set environment variable
+    ```
+    export ANSIBLE_ARGS='--extra-vars "ANGULAR_BUILD_PROFILE=devbuild"' 
+    ```
+    To disable npm compile-time optimization of the produced javascript. This can save a couple of minutes of time on the build 
+    and deployment of the NodeJS portions of the project.
+    Either add this variable to your profile, or use it on the command line like
+
+    ```
+    env ANSIBLE_ARGS='--extra-vars "ANGULAR_BUILD_PROFILE=devbuild"' vagrant up
+    ```
+
+1.  Combining optimisations:  `--extra-vars` can take multi `var=value` clauses. simply separate each variable with a space.
+    
 ### Deployment debugging
 
 1.  To enable more verbose logging of ansible actions during the deployment, use

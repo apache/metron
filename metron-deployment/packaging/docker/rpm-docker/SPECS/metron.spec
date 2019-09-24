@@ -576,7 +576,7 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0755,root,root) %{metron_home}/web/expressjs/node_modules/.bin/*
 %attr(0755,root,root) %{metron_home}/web/expressjs/server.js
 %attr(0644,root,root) %{metron_home}/web/expressjs/package.json
-%attr(0644,root,root) %{metron_home}/web/management-ui/styles.*.css
+%attr(0644,root,root) %{metron_home}/web/management-ui/styles*.css
 %attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
 %attr(0644,root,root) %{metron_home}/web/management-ui/index.html
 %attr(0644,root,root) %{metron_home}/web/management-ui/*.js
@@ -641,7 +641,7 @@ This package installs the Metron Alerts UI %{metron_home}
 %attr(0755,root,root) %{metron_home}/web/expressjs/alerts-server.js
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/favicon.ico
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/index.html
-%attr(0644,root,root) %{metron_home}/web/alerts-ui/styles.*.css
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/styles*.css
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.js
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.ttf
 %attr(0644,root,root) %{metron_home}/web/alerts-ui/*.svg
