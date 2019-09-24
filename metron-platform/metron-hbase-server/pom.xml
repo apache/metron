@@ -44,11 +44,6 @@
             <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-<!--
-                <exclusion>
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
@@ -60,7 +55,10 @@
                     <artifactId>hadoop-common</artifactId>
                     <groupId>org.apache.hadoop</groupId>
                 </exclusion>
--->
+                <exclusion>
+                    <groupId>org.apache.metron</groupId>
+                    <artifactId>stellar-common</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -78,18 +76,6 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase-common</artifactId>
             <version>${project.parent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>stellar-common</artifactId>
-            <version>${project.parent.version}</version>
-            <classifier>uber</classifier>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -236,6 +222,14 @@
                     <artifactId>log4j-over-slf4j</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <!-- metron common uses this for some Zookeeper upload operations -->
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+            <classifier>uber</classifier>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
