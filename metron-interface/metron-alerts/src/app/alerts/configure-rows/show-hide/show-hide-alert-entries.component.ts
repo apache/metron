@@ -17,6 +17,7 @@
  */
 import { Component, Output, EventEmitter } from '@angular/core';
 import { ShowHideService } from './show-hide.service';
+import { FilteringMode } from 'app/alerts/alerts-list/query-builder';
 
 export interface ShowHideStateModel {
   hideResolved: boolean,
@@ -26,11 +27,18 @@ export interface ShowHideStateModel {
 @Component({
   selector: 'app-show-hide-alert-entries',
   template: `
+    <div *ngIf="!isAvailable()" class="warning">Hide toggles are not available in manual querying mode.</div>
     <app-switch [text]="'HIDE Resolved Alerts'" data-qe-id="hideResolvedAlertsToggle" [selected]="showHideService.hideResolved"
-      (onChange)="onVisibilityChanged('RESOLVE', $event)"> </app-switch>
+      (onChange)="onVisibilityChanged('RESOLVE', $event)"
+      [disabled]="!isAvailable()"> </app-switch>
     <app-switch [text]="'HIDE Dismissed Alerts'" data-qe-id="hideDismissedAlertsToggle" [selected]="showHideService.hideDismissed"
-      (onChange)="onVisibilityChanged('DISMISS', $event)"> </app-switch>
-  `
+      (onChange)="onVisibilityChanged('DISMISS', $event)"
+      [disabled]="!isAvailable()"> </app-switch>
+  `,
+  styles: [
+    'warning { font-size: 0.4rem }',
+    '*:disabled { opacity: 0.7 }'
+  ]
 })
 export class ShowHideAlertEntriesComponent {
 
@@ -44,6 +52,10 @@ export class ShowHideAlertEntriesComponent {
       hideResolved: this.showHideService.hideResolved,
       hideDismissed: this.showHideService.hideDismissed,
     });
+  }
+
+  isAvailable() {
+    return this.showHideService.queryBuilder.getFilteringMode() !== FilteringMode.MANUAL;
   }
 
 }
