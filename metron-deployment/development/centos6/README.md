@@ -78,6 +78,28 @@ Any platform that supports these tools is suitable, but the following instructio
     vagrant provision
     ```
 
+### Deployment optimizations
+
+1. Set environment variable 
+    ```
+    export ANSIBLE_ARGS='--extra-vars "SKIP_RPMLINT=1"'
+    ```
+    To disable running rpmlint as part of the dev deployment task - this can save a couple of minutes of time on the deployment.
+    Either add this variable to your profile, or use it on the command line like
+
+    ```
+    env ANSIBLE_ARGS='--extra-vars "SKIP_RPMLINT=1"' vagrant up
+    ```
+
+### Deployment debugging
+
+1.  To enable more verbose logging of ansible actions during the deployment, use
+    ```
+    env ANSIBLE_ARGS=' -vvvv' vagrant up
+    ```
+    As this can produce large amounts of logging, it is best to redirect output to a file for later analysis.
+    
+
 ### Explore Metron
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
