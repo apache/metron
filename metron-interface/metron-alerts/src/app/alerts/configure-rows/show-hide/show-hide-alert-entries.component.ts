@@ -17,7 +17,6 @@
  */
 import { Component, Output, EventEmitter } from '@angular/core';
 import { ShowHideService } from './show-hide.service';
-import { FilteringMode } from 'app/alerts/alerts-list/query-builder';
 
 export interface ShowHideStateModel {
   hideResolved: boolean,
@@ -54,7 +53,7 @@ export class ShowHideAlertEntriesComponent {
   }
 
   isAvailable() {
-    return this.showHideService.queryBuilder.getFilteringMode() !== FilteringMode.MANUAL;
+    return this.showHideService.isAvailable();
   }
 
 }
