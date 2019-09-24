@@ -38,7 +38,8 @@ describe('ShowHideAlertEntriesComponent', () => {
           return {
             hideDismissed: false,
             hideResolved: false,
-            setFilterFor: jasmine.createSpy('setFilterFor')
+            setFilterFor: jasmine.createSpy('setFilterFor'),
+            isAvailable: () => true,
           }
         } },
       ]
@@ -105,7 +106,6 @@ describe('ShowHideAlertEntriesComponent', () => {
   });
 
   it('should trigger changed event on any toggle changes and propagate state', () => {
-    const serviceSpy = TestBed.get(ShowHideService);
     spyOn(component.changed, 'emit');
     fixture.detectChanges();
 
@@ -124,6 +124,32 @@ describe('ShowHideAlertEntriesComponent', () => {
     fixture.detectChanges();
 
     expect((component.changed.emit as Spy).calls.argsFor(1)[0]).toEqual({ hideResolved: true, hideDismissed: true });
-  })
+  });
+
+  it('should disable toggles when isAvailable returns false', () => {
+    component.showHideService.isAvailable = () => false;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.queryAll(By.directive(SwitchComponent))[0].componentInstance.disabled).toBe(true);
+    expect(fixture.debugElement.queryAll(By.directive(SwitchComponent))[1].componentInstance.disabled).toBe(true);
+
+    component.showHideService.isAvailable = () => true;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.queryAll(By.directive(SwitchComponent))[0].componentInstance.disabled).toBe(false);
+    expect(fixture.debugElement.queryAll(By.directive(SwitchComponent))[1].componentInstance.disabled).toBe(false);
+  });
+
+  it('should show warning about the reason of disabled state', () => {
+    component.showHideService.isAvailable = () => false;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.warning'))).toBeTruthy();
+
+    component.showHideService.isAvailable = () => true;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.warning'))).toBeFalsy();
+  });
 
 });
