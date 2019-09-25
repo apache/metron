@@ -226,13 +226,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-<!--
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-mapreduce</artifactId>
-            <version>${global_hbase_version}</version>
-        </dependency>
--->
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
