@@ -23,6 +23,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
+
+import org.apache.kafka.common.security.auth.SecurityProtocol;
 import org.apache.metron.rest.MetronRestConstants;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,10 +51,9 @@ public class KafkaConfigTest {
     assertNull(consumerProperties.get("security.protocol"));
 
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
-    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka security protocol");
 
     consumerProperties = kafkaConfig.consumerProperties();
-    assertEquals("kafka security protocol", consumerProperties.get("security.protocol"));
+    assertEquals(SecurityProtocol.SASL_PLAINTEXT.name(), consumerProperties.get("security.protocol"));
   }
 
   @Test
@@ -65,10 +66,9 @@ public class KafkaConfigTest {
     assertNull(producerProperties.get("security.protocol"));
 
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
-    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka security protocol");
 
-    producerProperties = kafkaConfig.consumerProperties();
-    assertEquals("kafka security protocol", producerProperties.get("security.protocol"));
+    producerProperties = kafkaConfig.producerProperties();
+    assertEquals(SecurityProtocol.SASL_PLAINTEXT.name(), producerProperties.get("security.protocol"));
   }
 
 
