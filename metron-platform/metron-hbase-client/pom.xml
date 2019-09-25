@@ -36,15 +36,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- Note: This is 1.1.2 and not ${global_hbase_version} to avoid https://issues.apache.org/jira/browse/HBASE-13889 -->
-        <!-- when we migrate to a version > 1.1.2, this can be set to ${global_hbase_version} -->
-        <shaded.client.version>1.1.2</shaded.client.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-shaded-client</artifactId>
-            <version>${shaded.client.version}</version>
+            <version>${global_hbase_version}</version>
         </dependency>
     </dependencies>
     <build>
