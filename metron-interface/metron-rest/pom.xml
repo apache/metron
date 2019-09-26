@@ -740,13 +740,13 @@
                   <groupId>org.javassist</groupId>
                   <artifactId>javassist</artifactId>
                   <version>3.19.0-GA</version>
-                  <scope>runtime</scope>
+                  <scope>compile</scope>
               </dependency>
               <dependency>
                   <groupId>org.apache.metron</groupId>
                   <artifactId>stellar-common</artifactId>
                   <version>${project.parent.version}</version>
-                  <scope>runtime</scope>
+                  <scope>compile</scope>
               </dependency>
           </dependencies>
       </profile>

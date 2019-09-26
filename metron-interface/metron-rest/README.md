@@ -1132,6 +1132,7 @@ The REST application can be run in DEBUG mode in an IDE (integrated development 
 The following instructions are for Intellij.
 
 1. Build Metron from the root directory with `mvn clean install -DskipTests`
+1. Spin up full dev (required to start REST locally)
 1. Create a Run/Debug Configuration in Intellij using the dropdown in the top right or the `Run > Edit Configurations...` menu item
 1. Add a `Spring Boot` Configuration and set the properties as shown in the screenshot below:
 ![debug configuration](readme-images/debug-configuration.png)
