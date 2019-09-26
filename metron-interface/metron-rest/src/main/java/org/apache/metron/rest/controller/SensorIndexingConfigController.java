@@ -22,7 +22,10 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.security.SecurityUtils;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,12 +35,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/sensor/indexing/config")
 public class SensorIndexingConfigController {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
   private SensorIndexingConfigService sensorIndexingConfigService;
@@ -48,6 +54,7 @@ public class SensorIndexingConfigController {
   @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   ResponseEntity<Map<String, Object>> save(@ApiParam(name="name", value="SensorIndexingConfig name", required=true)@PathVariable String name,
                                            @ApiParam(name="sensorIndexingConfig", value="SensorIndexingConfig", required=true)@RequestBody Map<String, Object> sensorIndexingConfig) throws RestException {
+    LOG.info(String.format("User '%s' changed the '%s' indexing config to %s", SecurityUtils.getCurrentUser(), name, sensorIndexingConfig.toString()));
     if (sensorIndexingConfigService.findOne(name) == null) {
       return new ResponseEntity<>(sensorIndexingConfigService.save(name, sensorIndexingConfig), HttpStatus.CREATED);
     } else {
@@ -88,6 +95,7 @@ public class SensorIndexingConfigController {
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   ResponseEntity<Void> delete(@ApiParam(name="name", value="SensorIndexingConfig name", required=true)@PathVariable String name) throws RestException {
     if (sensorIndexingConfigService.delete(name)) {
+      LOG.info(String.format("User '%s' deleted the '%s' indexing config", SecurityUtils.getCurrentUser(), name));
       return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);

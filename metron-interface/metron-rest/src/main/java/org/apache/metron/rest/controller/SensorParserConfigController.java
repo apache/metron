@@ -24,8 +24,11 @@ import io.swagger.annotations.ApiResponses;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
+import org.apache.metron.rest.security.SecurityUtils;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,11 +38,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/sensor/parser/config")
 public class SensorParserConfigController {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
   private SensorParserConfigService sensorParserConfigService;
@@ -50,6 +56,7 @@ public class SensorParserConfigController {
   @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   ResponseEntity<SensorParserConfig> save(@ApiParam(name="name", value="SensorParserConfig name", required=true)@PathVariable String name,
       @ApiParam(name="sensorParserConfig", value="SensorParserConfig", required=true)@RequestBody SensorParserConfig sensorParserConfig) throws RestException {
+    LOG.info(String.format("User '%s' changed the '%s' parser config to %s", SecurityUtils.getCurrentUser(), name, sensorParserConfig.toString()));
     if (sensorParserConfigService.findOne(name) == null) {
       return new ResponseEntity<>(sensorParserConfigService.save(name, sensorParserConfig), HttpStatus.CREATED);
     } else {
@@ -83,6 +90,7 @@ public class SensorParserConfigController {
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   ResponseEntity<Void> delete(@ApiParam(name="name", value="SensorParserConfig name", required=true)@PathVariable String name) throws RestException {
     if (sensorParserConfigService.delete(name)) {
+      LOG.info(String.format("User '%s' deleted the '%s' parser config", SecurityUtils.getCurrentUser(), name));
       return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
