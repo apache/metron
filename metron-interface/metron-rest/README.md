@@ -1142,7 +1142,7 @@ The following instructions are for Intellij.
 
 The REST application should now available at `http://localhost:8080/swagger-ui.html`.
 
-Note: Some endpoints may not work correctly (HDFS for example) due to the networking setup in full dev.
+Note: Some endpoints may not work correctly due to the networking setup in full dev.  This includes endpoints that connect to Kafka, HDFS and HBase.  Copying the `hbase-site.xml` file from `/etc/hbase/conf/` on full dev to `/metron-interface/metron-rest/src/main/resources` locally will suppress the Zookeeper errors on startup.
 
 ## License
 
