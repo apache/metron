@@ -26,6 +26,7 @@ This module provides a RESTful API for interacting with Metron.
 * [Security](#security)
 * [API](#api)
 * [Testing](#testing)
+* [Local Development](#local-development)
 
 ## Prerequisites
 
@@ -1124,6 +1125,24 @@ METRON_SPRING_OPTIONS="--kerberos.enabled=true"
 ```
 
 The metron-rest application will be available at http://node1:8082/swagger-ui.html#/.
+
+## Local Development
+
+The REST application can be run in DEBUG mode in an IDE (integrated development environment).  This can be a useful tool for development and troubleshooting issues because it enables fast iteration and breakpoints anywhere in code that runs in REST.
+The following instructions are for Intellij.
+
+1. Build Metron from the root directory with `mvn clean install -DskipTests`
+1. Spin up full dev (required to start REST locally)
+1. Create a Run/Debug Configuration in Intellij using the dropdown in the top right or the `Run > Edit Configurations...` menu item
+1. Add a `Spring Boot` Configuration and set the properties as shown in the screenshot below:
+![debug configuration](readme-images/debug-configuration.png)
+1. Using the Maven Projects tab, set check the `local-dev` profile in the `Profiles` section:
+![debug maven profile](readme-images/debug-maven-profile.png)
+1. Start the `REST` Configuration in Debug mode using the Debug button in the top right or the `Run > Debug 'REST'` menu item 
+
+The REST application should now available at `http://localhost:8080/swagger-ui.html`.
+
+Note: Some endpoints may not work correctly due to the networking setup in full dev.  This includes endpoints that connect to Kafka, HDFS and HBase.  Copying the `hbase-site.xml` file from `/etc/hbase/conf/` on full dev to `/metron-interface/metron-rest/src/main/resources` locally will suppress the Zookeeper errors on startup.
 
 ## License
 

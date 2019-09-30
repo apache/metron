@@ -702,5 +702,54 @@
           </build>
       </profile>
 
+      <profile>
+
+          <id>local-dev</id>
+          <dependencies>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-parsers</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-parsing-storm</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-parsers-common</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-indexing-common</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-elasticsearch-common</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>runtime</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.javassist</groupId>
+                  <artifactId>javassist</artifactId>
+                  <version>3.19.0-GA</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>stellar-common</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+          </dependencies>
+      </profile>
+
   </profiles>
 </project>
