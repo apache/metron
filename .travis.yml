@@ -36,27 +36,27 @@ matrix:
   include:
     - name: Unit Tests
       script:
-        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl '!org.apache.metron:metron-config,!org.apache.metron:metron-alerts'
+        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl '!:metron-config,!:metron-alerts'
         - time mvn surefire:test@unit-tests -T 2C
 
     - name: Integration Tests
       script:
-        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl '!org.apache.metron:metron-config,!org.apache.metron:metron-alerts'
+        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl '!:metron-config,!:metron-alerts'
         - time mvn surefire:test@integration-tests
 
     - name: Alerts UI Tests
       script:
-        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl 'org.apache.metron:metron-alerts'
-        - time mvn test -pl 'org.apache.metron:metron-alerts'
+        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl ':metron-alerts'
+        - time mvn test -pl ':metron-alerts'
 
     - name: Management UI Tests
       script:
-        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl 'org.apache.metron:metron-config'
-        - time mvn test -pl 'org.apache.metron:metron-config'
+        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl ':metron-config'
+        - time mvn test -pl ':metron-config'
 
     - name: Site Book
       script:
-        - time mvn clean site --projects site-book
+        - time mvn clean site -pl site-book
 
     - name: Verify Licenses
       script:
