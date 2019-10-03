@@ -417,6 +417,10 @@
                                     <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>org.apache.metron.guava.thirdparty.${guava_version}</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>org.apache.http</pattern>
                                     <shadedPattern>org.apache.metron.httpcore.dataload</shadedPattern>
                                 </relocation>
