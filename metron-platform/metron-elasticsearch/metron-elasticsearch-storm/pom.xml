@@ -167,6 +167,10 @@
                                     <pattern>com.fasterxml.jackson</pattern>
                                     <shadedPattern>org.apache.metron.jackson</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>org.apache.metron.http.elasticsearch</shadedPattern>
+                                </relocation>
                             </relocations>
                             <artifactSet>
                                 <excludes>

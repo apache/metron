@@ -48,16 +48,19 @@ METRON_LDAP_SSL_TRUSTSTORE="{{metron_ldap_ssl_truststore}}"
 METRON_USER_ROLE="{{metron_user_role}}"
 METRON_ADMIN_ROLE="{{metron_admin_role}}"
 
-ZOOKEEPER="{{zookeeper_quorum}}"
-BROKERLIST="{{kafka_brokers}}"
-HADOOP_CONF_DIR="/etc/hadoop/conf/"
-STORM_REST_URL="{{storm_rest_addr}}"
+#Security
 SECURITY_ENABLED={{security_enabled|lower}}
 {% if metron_principal_name is defined %}METRON_PRINCIPAL_NAME="{{metron_principal_name}}"
 {% endif %}
 {% if metron_keytab_path is defined %}METRON_SERVICE_KEYTAB="{{metron_keytab_path}}"
 {% endif %}
 KAFKA_SECURITY_PROTOCOL="{{kafka_security_protocol}}"
+CLIENT_JAAS_ARG="{{client_jaas_arg}}"
+
+ZOOKEEPER="{{zookeeper_quorum}}"
+BROKERLIST="{{kafka_brokers}}"
+HADOOP_CONF_DIR="/etc/hadoop/conf/"
+STORM_REST_URL="{{storm_rest_addr}}"
 PARSER_TOPOLOGY_OPTIONS="/home/{{metron_user}}/.storm/storm.config"
 METRON_ESCALATION_TOPIC="{{metron_escalation_topic}}"
 PCAP_BASE_PATH="{{pcap_base_path}}"
@@ -68,4 +71,3 @@ PCAP_YARN_QUEUE="{{pcap_yarn_queue}}"
 PCAP_FINALIZER_THREADPOOL_SIZE="{{pcap_finalizer_threadpool_size}}"
 STORM_STATUS_CACHE_MAX_SIZE="{{storm_status_cache_max_size}}"
 STORM_STATUS_CACHE_TIMEOUT_SECONDS="{{storm_status_cache_timeout_seconds}}"
-

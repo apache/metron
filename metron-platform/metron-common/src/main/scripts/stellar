@@ -36,6 +36,15 @@ fi
 # treat unset vars as an error; METRON_HOME
 set -u
 
+SECURITY_ENABLED=${SECURITY_ENABLED:-false}
+KAFKA_SECURITY_PROTOCOL=${KAFKA_SECURITY_PROTOCOL:-PLAINTEXT}
+
+if [ ${SECURITY_ENABLED,,} == 'true' ]; then
+  echo "Security enabled"
+  kinit -kt $METRON_SERVICE_KEYTAB $METRON_PRINCIPAL_NAME
+  export KAFKA_OPTS=$CLIENT_JAAS_ARG
+fi
+
 export METRON_PARSERS_PLATFORM="${METRON_PARSERS_PLATFORM:-storm}"
 export HBASE_CONFIGS=$(hbase classpath)
 export STELLAR_LIB=$(find $METRON_HOME/lib/ -name stellar-common*.jar)
