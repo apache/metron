@@ -17,7 +17,7 @@
 dist: trusty
 sudo: required
 addons:
- chrome: stable
+  chrome: stable
 
 install: true
 language: java
