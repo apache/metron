@@ -30,6 +30,12 @@
     replace: " -Xmx{{ ambari_server_mem }}m "
     backup: no
 
+- name: Allow 150 seconds of startup time for ambari server
+  lineinfile:
+    path: /etc/ambari-server/conf/ambari.properties
+    regexp: 'server\.startup\.web\.timeout='
+    line: 'server.startup.web.timeout=150'
+
 - name: Setup Ambari Server
   shell: ambari-server setup -s && touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
   register: ambari_server_setup
