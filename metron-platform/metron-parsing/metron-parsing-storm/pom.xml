@@ -28,6 +28,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <guava_version>${global_hbase_guava_version}</guava_version>
   </properties>
   <dependencies>
     <!-- Dependencies needed preferentially -->
@@ -217,6 +218,17 @@
                 <relocation>
                   <pattern>com.fasterxml.jackson</pattern>
                   <shadedPattern>org.apache.metron.jackson</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
+                </relocation>
+                <relocation>
+                  <!-- need to also relocate Guava's `thirdparty` packages. otherwise, the class
+                       `thirdparty.publicsuffix.PublicSuffixPatterns` cannot be found after
+                       relocation of Guava's `com.google.commmon` packages. -->
+                  <pattern>com.google.thirdparty</pattern>
+                  <shadedPattern>org.apache.metron.guava.thirdparty.${guava_version}</shadedPattern>
                 </relocation>
               </relocations>
               <artifactSet>

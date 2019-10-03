@@ -175,7 +175,9 @@ public class KafkaFunctions {
           namespace = "KAFKA",
           name = "GET",
           description = "Retrieves messages from a Kafka topic.  Subsequent calls will" +
-                  "continue retrieving messages sequentially from the original offset.",
+                  "continue retrieving messages sequentially from the original offset.  When Kerberos is enabled, the " +
+                  "'security.protocol' config key must be set to 'SASL_PLAINTEXT' and the 'group.id' config key must be " +
+                  "set to an authorized group.",
           params = {
                   "topic - The name of the Kafka topic",
                   "count - The number of Kafka messages to retrieve",
@@ -291,7 +293,9 @@ public class KafkaFunctions {
   @Stellar(
           namespace = "KAFKA",
           name = "TAIL",
-          description = "Tails messages from a Kafka topic always starting with the most recently received message.",
+          description = "Tails messages from a Kafka topic always starting with the most recently received message.  When " +
+                  "Kerberos is enabled, the 'security.protocol' config key must be set to 'SASL_PLAINTEXT' and the " +
+                  "'group.id' config key must be set to an authorized group.",
           params = {
                   "topic - The name of the Kafka topic",
                   "count - The number of Kafka messages to retrieve",
@@ -403,7 +407,8 @@ public class KafkaFunctions {
   @Stellar(
           namespace = "KAFKA",
           name = "PUT",
-          description = "Sends messages to a Kafka topic. ",
+          description = "Sends messages to a Kafka topic. When Kerberos is enabled, the 'security.protocol' config key " +
+                  "must be set to 'SASL_PLAINTEXT' and the 'group.id' config key must be set to an authorized group.",
           params = {
                   "topic - The name of the Kafka topic.",
                   "messages - A list of messages to write.",

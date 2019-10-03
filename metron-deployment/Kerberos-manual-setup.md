@@ -70,7 +70,6 @@ Setup
 1. Create the `metron` user's home directory in HDFS.
 
     ```
-    sudo -u hdfs hdfs dfs -mkdir /user/metron
     sudo -u hdfs hdfs dfs -chown metron:hdfs /user/metron
     sudo -u hdfs hdfs dfs -chmod 770 /user/metron
     ```
@@ -84,6 +83,38 @@ Setup a KDC
     yum -y install krb5-server krb5-libs krb5-workstation
     ```
 
+1. Uncomment all commented lines in `/etc/krb5.conf`.  The contents of `/etc/krb5.conf` should look like:
+
+   ```
+   # Configuration snippets may be placed in this directory as well
+   includedir /etc/krb5.conf.d/
+   
+   [logging]
+    default = FILE:/var/log/krb5libs.log
+    kdc = FILE:/var/log/krb5kdc.log
+    admin_server = FILE:/var/log/kadmind.log
+   
+   [libdefaults]
+    dns_lookup_realm = false
+    ticket_lifetime = 24h
+    renew_lifetime = 7d
+    forwardable = true
+    rdns = false
+    pkinit_anchors = /etc/pki/tls/certs/ca-bundle.crt
+    default_realm = EXAMPLE.COM
+    default_ccache_name = KEYRING:persistent:%{uid}
+   
+   [realms]
+    EXAMPLE.COM = {
+     kdc = node1
+     admin_server = node1
+    }
+   
+   [domain_realm]
+    .example.com = EXAMPLE.COM
+    example.com = EXAMPLE.COM
+   ```
+
 1. Define the current host as the KDC.
 
     ```
@@ -92,7 +123,7 @@ Setup a KDC
     cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
     ```
 
-1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on a [single VM](development/centos6/README.md).
+1. Ensure that the KDC can issue renewable tickets.
 
     Edit `/var/kerberos/krb5kdc/kdc.conf` and ensure the following is added to the `realm` section
 
@@ -109,14 +140,14 @@ Setup a KDC
 1. Start the KDC and ensure that it starts on boot.
 
     ```
-    /etc/rc.d/init.d/krb5kdc start
+    krb5kdc
     chkconfig krb5kdc on    
     ```
 
 1. Start the Kerberos Admin service and ensure that it starts on boot.    
 
     ```
-    /etc/rc.d/init.d/kadmin start
+    kadmind
     chkconfig kadmin on
     ```
 
@@ -203,6 +234,7 @@ Enable Kerberos
 
     ```
     kadmin.local -q "ktadd -k metron.headless.keytab metron@EXAMPLE.COM"
+    mkdir /etc/security/keytabs
     cp metron.headless.keytab /etc/security/keytabs
     chown metron:hadoop /etc/security/keytabs/metron.headless.keytab
     chmod 440 /etc/security/keytabs/metron.headless.keytab
@@ -417,9 +449,12 @@ Push Data
 1. Push some sample data to one of the parser topics. E.g for Bro we took raw data from [metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
 
     ```
-    cat sample-bro.txt | ${KAFKA_HOME}/kafka-broker/bin/kafka-console-producer.sh \
+    source /etc/default/metron
+    kinit -kt $METRON_SERVICE_KEYTAB $METRON_PRINCIPAL_NAME
+    export KAFKA_OPTS=$CLIENT_JAAS_ARG
+    cat sample-bro.txt | ${KAFKA_HOME}/bin/kafka-console-producer.sh \
             --broker-list ${BROKERLIST} \
-            --security-protocol SASL_PLAINTEXT \
+            --producer-property security.protocol=$KAFKA_SECURITY_PROTOCOL \
             --topic bro
     ```
 
@@ -494,7 +529,7 @@ More notes can be found in [metron/metron-sensors/README.md](../metron-sensors/R
 ```
 cat sample-yaf.txt | ${KAFKA_HOME}/bin/kafka-console-producer.sh \
         --broker-list ${BROKERLIST} \
-        --security-protocol PLAINTEXTSASL \
+        --producer-property security.protocol=$KAFKA_SECURITY_PROTOCOL \
         --topic yaf
 ```
 
@@ -502,18 +537,10 @@ cat sample-yaf.txt | ${KAFKA_HOME}/bin/kafka-console-producer.sh \
 
 ```
 ${KAFKA_HOME}/bin/kafka-console-consumer.sh \
-        --zookeeper ${ZOOKEEPER} \
-        --security-protocol PLAINTEXTSASL \
-        --topic yaf
-```
-
-#### Modify the sensor-stubs to send logs via SASL
-```
-sed -i 's/node1:6667 --topic/node1:6667 --security-protocol PLAINTEXTSASL --topic/' /opt/sensor-stubs/bin/start-*-stub
-for sensorstub in bro snort; do
-    service sensor-stubs stop ${sensorstub};
-    service sensor-stubs start ${sensorstub};
-done
+        --bootstrap-server ${BROKERLIST} \
+        --consumer-property security.protocol=$KAFKA_SECURITY_PROTOCOL \
+        --topic yaf \
+        --consumer-property group.id=<authorized group>
 ```
 
 #### Model as a Service on Kerberos

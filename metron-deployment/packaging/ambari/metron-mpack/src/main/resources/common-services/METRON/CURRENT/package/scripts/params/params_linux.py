@@ -263,7 +263,7 @@ topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.c
 topology_auto_credentials_double_quotes = str(topology_auto_credentials).replace("'", '"')
 
 if security_enabled:
-    hostname_lowercase = config['hostname'].lower()
+    hostname_lowercase = hostname.lower()
     metron_principal_name = status_params.metron_principal_name
     metron_keytab_path = status_params.metron_keytab_path
     kinit_path_local = status_params.kinit_path_local

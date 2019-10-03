@@ -46,7 +46,6 @@ import java.util.UUID;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.math.util.MathUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -846,11 +845,11 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
       Object value = entry.getValue();
       Object actualValue = actual.getDocument().get(entry.getKey());
       if (value instanceof Float) {
-        if (!MathUtils.equals((Float) value, (Float) actualValue, EPS)) {
+        if (!(Math.abs((Float) value - (Float) actualValue) < EPS)) {
           return false;
         }
       } else if (value instanceof Double) {
-        if (!MathUtils.equals((Double) value, (Double) actualValue, EPS)) {
+        if (!(Math.abs((Double) value - (Double) actualValue) < EPS)) {
           return false;
         }
       } else {

@@ -135,15 +135,19 @@
                             </filter>
                           </filters>
                           <relocations>
-                                <!-- The REST API has conflicts with these packages -->
-                                <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>org.apache.metron.io.netty</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
-                                </relocation>
+                             <!-- The REST API has conflicts with these packages -->
+                              <relocation>
+                                  <pattern>io.netty</pattern>
+                                  <shadedPattern>org.apache.metron.io.netty</shadedPattern>
+                              </relocation>
+                              <relocation>
+                                  <pattern>com.google.common</pattern>
+                                  <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
+                              </relocation>
+                              <relocation>
+                                  <pattern>org.apache.http</pattern>
+                                  <shadedPattern>org.apache.metron.http.elasticsearch</shadedPattern>
+                              </relocation>
                             </relocations>
                             <artifactSet>
                                 <excludes>

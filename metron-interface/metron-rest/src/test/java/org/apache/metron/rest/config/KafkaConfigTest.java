@@ -67,7 +67,7 @@ public class KafkaConfigTest {
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
     when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka security protocol");
 
-    producerProperties = kafkaConfig.consumerProperties();
+    producerProperties = kafkaConfig.producerProperties();
     assertEquals("kafka security protocol", producerProperties.get("security.protocol"));
   }
 

@@ -55,6 +55,7 @@ KAFKA_SECURITY_PROTOCOL=${KAFKA_SECURITY_PROTOCOL:-PLAINTEXT}
 if [ ${SECURITY_ENABLED,,} == 'true' ]; then
   echo "Security enabled"
   kinit -kt $METRON_SERVICE_KEYTAB $METRON_PRINCIPAL_NAME
+  export KAFKA_OPTS=$CLIENT_JAAS_ARG
 fi
 
 while true; do
