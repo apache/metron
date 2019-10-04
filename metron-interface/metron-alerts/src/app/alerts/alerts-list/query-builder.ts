@@ -24,20 +24,27 @@ import {GroupRequest} from '../../model/group-request';
 import {Group} from '../../model/group';
 import { Injectable } from '@angular/core';
 
+export enum FilteringMode {
+  MANUAL = 'FilteringModeIsManual',
+  BUILDER = 'FilteringModeIsBuilder',
+}
+
 @Injectable()
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
   private _groupRequest = new GroupRequest();
-  private _query = '*';
-  private _displayQuery = this._query;
+
+  private _manualQuery;
   private _filters: Filter[] = [];
 
+  private filteringMode: FilteringMode = FilteringMode.BUILDER;
+
   get query(): string {
-    return this._query;
+    return this.searchRequest.query;
   }
 
   get displayQuery(): string {
-    return this._displayQuery;
+    return this.generateSelectForDisplay();
   }
 
   set filters(filters: Filter[]) {
@@ -51,7 +58,7 @@ export class QueryBuilder {
   }
 
   get searchRequest(): SearchRequest {
-    this._searchRequest.query = this.generateSelect();
+    this._searchRequest.query = this.getQueryString() || '*';
     return this._searchRequest;
   }
 
@@ -61,19 +68,18 @@ export class QueryBuilder {
   }
 
   groupRequest(scoreField): GroupRequest {
-    this._groupRequest.query = this.generateSelect();
+    this._groupRequest.query = this.getQueryString() || '*';
     this._groupRequest.scoreField = scoreField;
     return this._groupRequest;
   }
 
   setSearch(query: string) {
     this.updateFilters(query, true);
-    this.onSearchChange();
   }
 
   clearSearch() {
     this._filters = [];
-    this.onSearchChange();
+    this._manualQuery = null;
   }
 
   addOrUpdateFilter(filter: Filter) {
@@ -85,7 +91,6 @@ export class QueryBuilder {
         this.removeFilter(existingTimeRangeFilter);
       }
       this._filters.push(filter);
-      this.onSearchChange();
       return;
     }
 
@@ -102,13 +107,18 @@ export class QueryBuilder {
     } else {
       this._filters.push(filter);
     }
-
-    this.onSearchChange();
   }
 
-  generateSelect() {
-    let select = this._filters.map(filter => filter.getQueryString()).join(' AND ');
-    return (select.length === 0) ? '*' : select;
+  private getQueryString() {
+    if (this.filteringMode === FilteringMode.MANUAL) {
+      return this.getManualQuery();
+    } else {
+      return this.getBuilderQueryString();
+    }
+  }
+
+  private getBuilderQueryString() {
+    return this._filters.map(filter => filter.getQueryString()).join(' AND ');
   }
 
   generateNameForSearchRequest() {
@@ -117,39 +127,24 @@ export class QueryBuilder {
   }
 
   generateSelectForDisplay() {
-    let appliedFilters = [];
-    this._filters.reduce((appliedFilters, filter) => {
+    return this._filters.reduce((appliedFilters, filter) => {
       if (filter.display) {
         appliedFilters.push(ColumnNamesService.getColumnDisplayValue(filter.field) + ':' + filter.value);
       }
-
       return appliedFilters;
-    }, appliedFilters);
-
-    let select = appliedFilters.join(' AND ');
-    return (select.length === 0) ? '*' : select;
+    }, []).join(' AND ') || '*';
   }
 
   isTimeStampFieldPresent(): boolean {
     return this._filters.some(filter => (filter.field === TIMESTAMP_FIELD_NAME &&  !isNaN(Number(filter.value))));
   }
 
-  onSearchChange() {
-    this._query = this.generateSelect();
-    this._displayQuery = this.generateSelectForDisplay();
-  }
-
   removeFilter(filter: Filter) {
     this._filters = this._filters.filter(fItem => fItem !== filter );
-    this.onSearchChange();
   }
 
   removeFilterByField(field: string): void {
     this._filters = this._filters.filter(fItem => fItem.field !== field );
-  }
-
-  setFields(fieldNames: string[]) {
-      // this.searchRequest._source = fieldNames;
   }
 
   setFromAndSize(from: number, size: number) {
@@ -164,6 +159,25 @@ export class QueryBuilder {
   setSort(sortBy: string, order: string) {
     let sortField = new SortField(sortBy, order);
     this.searchRequest.sort = [sortField];
+  }
+
+  setFilteringMode(mode: FilteringMode) {
+    this.filteringMode = mode;
+  }
+
+  getFilteringMode() {
+    return this.filteringMode;
+  }
+
+  setManualQuery(query: string) {
+    this._manualQuery = query;
+  }
+
+  getManualQuery(): string {
+    if (!this._manualQuery) {
+      this._manualQuery = this.getBuilderQueryString() || '*';
+    }
+    return this._manualQuery;
   }
 
   private updateFilters(query: string, updateNameTransform = false) {

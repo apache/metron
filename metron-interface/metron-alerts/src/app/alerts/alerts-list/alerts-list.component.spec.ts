@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 import { AlertsListComponent } from './alerts-list.component';
-import { ComponentFixture, async, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, async, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { Component, Input, Directive } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { SearchService } from 'app/service/search.service';
 import { UpdateService } from 'app/service/update.service';
@@ -28,53 +28,136 @@ import { SaveSearchService } from 'app/service/save-search.service';
 import { MetaAlertService } from 'app/service/meta-alert.service';
 import { GlobalConfigService } from 'app/service/global-config.service';
 import { DialogService } from 'app/service/dialog.service';
-import { SearchRequest } from 'app/model/search-request';
-import { Observable, of, Subject } from 'rxjs';
-import { Filter } from 'app/model/filter';
-import { QueryBuilder } from './query-builder';
 import { TIMESTAMP_FIELD_NAME } from 'app/utils/constants';
-import { SearchResponse } from 'app/model/search-response';
 import { By } from '@angular/platform-browser';
+import { Observable, Subject, of, throwError } from 'rxjs';
+import { Filter } from 'app/model/filter';
+import { QueryBuilder, FilteringMode } from './query-builder';
+import { SearchResponse } from 'app/model/search-response';
+import { AutoPollingService } from './auto-polling/auto-polling.service';
+import { Router } from '@angular/router';
+import { Alert } from 'app/model/alert';
+import { AlertSource } from 'app/model/alert-source';
+import { SearchRequest } from 'app/model/search-request';
+import { query } from '@angular/core/src/render3';
+import { RestError } from 'app/model/rest-error';
+import { DialogType } from 'app/shared/metron-dialog/metron-dialog.component';
+
+@Component({
+  selector: 'app-auto-polling',
+  template: '<div></div>',
+})
+class MockAutoPollingComponent {}
+
+@Component({
+  selector: 'app-configure-rows',
+  template: '<div></div>',
+})
+class MockConfigureRowsComponent {
+  @Input() refreshInterval = 0;
+  @Input() srcElement = {};
+  @Input() pageSize = 0;
+}
+
+@Component({
+  selector: 'app-modal-loading-indicator',
+  template: '<div></div>',
+})
+class MockModalLoadingIndicatorComponent {
+  @Input() show = false;
+}
+
+@Component({
+  selector: 'app-time-range',
+  template: '<div></div>',
+})
+class MockTimeRangeComponent {
+  @Input() disabled = false;
+  @Input() selectedTimeRange = {};
+}
+
+@Directive({
+  selector: '[appAceEditor]',
+})
+class MockAceEditorDirective {
+  @Input() text = '';
+}
+
+@Component({
+  selector: 'app-alert-filters',
+  template: '<div></div>',
+})
+class MockAlertFilterComponent {
+  @Input() facets = [];
+}
+
+@Component({
+  selector: 'app-group-by',
+  template: '<div></div>',
+})
+class MockGroupByComponent {
+  @Input() facets = [];
+}
+
+@Component({
+  selector: 'app-table-view',
+  template: '<div></div>',
+})
+class MockTableViewComponent {
+  @Input() alerts = [];
+  @Input() pagination = {};
+  @Input() alertsColumnsToDisplay = [];
+  @Input() selectedAlerts = [];
+}
+
+@Component({
+  selector: 'app-tree-view',
+  template: '<div></div>',
+})
+class MockTreeViewComponent {
+  @Input() alerts = [];
+  @Input() pagination = {};
+  @Input() alertsColumnsToDisplay = [];
+  @Input() selectedAlerts = [];
+  @Input() globalConfig = {};
+  @Input() query = '';
+  @Input() groups = [];
+}
+
 
 describe('AlertsListComponent', () => {
 
   let component: AlertsListComponent;
   let fixture: ComponentFixture<AlertsListComponent>;
-  let searchServiceStub = {
-    search() { return of({
-      total: 0,
-      groupedBy: '',
-      results: [],
-      facetCounts: [],
-      groups: []
-    }) },
-    pollSearch() { return of({}) }
-  }
-  let queryBuilderStub = {
-    addOrUpdateFilter() { return {} },
-    clearSearch() { return {} },
-    generateSelect() { return '*' },
-    isTimeStampFieldPresent() { return {} },
-    filters: [{}],
-    searchRequest: {
-      from: 0
-    }
-  }
 
   let queryBuilder: QueryBuilder;
   let searchService: SearchService;
 
   beforeEach(async(() => {
+
+    const searchResponseFake = new SearchResponse();
+    searchResponseFake.facetCounts = {};
+
     TestBed.configureTestingModule({
-      schemas: [ NO_ERRORS_SCHEMA ],
       imports: [
-        RouterTestingModule.withRoutes([]),
+        RouterTestingModule.withRoutes([{path: 'alerts-list', component: AlertsListComponent}]),
       ],
       declarations: [
         AlertsListComponent,
+        MockAutoPollingComponent,
+        MockModalLoadingIndicatorComponent,
+        MockTimeRangeComponent,
+        MockAceEditorDirective,
+        MockConfigureRowsComponent,
+        MockAlertFilterComponent,
+        MockGroupByComponent,
+        MockTableViewComponent,
+        MockTreeViewComponent,
       ],
       providers: [
-        { provide: SearchService, useValue: searchServiceStub },
+        { provide: SearchService, useClass: () => { return {
+          search: () => of(searchResponseFake),
+        } } },
         { provide: UpdateService, useClass: () => { return {
           alertChanged$: new Observable(),
         } } },
@@ -88,6 +171,7 @@ describe('AlertsListComponent', () => {
         } } },
         { provide: SaveSearchService, useClass: () => { return {
           loadSavedSearch$: new Observable(),
+          setCurrentQueryBuilderAndTableColumns: () => {},
         } } },
         { provide: MetaAlertService, useClass: () => { return {
           alertChanged$: new Observable(),
@@ -96,7 +180,29 @@ describe('AlertsListComponent', () => {
           get: () => new Observable(),
         } } },
         { provide: DialogService, useClass: () => { return {} } },
-        { provide: QueryBuilder, useValue: queryBuilderStub },
+        { provide: QueryBuilder, useClass: () => { return {
+          filters: [],
+          query: '*',
+          get searchRequest() {
+            return new SearchResponse();
+          },
+          addOrUpdateFilter: () => {},
+          clearSearch: () => {},
+          isTimeStampFieldPresent: () => {},
+          getManualQuery: () => {},
+          setManualQuery: () => {},
+          getFilteringMode: () => {},
+          setFilteringMode: () => {},
+        } } },
+        { provide: AutoPollingService, useClass: () => { return {
+          data: new Subject<SearchResponse>(),
+          getIsCongestion: () => {},
+          getInterval: () => {},
+          getIsPollingActive: () => {},
+          dropNextAndContinue: () => {},
+          onDestroy: () => {},
+          setSuppression: () => {},
+        } } },
       ]
     })
     .compileComponents();
@@ -139,64 +245,110 @@ describe('AlertsListComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-qe-id="alert-subgroup-total"]')).toBeNull();
   });
 
-  it('should toggle the query builder with toggleQueryBuilder', () => {
-    component.toggleQueryBuilder();
-    fixture.detectChanges();
-    expect(component.hideQueryBuilder).toBe(true);
+  describe('filtering by query builder or manual query', () => {
+    it('should be able to toggle the query builder mode', () => {
+      spyOn(component, 'setSearchRequestSize');
+      spyOn(queryBuilder, 'setFilteringMode');
 
-    component.hideQueryBuilder = true;
-    component.pagination.from = 0;
-    component.pagination.size = 25;
+      queryBuilder.getFilteringMode = () => FilteringMode.BUILDER;
 
-    fixture.detectChanges();
-    component.toggleQueryBuilder();
-    expect(component.hideQueryBuilder).toBe(false);
+      component.toggleQueryBuilderMode();
+      expect(queryBuilder.setFilteringMode).toHaveBeenCalledWith(FilteringMode.MANUAL);
+
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+
+      component.toggleQueryBuilderMode();
+      expect(queryBuilder.setFilteringMode).toHaveBeenCalledWith(FilteringMode.BUILDER);
+    });
+
+    it('isQueryBuilderModeManual should return true if queryBuilder is in manual mode', () => {
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+      expect(component.isQueryBuilderModeManual()).toBe(true);
+
+      queryBuilder.getFilteringMode = () => FilteringMode.BUILDER;
+      expect(component.isQueryBuilderModeManual()).toBe(false);
+    });
+
+    it('should show manual input dom element depending on mode', () => {
+      let input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+
+      expect(input).toBeFalsy();
+
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+      fixture.detectChanges();
+      input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+
+      expect(input).toBeTruthy();
+
+      queryBuilder.getFilteringMode = () => FilteringMode.BUILDER;
+      fixture.detectChanges();
+      input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+
+      expect(input).toBeFalsy();
+    });
+
+    it('should bind default manual query from query builder', () => {
+      spyOn(queryBuilder, 'getManualQuery').and.returnValue('test manual query string')
+
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+      fixture.detectChanges();
+      let input: HTMLInputElement = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]')).nativeElement;
+
+      expect(input.value).toBe('test manual query string');
+    });
+
+    it('should pass the manual query value to the query builder when editing mode is manual', fakeAsync(() => {
+      spyOn(queryBuilder, 'setManualQuery');
+
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+      fixture.detectChanges();
+
+      const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+      const el = input.nativeElement;
+
+      el.value = 'test';
+      (el as HTMLElement).dispatchEvent(new Event('keyup'));
+      fixture.detectChanges();
+      tick(300);
+
+      expect(queryBuilder.setManualQuery).toHaveBeenCalledWith('test');
+    }));
   });
 
-  it('should pass the manual query value when hideQueryBuilder is true', () => {
-    const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
-    const el = input.nativeElement;
+  describe('handling pending search requests', () => {
+    it('should set pendingSearch on search', () => {
+      spyOn(searchService, 'search').and.returnValue(of(new SearchResponse()));
+      spyOn(component, 'saveCurrentSearch');
+      spyOn(component, 'setSearchRequestSize');
+      spyOn(component, 'setSelectedTimeRange');
+      spyOn(component, 'createGroupFacets');
 
-    expect(component.queryForTreeView()).toBe('*');
+      component.search();
+      expect(component.pendingSearch).toBeTruthy();
+    });
 
-    component.toggleQueryBuilder();
-    fixture.detectChanges();
-    expect(component.hideQueryBuilder).toBe(true);
+    it('should clear pendingSearch on search success', (done) => {
+      const fakeObservable = new Subject();
+      spyOn(searchService, 'search').and.returnValue(fakeObservable);
+      spyOn(component, 'saveCurrentSearch');
+      spyOn(component, 'setSearchRequestSize');
+      spyOn(component, 'setSelectedTimeRange');
+      spyOn(component, 'createGroupFacets');
 
-    el.value = 'test';
-    expect(component.queryForTreeView()).toBe('test');
-  });
+      component.search();
 
-  it('should build a new search request if hideQueryBuilder is true', () => {
-    const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
-    const el = input.nativeElement;
-    const searchServiceSpy = spyOn(searchService, 'search').and.returnValue(of());
-    const newSearch = new SearchRequest();
+      setTimeout(() => {
+        fakeObservable.next(new SearchResponse());
+      }, 0);
 
-    el.value = 'test';
-    component.hideQueryBuilder = true;
-    component.pagination.size = 25;
-    newSearch.query = 'test'
-    newSearch.size = 25
-    newSearch.from = 0;
-
-    fixture.detectChanges();
-    component.search();
-    expect(searchServiceSpy).toHaveBeenCalledWith(newSearch);
-  });
-
-  it('should poll with new search request if isRefreshPaused is true and manualSearch is present', () => {
-    const searchServiceSpy = spyOn(searchService, 'pollSearch').and.returnValue(of());
-    const newSearch = new SearchRequest();
-
-    component.isRefreshPaused = false;
-    fixture.detectChanges();
-    component.tryStartPolling(newSearch);
-    expect(searchServiceSpy).toHaveBeenCalledWith(newSearch);
+      fakeObservable.subscribe(() => {
+        expect(component.pendingSearch).toBe(null);
+        done();
+      })
+    });
   });
 
   describe('stale data state', () => {
-
     it('should set staleDataState flag to true on filter change', () => {
       expect(component.staleDataState).toBe(false);
       component.onAddFilter(new Filter('ip_src_addr', '0.0.0.0'));
@@ -204,7 +356,7 @@ describe('AlertsListComponent', () => {
     });
 
     it('should set staleDataState flag to true on filter clearing', () => {
-      queryBuilder.clearSearch = jasmine.createSpy('clearSearch');
+      spyOn(component, 'setSearchRequestSize');
 
       expect(component.staleDataState).toBe(false);
       component.onClear();
@@ -229,6 +381,21 @@ describe('AlertsListComponent', () => {
       expect(component.staleDataState).toBe(false);
     });
 
+    it('should set stale date true when query changes in manual mode', fakeAsync(() => {
+      queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+
+      fixture.detectChanges();
+      const input = fixture.debugElement.query(By.css('[data-qe-id="manual-query-input"]'));
+      const el = input.nativeElement;
+
+      el.value = 'test';
+      (el as HTMLElement).dispatchEvent(new Event('keyup'));
+      fixture.detectChanges();
+      tick(300);
+
+      expect(component.staleDataState).toBe(true);
+    }));
+
     it('should show warning if data is in a stale state', () => {
       expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBe(null);
 
@@ -238,6 +405,200 @@ describe('AlertsListComponent', () => {
       expect(fixture.debugElement.query(By.css('[data-qe-id="staleDataWarning"]'))).toBeTruthy();
     });
 
-  })
+  });
 
+  describe('auto polling', () => {
+    it('should refresh view on data emit', () => {
+      const fakeResponse = new SearchResponse();
+      spyOn(component, 'setData');
+
+      TestBed.get(AutoPollingService).data.next(fakeResponse);
+
+      expect(component.setData).toHaveBeenCalledWith(fakeResponse);
+    });
+
+    it('should set staleDataState false on auto polling refresh', () => {
+      spyOn(component, 'setData');
+      component.staleDataState = true;
+
+      TestBed.get(AutoPollingService).data.next(new SearchResponse());
+
+      expect(component.staleDataState).toBe(false);
+    });
+
+    it('should show warning on auto polling congestion', () => {
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeFalsy();
+
+      TestBed.get(AutoPollingService).getIsCongestion = () => true;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeTruthy();
+
+      TestBed.get(AutoPollingService).getIsCongestion = () => false;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeFalsy();
+    });
+
+    it('should pass refresh interval to row config component', () => {
+      TestBed.get(AutoPollingService).getInterval = () => 44;
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.directive(MockConfigureRowsComponent)).componentInstance.refreshInterval).toBe(44);
+    });
+
+    it('should drop pending auto polling result if user trigger search request manually', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'dropNextAndContinue');
+      spyOn(component, 'setSearchRequestSize');
+
+      autoPollingSvc.getIsPollingActive = () => false;
+      component.search()
+
+      expect(autoPollingSvc.dropNextAndContinue).not.toHaveBeenCalled();
+
+      autoPollingSvc.getIsPollingActive = () => true;
+      component.search()
+
+      expect(autoPollingSvc.dropNextAndContinue).toHaveBeenCalled();
+    });
+
+    it('should show different stale data warning when polling is active', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+
+      autoPollingSvc.getIsPollingActive = () => false;
+      const warning = component.getStaleDataWarning();
+
+      autoPollingSvc.getIsPollingActive = () => true;
+      const warningWhenPolling = component.getStaleDataWarning();
+
+      expect(warning).not.toEqual(warningWhenPolling);
+    });
+
+    it('should show getIsCongestion scennarios', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+
+      autoPollingSvc.getIsCongestion = () => false;
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeFalsy();
+
+      autoPollingSvc.getIsCongestion = () => true;
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.css('[data-qe-id="pollingCongestionWarning"]'))).toBeTruthy();
+
+    });
+
+    it('should suppress polling when user select alerts', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.onSelectedAlertsChange([{ source: { metron_alert: [] } }]);
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should restore polling from suppression when user deselect alerts', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.onSelectedAlertsChange([]);
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(false);
+    });
+
+    it('should suppress polling when open details pane', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      const router = TestBed.get(Router);
+      spyOn(router, 'navigate').and.returnValue(true);
+      spyOn(router, 'navigateByUrl').and.returnValue(true);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.showConfigureTable();
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should suppress polling when open column config pane', () => {
+      const router = TestBed.get(Router);
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(router, 'navigate');
+      spyOn(router, 'navigateByUrl');
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      const fakeAlert = new Alert();
+      fakeAlert.source = new AlertSource();
+
+      component.showDetails(fakeAlert);
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should suppress polling when open Saved Searches pane', () => {
+      const router = TestBed.get(Router);
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(router, 'navigate');
+      spyOn(router, 'navigateByUrl');
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.showSavedSearches();
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should suppress polling when open Save Search dialogue pane', () => {
+      const router = TestBed.get(Router);
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+      spyOn(router, 'navigate');
+      spyOn(router, 'navigateByUrl');
+      spyOn(autoPollingSvc, 'setSuppression');
+      spyOn(saveSearchSvc, 'setCurrentQueryBuilderAndTableColumns');
+
+      component.showSaveSearch();
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(true);
+    });
+
+    it('should restore the polling supression on bulk status update (other scenario of deselecting alerts)', () => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      component.updateSelectedAlertStatus('fakeState');
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(false);
+    });
+
+    it('should restore the polling supression when returning from a subroute', fakeAsync(() => {
+      const autoPollingSvc = TestBed.get(AutoPollingService);
+      spyOn(autoPollingSvc, 'setSuppression');
+
+      autoPollingSvc.getIsPollingActive = () => false;
+      fixture.ngZone.run(() => {
+        TestBed.get(Router).navigate(['/alerts-list']);
+      });
+
+      expect(autoPollingSvc.setSuppression).not.toHaveBeenCalled();
+
+      autoPollingSvc.getIsPollingActive = () => true;
+      fixture.ngZone.run(() => {
+        TestBed.get(Router).navigate(['/alerts-list']);
+      });
+
+      expect(autoPollingSvc.setSuppression).toHaveBeenCalledWith(false);
+    }));
+  });
+
+  describe('search', () => {
+    it('should show notification on http error', fakeAsync(() => {
+      const fakeDialogService = TestBed.get(DialogService);
+
+      spyOn(searchService, 'search').and.returnValue(throwError(new RestError()));
+      fakeDialogService.launchDialog = () => {};
+      spyOn(fakeDialogService, 'launchDialog');
+
+      component.search();
+
+      expect(fakeDialogService.launchDialog).toHaveBeenCalledWith('Server were unable to apply query string.', DialogType.Error);
+    }));
+  });
 });
