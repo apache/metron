@@ -16,7 +16,18 @@
  * limitations under the License.
  */
 /// <reference path="../../../../node_modules/@types/ace/index.d.ts" />
-import {Directive, ElementRef, EventEmitter, AfterViewInit, Output, Input, OnChanges, SimpleChanges} from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  EventEmitter,
+  AfterViewInit,
+  Output,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  NgZone,
+  OnDestroy
+} from '@angular/core';
 
 declare var ace: any;
 let ACERange = ace.require('ace/range').Range;
@@ -25,7 +36,7 @@ let ACERange = ace.require('ace/range').Range;
   selector: '[appAceEditor]'
 })
 
-export class AlertSearchDirective implements AfterViewInit, OnChanges {
+export class AlertSearchDirective implements AfterViewInit, OnChanges, OnDestroy {
   editor: AceAjax.Editor;
   closeButton: any;
   mouseEventTimer: number;
@@ -34,54 +45,59 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
   @Input() text = '';
   @Output() textChanged = new EventEmitter();
 
-  constructor(private elementRef: ElementRef) {
-    const el = elementRef.nativeElement;
-    el.classList.add('editor');
+  constructor(
+    private elementRef: ElementRef,
+    private zone: NgZone
+  ) {
+    this.zone.runOutsideAngular(() => {
+      const el = this.elementRef.nativeElement;
+      el.classList.add('editor');
 
-    ace.config.set('basePath', 'assets/ace');
+      ace.config.set('basePath', 'assets/ace');
 
-    this.editor = ace.edit(el);
-    this.editor.$blockScrolling = Infinity;
-    this.editor.renderer.setShowGutter(false);
-    this.editor.renderer.setShowPrintMargin(false);
-    this.editor.renderer.setPadding(10);
-    this.editor.setTheme('ace/theme/monokai');
-    this.editor.container.style.lineHeight = '1.5';
+      this.editor = ace.edit(el);
+      this.editor.$blockScrolling = Infinity;
+      this.editor.renderer.setShowGutter(false);
+      this.editor.renderer.setShowPrintMargin(false);
+      this.editor.renderer.setPadding(10);
+      this.editor.setTheme('ace/theme/monokai');
+      this.editor.container.style.lineHeight = '1.5';
 
-    this.editor.setOptions({
-      minLines: 1,
-      highlightActiveLine: false,
-      maxLines: Infinity,
-      fontSize: '0.75em'
-    });
+      this.editor.setOptions({
+        minLines: 1,
+        highlightActiveLine: false,
+        maxLines: Infinity,
+        fontSize: '0.75em'
+      });
 
-    this.editor.getSession().setMode('ace/mode/lucene');
+      this.editor.getSession().setMode('ace/mode/lucene');
 
-    // This is a hack: setScrollMargin is not available in latest ace typings but is available in ace
-    let renderer: any = this.editor.renderer;
-    renderer.setScrollMargin(12, 12);
+      // This is a hack: setScrollMargin is not available in latest ace typings but is available in ace
+      let renderer: any = this.editor.renderer;
+      renderer.setScrollMargin(12, 12);
 
-    this.closeButton = document.createElement('i');
-    this.closeButton.classList.add('fa');
-    this.closeButton.classList.add('fa-times');
-    this.editor.on('click', (event) => {
-      if (event.domEvent.target.classList.contains('fa-times')) {
-        let pos = event.getDocumentPosition();
-        let strToDelete = this.getTextTillOperator(event.domEvent.target.parentElement);
+      this.closeButton = document.createElement('i');
+      this.closeButton.classList.add('fa');
+      this.closeButton.classList.add('fa-times');
+      this.editor.on('click', (event) => {
+        if (event.domEvent.target.classList.contains('fa-times')) {
+          let pos = event.getDocumentPosition();
+          let strToDelete = this.getTextTillOperator(event.domEvent.target.parentElement);
 
-        let endIndex = pos.column;
-        let startIndex = pos.column - (strToDelete.length + 1);
-        if ( startIndex < 0) {
-          startIndex = 0;
-          endIndex = (strToDelete.length + 1);
+          let endIndex = pos.column;
+          let startIndex = pos.column - (strToDelete.length + 1);
+          if ( startIndex < 0) {
+            startIndex = 0;
+            endIndex = (strToDelete.length + 1);
+          }
+
+          let range = new ACERange(0, startIndex , 0, endIndex);
+          this.editor.selection.addRange(range);
+          this.editor.removeWordLeft();
+          this.editor.renderer.showCursor();
+          this.textChanged.next(this.editor.getValue());
         }
-
-        let range = new ACERange(0, startIndex , 0, endIndex);
-        this.editor.selection.addRange(range);
-        this.editor.removeWordLeft();
-        this.editor.renderer.showCursor();
-        this.textChanged.next(this.editor.getValue());
-      }
+      });
     });
   }
 
@@ -204,5 +220,11 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
       this.editor.clearSelection();
       this.editor.focus();
     }
+  }
+
+  ngOnDestroy() {
+    this.editor.destroy();
+    this.editor.container.remove();
+    this.editor = null;
   }
 }
