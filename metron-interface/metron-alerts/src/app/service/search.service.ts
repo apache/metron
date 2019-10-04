@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import {Injectable, NgZone} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import { map, onErrorResumeNext, catchError, switchMap } from 'rxjs/operators';
-import { interval as observableInterval } from 'rxjs';
+import { map, onErrorResumeNext, catchError } from 'rxjs/operators';
 import {HttpUtil} from '../utils/httpUtil';
 import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
@@ -33,8 +32,6 @@ import { AppConfigService } from './app-config.service';
 
 @Injectable()
 export class SearchService {
-
-  interval = 80000;
 
   private static extractColumnNameDataFromRestApi(res): ColumnMetadata[] {
     let response: any = res || {};
@@ -52,7 +49,7 @@ export class SearchService {
   }
 
   constructor(private http: HttpClient,
-              private ngZone: NgZone, private appConfigService: AppConfigService) { }
+              private appConfigService: AppConfigService) { }
 
   groups(groupRequest: GroupRequest): Observable<GroupResult> {
     let url = this.appConfigService.getApiRoot() + '/search/group';
@@ -79,21 +76,12 @@ export class SearchService {
     catchError(HttpUtil.handleError));
   }
 
-  public pollSearch(searchRequest: SearchRequest): Observable<SearchResponse> {
-    return this.ngZone.runOutsideAngular(() => {
-      return this.ngZone.run(() => {
-        return observableInterval(this.interval * 1000).pipe(switchMap(() => {
-          return this.search(searchRequest);
-        }));
-      });
-    });
-  }
-
   public search(searchRequest: SearchRequest): Observable<SearchResponse> {
     let url = this.appConfigService.getApiRoot() + '/search/search';
+
     return this.http.post(url, searchRequest).pipe(
-    map(HttpUtil.extractData),
-    catchError(HttpUtil.handleError),
-    onErrorResumeNext());
+      map(HttpUtil.extractData),
+      catchError(HttpUtil.sessionExpiration),
+    );
   }
 }

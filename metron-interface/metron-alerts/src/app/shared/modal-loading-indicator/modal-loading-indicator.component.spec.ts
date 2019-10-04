@@ -15,20 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PageSize } from '../alerts/configure-rows/configure-rows-enums';
-import { ColumnMetadata } from './column-metadata';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-export class TableMetadata {
-  size = PageSize.TWENTY_FIVE;
-  tableColumns: ColumnMetadata[];
+import { ModalLoadingIndicatorComponent } from './modal-loading-indicator.component';
 
-  static fromJSON(obj: any): TableMetadata {
-    let tableMetadata = new TableMetadata();
-    if (obj) {
-      tableMetadata.size = obj.size;
-      tableMetadata.tableColumns = (typeof (obj.tableColumns) === 'string') ? JSON.parse(obj.tableColumns) : obj.tableColumns;
-    }
+describe('ModalLoadingIndicatorComponent', () => {
+  let component: ModalLoadingIndicatorComponent;
+  let fixture: ComponentFixture<ModalLoadingIndicatorComponent>;
 
-    return tableMetadata;
-  }
-}
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ ModalLoadingIndicatorComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ModalLoadingIndicatorComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

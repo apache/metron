@@ -1,7 +1,3 @@
-
-import {throwError as observableThrowError} from 'rxjs';
-
-import {catchError, map, onErrorResumeNext} from 'rxjs/operators';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,6 +16,8 @@ import {catchError, map, onErrorResumeNext} from 'rxjs/operators';
  * limitations under the License.
  */
 import {Observable} from 'rxjs';
+import {throwError as observableThrowError} from 'rxjs';
+import {catchError, map, onErrorResumeNext} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import {HttpUtil} from '../utils/httpUtil';
 import {DataSource} from './data-source';
