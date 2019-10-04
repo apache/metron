@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,12 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// The file contents for the current environment will overwrite these during build.
-// The build system defaults to the dev environment which uses `environment.ts`, but if you do
-// `ng build --env=prod` then `environment.prod.ts` will be used instead.
-// The list of which env maps to which file can be found in `angular-cli.json`.
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.environment = {
-    production: false,
-    indices: null
-};
+import { Component } from '@angular/core';
+import { AutoPollingService } from './auto-polling.service';
+
+@Component({
+  selector: 'app-auto-polling',
+  templateUrl: './auto-polling.component.html',
+  styleUrls: ['./auto-polling.component.scss']
+})
+export class AutoPollingComponent {
+  constructor(public autoPollingSvc: AutoPollingService) {}
+
+  onToggle() {
+    if (!this.autoPollingSvc.getIsPollingActive()) {
+      this.autoPollingSvc.start();
+    } else {
+      this.autoPollingSvc.stop();
+    }
+  }
+}

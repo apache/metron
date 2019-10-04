@@ -17,28 +17,28 @@
     <h6 class="card-title">Settings</h6>
     <form>
       <label> REFRESH RATE </label>
-      <div #refreshInterval class="preset-row refresh-interval" (click)="onRefreshIntervalChange($event, refreshInterval)">
-          <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.refreshInterval===5}" [attr.value]="5">  5s   </div>
-          <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.refreshInterval===10}" [attr.value]="10">  10s  </div>
-          <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.refreshInterval===15}" [attr.value]="15">  15s  </div>
-          <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.refreshInterval===30}" [attr.value]="30">  30s  </div>
-          <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.refreshInterval===60}" [attr.value]="60">  1m   </div>
-          <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.refreshInterval===600}" [attr.value]="600">   10m  </div>
-          <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.refreshInterval===3600}" [attr.value]="3600">  1h   </div>
+      <div #refreshIntervalEl class="preset-row refresh-interval" (click)="onRefreshIntervalChange($event, refreshIntervalEl)">
+          <div class="preset-cell" [class.is-active]="refreshInterval===5" [attr.value]="5">  5s   </div>
+          <div class="preset-cell" [class.is-active]="refreshInterval===10" [attr.value]="10">  10s  </div>
+          <div class="preset-cell" [class.is-active]="refreshInterval===15" [attr.value]="15">  15s  </div>
+          <div class="preset-cell" [class.is-active]="refreshInterval===30" [attr.value]="30">  30s  </div>
+          <div class="preset-cell" [class.is-active]="refreshInterval===60" [attr.value]="60">  1m   </div>
+          <div class="preset-cell" [class.is-active]="refreshInterval===600" [attr.value]="600">   10m  </div>
+          <div class="preset-cell" [class.is-active]="refreshInterval===3600" [attr.value]="3600">  1h   </div>
       </div>
       <label> ROWS PER PAGE </label>
-      <div #pageSize class="preset-row page-size" (click)="onPageSizeChange($event, pageSize)">
-        <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.size===10}">  10   </div>
-        <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.size===25}">  25   </div>
-        <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.size===50}">  50   </div>
-        <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.size===100}">  100  </div>
-        <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.size===250}">  250  </div>
-        <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.size===500}">  500  </div>
-        <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.size===1000}">  1000  </div>
+      <div #pageSizeEl class="preset-row page-size" (click)="onPageSizeChange($event, pageSizeEl)">
+        <div class="preset-cell" [class.is-active]="pageSize===10">  10   </div>
+        <div class="preset-cell" [class.is-active]="pageSize===25">  25   </div>
+        <div class="preset-cell" [class.is-active]="pageSize===50">  50   </div>
+        <div class="preset-cell" [class.is-active]="pageSize===100">  100  </div>
+        <div class="preset-cell" [class.is-active]="pageSize===250">  250  </div>
+        <div class="preset-cell" [class.is-active]="pageSize===500">  500  </div>
+        <div class="preset-cell" [class.is-active]="pageSize===1000">  1000  </div>
       </div>
 
       <label> HIDE ALERT ENTRIES </label>
-      <app-show-hide-alert-entries (changed)="configRowsChange.emit($event)" ></app-show-hide-alert-entries>
+      <app-show-hide-alert-entries (changed)="onShowHideChange($event)" ></app-show-hide-alert-entries>
 
       <label class="pt-2"> TIMEZONE CONFIGURATION </label>
       <app-timezone-config></app-timezone-config>

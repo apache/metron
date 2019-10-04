@@ -15,17 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { QueryBuilder } from './query-builder';
+import { QueryBuilder, FilteringMode } from './query-builder';
 import { Filter } from 'app/model/filter';
 import { TIMESTAMP_FIELD_NAME } from '../../utils/constants';
 import { Utils } from 'app/utils/utils';
 
 
-describe('query-builder', () => {
+describe('QueryBuilder', () => {
+  let queryBuilder: QueryBuilder;
+
+  beforeEach(() => {
+    queryBuilder = new QueryBuilder();
+  });
 
   it('should be able to handle multiple filters', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('alert_status:RESOLVE AND ip_src_addr:0.0.0.0');
 
     expect(queryBuilder.searchRequest.query).toBe(
@@ -34,8 +37,6 @@ describe('query-builder', () => {
   });
 
   it('should be able to handle multiple EXCLUDING filters for the same field', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('-alert_status:RESOLVE AND -alert_status:DISMISS');
 
     expect(queryBuilder.searchRequest.query).toBe(
@@ -44,8 +45,6 @@ describe('query-builder', () => {
   });
 
   it('should be able to handle group multiple clauses to a single field, aka. field grouping', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('alert_status:(RESOLVE OR DISMISS)');
 
     expect(queryBuilder.searchRequest.query).toBe(
@@ -54,8 +53,6 @@ describe('query-builder', () => {
   });
 
   it('should trim whitespace', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch(' alert_status:(RESOLVE OR DISMISS) ');
 
     expect(queryBuilder.searchRequest.query).toBe(
@@ -64,8 +61,6 @@ describe('query-builder', () => {
   });
 
   it('should remove wildcard', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('* alert_status:(RESOLVE OR DISMISS)');
 
     expect(queryBuilder.searchRequest.query).toBe(
@@ -74,8 +69,6 @@ describe('query-builder', () => {
   });
 
   it('should properly parse excluding filters event with wildcard and whitespaces', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('* -alert_status:(RESOLVE OR DISMISS)');
 
     expect(queryBuilder.searchRequest.query).toBe(
@@ -84,8 +77,6 @@ describe('query-builder', () => {
   });
 
   it('should remove wildcard from an excluding filter', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('* -alert_status:(RESOLVE OR DISMISS)');
 
     expect(queryBuilder.searchRequest.query).toBe(
@@ -94,26 +85,20 @@ describe('query-builder', () => {
   });
 
   it('should allow only one timerange filter', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]'));
     queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863700000 TO 1552960000000]'));
 
-    expect(queryBuilder.generateSelect()).toBe('(timestamp:[1552863700000 TO 1552960000000] OR ' +
+    expect(queryBuilder.query).toBe('(timestamp:[1552863700000 TO 1552960000000] OR ' +
       'metron_alert.timestamp:[1552863700000 TO 1552960000000])');
   });
 
   it('should escape : chars in ElasticSearch field names', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('source:type:bro');
 
     expect(queryBuilder.searchRequest.query).toBe('(source\\:type:bro OR metron_alert.source\\:type:bro)');
   });
 
   it('should escape ALL : chars in ElasticSearch field names', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('enrichments:geo:ip_dst_addr:country:US');
 
     expect(queryBuilder.searchRequest.query).toBe('(enrichments\\:geo\\:ip_dst_addr\\:country:US ' +
@@ -121,8 +106,6 @@ describe('query-builder', () => {
   });
 
   it('should not multiply escaping in field name', () => {
-    const queryBuilder = new QueryBuilder();
-
     queryBuilder.setSearch('source:type:bro');
     queryBuilder.setSearch('source:type:bro');
     queryBuilder.setSearch('source:type:bro');
@@ -131,8 +114,6 @@ describe('query-builder', () => {
   });
 
   it('removeFilter should remove filter by reference', () => {
-    const queryBuilder = new QueryBuilder();
-
     const filter1 = new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]');
     const filter2 = new Filter('fieldName', 'value');
 
@@ -146,8 +127,6 @@ describe('query-builder', () => {
   });
 
   it('removeFilterByField should remove filter having the passed field name', () => {
-    const queryBuilder = new QueryBuilder();
-
     const filter1 = new Filter('fruit', 'banana');
     const filter2 = new Filter('fruit', 'orange');
     const filter3 = new Filter('animal', 'horse');
@@ -160,6 +139,93 @@ describe('query-builder', () => {
 
     expect(queryBuilder.filters.length).toBe(1);
     expect(queryBuilder.filters[0]).toBe(filter3);
+  });
+
+  describe('filter query builder modes', () => {
+    it('should have a getter for filtering mode', () => {
+      expect(typeof queryBuilder.getFilteringMode).toBe('function');
+    });
+
+    it('should have a setter for filtering mode', () => {
+      expect(typeof queryBuilder.setFilteringMode).toBe('function');
+
+      expect(queryBuilder.getFilteringMode()).toBe(FilteringMode.BUILDER);
+
+      queryBuilder.setFilteringMode(FilteringMode.MANUAL);
+      expect(queryBuilder.getFilteringMode()).toBe(FilteringMode.MANUAL);
+
+      queryBuilder.setFilteringMode(FilteringMode.BUILDER);
+      expect(queryBuilder.getFilteringMode()).toBe(FilteringMode.BUILDER);
+    });
+
+    it('filtering mode should be builder by default', () => {
+      expect(queryBuilder.getFilteringMode()).toBe(FilteringMode.BUILDER);
+    });
+
+    it('should have a getter for manual query', () => {
+      expect(typeof queryBuilder.getManualQuery).toBe('function');
+    });
+
+    it('should have a setter for manual query string', () => {
+      expect(typeof queryBuilder.setManualQuery).toBe('function');
+
+      queryBuilder.setManualQuery('test manual query');
+      expect(queryBuilder.getManualQuery()).toBe('test manual query');
+
+      queryBuilder.setManualQuery('another test manual query');
+      expect(queryBuilder.getManualQuery()).toBe('another test manual query');
+    });
+
+    it('getManualQuery should return the built query string first', () => {
+      const expected = '(timestamp:[1552863600000 TO 1552950000000] OR metron_alert.timestamp:[1552863600000 ' +
+        'TO 1552950000000]) AND (animal:horse OR metron_alert.animal:horse)';
+
+      queryBuilder.clearSearch();
+
+      queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]'));
+      queryBuilder.addOrUpdateFilter(new Filter('animal', 'horse'));
+
+      expect(queryBuilder.getManualQuery()).toBe(expected);
+
+      queryBuilder.setManualQuery('test:query');
+
+      expect(queryBuilder.getManualQuery()).toBe('test:query');
+    });
+
+    it('should use manual query string value in manual mode', () => {
+      queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]'));
+      queryBuilder.addOrUpdateFilter(new Filter('animal', 'horse'));
+
+      queryBuilder.setFilteringMode(FilteringMode.MANUAL);
+      queryBuilder.setManualQuery('test:query');
+
+      expect(queryBuilder.searchRequest.query).toBe('test:query');
+    });
+
+    it('should use built query string value in builder mode', () => {
+      queryBuilder.addOrUpdateFilter(new Filter(TIMESTAMP_FIELD_NAME, '[1552863600000 TO 1552950000000]'));
+      queryBuilder.addOrUpdateFilter(new Filter('animal', 'horse'));
+
+      queryBuilder.setFilteringMode(FilteringMode.BUILDER);
+      queryBuilder.setManualQuery('test:query');
+
+      expect(queryBuilder.searchRequest.query).toBe(
+        '(timestamp:[1552863600000 TO 1552950000000] OR metron_alert.timestamp:[1552863600000 ' +
+        'TO 1552950000000]) AND (animal:horse OR metron_alert.animal:horse)'
+        );
+    });
+
+    it('clearSearch should clear manual query value', () => {
+      queryBuilder.setFilteringMode(FilteringMode.MANUAL);
+      queryBuilder.setManualQuery('manual:test:query');
+
+      expect(queryBuilder.getManualQuery()).toBe('manual:test:query');
+
+      queryBuilder.clearSearch();
+
+      expect(queryBuilder.getManualQuery()).toBe('*');
+    });
+
   });
 
 });
