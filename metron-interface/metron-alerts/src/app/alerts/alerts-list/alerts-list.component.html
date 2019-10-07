@@ -20,7 +20,14 @@
                     <span class="input-group-prepend">
                         <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
                     </span>
-                    <div appAceEditor *ngIf="!isQueryBuilderModeManual()" class="flex-fill" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
+                    <div
+                      appAceEditor
+                      *ngIf="!isQueryBuilderModeManual()"
+                      class="flex-fill"
+                      placeholder="Search Alerts"
+                      [text]="queryBuilder.displayQuery"
+                      (textChanged)="onBuilderQueryChanged($event)"
+                    > </div>
                     <div class="flex-fill" *ngIf="isQueryBuilderModeManual()">
                         <input #manualQuery type="text"
                             class="manual-query-input"
