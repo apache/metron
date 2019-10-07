@@ -15,39 +15,8 @@
 #  limitations under the License.
 #
 
-FROM centos:centos6
-
-RUN yum install -y \
-        tar \
-        wget \
-        java-1.8.0-openjdk \
-        java-1.8.0-openjdk-devel \
-    && cd /usr/src \
-    && wget http://apache.cs.utah.edu/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.tar.gz \
-    && tar xzvf apache-maven-3.2.5-bin.tar.gz \
-    && rm apache-maven-3.2.5-bin.tar.gz \
-    && mv apache-maven-3.2.5 /opt/maven \
-    && ln -s /opt/maven/bin/mvn /usr/bin/mvn \
-    && yum install -y \
-        asciidoc \
-        rpm-build \
-        rpm2cpio \
-        tar \
-        unzip \
-        xmlto \
-        zip \
-        rpmlint \
-    # install node so that the node dependencies can be packaged into the RPMs \
-    && cd /root \
-    && curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - \
-    && yum install -y \
-        gcc-c++ \
-        make \
-        nodejs \
-    # Remove packages just needed for builds \
-    && yum remove -y \
-        wget \
-    # Clean up yum caches \
-    && yum clean all
-
+FROM rpm-docker-base:latest
+ADD build.sh /root/
+ADD SPECS /root/SPECS
+ADD SOURCES /root/SOURCES
 WORKDIR /root

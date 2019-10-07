@@ -41,7 +41,7 @@ If you are installing Metron using Ambari, these packages are necessary prerequi
 If Metron has already been built, just the RPM packages can be built by executing the following commands.
   ```
   cd metron-deployment
-  mvn clean package -Pbuild-rpms
+  mvn clean package -Pbuild-rpms -T 2C
   ```
 
 ### How does this work?
@@ -50,17 +50,23 @@ Using the `build-rpms` profile as shown above, effectively automates the followi
 
 1. Copy the tarball for each Metron sub-project to the `target` working directory.
 
-1. Build a Docker image of a CentOS host called `rpm-docker` that contains all of the tools needed to build the packages.
+1. Build a Docker image of a CentOS host called `rpm-docker-base` that contains all of the tools needed to build the packages.
     ```
-    docker build -t rpm-docker .
+    docker build -f rpm-base-image/Dockerfile -t rpm-docker-base rpm-base-image
     ```
-
+   
+1. Build a customised version of rpm-docker-base that contains all source files that are required to be packaged. 
+This bypasses the performance penalty (on MacOS Docker at least) of accessing these source files via a Docker bind shared folder.
+    ```
+    docker build -f Dockerfile -t rpm-docker-metron .
+    ```
+   
 1. Execute the `build.sh` script within the Docker container.  The argument passed to the build script is the current version of Metron.
     ```
-    docker run -v `pwd`:/root rpm-docker:latest /bin/bash -c ./build.sh <metron-version>
+    docker run -v `pwd`/target:/root/target:delegated rpm-docker-metron:latest /bin/bash -c ./build.sh <metron-version>
     ```
 
 1. This results in the RPMs being generated within the following directory.
     ```
-    metron-deployment/packaging/docker/rpm-docker/RPMS/noarch
+    metron-deployment/packaging/docker/rpm-docker/target
     ```
