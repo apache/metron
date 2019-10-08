@@ -28,6 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commons.config.version>1.10</commons.config.version>
+        <guava_version>${global_hbase_guava_version}</guava_version>
     </properties>
     <dependencies>
         <dependency>
@@ -158,6 +159,16 @@
                                 </filter>
                             </filters>
                             <relocations>
+                                <relocation>
+                                    <!--
+                                      Need to relocate Guava 17.0 as it is required by Curator 2.7.1. When running with
+                                      kerberos, Storm adds all jars in `$STORM_HOME/contrib/storm-autocreds` to the
+                                      classpath.  This includes Guava 28.0, which is incompatible with Curator 2.7.1.
+                                      This only seems to be a problem when running Storm with kerberos.
+                                    -->
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
+                                </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
                                     <shadedPattern>org.apache.metron.jackson</shadedPattern>
