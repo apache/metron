@@ -25,6 +25,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import oi.thekraken.grok.api.Grok;
@@ -201,7 +202,7 @@ public class GrokServiceImplTest {
     grokService.saveTemporary(statement, "squid");
 
     File testRoot = new File("./target/user1");
-    assertEquals(statement, FileUtils.readFileToString(new File(testRoot, "squid"), Charset.forName("utf-8")));
+    assertEquals(statement, FileUtils.readFileToString(new File(testRoot, "squid"), StandardCharsets.UTF_8));
     testRoot.delete();
   }
 

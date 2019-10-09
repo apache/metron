@@ -18,6 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.commons.io.IOUtils;
@@ -72,7 +73,7 @@ public class GrokServiceImpl implements GrokService {
             }
             Grok grok = new Grok();
             grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream(
-                "/patterns/common")));
+                "/patterns/common"), StandardCharsets.UTF_8));
             grok.addPatternFromReader(new StringReader(grokValidation.getStatement()));
             String grokPattern = "%{" + grokValidation.getPatternLabel() + "}";
             grok.compile(grokPattern);
@@ -92,7 +93,7 @@ public class GrokServiceImpl implements GrokService {
         if (statement != null) {
             Path path = getTemporaryGrokRootPath();
             hdfsService.mkdirs(path);
-            hdfsService.write(new Path(path, name), statement.getBytes(Charset.forName("utf-8")),null,null,null);
+            hdfsService.write(new Path(path, name), statement.getBytes(StandardCharsets.UTF_8),null,null,null);
             return path;
         } else {
             throw new RestException("A grokStatement must be provided");

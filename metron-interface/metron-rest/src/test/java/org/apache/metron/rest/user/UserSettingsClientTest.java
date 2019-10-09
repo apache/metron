@@ -27,16 +27,17 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,14 +52,14 @@ public class UserSettingsClientTest {
   private static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
           new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
-  private HTableInterface userSettingsTable;
+  private Table userSettingsTable;
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private UserSettingsClient userSettingsClient;
   private static byte[] cf = Bytes.toBytes("cf");
 
   @Before
   public void setUp() throws Exception {
-    userSettingsTable = mock(HTableInterface.class);
+    userSettingsTable = mock(Table.class);
     globalConfigSupplier = () -> new HashMap<String, Object>() {{
       put(USER_SETTINGS_HBASE_CF, "cf");
     }};
@@ -67,8 +68,9 @@ public class UserSettingsClientTest {
   @Test
   public void shouldFindOne() throws Exception {
     Result result = mock(Result.class);
-    when(result.getValue(cf, Bytes.toBytes("type"))).thenReturn("userSettings1String".getBytes());
-    Get get = new Get("user1".getBytes());
+    when(result.getValue(cf, Bytes.toBytes("type"))).thenReturn("userSettings1String".getBytes(
+        StandardCharsets.UTF_8));
+    Get get = new Get("user1".getBytes(StandardCharsets.UTF_8));
     get.addFamily(cf);
     when(userSettingsTable.get(get)).thenReturn(result);
 
@@ -82,10 +84,12 @@ public class UserSettingsClientTest {
     ResultScanner resultScanner = mock(ResultScanner.class);
     Result result1 = mock(Result.class);
     Result result2 = mock(Result.class);
-    when(result1.getRow()).thenReturn("user1".getBytes());
-    when(result2.getRow()).thenReturn("user2".getBytes());
-    when(result1.getValue(cf, Bytes.toBytes("type"))).thenReturn("userSettings1String".getBytes());
-    when(result2.getValue(cf, Bytes.toBytes("type"))).thenReturn("userSettings2String".getBytes());
+    when(result1.getRow()).thenReturn("user1".getBytes(StandardCharsets.UTF_8));
+    when(result2.getRow()).thenReturn("user2".getBytes(StandardCharsets.UTF_8));
+    when(result1.getValue(cf, Bytes.toBytes("type"))).thenReturn("userSettings1String".getBytes(
+        StandardCharsets.UTF_8));
+    when(result2.getValue(cf, Bytes.toBytes("type"))).thenReturn("userSettings2String".getBytes(
+        StandardCharsets.UTF_8));
     when(resultScanner.iterator()).thenReturn(Arrays.asList(result1, result2).iterator());
     when(userSettingsTable.getScanner(any(Scan.class))).thenReturn(resultScanner);
 

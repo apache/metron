@@ -37,9 +37,11 @@
         <div class="preset-cell" [ngClass]="{'is-active': tableMetadata.size===1000}">  1000  </div>
       </div>
 
-      <app-switch [text]="'HIDE Resolved Alerts'"> </app-switch>
-      <app-switch [text]="'HIDE Dismissed Alerts'"> </app-switch>
+      <label> HIDE ALERT ENTRIES </label>
+      <app-show-hide-alert-entries (changed)="configRowsChange.emit($event)" ></app-show-hide-alert-entries>
 
-    </form>
+      <label class="pt-2"> TIMEZONE CONFIGURATION </label>
+      <app-timezone-config></app-timezone-config>
+      </form>
   </div>
 </div>

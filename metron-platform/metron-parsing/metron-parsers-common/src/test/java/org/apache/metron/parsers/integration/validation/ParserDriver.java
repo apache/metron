@@ -19,6 +19,7 @@ package org.apache.metron.parsers.integration.validation;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import org.apache.metron.common.configuration.ParserConfigurations;
@@ -40,11 +41,12 @@ public abstract class ParserDriver implements Serializable {
 
   public ParserDriver(String sensorType, String parserConfig, String globalConfig)
       throws IOException {
-    SensorParserConfig sensorParserConfig = SensorParserConfig.fromBytes(parserConfig.getBytes());
+    SensorParserConfig sensorParserConfig = SensorParserConfig.fromBytes(parserConfig.getBytes(
+        StandardCharsets.UTF_8));
     this.sensorType = sensorType == null ? sensorParserConfig.getSensorTopic() : sensorType;
     config = new ParserConfigurations();
     config.updateSensorParserConfig(this.sensorType,
-        SensorParserConfig.fromBytes(parserConfig.getBytes()));
+        SensorParserConfig.fromBytes(parserConfig.getBytes(StandardCharsets.UTF_8)));
     config.updateGlobalConfig(JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER));
 
     parserRunner = new ParserRunnerImpl(new HashSet<String>() {{

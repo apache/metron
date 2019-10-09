@@ -19,8 +19,10 @@ package org.apache.metron.integration.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
@@ -58,10 +60,10 @@ public class TestUtils {
   }
 
   public static List<byte[]> readSampleData(String samplePath) throws IOException {
-    BufferedReader br = new BufferedReader(new FileReader(samplePath));
+    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(samplePath), StandardCharsets.UTF_8));
     List<byte[]> ret = new ArrayList<>();
     for (String line = null; (line = br.readLine()) != null; ) {
-      ret.add(line.getBytes());
+      ret.add(line.getBytes(StandardCharsets.UTF_8));
     }
     br.close();
     return ret;

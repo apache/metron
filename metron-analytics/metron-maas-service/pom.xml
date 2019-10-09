@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-analytics</artifactId>
-    <version>0.7.1</version>
+    <version>0.7.2</version>
   </parent>
   <artifactId>metron-maas-service</artifactId>
   <url>https://metron.apache.org/</url>
@@ -42,6 +42,12 @@
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-maas-common</artifactId>
       <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>stellar-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>de.javakaffee</groupId>

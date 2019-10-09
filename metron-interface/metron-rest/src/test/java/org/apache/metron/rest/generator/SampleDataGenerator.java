@@ -138,7 +138,7 @@ public class SampleDataGenerator {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        LOG.info("Emitting " + sensorType + " message " + message);
+        LOG.info("Emitting {} message {}", sensorType, message);
         emitToKafka(sensorType, message);
     }
 

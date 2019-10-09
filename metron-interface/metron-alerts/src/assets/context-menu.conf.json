@@ -1,0 +1,49 @@
+{
+  "isEnabled": false,
+  "config": {
+    "alertEntry": [
+      {
+        "label": "Internal ticketing system",
+        "urlPattern": "http://mytickets.org/tickets/{id}"
+      }
+    ],
+    "metaAlertEntry": [
+      {
+        "label": "MetaAlert specific item",
+        "urlPattern": "http://mytickets.org/tickets/{id}"
+      }
+    ],
+    "id": [
+      {
+        "label": "Dynamic menu item 01",
+        "urlPattern": "http://mytickets.org/tickets/{}"
+      }
+    ],
+    "ip_src_addr": [
+      {
+        "label": "IP Investigation Notebook",
+        "urlPattern": "http://zepellin.example.com:9000/notebook/someid?ip={ip_src_addr}"
+      },
+      {
+        "label": "IP Conversation Investigation",
+        "urlPattern": "http://zepellin.example.com:9000/notebook/someid?ip_src_addr={ip_src_addr}&ip_dst_addr={ip_dst_addr}"
+      }
+    ],
+    "ip_dst_addr": [
+      {
+        "label": "IP Investigation Notebook",
+        "urlPattern": "http://zepellin.example.com:9000/notebook/someid?ip={ip_dst_addr}"
+      },
+      {
+        "label": "IP Conversation Investigation",
+        "urlPattern": "http://zepellin.example.com:9000/notebook/someid?ip_src_addr={ip_src_addr}&ip_dst_addr={ip_dst_addr}"
+      }
+    ],
+    "host": [
+      {
+        "label": "Whois Reputation Service",
+        "urlPattern": "https://www.whois.com/whois/{}"
+      }
+    ]
+  }
+}

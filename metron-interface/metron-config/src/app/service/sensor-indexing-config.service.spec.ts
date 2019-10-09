@@ -101,12 +101,10 @@ describe('SensorIndexingConfigService', () => {
     });
 
     it('deleteSensorEnrichments', () => {
-      sensorIndexingConfigService.deleteSensorIndexingConfig('squid').subscribe(
-        result => {
-          expect(result.status).toEqual(200);
-        },
-        error => console.log(error)
-      );
+      sensorIndexingConfigService
+        .deleteSensorIndexingConfig('squid')
+        .subscribe();
+
       const req = mockBackend.expectOne('/api/v1/sensor/indexing/config/squid');
       expect(req.request.method).toBe('DELETE');
       req.flush(deleteResponse);

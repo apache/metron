@@ -18,7 +18,7 @@
     <parent>
         <artifactId>metron-platform</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.7.1</version>
+        <version>0.7.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -57,6 +57,12 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-enrichment-common</artifactId>
             <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+            <classifier>uber</classifier>
         </dependency>
 
         <!-- HBase -->

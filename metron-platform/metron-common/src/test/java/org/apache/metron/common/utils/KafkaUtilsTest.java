@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -65,7 +66,8 @@ public class KafkaUtilsTest {
       when(client.getChildren()).thenReturn(childrenBuilder);
       when(childrenBuilder.forPath("/brokers/ids")).thenReturn(brokerIds);
       when(client.getData()).thenReturn(dataBuilder);
-      when(dataBuilder.forPath("/brokers/ids/1")).thenReturn(brokerWithHostPort.getBytes());
+      when(dataBuilder.forPath("/brokers/ids/1")).thenReturn(brokerWithHostPort.getBytes(
+          StandardCharsets.UTF_8));
 
       ArrayList<String> expected = new ArrayList<>();
       expected.add("192.168.1.148:9092");
@@ -88,7 +90,8 @@ public class KafkaUtilsTest {
       when(client.getChildren()).thenReturn(childrenBuilder);
       when(childrenBuilder.forPath("/brokers/ids")).thenReturn(brokerIds);
       when(client.getData()).thenReturn(dataBuilder);
-      when(dataBuilder.forPath("/brokers/ids/1")).thenReturn(brokerWithEndpoints.getBytes());
+      when(dataBuilder.forPath("/brokers/ids/1")).thenReturn(brokerWithEndpoints.getBytes(
+          StandardCharsets.UTF_8));
 
       ArrayList<String> expected = new ArrayList<>();
       expected.add("host1:9092");
@@ -117,7 +120,7 @@ public class KafkaUtilsTest {
       when(childrenBuilder.forPath("/brokers/ids")).thenReturn(brokerIds);
       when(client.getData()).thenReturn(dataBuilder);
       when(dataBuilder.forPath("/brokers/ids/1"))
-          .thenReturn(brokerWithHostPortAndEndpoints.getBytes());
+          .thenReturn(brokerWithHostPortAndEndpoints.getBytes(StandardCharsets.UTF_8));
 
       ArrayList<String> expected = new ArrayList<>();
       expected.add("192.168.1.148:9092");

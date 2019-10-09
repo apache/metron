@@ -1,0 +1,4 @@
+{
+  "parserClassName":"org.apache.metron.parsers.leef.LEEFParser",
+  "sensorTopic":"leef"
+}

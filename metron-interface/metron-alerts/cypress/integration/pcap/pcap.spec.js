@@ -222,7 +222,7 @@ context('PCAP Tab', () => {
   it('showing date validation messages', () => {
     cy.contains('PCAP').click();
 
-    cy.get('[data-qe-id="end-time"]').click();
+    cy.get('[data-qe-id="end-time"] .input-group-text.calendar').click();
     cy.get('.pika-select-year').select('2015');
     cy.get('[data-day="11"] > .pika-button').click();
 

@@ -19,6 +19,20 @@ limitations under the License.
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
+
+## 0.7.2 to 0.7.3
+
+### [METRON-614: Eliminate use of the default Charset](https://issues.apache.org/jira/browse/METRON-614)
+The use of the system default Charset is being dropped throughout the code in favor or explicit Charsets, by default UTF-8. As part of this change, individual parsers may now set a configuration property `readCharset` to allow each parser to set the Charset used by its data.  This has potential upgrade implications:
+
+* If your system's default Charset and the input data is not UTF-8, you will need to configure each parser to use the appropriate Charset.
+* If you've directly implemented the `MessageParser` interface (instead of extending `BasicParser`) and you need to handle non-UTF-8 Charsets, you should do reading and handling of this configuration in your implementation by overriding `getReadCharset()`.
+
+## 0.7.1 to 0.7.2
+
+### [METRON-2164: Remove the Split-Join Enrichment Topology](https://issues.apache.org/jira/browse/METRON-2164)
+The Split-Join Enrichment topology has been deprecated since November 2018. Metron has defaulted to using the Unified Enrichment topology since that time. All users of the Split-Join Enrichment topology should migrate to the Unified Enrichment topology. Both topologies provide equivalent functionality.
+
 ## 0.7.0 to 0.7.1
 
 ### [METRON-2100: Update developer documentation for full dev management UI parser aggregation feature gap](https://issues.apache.org/jira/browse/METRON-2100)

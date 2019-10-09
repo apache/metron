@@ -13,7 +13,7 @@
   -->
 <div>
   <label class="switch">
-    <input type="checkbox" class="inputdemo">
+    <input type="checkbox" [checked]="selected" (change)="onValueChange($event)" class="inputdemo">
     <div class="slider round"></div>
   </label>
   <label> {{ text }}</label>

@@ -18,6 +18,7 @@
 package org.apache.metron.storm.common.message.metadata;
 
 import com.google.common.collect.ImmutableMap;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.message.metadata.EnvelopedRawMessageStrategy;
@@ -57,7 +58,8 @@ public class RawMessageUtilTest {
     }
 
     when(t.getFields()).thenReturn(f);
-    when(t.getBinary(eq(RawMessageUtil.KEY_INDEX))).thenReturn(metadata.getBytes());
+    when(t.getBinary(eq(RawMessageUtil.KEY_INDEX))).thenReturn(metadata.getBytes(
+            StandardCharsets.UTF_8));
     return t;
   }
 
@@ -99,14 +101,16 @@ public class RawMessageUtilTest {
     Tuple t = createTuple( kafkaMetadata
                          , appMetadata);
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(), true, new HashMap<>());
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(
+          StandardCharsets.UTF_8), true, new HashMap<>());
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       checkKafkaMetadata(m, false);
       checkAppMetadata(m, false);
     }
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(), false, new HashMap<>());
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(
+          StandardCharsets.UTF_8), false, new HashMap<>());
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertTrue(m.getMetadata().isEmpty());
     }
   }
@@ -116,14 +120,16 @@ public class RawMessageUtilTest {
     Tuple t = createTuple(kafkaMetadata
                          ,"{}");
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(), true, new HashMap<>());
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(
+          StandardCharsets.UTF_8), true, new HashMap<>());
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       checkKafkaMetadata(m, false);
       checkAppMetadata(m, true);
     }
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(), false, new HashMap<>());
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(
+          StandardCharsets.UTF_8), false, new HashMap<>());
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertTrue(m.getMetadata().isEmpty());
     }
   }
@@ -132,14 +138,16 @@ public class RawMessageUtilTest {
   public void testDefaultStrategy_withoutKafkaMetadata_withAppMetadata() throws Exception {
     Tuple t = createTuple(new HashMap<>() ,appMetadata);
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(), true, new HashMap<>());
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(
+          StandardCharsets.UTF_8), true, new HashMap<>());
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       checkKafkaMetadata(m, true);
       checkAppMetadata(m, false);
     }
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(), false, new HashMap<>());
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(
+          StandardCharsets.UTF_8), false, new HashMap<>());
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertTrue(m.getMetadata().isEmpty());
     }
   }
@@ -148,14 +156,16 @@ public class RawMessageUtilTest {
   public void testDefaultStrategy_withoutKafkaMetadata_withoutAppMetadata() throws Exception {
     Tuple t = createTuple(new HashMap<>() , "{}");
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(), true, new HashMap<>());
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(
+          StandardCharsets.UTF_8), true, new HashMap<>());
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       checkKafkaMetadata(m, true);
       checkAppMetadata(m, true);
     }
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(), false, new HashMap<>());
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage(RawMessageStrategies.DEFAULT, t, "raw_message".getBytes(
+          StandardCharsets.UTF_8), false, new HashMap<>());
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertTrue(m.getMetadata().isEmpty());
     }
   }
@@ -197,8 +207,9 @@ public class RawMessageUtilTest {
                          , appMetadata);
     Map<String, Object> config = ImmutableMap.of(EnvelopedRawMessageStrategy.MESSAGE_FIELD_CONFIG, "data");
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(), true, config);
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(
+          StandardCharsets.UTF_8), true, config);
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertFalse(m.getMetadata().containsKey("data"));
       checkEnvelopeMetadata(m);
       checkMergedData(m);
@@ -207,9 +218,10 @@ public class RawMessageUtilTest {
 
     }
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(), false, config);
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(
+          StandardCharsets.UTF_8), false, config);
       checkMergedData(m);
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertFalse(m.getMetadata().containsKey("data"));
       Assert.assertTrue(m.getMetadata().isEmpty());
     }
@@ -221,8 +233,9 @@ public class RawMessageUtilTest {
                          ,"{}");
     Map<String, Object> config = ImmutableMap.of(EnvelopedRawMessageStrategy.MESSAGE_FIELD_CONFIG, "data");
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(), true, config);
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(
+          StandardCharsets.UTF_8), true, config);
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertFalse(m.getMetadata().containsKey("data"));
       checkMergedData(m);
       checkEnvelopeMetadata(m);
@@ -230,10 +243,11 @@ public class RawMessageUtilTest {
       checkAppMetadata(m, true);
     }
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(), false, config);
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(
+          StandardCharsets.UTF_8), false, config);
       Assert.assertFalse(m.getMetadata().containsKey("data"));
       checkMergedData(m);
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertTrue(m.getMetadata().isEmpty());
     }
   }
@@ -243,19 +257,21 @@ public class RawMessageUtilTest {
     Tuple t = createTuple(new HashMap<>() ,appMetadata);
     Map<String, Object> config = ImmutableMap.of(EnvelopedRawMessageStrategy.MESSAGE_FIELD_CONFIG, "data");
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(), true, config);
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(
+          StandardCharsets.UTF_8), true, config);
       Assert.assertFalse(m.getMetadata().containsKey("data"));
       checkMergedData(m);
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       checkEnvelopeMetadata(m);
       checkKafkaMetadata(m, true);
       checkAppMetadata(m, false);
     }
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(), false, config);
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(
+          StandardCharsets.UTF_8), false, config);
       Assert.assertFalse(m.getMetadata().containsKey("data"));
       checkMergedData(m);
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertTrue(m.getMetadata().isEmpty());
     }
   }
@@ -265,19 +281,21 @@ public class RawMessageUtilTest {
     Tuple t = createTuple(new HashMap<>() , "{}");
     Map<String, Object> config = ImmutableMap.of(EnvelopedRawMessageStrategy.MESSAGE_FIELD_CONFIG, "data");
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(), true, config);
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(
+          StandardCharsets.UTF_8), true, config);
       Assert.assertFalse(m.getMetadata().containsKey("data"));
       checkMergedData(m);
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       checkEnvelopeMetadata(m);
       checkKafkaMetadata(m, true);
       checkAppMetadata(m, true);
     }
     {
-      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(), false, config);
+      RawMessage m = RawMessageUtil.INSTANCE.getRawMessage( RawMessageStrategies.ENVELOPE, t, envelopedData.getBytes(
+          StandardCharsets.UTF_8), false, config);
       Assert.assertFalse(m.getMetadata().containsKey("data"));
       checkMergedData(m);
-      Assert.assertEquals("raw_message", new String(m.getMessage()));
+      Assert.assertEquals("raw_message", new String(m.getMessage(), StandardCharsets.UTF_8));
       Assert.assertTrue(m.getMetadata().isEmpty());
     }
   }

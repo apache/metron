@@ -19,18 +19,6 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/main/scripts/deployed</directory>
-      <outputDirectory>bin</outputDirectory>
-      <useDefaultExcludes>true</useDefaultExcludes>
-      <excludes>
-        <exclude>**/*.formatted</exclude>
-        <exclude>**/*.filtered</exclude>
-      </excludes>
-      <fileMode>0755</fileMode>
-      <lineEnding>unix</lineEnding>
-      <filtered>true</filtered>
-    </fileSet>
-    <fileSet>
       <directory>${project.basedir}/target</directory>
       <includes>
         <include>${project.artifactId}-${project.version}-uber.jar</include>

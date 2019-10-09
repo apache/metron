@@ -173,9 +173,7 @@ describe('SensorEnrichmentConfigService', () => {
     it('deleteSensorEnrichments', () => {
       sensorEnrichmentConfigService
         .deleteSensorEnrichments('bro')
-        .subscribe(result => {
-          expect(result.status).toEqual(200);
-        });
+        .subscribe();
 
       const req = mockBackend.expectOne('/api/v1/sensor/enrichment/config/bro');
       expect(req.request.method).toBe('DELETE');

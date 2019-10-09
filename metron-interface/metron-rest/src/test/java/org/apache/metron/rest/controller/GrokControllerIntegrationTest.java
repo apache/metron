@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.controller;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -135,7 +136,7 @@ public class GrokControllerIntegrationTest {
         this.mockMvc.perform(get(grokUrl + "/get/statement?path=/patterns/squid").with(httpBasic(user,password)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
-                .andExpect(content().bytes(statement.getBytes()));
+                .andExpect(content().bytes(statement.getBytes(StandardCharsets.UTF_8)));
 
         this.mockMvc.perform(get(grokUrl + "/get/statement?path=/bad/path").with(httpBasic(user,password)))
                 .andExpect(status().isInternalServerError())

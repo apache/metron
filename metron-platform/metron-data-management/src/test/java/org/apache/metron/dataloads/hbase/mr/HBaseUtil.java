@@ -18,16 +18,6 @@
 package org.apache.metron.dataloads.hbase.mr;
 
 import com.google.common.base.Joiner;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -35,6 +25,14 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Spin up a test HBase cluster
@@ -68,7 +66,7 @@ public enum HBaseUtil {
 
     public void writeFile(String contents, Path filename, FileSystem fs) throws IOException {
         FSDataOutputStream os = fs.create(filename, true);
-        PrintWriter pw = new PrintWriter(new OutputStreamWriter(os));
+        PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
         pw.print(contents);
         pw.flush();
         os.close();
@@ -76,7 +74,7 @@ public enum HBaseUtil {
 
     public String readFile(FileSystem fs, Path filename) throws IOException {
         FSDataInputStream in = fs.open(filename);
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+        BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
         List<String> contents = new ArrayList<>();
         for(String line = null;(line = br.readLine()) != null;) {
             contents.add(line);

@@ -18,6 +18,7 @@
 package org.apache.metron.stellar.common.shell.cli;
 
 import com.google.common.collect.Iterables;
+import java.nio.charset.StandardCharsets;
 import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.console.AeshContext;
 import org.jboss.aesh.console.ConsoleOperation;
@@ -51,8 +52,8 @@ public class StellarShellTest {
     err = new ByteArrayOutputStream();
 
     // setup streams so that we can capture stdout
-    System.setOut(new PrintStream(out));
-    System.setErr(new PrintStream(err));
+    System.setOut(new PrintStream(out, false, StandardCharsets.UTF_8.name()));
+    System.setErr(new PrintStream(err, false, StandardCharsets.UTF_8.name()));
 
     String[] args = new String[0];
     stellarShell = new StellarShell(args);

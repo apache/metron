@@ -33,7 +33,7 @@ export class MetronAlerts {
     element.style.top = '5px';
     element.style.right = '35px';
 
-    element.innerHTML = '<div id="alertdiv" class="alert ' + type + '"><a class="close" data-dismiss="alert">×</a><span>' +
+    element.innerHTML = '<div id="alertdiv" class="alert ' + type + ' mx-3"><a class="close px-3 pb-3" data-dismiss="alert">×</a><span>' +
       message + '</span></div>';
     document.body.appendChild(element);
 

@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
@@ -64,8 +65,11 @@ public class URLValidationTest  extends BaseValidationTest {
     Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "https://www.hotmail.co.uk")));
     Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "https://www.hotmail.co.uk")));
   }
-
-
+  @Test
+  public void negativeTest_empty() throws IOException {
+    Assert.assertFalse(runPredicate("IS_URL()", Collections.emptyMap()));
+    Assert.assertFalse(runPredicate("IS_URL('')", Collections.emptyMap()));
+  }
   @Test
   public void negativeTest_single() throws IOException {
     Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "foo")));

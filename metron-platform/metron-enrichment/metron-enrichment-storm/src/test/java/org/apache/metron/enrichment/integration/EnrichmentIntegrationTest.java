@@ -17,24 +17,8 @@
  */
 package org.apache.metron.enrichment.integration;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
+import com.google.common.base.*;
 import com.google.common.collect.Iterables;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
-import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
@@ -44,7 +28,6 @@ import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
@@ -54,6 +37,7 @@ import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
@@ -66,8 +50,16 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.*;
+import java.util.stream.Stream;
+
 /**
- * Integration test for the 'Split-Join' enrichment topology.
+ * Integration test for the enrichment topology.
  */
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
@@ -98,22 +90,19 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static File geoHdfsFile;
   private static File asnHdfsFile;
 
-  protected String fluxPath() {
-    return "src/main/flux/enrichment/remote-splitjoin.yaml";
-  }
-
   private static List<byte[]> getInputMessages(String path){
-    try{
+    try {
       List<byte[]> ret = TestUtils.readSampleData(path);
       {
         //we want one of the fields without a destination IP to ensure that enrichments can function
-        Map<String, Object> sansDestinationIp = JSONUtils.INSTANCE.load(new String(ret.get(ret.size() -1))
+        Map<String, Object> sansDestinationIp = JSONUtils.INSTANCE.load(new String(ret.get(ret.size() -1),
+                StandardCharsets.UTF_8)
                                                                        , JSONUtils.MAP_SUPPLIER);
         sansDestinationIp.remove(Constants.Fields.DST_ADDR.getName());
         ret.add(JSONUtils.INSTANCE.toJSONPretty(sansDestinationIp));
       }
       return ret;
-    }catch(IOException ioe){
+    } catch(IOException ioe){
       return null;
     }
   }
@@ -126,34 +115,41 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Returns the path to the topology properties template.
-   *
    * @return The path to the topology properties template.
    */
   public String getTemplatePath() {
-    return "src/main/config/enrichment-splitjoin.properties.j2";
+    return "src/main/config/enrichment.properties.j2";
   }
 
   /**
-   * Properties for the 'Split-Join' topology.
-   *
+   * @return The path to the flux file defining the topology.
+   */
+  public String fluxPath() {
+    return "src/main/flux/enrichment/remote.yaml";
+  }
+
+  /**
    * @return The topology properties.
    */
   public Properties getTopologyProperties() {
     return new Properties() {{
+
+      // storm
       setProperty("enrichment_workers", "1");
       setProperty("enrichment_acker_executors", "0");
       setProperty("enrichment_topology_worker_childopts", "");
       setProperty("topology_auto_credentials", "[]");
-      setProperty("enrichment_topology_max_spout_pending", "");
-      setProperty("enrichment_kafka_start", "UNCOMMITTED_EARLIEST");
+      setProperty("enrichment_topology_max_spout_pending", "500");
+
+      // kafka - zookeeper_quorum, kafka_brokers set elsewhere
       setProperty("kafka_security_protocol", "PLAINTEXT");
+      setProperty("enrichment_kafka_start", "UNCOMMITTED_EARLIEST");
       setProperty("enrichment_input_topic", Constants.ENRICHMENT_TOPIC);
       setProperty("enrichment_output_topic", Constants.INDEXING_TOPIC);
       setProperty("enrichment_error_topic", ERROR_TOPIC);
       setProperty("threatintel_error_topic", ERROR_TOPIC);
-      setProperty("enrichment_join_cache_size", "1000");
-      setProperty("threatintel_join_cache_size", "1000");
+
+      // enrichment
       setProperty("enrichment_hbase_provider_impl", "" + MockHBaseTableProvider.class.getName());
       setProperty("enrichment_hbase_table", enrichmentsTableName);
       setProperty("enrichment_hbase_cf", cf);
@@ -161,18 +157,27 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
               "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
+
+      // threat intel
       setProperty("threatintel_hbase_table", threatIntelTableName);
       setProperty("threatintel_hbase_cf", cf);
-      setProperty("enrichment_kafka_spout_parallelism", "1");
-      setProperty("enrichment_split_parallelism", "1");
-      setProperty("enrichment_stellar_parallelism", "1");
-      setProperty("enrichment_join_parallelism", "1");
-      setProperty("threat_intel_split_parallelism", "1");
-      setProperty("threat_intel_stellar_parallelism", "1");
-      setProperty("threat_intel_join_parallelism", "1");
-      setProperty("kafka_writer_parallelism", "1");
+
+      // parallelism
+      setProperty("unified_kafka_spout_parallelism", "1");
+      setProperty("unified_enrichment_parallelism", "1");
+      setProperty("unified_threat_intel_parallelism", "1");
+      setProperty("unified_kafka_writer_parallelism", "1");
+
+      // caches
+      setProperty("unified_enrichment_cache_size", "1000");
+      setProperty("unified_threat_intel_cache_size", "1000");
+
+      // threads
+      setProperty("unified_enrichment_threadpool_size", "1");
+      setProperty("unified_enrichment_threadpool_type", "FIXED");
     }};
   }
+
 
   @Test
   public void test() throws Exception {
@@ -554,7 +559,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             , Iterables.transform(outputMessages
                     , message -> {
                       try {
-                        return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
+                        return new HashMap<>(JSONUtils.INSTANCE.load(new String(message,
+                                StandardCharsets.UTF_8)
                                 , JSONUtils.MAP_SUPPLIER
                         )
                         );

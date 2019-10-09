@@ -39,6 +39,53 @@ import {CommentAddRemoveRequest} from "../../model/comment-add-remove-request";
 import {AlertSource} from "../../model/alert-source";
 import {of} from "rxjs/index";
 
+const alertDetail = {
+  'enrichments:geo:ip_dst_addr:locID': '5308655',
+  'bro_timestamp': '1554222181.202211',
+  'status_code': 404,
+  'enrichments:geo:ip_dst_addr:location_point': '33.4589,-112.0709',
+  'ip_dst_port': 80,
+  'enrichments:geo:ip_dst_addr:dmaCode': '753',
+  'adapter:geoadapter:begin:ts': '1554727717061',
+  'enrichments:geo:ip_dst_addr:latitude': '33.4589',
+  'parallelenricher:enrich:end:ts': '1554727717078',
+  'uid': 'CBt5FP2TVetZJjaZbi',
+  'resp_mime_types': ['text/html'],
+  'trans_depth': 1,
+  'protocol': 'http',
+  'source:type': 'bro',
+  'adapter:threatinteladapter:end:ts': '1554727717076',
+  'original_string': 'HTTP | id.orig_p:49199',
+  'ip_dst_addr': '204.152.254.221',
+  'adapter:hostfromjsonlistadapter:end:ts': '1554727717069',
+  'host': 'runlove.us',
+  'adapter:geoadapter:end:ts': '1554727717069',
+  'ip_src_addr': '192.168.138.158',
+  'enrichments:geo:ip_dst_addr:longitude': '-112.0709',
+  'user_agent': '',
+  'resp_fuids': ['FeDAUx1IIW621Aw6Y8'],
+  'timestamp': 1554222181202,
+  'method': 'POST',
+  'parallelenricher:enrich:begin:ts': '1554727717075',
+  'request_body_len': 96,
+  'enrichments:geo:ip_dst_addr:city': 'Phoenix',
+  'enrichments:geo:ip_dst_addr:postalCode': '85004',
+  'adapter:hostfromjsonlistadapter:begin:ts': '1554727717061',
+  'orig_mime_types': ['text/plain'],
+  'uri': '/wp-content/themes/twentyfifteen/img5.php?l=8r1gf1b2t1kuq42',
+  'tags': [],
+  'parallelenricher:splitter:begin:ts': '1554727717075',
+  'alert_status': 'RESOLVE',
+  'orig_fuids': ['FTTvSE5Asee5tJr99'],
+  'ip_src_port': 49199,
+  'parallelenricher:splitter:end:ts': '1554727717075',
+  'adapter:threatinteladapter:begin:ts': '1554727717075',
+  'status_msg': 'Not Found',
+  'guid': 'fe9e058e-6d5a-4ba5-8b79-d8e6a2792931',
+  'enrichments:geo:ip_dst_addr:country': 'US',
+  'response_body_len': 357
+};
+
 describe('AlertDetailsComponent', () => {
   let component: AlertDetailsComponent;
   let fixture: ComponentFixture<AlertDetailsComponent>;
@@ -57,7 +104,9 @@ describe('AlertDetailsComponent', () => {
         AuthenticationService,
         AlertsService,
         UpdateService,
-        GlobalConfigService,
+        { provide: GlobalConfigService, useValue: {
+          get: () => { return of({})}
+        }},
         {
           provide: DialogService,
           useValue: {
@@ -91,6 +140,18 @@ describe('AlertDetailsComponent', () => {
     fixture.detectChanges();
   });
 
+  it('should be in a loading state if no alertSources loaded', () => {
+    component.alertSources = [];
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-qe-id="preloader"]'))).toBeTruthy();
+  });
+
+  it('should show details if alertSources loaded', () => {
+    component.alertSources = [alertDetail];
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[data-qe-id="preloader"]'))).toBeFalsy();
+  });
+
   it('should delete a comment.', fakeAsync(() => {
     const responseMock = new AlertSource();
     responseMock.guid = 'guid';
@@ -104,6 +165,10 @@ describe('AlertDetailsComponent', () => {
     component.alertSource.guid = 'guid';
     component.alertSourceType = 'sourceType';
     const now = Date.now();
+
+    component.alertSources = [alertDetail];
+    fixture.detectChanges();
+
     component.alertCommentsWrapper = [
       new AlertCommentWrapper(
         new AlertComment('lorem ipsum', 'user', now),

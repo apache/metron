@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
@@ -50,11 +50,11 @@ public class SimpleHBaseEnrichmentFunctions {
   private static TableProvider provider;
 
 
-  private static class Table {
+  private static class WrapperTable {
     String name;
     String columnFamily;
 
-    public Table(String name, String columnFamily) {
+    public WrapperTable(String name, String columnFamily) {
       this.name = name;
       this.columnFamily = columnFamily;
     }
@@ -72,7 +72,7 @@ public class SimpleHBaseEnrichmentFunctions {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
-      Table table = (Table) o;
+      WrapperTable table = (WrapperTable) o;
 
       if (name != null ? !name.equals(table.name) : table.name != null) return false;
       return columnFamily != null ? columnFamily.equals(table.columnFamily) : table.columnFamily == null;
@@ -133,7 +133,7 @@ public class SimpleHBaseEnrichmentFunctions {
           )
   public static class EnrichmentExists implements StellarFunction {
     boolean initialized = false;
-    private static Cache<Table, EnrichmentLookup> enrichmentCollateralCache = CacheBuilder.newBuilder()
+    private static Cache<WrapperTable, EnrichmentLookup> enrichmentCollateralCache = CacheBuilder.newBuilder()
                                                                                         .build();
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
@@ -151,11 +151,11 @@ public class SimpleHBaseEnrichmentFunctions {
       if(enrichmentType == null || indicator == null) {
         return false;
       }
-      final Table key = new Table(table, cf);
+      final WrapperTable key = new WrapperTable(table, cf);
       EnrichmentLookup lookup = null;
       try {
         lookup = enrichmentCollateralCache.get(key, () -> {
-            HTableInterface hTable = provider.getTable(HBaseConfiguration.create(), key.name);
+            Table hTable = provider.getTable(HBaseConfiguration.create(), key.name);
             return new EnrichmentLookup(hTable, key.columnFamily, tracker);
           }
         );
@@ -210,7 +210,7 @@ public class SimpleHBaseEnrichmentFunctions {
           )
   public static class EnrichmentGet implements StellarFunction {
     boolean initialized = false;
-    private static Cache<Table, EnrichmentLookup> enrichmentCollateralCache = CacheBuilder.newBuilder()
+    private static Cache<WrapperTable, EnrichmentLookup> enrichmentCollateralCache = CacheBuilder.newBuilder()
                                                                                         .build();
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
@@ -228,11 +228,11 @@ public class SimpleHBaseEnrichmentFunctions {
       if(enrichmentType == null || indicator == null) {
         return new HashMap<String, Object>();
       }
-      final Table key = new Table(table, cf);
+      final WrapperTable key = new WrapperTable(table, cf);
       EnrichmentLookup lookup = null;
       try {
         lookup = enrichmentCollateralCache.get(key, () -> {
-                  HTableInterface hTable = provider.getTable(HBaseConfiguration.create(), key.name);
+                  Table hTable = provider.getTable(HBaseConfiguration.create(), key.name);
                   return new EnrichmentLookup(hTable, key.columnFamily, tracker);
                 }
         );

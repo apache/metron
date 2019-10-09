@@ -40,6 +40,10 @@ storm:
   indexing:
     randomaccess.script.path: ${METRON_HOME}/bin/start_elasticsearch_topology.sh
     batch.script.path: ${METRON_HOME}/bin/start_hdfs_topology.sh
+  status:
+    cache:
+      max.size: ${STORM_STATUS_CACHE_MAX_SIZE}
+      timeout.seconds: ${STORM_STATUS_CACHE_TIMEOUT_SECONDS}
 
 kerberos:
   enabled: ${SECURITY_ENABLED}

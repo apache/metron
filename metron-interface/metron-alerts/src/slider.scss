@@ -34,6 +34,7 @@ $dialog-4x-width: 1340px;
   z-index: 9;
 
   background: $edit-child-background;
+  border-left: 1px solid $edit-background-border;
 
   .close-button
   {
@@ -127,5 +128,6 @@ $dialog-4x-width: 1340px;
 @include keyframes("keyframe-dialog-ltr", "-320px", "0px")
 
 .load-left-to-right {
-  @include animation("keyframe-dialog-ltr", "0.5s", "linear")
+  @include animation("keyframe-dialog-ltr", "0.5s", "linear");
+  left: 0;
 }

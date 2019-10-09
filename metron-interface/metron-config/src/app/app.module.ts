@@ -43,10 +43,26 @@ import {AppConfigService } from './service/app-config.service';
 export const metaReducers: MetaReducer<{}>[] = !environment.production
 ? [storeFreeze]
 : [];
+import { Router } from '@angular/router';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {
+  NzLayoutModule,
+  NzMenuModule,
+  NgZorroAntdModule,
+  NZ_ICONS
+} from 'ng-zorro-antd';
+import {
+  ToolOutline,
+  WarningOutline,
+  FileOutline
+} from '@ant-design/icons-angular/icons';
+import { IconDefinition } from '@ant-design/icons-angular';
 
 export function initConfig(appConfigService: AppConfigService) {
   return () => appConfigService.loadAppConfig();
 }
+
+const icons: IconDefinition[] = [ ToolOutline, WarningOutline, FileOutline ];
 
 @NgModule({
   imports: [
@@ -57,6 +73,10 @@ export function initConfig(appConfigService: AppConfigService) {
     GeneralSettingsModule,
     MetronConfigRoutingModule,
     SensorsModule,
+    NzLayoutModule,
+    NzMenuModule,
+    BrowserAnimationsModule,
+    NgZorroAntdModule,
     EffectsModule.forRoot([]),
     StoreModule.forRoot({}, { metaReducers }),
     StoreDevtoolsModule.instrument(),
@@ -72,7 +92,8 @@ export function initConfig(appConfigService: AppConfigService) {
     MetronDialogBox,
     { provide: HTTP_INTERCEPTORS, useClass: DefaultHeadersInterceptor, multi: true },
     { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfigService], multi: true },
-  ],
-  bootstrap: [ AppComponent ]
+    { provide: NZ_ICONS, useValue: icons },
+    ],
+  bootstrap:    [ AppComponent ]
 })
 export class AppModule {}

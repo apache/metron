@@ -18,6 +18,7 @@
  */
 package org.apache.metron.profiler.repl;
 
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -233,7 +234,7 @@ public class StandAloneProfilerTest {
    */
   private ProfilerConfig toProfilerConfig(String configAsJSON) throws Exception {
 
-    InputStream in = new ByteArrayInputStream(configAsJSON.getBytes("UTF-8"));
+    InputStream in = new ByteArrayInputStream(configAsJSON.getBytes(StandardCharsets.UTF_8));
     return JSONUtils.INSTANCE.load(in, ProfilerConfig.class);
   }
 

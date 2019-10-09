@@ -49,10 +49,12 @@ There are two general types types of parsers:
         * `dateFormat` : The date format to use to parse the time fields. Default is "yyyy-MM-dd HH:mm:ss.S z".
         * `timezone` : The timezone to use. `UTC` is default.
         * The Grok parser supports either 1 line to parse per incoming message, or incoming messages with multiple log lines, and will produce a json message per line
+        * `readCharset` : Optional. Specifies what charset the parser should use when reading sensor data from the sensor topic. "`UTF_8`" is default.
     * CSV Parser: `org.apache.metron.parsers.csv.CSVParser` with possible `parserConfig` entries of
         * `timestampFormat` : The date format of the timestamp to use.  If unspecified, the parser assumes the timestamp is ms since unix epoch.
         * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)
         * `separator` : The column separator, `,` by default.
+        * `readCharset` : Optional. Specifies what charset the parser should use when reading sensor data from the sensor topic. "`UTF_8`" is default.
     * JSON Map Parser: `org.apache.metron.parsers.json.JSONMapParser` with possible `parserConfig` entries of
         * `mapStrategy` : A strategy to indicate how to handle multi-dimensional Maps.  This is one of
             * `DROP` : Drop fields which contain maps
@@ -61,11 +63,22 @@ There are two general types types of parsers:
             * `ERROR` : Throw an error when a multidimensional map is encountered
         * `jsonpQuery` : A [JSON Path](#json_path) query string. If present, the result of the JSON Path query should be a list of messages. This is useful if you have a JSON document which contains a list or array of messages embedded in it, and you do not have another means of splitting the message.
         * `wrapInEntityArray` : `"true" or "false"`. If `jsonQuery` is present and this flag is present and set to `"true"`, the incoming message will be wrapped in a JSON  entity and array.
-           for example:
-           `{"name":"value"},{"name2","value2}` will be wrapped as `{"message" : [{"name":"value"},{"name2","value2}]}`.
-           This is using the default value for `wrapEntityName` if that property is not set.
-        * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name.
+          for example:
+          `{"name":"value"},{"name2","value2"}` will be wrapped as `{"message" : [{"name":"value"},{"name2","value2"}]}`.
+          This is using the default value for `wrapEntityName` if that property is not set.
+        * `wrapEntityName` : Sets the name to use when wrapping JSON using `wrapInEntityArray`.  The `jsonpQuery` should reference this name. Only applicable if `jsonpQuery` and `wrapInEntityArray` are specified.
         * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.
+        * `overrideOriginalString` : A boolean setting that will change the way `original_string` is handled by the parser. The default value of `false` uses the global functionality that will append the unmodified original raw source message as an `original_string` field.
+          This is the recommended setting. Setting this option to `true` will use the individual substrings returned by the json query as the original_string. For example, a wrapped map such as `{"foo" : [{"name":"value"},{"name2","value2"}]}`
+          that uses the jsonpQuery, `$.foo`, will result in 2 messages returned. Using the default global `original_string` strategy, the messages returned would be:
+            * `{ "name"  : "value",  "original_string" : "{\"foo\" : [{\"name\":\"value\"},{\"name2\",\"value2\"}]}}`
+            * `{ "name2" : "value2", "original_string" : "{\"foo\" : [{\"name\":\"value\"},{\"name2\",\"value2\"}]}}`
+          Setting this value to `true` would result in messages with `original_string` set as follows:
+            * `{ "name"  : "value",  "original_string" : "{\"name\":\"value\"}}`
+            * `{ "name"  : "value",  "original_string" : "{\"name2\":\"value2\"}}`
+          One final important point to note, and word of caution about setting this property to `true`, is about how JSON PQuery handles parsing and searching the source raw message - it will **NOT** retain a pure raw sub-message. This is due to the JSON libraries under
+          the hood that normalize the JSON. The resulting generated `original_string` values may have a different property order and spacing. e.g. `{ "foo" :"bar"  , "baz":"bang"}` would end up with an `original_string` that looks more like `{ "baz" : "bang", "foo" : "bar" }`.
+        * `readCharset` : Optional. Specifies what charset the parser should use when reading sensor data from the sensor topic. "`UTF_8`" is default.
     * Regular Expressions Parser
         * `recordTypeRegex` : A regular expression to uniquely identify a record type.
         * `messageHeaderRegex` : A regular expression used to extract fields from a message part which is common across all the messages.
@@ -80,6 +93,7 @@ There are two general types types of parsers:
             Note this property may be necessary, because java does not support underscores in the named group names. So in case your property naming conventions requires underscores in property names, use this property.
 
         * `fields` : A json list of maps contaning a record type to regular expression mapping.
+        * `readCharset` : Optional. Specifies what charset the parser should use when reading sensor data from the sensor topic. "`UTF_8`" is default.
 
         A complete configuration example would look like:
 
@@ -298,12 +312,13 @@ then it is assumed to be a regex and will match any topic matching the pattern (
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (The default is raw message strategy dependent).  See below for a discussion about metadata.
 * `rawMessageStrategy` : The strategy to use when reading the raw data and metadata.  See below for a discussion about message reading strategies.
 * `rawMessageStrategyConfig` : The raw message strategy configuration map.  See below for a discussion about message reading strategies.
-* `parserConfig` : A JSON Map representing the parser implementation specific configuration. Also include batch sizing and timeout for writer configuration here.
+* `parserConfig` : A JSON Map representing the parser implementation specific configuration. Also include batch sizing and timeout for writer configuration here. The character set to use for reading inbound sensor data is also set here.
     * `batchSize` : Integer indicating number of records to batch together before sending to the writer. (default to `15`)
     * `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
       If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm
       parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
     * The kafka writer can be configured within the parser config as well.  (This is all configured a priori, but this is convenient for overriding the settings).  See [here](../../metron-writer/README.md#kafka-writer)
+    * `readCharset` : Optional. Specifies what charset the parser should use when reading sensor data from the sensor topic. "`UTF_8`" is default.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
 * `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence. If multiple sensors are used, any non "PLAINTEXT" value will be used.
 * `cacheConfig` : Cache config for stellar field transformations.   This configures a least frequently used cache.  This is a map with the following keys.  If not explicitly configured (the default), then no cache will be used.
@@ -655,6 +670,8 @@ Java parser adapters are intended for higher-velocity topologies and are not eas
 * org.apache.metron.parsers.lancope.BasicLancopeParser : Parse Lancope messages
 * org.apache.metron.parsers.syslog.Syslog5424Parser : Parse Syslog RFC 5424 messages
 * org.apache.metron.parsers.syslog.Syslog3164Parser : Parse Syslog RFC 3164 messages
+* org.apache.metron.parsers.cef.CEFParser: Parse CEF format messages
+* org.apache.metron.parsers.leef.LEEFParser: Parse LEEF format messages
 
 ### Grok Parser Adapters
 Grok parser adapters are designed primarily for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recompiled in order to make changes to them.  Example of a Grok parsers are:

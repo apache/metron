@@ -20,8 +20,25 @@
 
 package org.apache.metron.profiler.client.stellar;
 
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
+import static org.apache.metron.profiler.client.stellar.Util.getArg;
+import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
+import static org.apache.metron.profiler.client.stellar.Util.getPeriodDurationInMillis;
+
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -38,25 +55,6 @@ import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
-import static org.apache.metron.profiler.client.stellar.Util.getArg;
-import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
-import static org.apache.metron.profiler.client.stellar.Util.getPeriodDurationInMillis;
 
 /**
  * A Stellar function that can retrieve data contained within a Profile.
@@ -170,9 +168,10 @@ public class GetProfile implements StellarFunction {
     if (client == null || !cachedConfigMap.equals(effectiveConfig)) {
       RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(effectiveConfig);
       ColumnBuilder columnBuilder = getColumnBuilder(effectiveConfig);
-      HTableInterface table = getTable(effectiveConfig);
       long periodDuration = getPeriodDurationInMillis(effectiveConfig);
-      client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder, periodDuration);
+      String tableName = PROFILER_HBASE_TABLE.get(effectiveConfig, String.class);
+      Configuration hbaseConfig = HBaseConfiguration.create();
+      client = new HBaseProfilerClient(getTableProvider(effectiveConfig), rowKeyBuilder, columnBuilder, periodDuration, tableName, hbaseConfig);
       cachedConfigMap = effectiveConfig;
     }
     if(cachedConfigMap != null) {
@@ -245,24 +244,6 @@ public class GetProfile implements StellarFunction {
     LOG.debug("profiler client: {}={}", PROFILER_SALT_DIVISOR, saltDivisor);
 
     return new SaltyRowKeyBuilder(saltDivisor, duration, units);
-  }
-
-  /**
-   * Create an HBase table used when accessing HBase.
-   * @param global The global configuration.
-   * @return
-   */
-  private HTableInterface getTable(Map<String, Object> global) {
-
-    String tableName = PROFILER_HBASE_TABLE.get(global, String.class);
-    TableProvider provider = getTableProvider(global);
-
-    try {
-      return provider.getTable(HBaseConfiguration.create(), tableName);
-
-    } catch (IOException e) {
-      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName), e);
-    }
   }
 
   /**

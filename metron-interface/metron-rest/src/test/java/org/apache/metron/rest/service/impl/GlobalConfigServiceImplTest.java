@@ -26,6 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -133,7 +134,8 @@ public class GlobalConfigServiceImplTest {
     exception.expect(RestException.class);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes())).thenThrow(Exception.class);
+    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes(
+        StandardCharsets.UTF_8))).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
@@ -143,11 +145,11 @@ public class GlobalConfigServiceImplTest {
   @Test
   public void saveShouldReturnSameConfigThatIsPassedOnSuccessfulSave() throws Exception {
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes())).thenReturn(new Stat());
+    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes(StandardCharsets.UTF_8))).thenReturn(new Stat());
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
     assertEquals(new HashMap<>(), globalConfigService.save(new HashMap<>()));
-    verify(setDataBuilder).forPath(eq(ConfigurationType.GLOBAL.getZookeeperRoot()), eq("{ }".getBytes()));
+    verify(setDataBuilder).forPath(eq(ConfigurationType.GLOBAL.getZookeeperRoot()), eq("{ }".getBytes(StandardCharsets.UTF_8)));
   }
 }

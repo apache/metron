@@ -22,7 +22,7 @@ import { RestError } from '../model/rest-error';
 import {AppConfigService} from "../service/app-config.service";
 
 export class HttpUtil {
-  public static extractString(res: HttpResponse<any>): string {
+  public static extractString(res: string): string {
     let text: string = res.toString();
     return text || '';
   }

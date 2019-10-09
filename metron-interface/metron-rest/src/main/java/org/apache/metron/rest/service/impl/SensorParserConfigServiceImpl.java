@@ -20,6 +20,7 @@ package org.apache.metron.rest.service.impl;
 import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   public SensorParserConfig save(String name, SensorParserConfig sensorParserConfig) throws RestException {
     try {
       ConfigurationsUtils.writeSensorParserConfigToZookeeper(name,
-          objectMapper.writeValueAsString(sensorParserConfig).getBytes(), client);
+          objectMapper.writeValueAsString(sensorParserConfig).getBytes(StandardCharsets.UTF_8), client);
     } catch (Exception e) {
       throw new RestException(e);
     }
@@ -152,7 +153,8 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
       parser.configure(sensorParserConfig.getParserConfig());
       parser.init();
 
-      Optional<MessageParserResult<JSONObject>> result = parser.parseOptionalResult(parseMessageRequest.getSampleData().getBytes());
+      Optional<MessageParserResult<JSONObject>> result = parser.parseOptionalResult(parseMessageRequest.getSampleData().getBytes(
+          StandardCharsets.UTF_8));
       if (!result.isPresent()) {
         throw new RestException("Unknown error parsing sample data");
       }

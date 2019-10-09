@@ -56,13 +56,13 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
 
 1. Use Zeppelin's installation utility to install the Stellar Interpreter.
 
-    If Zeppelin was already installed, make sure that it is stopped before running this command.  Update the version, '0.7.1' in the example below, to whatever is appropriate for your environment.
+    If Zeppelin was already installed, make sure that it is stopped before running this command.  Update the version, '0.7.2' in the example below, to whatever is appropriate for your environment.
 
     ```
-    bin/install-interpreter.sh --name stellar --artifact org.apache.metron:stellar-zeppelin:0.7.1
+    bin/install-interpreter.sh --name stellar --artifact org.apache.metron:stellar-zeppelin:0.7.2
     ```
 
-    **Note:** The above command will download maven artifact groupId1:artifact1:version1 (org.apache.metron:stellar-zeppelin:0.7.1) and all of its transitive dependencies into the $ZEPPELIN_HOME/interpreter/stellar directory. `stellar-common`, which contains many of the [Stellar Core Functions](../stellar-common#stellar-core-functions), will be included transitively because `stellar-zeppelin` declares it as a direct dependency in its Maven pom.xml.
+    **Note:** The above command will download maven artifact groupId1:artifact1:version1 (org.apache.metron:stellar-zeppelin:0.7.2) and all of its transitive dependencies into the $ZEPPELIN_HOME/interpreter/stellar directory. `stellar-common`, which contains many of the [Stellar Core Functions](../stellar-common#stellar-core-functions), will be included transitively because `stellar-zeppelin` declares it as a direct dependency in its Maven pom.xml.
 
     * [3rd Party Zeppelin Interpreter Installation Documentation](https://zeppelin.apache.org/docs/0.7.3/manual/interpreterinstallation.html#3rd-party-interpreters)
 
@@ -110,7 +110,7 @@ Usage
     1. Go back to the Stellar interpreter configuration and add another dependency as follows.
 
         ```
-        org.apache.metron:metron-statistics:0.7.1
+        org.apache.metron:metron-statistics:0.7.2
         ```
 
     1. Go back to your notebook and run `%functions` again.  You will now see the additional functions defined within the `metron-statistics` project.

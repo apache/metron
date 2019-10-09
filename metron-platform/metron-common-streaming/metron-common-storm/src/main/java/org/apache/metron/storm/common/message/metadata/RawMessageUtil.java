@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -88,7 +89,7 @@ public enum RawMessageUtil {
     byte[] keyObj = t.getBinary(KEY_INDEX);
     String keyStr = null;
     try {
-      keyStr = keyObj == null ? null : new String(keyObj);
+      keyStr = keyObj == null ? null : new String(keyObj, StandardCharsets.UTF_8);
       if (!StringUtils.isEmpty(keyStr)) {
         Map<String, Object> rawMetadata = JSONUtils.INSTANCE.load(keyStr, JSONUtils.MAP_SUPPLIER);
         for (Map.Entry<String, Object> kv : rawMetadata.entrySet()) {

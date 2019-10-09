@@ -14,21 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
+import metron_security
+import metron_service
+from metron_security import storm_security_setup
+from pcap_commands import PcapCommands
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
-from resource_management.core.source import StaticFile
-from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.script import Script
-
-from metron_security import storm_security_setup
-import metron_service
-import metron_security
-from pcap_commands import PcapCommands
 
 
 class Pcap(Script):

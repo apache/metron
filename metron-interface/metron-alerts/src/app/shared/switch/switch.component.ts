@@ -15,19 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-switch',
   templateUrl: './switch.component.html',
   styleUrls: ['./switch.component.scss']
 })
-export class SwitchComponent implements OnInit {
+export class SwitchComponent {
+
+  @Output() onChange: EventEmitter<Event> = new EventEmitter();
   @Input() text: string;
+  @Input() selected = false;
 
-  constructor() { }
-
-  ngOnInit() {
+  onValueChange(event) {
+    this.onChange.emit(event.target.checked);
   }
 
 }

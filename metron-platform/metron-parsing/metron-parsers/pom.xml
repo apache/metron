@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-parsing</artifactId>
-    <version>0.7.1</version>
+    <version>0.7.2</version>
   </parent>
   <artifactId>metron-parsers</artifactId>
   <name>metron-parsers</name>
@@ -40,6 +40,12 @@
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-common</artifactId>
       <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>stellar-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- 3rd party dependencies -->

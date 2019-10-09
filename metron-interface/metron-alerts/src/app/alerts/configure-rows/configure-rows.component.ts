@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 import { Component, Input, HostListener, ElementRef, Output, EventEmitter } from '@angular/core';
-import {TableMetadata} from '../../model/table-metadata';
-import {ConfigureTableService} from '../../service/configure-table.service';
+import { TableMetadata } from '../../model/table-metadata';
+import { ConfigureTableService } from '../../service/configure-table.service';
 
 @Component({
   selector: 'app-configure-rows',
@@ -90,6 +90,7 @@ export class ConfigureRowsComponent  {
     this.configRowsChange.emit();
     this.saveSettings();
   }
+
   onRefreshIntervalChange($event, parentElement) {
     parentElement.querySelector('.is-active').classList.remove('is-active');
     $event.target.classList.add('is-active');

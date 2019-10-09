@@ -17,15 +17,14 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.script.script import Script
-from resource_management.core.exceptions import ClientComponentHasNoStatus
-from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Directory
 from metron_security import storm_security_setup
 from metron_service import install_metron_knox
-from metron_service import metron_knox_topology_setup
 from metron_service import is_metron_knox_installed
-from metron_service import set_metron_knox_installed
+from metron_service import metron_knox_topology_setup
+from resource_management.core.exceptions import ClientComponentHasNoStatus
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.script.script import Script
+
 
 class MetronClient(Script):
 

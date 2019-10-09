@@ -18,6 +18,7 @@
 import {AlertComment} from '../alerts/alert-details/alert-comment';
 
 export class AlertSource {
+  name: string;
   msg: string;
   sig_rev: number;
   ip_dst_port: number;

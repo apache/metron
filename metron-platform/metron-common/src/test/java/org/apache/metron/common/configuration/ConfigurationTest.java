@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.configuration;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
@@ -73,7 +74,7 @@ public class ConfigurationTest {
 
         JSONObject global = new JSONObject();
         global.put(TEST_PROPERTY, TEST_VALUE);
-        return global.toString().getBytes();
+        return global.toString().getBytes(StandardCharsets.UTF_8);
 
     }
 

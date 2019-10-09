@@ -20,7 +20,28 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import org.apache.hadoop.hbase.client.HTableInterface;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
+import static org.apache.metron.profiler.client.stellar.VerboseProfile.ENTITY_KEY;
+import static org.apache.metron.profiler.client.stellar.VerboseProfile.GROUPS_KEY;
+import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_END_KEY;
+import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_KEY;
+import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_START_KEY;
+import static org.apache.metron.profiler.client.stellar.VerboseProfile.PROFILE_KEY;
+import static org.apache.metron.profiler.client.stellar.VerboseProfile.VALUE_KEY;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.apache.hadoop.hbase.client.Table;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.client.ProfileWriter;
@@ -35,27 +56,6 @@ import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.ENTITY_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.GROUPS_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_END_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.PERIOD_START_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.PROFILE_KEY;
-import static org.apache.metron.profiler.client.stellar.VerboseProfile.VALUE_KEY;
 
 /**
  * Tests the VerboseProfile class.
@@ -79,13 +79,15 @@ public class VerboseProfileTest {
   @Before
   public void setup() {
     state = new HashMap<>();
-    final HTableInterface table = MockHBaseTableProvider.addToCache(tableName, columnFamily);
+    final Table table = MockHBaseTableProvider.addToCache(tableName, columnFamily);
+    TableProvider provider = new MockHBaseTableProvider();
 
     // used to write values to be read during testing
     long periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
     ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table, periodDurationMillis);
+    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, provider, periodDurationMillis,
+        tableName, null);
 
     // global properties
     globals = new HashMap<String, Object>() {{

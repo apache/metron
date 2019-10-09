@@ -20,6 +20,7 @@ package org.apache.metron.dataloads.nonbulk.flatfile;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
@@ -172,7 +173,7 @@ public class SimpleFlatFileSummarizerTest {
 
     @Override
     public InputStream openInputStream(String loc) throws IOException {
-      return new ByteArrayInputStream(inMemoryData.get(loc).getBytes());
+      return new ByteArrayInputStream(inMemoryData.get(loc).getBytes(StandardCharsets.UTF_8));
     }
 
     @Override

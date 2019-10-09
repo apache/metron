@@ -29,7 +29,7 @@ Getting Started
 
 The computer used to deploy Apache Metron will need to have the following components installed.
 
- - [Ansible](https://github.com/ansible/ansible) 2.4.0+
+ - [Ansible](https://github.com/ansible/ansible) 2.6.5
  - [Docker](https://www.docker.com/community-edition)
  - [Vagrant](https://www.vagrantup.com) 2.0+
  - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager)
@@ -53,9 +53,10 @@ Any platform that supports these tools is suitable, but the following instructio
 1. Run the following command in a terminal to install all of the required tools.
 
     ```
-    brew cask install vagrant virtualbox docker ansible
+    brew cask install vagrant virtualbox docker
     brew cask install caskroom/versions/java8
     brew install maven@3.3 git
+    sudo pip install ansible=2.6.5
     vagrant plugin install vagrant-hostmanager
     open /Applications/Docker.app
     ```
@@ -76,6 +77,28 @@ Any platform that supports these tools is suitable, but the following instructio
     ```
     vagrant provision
     ```
+
+### Deployment optimizations
+
+1. Set environment variable 
+    ```
+    export ANSIBLE_ARGS='--extra-vars "SKIP_RPMLINT=1"'
+    ```
+    To disable running rpmlint as part of the dev deployment task - this can save a couple of minutes of time on the deployment.
+    Either add this variable to your profile, or use it on the command line like
+
+    ```
+    env ANSIBLE_ARGS='--extra-vars "SKIP_RPMLINT=1"' vagrant up
+    ```
+
+### Deployment debugging
+
+1.  To enable more verbose logging of ansible actions during the deployment, use
+    ```
+    env ANSIBLE_ARGS=' -vvvv' vagrant up
+    ```
+    As this can produce large amounts of logging, it is best to redirect output to a file for later analysis.
+    
 
 ### Explore Metron
 

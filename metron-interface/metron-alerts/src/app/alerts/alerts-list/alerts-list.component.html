@@ -19,15 +19,27 @@
                     <span class="input-group-prepend">
                         <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
                     </span>
-                    <div appAceEditor style="width:100%;" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
+                    <div appAceEditor *ngIf="!hideQueryBuilder" class="flex-fill" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
+                    <div class="flex-fill" [class.d-none]="!hideQueryBuilder">
+                        <input class="manual-query-input" data-qe-id="manual-query-input" type="text" #manualQuery >
+                    </div>
+                    <span class="input-group-append">
+                        <button class="btn btn-secondary btn-options" (click)="toggleQueryBuilder()">
+                            <span *ngIf="hideQueryBuilder">Use Query Builder</span>
+                            <span *ngIf="!hideQueryBuilder">Use Manual Query</span>
+                        </button>
+                    </span>
                     <span class="input-group-append">
                         <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
                     </span>
-                    <span class="input-group-append" style="white-space: nowrap;">
-                        <app-time-range class="d-flex position-relative" (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
+                    <span class="input-group-append" style="white-space: nowrap;" [class.d-none]="hideQueryBuilder">
+                        <app-time-range class="d-flex position-relative" (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampFilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
                     </span>
-                    <span class="input-group-append">
-                        <button class="btn btn-secondary btn-search rounded-right" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                    <span class="input-group-append" [class.d-none]="hideQueryBuilder">
+                        <button data-qe-id="alert-search-btn" class="btn btn-secondary btn-search rounded-right" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                    </span>
+                    <span class="input-group-append" [class.d-none]="!hideQueryBuilder">
+                        <button class="btn btn-secondary btn-search rounded-right" type="button" data-name="search" (click)="search(false, null)"></button>
                     </span>
                     <div class="input-group-append">
                         <span class="save-button" (click)="showSaveSearch()">
@@ -39,7 +51,8 @@
     </div>
     <div class="mrow">
         <div class="col-md-9 px-0">
-            <span class="col-form-label-lg"> Alerts ({{searchResponse.total}}) </span>
+            <span class="col-form-label-lg">Alerts ({{searchResponse.total}}) </span>
+            <div *ngIf="subgroupTotal" data-qe-id="alert-subgroup-total">Alerts in Groups ({{subgroupTotal}})</div>
         </div>
         <div class="col-md-3 px-0">
             <div class="pull-right" style="position: relative; display: block;">
@@ -57,11 +70,11 @@
                 <div id="table-actions" class="dropdown d-inline-block">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen()">Open</span>
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss()">Dismiss</span>
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate()">Escalate</span>
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve()">Resolve</span>
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0 || isMetaAlertPresentInSelectedAlerts" (click)="processAddToAlert()">Add to Alert</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen($event)">Open</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss($event)">Dismiss</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate($event)">Escalate</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve($event)">Resolve</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0 || isMetaAlertPresentInSelectedAlerts" (click)="processAddToAlert($event)">Add to Alert</span>
                     </div>
                 </div>
             </div>
@@ -71,36 +84,42 @@
 
 <div class="container-fluid no-gutters">
     <div class="row">
-      <div class="px-0" style="width: 200px;max-width: 200px;">
+      <div class="px-0" style="width: 200px;max-width: 200px;" [class.d-none]="hideQueryBuilder">
         <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
       </div>
       <div class="col px-0 pl-4" style="overflow: auto;">
+        <div class="alert alert-warning" role="alert" *ngIf="staleDataState" data-qe-id="staleDataWarning">
+            <i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state! Click
+            <i class="fa fa-search" aria-hidden="true"></i> to update your view based on your current filter and time-range configuration!
+        </div>
         <div class="col-xs-12 pl-0 pb-3">
           <app-group-by [facets]="groupFacets" (groupsChange)="onGroupsChange($event)"> </app-group-by>
         </div>
         <div class="col-xs-12 px-0">
             <app-table-view #dataViewComponent
                             [alerts]="alerts" *ngIf="groups.length === 0"
-                            [queryBuilder]="queryBuilder"
                             [pagination]="pagination"
                             [alertsColumnsToDisplay]="alertsColumnsToDisplay"
                             [selectedAlerts]="selectedAlerts"
                             (onResize)="onResize()"
                             (onAddFilter)="onAddFilter($event)"
-                            (onRefreshData)="onRefreshData($event)"
                             (onShowDetails)="showDetails($event)"
-                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
+                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"
+                            (onSortChanged)="onSortChanged($event)"
+                            (onPageChanged)="onPageChanged($event)"></app-table-view>
             <app-tree-view #dataViewComponent *ngIf="groups.length !== 0"
                            [alerts]="alerts"
-                           [queryBuilder]="queryBuilder"
                            [alertsColumnsToDisplay]="alertsColumnsToDisplay"
                            [selectedAlerts]="selectedAlerts"
                            [globalConfig]="globalConfig"
+                           [query]="queryForTreeView()"
+                           [groups]="groups"
                            (onResize)="onResize()"
                            (onAddFilter)="onAddFilter($event)"
-                           (onRefreshData)="onRefreshData($event)"
                            (onShowDetails)="showDetails($event)"
-                           (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-tree-view>
+                           (onSelectedAlertsChange)="onSelectedAlertsChange($event)"
+                           (onMetaAlertCreated)="search($event)"
+                           (treeViewChange)="onTreeViewChange($event)"></app-tree-view>
         </div>
     </div>
   </div>

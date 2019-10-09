@@ -20,7 +20,9 @@ import { Injectable } from '@angular/core';
 
 import { ConfigureRowsComponent } from './configure-rows.component';
 import { ConfigureTableService } from '../../service/configure-table.service';
-import { SwitchComponent } from '../../shared/switch/switch.component';
+import { ShowHideAlertEntriesComponent } from './show-hide/show-hide-alert-entries.component';
+import { SwitchComponent } from 'app/shared/switch/switch.component';
+import { TimezoneConfigComponent } from './timezone-config/timezone-config.component';
 
 @Injectable()
 class ConfigureTableServiceStub {}
@@ -31,12 +33,14 @@ describe('ConfigureRowsComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ 
+      declarations: [
         ConfigureRowsComponent,
-        SwitchComponent
-     ],
-      providers: [ 
-        { provide: ConfigureTableService, useValue: ConfigureTableServiceStub }  
+        ShowHideAlertEntriesComponent,
+        SwitchComponent,
+        TimezoneConfigComponent,
+      ],
+      providers: [
+        { provide: ConfigureTableService, useValue: ConfigureTableServiceStub }
       ]
     })
     .compileComponents();

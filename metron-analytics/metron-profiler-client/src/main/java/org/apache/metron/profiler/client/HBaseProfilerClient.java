@@ -20,21 +20,21 @@
 
 package org.apache.metron.profiler.client;
 
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.utils.SerDeUtils;
-import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.hbase.ColumnBuilder;
-import org.apache.metron.profiler.hbase.RowKeyBuilder;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.utils.SerDeUtils;
+import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.ProfilePeriod;
+import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
 
 /**
  * The default implementation of a ProfilerClient that fetches profile data persisted in HBase.
@@ -44,7 +44,7 @@ public class HBaseProfilerClient implements ProfilerClient {
   /**
    * Used to access the profile data stored in HBase.
    */
-  private HTableInterface table;
+  private TableProvider tableProvider;
 
   /**
    * Generates the row keys necessary to scan HBase.
@@ -57,15 +57,21 @@ public class HBaseProfilerClient implements ProfilerClient {
   private ColumnBuilder columnBuilder;
 
   private long periodDurationMillis;
+  private String tableName;
+  private final Configuration hbaseConfig;
 
-  public HBaseProfilerClient(HTableInterface table,
+  public HBaseProfilerClient(TableProvider tableProvider,
                              RowKeyBuilder rowKeyBuilder,
                              ColumnBuilder columnBuilder,
-                             long periodDurationMillis) {
-    setTable(table);
+                             long periodDurationMillis,
+                             String tableName,
+                             Configuration hbaseConfig) {
+    setTableProvider(tableProvider);
     setRowKeyBuilder(rowKeyBuilder);
     setColumnBuilder(columnBuilder);
     this.periodDurationMillis = periodDurationMillis;
+    this.tableName = tableName;
+    this.hbaseConfig = hbaseConfig;
   }
 
   /**
@@ -135,7 +141,7 @@ public class HBaseProfilerClient implements ProfilerClient {
 
     // query HBase
     try {
-      Result[] results = table.get(gets);
+      Result[] results = tableProvider.getTable(hbaseConfig, tableName).get(gets);
       for(int i = 0; i < results.length; ++i) {
         Result result = results[i];
         ProfileMeasurement measurement = measurements.get(i);
@@ -164,8 +170,8 @@ public class HBaseProfilerClient implements ProfilerClient {
   }
 
 
-  public void setTable(HTableInterface table) {
-    this.table = table;
+  public void setTableProvider(TableProvider tableProvider) {
+    this.tableProvider = tableProvider;
   }
 
   public void setRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {

@@ -74,21 +74,21 @@ title: Apache Metron Documentation
 <section class="events-section info-block darken" id="releases">
     <div class="wrapper downloads">
         <div class="text-center">
-            <h4>Current Release: 0.7.0</h4>
+            <h4>Current Release: 0.7.1</h4>
         </div>
         <div class="content-960 hover-btn text-center">
             <ul>
                 <li>
-                <a href="http://www.apache.org/dyn/closer.cgi/metron/0.7.0/apache-metron-0.7.0.tar.gz" target="new">
-                    apache-metron-0.7.0.tar.gz
+                <a href="http://www.apache.org/dyn/closer.cgi/metron/0.7.1/apache-metron_0.7.1.tar.gz" target="new">
+                    apache-metron-0.7.1.tar.gz
                 </a>
-                 [ <a href="https://www.apache.org/dist/metron/0.7.0/apache-metron-0.7.0.tar.gz.asc" target="new">
+                 [ <a href="https://www.apache.org/dist/metron/0.7.1/apache-metron_0.7.1.tar.gz.asc" target="new">
                     PGP
                  </a>]
-                 [ <a href="https://www.apache.org/dist/metron/0.7.0/apache-metron-0.7.0.tar.gz.sha256" target="new">
+                 [ <a href="https://www.apache.org/dist/metron/0.7.1/apache-metron_0.7.1.tar.gz.sha256" target="new">
                     SHA256
                  </a>]
-                 [ <a href="https://www.apache.org/dist/metron/0.7.0/apache-metron-0.7.0.tar.gz.sha512" target="new">
+                 [ <a href="https://www.apache.org/dist/metron/0.7.1/apache-metron_0.7.1.tar.gz.sha512" target="new">
                     SHA512
                  </a>]
                  [ <a href="/current-book/index.html" target="new"> Book </a>]

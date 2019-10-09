@@ -16,13 +16,23 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {SharedModule} from '../../shared/shared.module';
-import {ConfigureRowsComponent} from './configure-rows.component';
-import {SwitchModule} from '../../shared/switch/switch.module';
+import { SharedModule } from '../../shared/shared.module';
+import { ConfigureRowsComponent } from './configure-rows.component';
+import { ShowHideAlertEntriesComponent } from './show-hide/show-hide-alert-entries.component';
+import { SwitchModule } from 'app/shared/switch/switch.module';
+import { QueryBuilder } from '../alerts-list/query-builder';
+import { ShowHideService } from './show-hide/show-hide.service';
+import { TimezoneConfigComponent } from './timezone-config/timezone-config.component';
+import { TimezoneConfigService } from './timezone-config/timezone-config.service';
 
-@NgModule ({
+@NgModule({
     imports: [ SharedModule, SwitchModule ],
-    declarations: [ ConfigureRowsComponent ],
-    exports: [  ConfigureRowsComponent ]
+    declarations: [ ConfigureRowsComponent, ShowHideAlertEntriesComponent, TimezoneConfigComponent ],
+    exports: [ ConfigureRowsComponent ],
+    providers: [ QueryBuilder, ShowHideService, TimezoneConfigService, ],
 })
-export class ConfigureRowsModule { }
+export class ConfigureRowsModule {
+
+    constructor(private showHideService: ShowHideService, private timezoneConfigService: TimezoneConfigService) {}
+
+}

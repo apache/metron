@@ -1,4 +1,7 @@
 {
   "apiRoot": "/api/v1",
-  "loginPath": "/login"
+  "loginPath": "/login",
+  "contextMenuConfigURL": "/assets/context-menu.conf.json",
+  "managementUIHost": "localhost",
+  "managementUIPort": "4200"
 }

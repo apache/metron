@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.7.1</version>
+        <version>0.7.2</version>
     </parent>
     <artifactId>metron-rest</artifactId>
     <url>https://metron.apache.org/</url>
@@ -191,6 +191,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+        </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-client</artifactId>
@@ -199,6 +205,10 @@
           <exclusion>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -211,18 +221,33 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
           </exclusion>
+            <exclusion>
+              <groupId>javax.servlet</groupId>
+              <artifactId>servlet-api</artifactId>
+            </exclusion>
         </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-app</artifactId>
         <version>${global_hadoop_version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>javax.servlet</groupId>
+              <artifactId>servlet-api</artifactId>
+            </exclusion>
+          </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-mapreduce-client-core</artifactId>
         <version>${global_hadoop_version}</version>
       </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-hbase-common</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase-client</artifactId>
@@ -240,7 +265,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-hbase</artifactId>
+            <artifactId>metron-hbase-common</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
             <type>test-jar</type>
@@ -429,13 +454,13 @@
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-indexing</artifactId>
+            <artifactId>metron-indexing-common</artifactId>
             <version>${project.parent.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
-            <artifactId>metron-indexing</artifactId>
+            <artifactId>metron-indexing-common</artifactId>
             <version>${project.parent.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
@@ -528,6 +553,8 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>uber</shadedClassifierName>
                     <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <filters>
@@ -673,6 +700,55 @@
                   </plugin>
               </plugins>
           </build>
+      </profile>
+
+      <profile>
+
+          <id>local-dev</id>
+          <dependencies>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-parsers</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-parsing-storm</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-parsers-common</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-indexing-common</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>metron-elasticsearch-common</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>runtime</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.javassist</groupId>
+                  <artifactId>javassist</artifactId>
+                  <version>3.19.0-GA</version>
+                  <scope>compile</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.apache.metron</groupId>
+                  <artifactId>stellar-common</artifactId>
+                  <version>${project.parent.version}</version>
+                  <scope>compile</scope>
+              </dependency>
+          </dependencies>
       </profile>
 
   </profiles>
