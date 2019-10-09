@@ -29,6 +29,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commons.config.version>1.10</commons.config.version>
         <guava_version>${global_hbase_guava_version}</guava_version>
+        <!-- the version of httpclient required by solr 7.4.0 -->
+        <http_client_version>4.5.3</http_client_version>
     </properties>
     <dependencies>
         <dependency>
@@ -168,6 +170,21 @@
                                     -->
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.apache.metron.guava.${guava_version}</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!--
+                                      Need to relocate httpclient 4.5.3 and httpcore 4.4.6 as these versions are required
+                                      by Solr 7.4.0. This will relocate all HttpComponents libraries pulled-in including
+                                      `httpclient`, `httpcore`, and `httpmime` because each share a common base package
+                                      namespace (org.apache.http).
+
+                                      When running with kerberos, Storm adds all jars in `$STORM_HOME/contrib/storm-autocreds`
+                                      to the classpath at runtime.  This includes httpcore 4.4.1 and httpclient 4.3.6, which are
+                                      incompatible with Solr 7.4.0. This is only a problem when running Storm with
+                                      kerberos.
+                                    -->
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>org.apache.metron.http.${http_client_version}</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
