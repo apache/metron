@@ -424,15 +424,14 @@ export class SensorParserListComponent implements OnInit, OnDestroy {
               this.store.dispatch(new fromActions.SetTargetGroup(referenceMetaInfo.config.group || ''));
               this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
             } else {
-              this.store.pipe(select(fromReducers.getMergedConfigs), first())
-                .subscribe((parsers) => {
-                  const group = parsers.find(parser => parser.config instanceof ParserGroupModel && parser.config.name === groupName);
-                  if (!group.isRunning && !group.isDeleted && !group.startStopInProgress) {
-                    this.store.dispatch(new fromActions.SetDropTarget(referenceMetaInfo.config.getName()));
-                    this.store.dispatch(new fromActions.SetTargetGroup(referenceMetaInfo.config.group || ''));
-                    this.router.navigateByUrl('/sensors(dialog:sensor-aggregate)');
-                  }
-                });
+              this.store.dispatch(new fromActions.AddToGroup({
+                groupName: groupName,
+                parserIds: [dragged.config.getName()]
+              }));
+              this.store.dispatch(new fromActions.InjectAfter({
+                reference: groupName,
+                parserId: dragged.config.getName(),
+              }));
             }
           }
         }
