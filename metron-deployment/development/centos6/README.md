@@ -54,9 +54,9 @@ Any platform that supports these tools is suitable, but the following instructio
 
     ```
     brew cask install vagrant virtualbox docker
-    brew cask install caskroom/versions/java8
+    brew cask install homebrew/cask-versions/adoptopenjdk8
     brew install maven@3.3 git
-    sudo pip install ansible=2.6.5
+    sudo pip install ansible==2.6.5
     vagrant plugin install vagrant-hostmanager
     open /Applications/Docker.app
     ```
@@ -80,7 +80,7 @@ Any platform that supports these tools is suitable, but the following instructio
 
 ### Deployment optimizations
 
-1. Set environment variable 
+1. Set environment variable
     ```
     export ANSIBLE_ARGS='--extra-vars "SKIP_RPMLINT=1"'
     ```
@@ -98,7 +98,7 @@ Any platform that supports these tools is suitable, but the following instructio
     env ANSIBLE_ARGS=' -vvvv' vagrant up
     ```
     As this can produce large amounts of logging, it is best to redirect output to a file for later analysis.
-    
+
 
 ### Explore Metron
 
