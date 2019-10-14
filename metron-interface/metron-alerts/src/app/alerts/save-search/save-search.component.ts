@@ -22,6 +22,7 @@ import {SaveSearchService} from '../../service/save-search.service';
 import {SaveSearch} from '../../model/save-search';
 import { DialogService } from 'app/service/dialog.service';
 import { ConfirmationType } from 'app/model/confirmation-type';
+import { FilteringMode } from '../alerts-list/query-builder';
 
 @Component({
   selector: 'app-save-search',
@@ -46,10 +47,13 @@ export class SaveSearchComponent implements OnInit {
   }
 
   save() {
+    const isManual = () => this.saveSearchService.queryBuilder.getFilteringMode() === FilteringMode.MANUAL;
+
     this.saveSearch.searchRequest = this.saveSearchService.queryBuilder.searchRequest;
     this.saveSearch.tableColumns = this.saveSearchService.tableColumns;
     this.saveSearch.filters = this.saveSearchService.queryBuilder.filters;
-    this.saveSearch.searchRequest.query = '';
+    this.saveSearch.searchRequest.query = isManual() ? this.saveSearchService.queryBuilder.query : '';
+    this.saveSearch.isManual = isManual()
 
     this.saveSearchService.saveSearch(this.saveSearch).subscribe(() => {
       this.goBack();
