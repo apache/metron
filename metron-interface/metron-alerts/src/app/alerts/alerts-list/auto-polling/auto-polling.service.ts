@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Subscription, Subject, Observable, interval, onErrorResumeNext } from 'rxjs';
+import { Subscription, Subject, Observable, interval, onErrorResumeNext, timer } from 'rxjs';
 import { SearchService } from 'app/service/search.service';
 import { QueryBuilder } from '../query-builder';
 import { SearchResponse } from 'app/model/search-response';
@@ -33,14 +33,15 @@ interface AutoPollingStateModel {
 
 @Injectable()
 export class AutoPollingService {
-  data = new Subject<SearchResponse>();
-
+  private readonly AUTO_START_DELAY = 500;
   private isCongestion = false;
   private refreshInterval = 10;
   private isPollingActive = POLLING_DEFAULT_STATE;
   private isPending = false;
   private isPollingSuppressed = false;
   private pollingIntervalSubs: Subscription;
+
+  data = new Subject<SearchResponse>();
 
   public readonly AUTO_POLLING_STORAGE_KEY = 'autoPolling';
 
@@ -116,7 +117,7 @@ export class AutoPollingService {
       this.refreshInterval = persistedState.refreshInterval;
 
       if (persistedState.isActive) {
-        this.start();
+        timer(this.AUTO_START_DELAY).subscribe(this.start.bind(this));
       }
     }
   }
