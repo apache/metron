@@ -442,7 +442,7 @@ describe('AutoPollingService', () => {
 
   });
 
-  describe('polling state persisting and restoring', () => {
+  fdescribe('polling state persisting and restoring', () => {
 
     it('should persist polling state on start', () => {
       spyOn(localStorage, 'setItem');
@@ -462,7 +462,7 @@ describe('AutoPollingService', () => {
       expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', '{"isActive":false,"refreshInterval":4}');
     });
 
-    it('should restore polling state on construction', () => {
+    it('should restore polling state on construction with a delay', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
       const dialogServiceFake = TestBed.get(QueryBuilder);
 
@@ -470,10 +470,14 @@ describe('AutoPollingService', () => {
 
       const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
 
+      tick(localAutoPollingSvc.AUTO_START_DELAY);
+
       expect(localStorage.getItem).toHaveBeenCalledWith('autoPolling');
       expect(localAutoPollingSvc.getIsPollingActive()).toBe(true);
       expect(localAutoPollingSvc.getInterval()).toBe(443);
-    });
+
+      localAutoPollingSvc.stop();
+    }));
 
     it('should start polling on construction when persisted isActive==true', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
@@ -483,6 +487,8 @@ describe('AutoPollingService', () => {
       spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":10}');
 
       const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
+
+      tick(localAutoPollingSvc.AUTO_START_DELAY);
 
       expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
 
@@ -503,6 +509,8 @@ describe('AutoPollingService', () => {
       spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":4}');
 
       const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
+
+      tick(localAutoPollingSvc.AUTO_START_DELAY);
 
       expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
 

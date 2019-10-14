@@ -33,7 +33,6 @@ interface AutoPollingStateModel {
 
 @Injectable()
 export class AutoPollingService {
-  private readonly AUTO_START_DELAY = 500;
   private isCongestion = false;
   private refreshInterval = 10;
   private isPollingActive = POLLING_DEFAULT_STATE;
@@ -41,6 +40,7 @@ export class AutoPollingService {
   private isPollingSuppressed = false;
   private pollingIntervalSubs: Subscription;
 
+  readonly AUTO_START_DELAY = 500;
   data = new Subject<SearchResponse>();
 
   public readonly AUTO_POLLING_STORAGE_KEY = 'autoPolling';
