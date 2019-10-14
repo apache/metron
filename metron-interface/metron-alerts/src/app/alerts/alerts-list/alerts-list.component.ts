@@ -446,7 +446,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  saveCurrentSearch(savedSearch: SaveSearch) {
+  saveCurrentSearch(savedSearch?: SaveSearch) {
     const isManual = () => this.queryBuilder.getFilteringMode() === FilteringMode.MANUAL;
     if (this.queryBuilder.query !== '*') {
       if (!savedSearch) {

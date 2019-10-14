@@ -42,6 +42,7 @@ import { SearchRequest } from 'app/model/search-request';
 import { query } from '@angular/core/src/render3';
 import { RestError } from 'app/model/rest-error';
 import { DialogType } from 'app/shared/metron-dialog/metron-dialog.component';
+import { SaveSearch } from 'app/model/save-search';
 
 @Component({
   selector: 'app-auto-polling',
@@ -172,6 +173,7 @@ describe('AlertsListComponent', () => {
         { provide: SaveSearchService, useClass: () => { return {
           loadSavedSearch$: new Observable(),
           setCurrentQueryBuilderAndTableColumns: () => {},
+          saveAsRecentSearches: () => of(null)
         } } },
         { provide: MetaAlertService, useClass: () => { return {
           alertChanged$: new Observable(),
@@ -186,6 +188,7 @@ describe('AlertsListComponent', () => {
           get searchRequest() {
             return new SearchResponse();
           },
+          set searchRequest(value) {},
           addOrUpdateFilter: () => {},
           clearSearch: () => {},
           isTimeStampFieldPresent: () => {},
@@ -193,6 +196,7 @@ describe('AlertsListComponent', () => {
           setManualQuery: () => {},
           getFilteringMode: () => {},
           setFilteringMode: () => {},
+          generateNameForSearchRequest: () => ''
         } } },
         { provide: AutoPollingService, useClass: () => { return {
           data: new Subject<SearchResponse>(),
@@ -600,5 +604,81 @@ describe('AlertsListComponent', () => {
 
       expect(fakeDialogService.launchDialog).toHaveBeenCalledWith('Server were unable to apply query string.', DialogType.Error);
     }));
+  });
+
+  describe('save/load manual query search', () => {
+
+    it('should switch to manual mode if the saved search is manual', () => {
+
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+      const savedSearch = new SaveSearch();
+      savedSearch.isManual = true;
+      savedSearch.searchRequest = new SearchRequest();
+      savedSearch.searchRequest.query = 'foo:bar';
+      savedSearch.filters = [];
+
+      saveSearchSvc.loadSavedSearch$ = of(savedSearch);
+
+      const spySetFilteringMode = spyOn(component.queryBuilder, 'setFilteringMode');
+      const spySetManualQuery = spyOn(component.queryBuilder, 'setManualQuery');
+
+      component.addLoadSavedSearchListener();
+
+      expect(spySetFilteringMode).toHaveBeenCalledTimes(1);
+      expect(spySetFilteringMode).toHaveBeenCalledWith(FilteringMode.MANUAL);
+
+      expect(spySetManualQuery).toHaveBeenCalledWith('foo:bar');
+    });
+
+    it('should switch to builder mode if the saved search is not manual', () => {
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+      const savedSearch = new SaveSearch();
+      savedSearch.isManual = false;
+      savedSearch.searchRequest = new SearchRequest();
+      savedSearch.searchRequest.query = 'foo:bar';
+      savedSearch.filters = [];
+
+      saveSearchSvc.loadSavedSearch$ = of(savedSearch);
+
+      const spySetFilteringMode = spyOn(component.queryBuilder, 'setFilteringMode');
+      const spySetManualQuery = spyOn(component.queryBuilder, 'setManualQuery');
+
+      component.addLoadSavedSearchListener();
+
+      expect(spySetFilteringMode).toHaveBeenCalledTimes(1);
+      expect(spySetFilteringMode).toHaveBeenCalledWith(FilteringMode.BUILDER);
+
+      expect(spySetManualQuery).not.toHaveBeenCalledWith('foo:bar');
+    });
+
+    it('should save the search filter mode (manual)', (done) => {
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+
+      saveSearchSvc.saveAsRecentSearches = (saveSearch) => {
+        expect(saveSearch.isManual).toBe(true);
+        expect(saveSearch.searchRequest.query).toBe('foo:bar');
+        done();
+        return of(null);
+      };
+
+      component.queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+      component.queryBuilder.query = 'foo:bar';
+      component.saveCurrentSearch();
+    });
+
+    it('should save the search filter mode (builder)', (done) => {
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+
+      saveSearchSvc.saveAsRecentSearches = (saveSearch) => {
+        expect(saveSearch.isManual).toBe(false);
+        expect(saveSearch.searchRequest.query).toBe('');
+        done();
+        return of(null);
+      };
+
+      component.queryBuilder.getFilteringMode = () => FilteringMode.BUILDER;
+      component.queryBuilder.query = 'foo:bar';
+      component.saveCurrentSearch();
+    });
   });
 });
