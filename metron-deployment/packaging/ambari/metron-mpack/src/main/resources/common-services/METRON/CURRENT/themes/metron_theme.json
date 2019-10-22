@@ -897,6 +897,10 @@
           "subsection-name": "subsection-security-ldap"
         },
         {
+          "config": "metron-security-env/metron.ldap.user.basedn",
+          "subsection-name": "subsection-security-ldap"
+        },
+        {
           "config": "metron-security-env/metron.ldap.user.dnpattern",
           "subsection-name": "subsection-security-ldap"
         },
@@ -1685,6 +1689,12 @@
         "config": "metron-security-env/metron.ldap.ssl.truststore.password",
         "widget": {
           "type": "password"
+        }
+      },
+      {
+        "config": "metron-security-env/metron.ldap.user.basedn",
+        "widget": {
+          "type": "text-field"
         }
       },
       {
