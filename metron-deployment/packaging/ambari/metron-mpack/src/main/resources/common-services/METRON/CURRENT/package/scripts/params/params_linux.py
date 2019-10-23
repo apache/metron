@@ -258,7 +258,12 @@ profiler_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 pcap_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 metron_jvm_flags += (' ' + client_jaas_arg) if security_enabled else ''
-topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
+
+# the user-defined `topology.auto-credentials` are only used if security is enabled
+topology_auto_credentials = []
+if security_enabled:
+    topology_auto_credentials = config['configurations']['metron-security-env'].get('topology_auto_credentials', [])
+
 # Needed for storm.config, because it needs Java String
 topology_auto_credentials_double_quotes = str(topology_auto_credentials).replace("'", '"')
 
