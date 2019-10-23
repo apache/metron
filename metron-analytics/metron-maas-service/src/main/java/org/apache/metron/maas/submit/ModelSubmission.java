@@ -236,9 +236,7 @@ public class ModelSubmission {
         updateHDFS(fs, localDir, hdfsPath);
       }
       Queue<ModelRequest> queue = config.createQueue(ImmutableMap.of(ZKQueue.ZK_CLIENT, client));
-      System.out.println("Enqueuing model request: " + request.getAction().toString());
       queue.enqueue(request);
-      System.out.println("Done enqueuing model request: " + request.getAction().toString());
     } finally {
       if (client != null) {
         client.close();
