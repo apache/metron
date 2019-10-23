@@ -64,10 +64,16 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
+            <!-- Must be in the rest uber jar bc certain functions, e.g. MR calls with PCAP will
+            not work with just a classpath reference. Libjars option does not work with "yarn jar" -->
             <groupId>org.apache.metron</groupId>
             <artifactId>stellar-common</artifactId>
             <version>${project.parent.version}</version>
-            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-common-storm</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

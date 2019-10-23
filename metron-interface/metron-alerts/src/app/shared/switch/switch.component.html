@@ -11,9 +11,9 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div>
+<div [class.toggle-disabled]="disabled">
   <label class="switch">
-    <input type="checkbox" [checked]="selected" (change)="onValueChange($event)" class="inputdemo">
+    <input type="checkbox" [disabled]="disabled" [checked]="selected" (change)="onValueChange($event)" class="inputdemo">
     <div class="slider round"></div>
   </label>
   <label> {{ text }}</label>

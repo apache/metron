@@ -21,6 +21,15 @@ label {
   font-family: Roboto-Regular;
 }
 
+.toggle-disabled {
+  opacity: 0.3;
+}
+
+.toggle-disabled .slider,
+.toggle-disabled input {
+  cursor: default !important;
+}
+
 .switch {
   position: relative;
   display: inline-block;

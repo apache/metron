@@ -159,7 +159,6 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
-
   <property>
     <name>metron.ldap.ssl.truststore</name>
     <display-name>LDAP Truststore</display-name>
@@ -239,5 +238,14 @@
     <value>ADMIN</value>
     <description>Name of the role at the authentication provider that provides administrative access to Metron.</description>
     <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>topology_auto_credentials</name>
+    <display-name>Topology Auto Credentials</display-name>
+    <description>The value of Storm's `topology.auto-credentials`. A list of plugins used to unpack credentials on the Storm worker. This value is only used when Kerberos has been enabled.</description>
+    <value>['org.apache.metron.storm.security.auth.kerberos.AutoTGT']</value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
 </configuration>

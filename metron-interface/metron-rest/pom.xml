@@ -206,10 +206,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <!-- Must be in the rest uber jar bc certain functions, e.g. MR calls with PCAP will
+            not work with just a classpath reference -->
             <groupId>org.apache.metron</groupId>
             <artifactId>stellar-common</artifactId>
             <version>${project.parent.version}</version>
-            <scope>provided</scope>
         </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
