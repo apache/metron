@@ -101,6 +101,8 @@ import org.apache.hbase.thirdparty.io.netty.handler.timeout.IdleStateHandler;
 import org.apache.hbase.thirdparty.io.netty.util.concurrent.Promise;
 
 /**
+ * NOTE - this class is copied from HBase to get around https://issues.apache.org/jira/browse/HBASE-22394
+ *
  * Helper class for adding sasl support for {@link FanOutOneBlockAsyncDFSOutput}.
  */
 @InterfaceAudience.Private

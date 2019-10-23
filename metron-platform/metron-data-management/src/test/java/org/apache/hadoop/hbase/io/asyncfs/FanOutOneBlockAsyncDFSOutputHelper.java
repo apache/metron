@@ -112,6 +112,8 @@ import static org.apache.hbase.thirdparty.io.netty.channel.ChannelOption.CONNECT
 import static org.apache.hbase.thirdparty.io.netty.handler.timeout.IdleState.READER_IDLE;
 
 /**
+ * NOTE - this class is copied from HBase to get around https://issues.apache.org/jira/browse/HBASE-22394
+ *
  * Helper class for implementing {@link FanOutOneBlockAsyncDFSOutput}.
  */
 @InterfaceAudience.Private

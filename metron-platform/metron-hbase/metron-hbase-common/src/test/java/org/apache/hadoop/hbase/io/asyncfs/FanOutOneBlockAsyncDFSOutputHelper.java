@@ -112,6 +112,8 @@ import org.apache.hbase.thirdparty.io.netty.util.concurrent.FutureListener;
 import org.apache.hbase.thirdparty.io.netty.util.concurrent.Promise;
 
 /**
+ * NOTE - this class is copied from HBase to get around https://issues.apache.org/jira/browse/HBASE-22394
+ *
  * Helper class for implementing {@link FanOutOneBlockAsyncDFSOutput}.
  */
 @InterfaceAudience.Private

@@ -100,6 +100,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * NOTE - this class is copied from HBase to get around https://issues.apache.org/jira/browse/HBASE-22394
+ *
  * Helper class for adding sasl support for {@link FanOutOneBlockAsyncDFSOutput}.
  */
 @InterfaceAudience.Private
