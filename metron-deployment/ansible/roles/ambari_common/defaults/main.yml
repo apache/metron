@@ -17,6 +17,5 @@
 ---
 hadoop_logrotate_frequency: daily
 hadoop_logrotate_retention: 30
-centos6_ambari_install_url: http://public-repo-1.hortonworks.com/ambari/centos6/2.x/updates/2.6.1.0/ambari.repo
 centos7_ambari_install_url: http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.6.1.0/ambari.repo
 ubuntu_ambari_repo: http://public-repo-1.hortonworks.com/ambari/ubuntu14/2.x/updates/2.6.1.0

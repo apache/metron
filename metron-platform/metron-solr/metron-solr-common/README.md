@@ -75,7 +75,7 @@ via the global config.  The following settings are possible as part of the globa
 
 ## Installing
 
-Solr is installed in the [full dev environment for CentOS](../../metron-deployment/development/centos6) by default but is not started initially.  Navigate to `$METRON_HOME/bin` 
+Solr is installed in the [full dev environment for CentOS](../../metron-deployment/development/centos7) by default but is not started initially.  Navigate to `$METRON_HOME/bin` 
 and start Solr Cloud by running `start_solr.sh`.  
 
 Metron's Ambari MPack installs several scripts in `$METRON_HOME/bin` that can be used to manage Solr.  A script is also provided for installing Solr Cloud outside of full dev.
@@ -88,7 +88,7 @@ The script performs the following tasks
 
 Note: for details on setting up Solr Cloud in production mode, see https://lucene.apache.org/solr/guide/7_4/taking-solr-to-production.html
 
-Navigate to `$METRON_HOME/bin` and spin up Solr Cloud by running `install_solr.sh`.  After running this script, 
+Navigate to `$METRON_HOME/bin` and spin up Solr Cloud by running `install_solr.sh`.  After running this script,
 Elasticsearch and Kibana will have been stopped and you should now have an instance of Solr Cloud up and running at http://localhost:8983/solr/#/~cloud.  This manner of starting Solr
 will also spin up an embedded Zookeeper instance at port 9983. More information can be found [here](https://lucene.apache.org/solr/guide/7_4/getting-started-with-solrcloud.html)
 
@@ -106,7 +106,7 @@ Elasticsearch is the real-time store used by default in Metron.  Solr can be ena
 
 This will automatically create collections for the schemas shipped with Metron:
 
-* bro 
+* bro
 * snort
 * yaf
 * error (used internally by Metron)
@@ -144,7 +144,7 @@ Convenience scripts are provided with Metron to create and delete collections.  
 # Path to the zookeeper node used by Solr
 export ZOOKEEPER=node1:9983
 # Set to true if Kerberos is enabled
-export SECURITY_ENABLED=true 
+export SECURITY_ENABLED=true
 ```
 The scripts can then be called directly with the collection name as the first argument .  For example, to create the bro collection:
 ```

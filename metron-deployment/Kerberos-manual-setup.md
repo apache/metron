@@ -36,7 +36,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 Setup
 -----
 
-1. Deploy the [development environment.](development/centos6/README.md).
+1. Deploy the [development environment.](development/centos7/README.md).
 
 1. Export the following environment variables.  These need to be set for the remainder of the instructions. Replace `node1` with the appropriate hosts, if you are running Metron anywhere other than Vagrant.
 
@@ -88,12 +88,12 @@ Setup a KDC
    ```
    # Configuration snippets may be placed in this directory as well
    includedir /etc/krb5.conf.d/
-   
+
    [logging]
     default = FILE:/var/log/krb5libs.log
     kdc = FILE:/var/log/krb5kdc.log
     admin_server = FILE:/var/log/kadmind.log
-   
+
    [libdefaults]
     dns_lookup_realm = false
     ticket_lifetime = 24h
@@ -103,13 +103,13 @@ Setup a KDC
     pkinit_anchors = /etc/pki/tls/certs/ca-bundle.crt
     default_realm = EXAMPLE.COM
     default_ccache_name = KEYRING:persistent:%{uid}
-   
+
    [realms]
     EXAMPLE.COM = {
      kdc = node1
      admin_server = node1
     }
-   
+
    [domain_realm]
     .example.com = EXAMPLE.COM
     example.com = EXAMPLE.COM
@@ -706,5 +706,3 @@ Execute it like the following example:
 su - metron
 python $METRON_HOME/bin/tgt_renew.py node1:8744 metron
 ```
-
-

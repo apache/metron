@@ -19,7 +19,7 @@ limitations under the License.
 
 Metron Docker is a [Docker Compose](https://docs.docker.com/compose/overview/) application that is intended only for development and integration testing of Metron.  These images can quickly spin-up the underlying components on which Apache Metron runs.
 
-None of the core Metron components are setup or launched automatically with these Docker images.  You will need to manually setup and start the Metron components that you require.  You should not expect to see telemetry being parsed, enriched, or indexed.  If you are looking to try-out, experiment or demo Metron capabilities on a single node, then the [Vagrant-driven VM](../../metron-deployment/development/centos6) is what you need.  Use this instead of Vagrant when:
+None of the core Metron components are setup or launched automatically with these Docker images.  You will need to manually setup and start the Metron components that you require.  You should not expect to see telemetry being parsed, enriched, or indexed.  If you are looking to try-out, experiment or demo Metron capabilities on a single node, then the [Vagrant-driven VM](../../metron-deployment/development/centos7) is what you need.  Use this instead of Vagrant when:
 
   - You want an environment that can be built and spun up quickly
   - You need to frequently rebuild and restart services

@@ -19,7 +19,7 @@ limitations under the License.
 
 This directory contains environments useful for Metron developers.  These environments are not intended for proof-of-concept, testing, or production use.  These are extremely resource constrained and cannot support anything beyond the most basic work loads.
 
-* Metron running on CentOS 6
+* Metron running on CentOS 7
 * Metron running on Ubuntu 14
 * Fastcapa
 
@@ -51,7 +51,7 @@ To setup this up, start full dev.
   * Bind User = uid=admin,ou=people,dc=hadoop,dc=apache,dc=org
   * LDAP Truststore is empty
   * LDAP Truststore Password is empty
-  
+
 * In the Knox configuration, go to "Advanced users-ldif". We have a custom ldif file "knox-demo-ldap.ldif" in "metron-deployment/development" that contains a customized variant of the users and groups defined here. Replace the default ldif configuration with the contents of "knox-demo-ldap.ldif"
 * Start the Demo LDAP (In Knox, "Service Actions -> Start Demo LDAP)
 * In Metron's configs, we're going to make two changes

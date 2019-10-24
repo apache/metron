@@ -1099,7 +1099,7 @@ The metron-rest application will be available at http://localhost:8080/swagger-u
 
 ### Full Dev
 
-Start the [development environment](../../metron-deployment/development/centos6).  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+Start the [development environment](../../metron-deployment/development/centos7).  Build the metron-rest module and start it with the Spring Boot Maven plugin:
 ```
 mvn clean package
 mvn spring-boot:run -Drun.profiles=vagrant,dev
@@ -1138,7 +1138,7 @@ The following instructions are for Intellij.
 ![debug configuration](readme-images/debug-configuration.png)
 1. Using the Maven Projects tab, set check the `local-dev` profile in the `Profiles` section:
 ![debug maven profile](readme-images/debug-maven-profile.png)
-1. Start the `REST` Configuration in Debug mode using the Debug button in the top right or the `Run > Debug 'REST'` menu item 
+1. Start the `REST` Configuration in Debug mode using the Debug button in the top right or the `Run > Debug 'REST'` menu item
 
 The REST application should now available at `http://localhost:8080/swagger-ui.html`.
 
