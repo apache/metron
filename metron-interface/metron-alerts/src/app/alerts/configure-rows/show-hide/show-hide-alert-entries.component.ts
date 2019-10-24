@@ -26,11 +26,17 @@ export interface ShowHideStateModel {
 @Component({
   selector: 'app-show-hide-alert-entries',
   template: `
+    <div *ngIf="!isAvailable()" class="warning">Hide toggles are not available in manual filtering mode.</div>
     <app-switch [text]="'HIDE Resolved Alerts'" data-qe-id="hideResolvedAlertsToggle" [selected]="showHideService.hideResolved"
-      (onChange)="onVisibilityChanged('RESOLVE', $event)"> </app-switch>
+      (onChange)="onVisibilityChanged('RESOLVE', $event)"
+      [disabled]="!isAvailable()"> </app-switch>
     <app-switch [text]="'HIDE Dismissed Alerts'" data-qe-id="hideDismissedAlertsToggle" [selected]="showHideService.hideDismissed"
-      (onChange)="onVisibilityChanged('DISMISS', $event)"> </app-switch>
-  `
+      (onChange)="onVisibilityChanged('DISMISS', $event)"
+      [disabled]="!isAvailable()"> </app-switch>
+  `,
+  styles: [
+    '.warning { font-size: 0.8rem; padding: 0 0.4rem; color: darkorange; }',
+  ]
 })
 export class ShowHideAlertEntriesComponent {
 
@@ -44,6 +50,10 @@ export class ShowHideAlertEntriesComponent {
       hideResolved: this.showHideService.hideResolved,
       hideDismissed: this.showHideService.hideDismissed,
     });
+  }
+
+  isAvailable() {
+    return this.showHideService.isAvailable();
   }
 
 }
