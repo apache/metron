@@ -15,7 +15,7 @@
 #  limitations under the License.
 #
 
-FROM centos:centos6
+FROM centos:centos7
 
 RUN yum install -y \
         tar \
