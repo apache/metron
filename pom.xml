@@ -87,8 +87,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- base project versions -->
-        <base_storm_version>1.0.1</base_storm_version>
-        <base_flux_version>1.0.1</base_flux_version>
         <base_kafka_version>0.10.0</base_kafka_version>
         <base_hadoop_version>2.7.1</base_hadoop_version>
         <base_flume_version>1.5.2</base_flume_version>
@@ -102,7 +100,6 @@
         <global_hbase_guava_version>12.0</global_hbase_guava_version>
         <global_storm_version>1.0.3</global_storm_version>
         <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
-        <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
         <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
         <global_flume_version>${base_flume_version}</global_flume_version>
@@ -165,6 +162,7 @@
                 <global_hbase_version>1.1.1</global_hbase_version>
                 <global_hbase_guava_version>12.0</global_hbase_guava_version>
                 <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
+                <base_storm_version>1.0.1</base_storm_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
                 <global_zeppelin_version>0.7.3</global_zeppelin_version>
