@@ -17,22 +17,6 @@
  */
 package org.apache.metron.integration.components;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -54,6 +38,19 @@ import org.apache.zookeeper.data.Stat;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Pattern;
 
 public class FluxTopologyComponent implements InMemoryComponent {
 
@@ -249,7 +246,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
   }
 
   private void startTopology(String topologyName, File topologyLoc, File templateFile, Properties properties) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, TException, NoSuchFieldException{
-    TopologyDef topologyDef = loadYaml(topologyName, topologyLoc, templateFile, properties);
+    TopologyDef topologyDef = loadYaml(topologyLoc, templateFile, properties);
     Config conf = FluxBuilder.buildConfig(topologyDef);
     ExecutionContext context = new ExecutionContext(topologyDef, conf);
     StormTopology topology = FluxBuilder.buildTopology(context);
@@ -267,26 +264,31 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
   }
 
-  private static TopologyDef loadYaml(String topologyName, File yamlFile, File templateFile, Properties properties) throws IOException {
-    File tmpFile = File.createTempFile(topologyName, "props");
-    tmpFile.deleteOnExit();
+  /**
+   * Creates a Storm topology.
+   * @param yamlFile The Flux file defining the topology.
+   * @param templateFile The template file used by the Mpack to create the topology's properties. For example, 'enrichment.properties.j2'.
+   * @param properties The topology properties.
+   * @return The Storm topology.
+   * @throws IOException
+   */
+  private static TopologyDef loadYaml(File yamlFile, File templateFile, Properties properties) throws IOException {
+    Properties topologyProperties;
     if (templateFile != null) {
-      try (Writer propWriter = new OutputStreamWriter(new FileOutputStream(tmpFile), StandardCharsets.UTF_8)){
-        String templateContents = FileUtils.readFileToString(templateFile);
-        for(Map.Entry prop: properties.entrySet()) {
-          String replacePattern = String.format("{{%s}}", prop.getKey());
-          templateContents = templateContents.replaceAll(Pattern.quote(replacePattern), (String) prop.getValue());
-        }
-        propWriter.write(templateContents);
-        propWriter.flush();
-        return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
+      // if there is a template file like 'enrichment.properties.j2'
+      String templateContents = FileUtils.readFileToString(templateFile);
+      for(Map.Entry prop: properties.entrySet()) {
+        String replacePattern = String.format("{{%s}}", prop.getKey());
+        templateContents = templateContents.replaceAll(Pattern.quote(replacePattern), (String) prop.getValue());
       }
+      topologyProperties = new Properties();
+      topologyProperties.load(new StringReader(templateContents));
+
     } else {
-      try (Writer propWriter = new OutputStreamWriter(new FileOutputStream(tmpFile), StandardCharsets.UTF_8)){
-        properties.store(propWriter, topologyName + " properties");
-        return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
-      }
+      // otherwise, just use the properties that were passed in directly
+      topologyProperties = new Properties(properties);
     }
 
+    return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, topologyProperties, false);
   }
 }
