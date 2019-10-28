@@ -275,7 +275,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
   private static TopologyDef loadYaml(File yamlFile, File templateFile, Properties properties) throws IOException {
     Properties topologyProperties;
     if (templateFile != null) {
-      // if there is a template file like 'enrichment.properties.j2'
+      // use the MPack template file (like 'enrichment.properties.j2') to generate the topology properties
       String templateContents = FileUtils.readFileToString(templateFile);
       for(Map.Entry prop: properties.entrySet()) {
         String replacePattern = String.format("{{%s}}", prop.getKey());
@@ -283,13 +283,11 @@ public class FluxTopologyComponent implements InMemoryComponent {
       }
       topologyProperties = new Properties();
       topologyProperties.load(new StringReader(templateContents));
+      return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, topologyProperties, false);
 
     } else {
-      // otherwise, just use the properties that were passed in directly
-      topologyProperties = new Properties();
-      topologyProperties.putAll(properties);
+      // otherwise, just use the properties directly
+      return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, properties, false);
     }
-
-    return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, topologyProperties, false);
   }
 }
