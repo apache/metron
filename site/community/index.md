@@ -60,7 +60,7 @@ title: Apache Metron Community
     <tr>
       <td style="text-align: left">Mark Bittmann</td> <td style="text-align: left">mbittmann</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
-      <td style="text-align: left">Brad Kolarov</td> <td style="text-align: left">billie</td> <td style="text-align: left">PMC</td> </tr>
+      <td style="text-align: left">Brad Kolarov</td> <td style="text-align: left">bjkolly</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
       <td style="text-align: left">Dave Hirko</td> <td style="text-align: left">dbhirko</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
