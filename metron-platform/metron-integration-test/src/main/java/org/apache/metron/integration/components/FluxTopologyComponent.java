@@ -286,7 +286,8 @@ public class FluxTopologyComponent implements InMemoryComponent {
 
     } else {
       // otherwise, just use the properties that were passed in directly
-      topologyProperties = new Properties(properties);
+      topologyProperties = new Properties();
+      topologyProperties.putAll(properties);
     }
 
     return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, topologyProperties, false);
