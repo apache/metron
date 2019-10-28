@@ -56,7 +56,7 @@
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>flux-core</artifactId>
-            <version>${global_storm_version}</version>
+            <version>${global_flux_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>

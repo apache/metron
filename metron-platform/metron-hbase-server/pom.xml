@@ -306,7 +306,7 @@
                                         <!--
                                           Because we depend on other shaded jars that include dependencies like SLF4J, we have to exclude them here with the fine-grained exclusion filters.
                                           Using the typical artifact exclusions will not work because it's not the original matching artifact that's introducing the dependency - it's the
-                                          shaded jar from upstream. Examples include metron-statistics.
+                                          shaded jar from upstream. Examples include: metron-statistics and metron-storm-kafka-override.
                                         -->
                                         <!-- Handle excluding all occurrences of SLF4 -->
                                         <exclude>org/slf4j/**</exclude>
