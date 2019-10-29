@@ -25,6 +25,7 @@ import { POLLING_DEFAULT_STATE } from 'app/utils/constants';
 import { RestError } from 'app/model/rest-error';
 import { DialogType } from 'app/shared/metron-dialog/metron-dialog.component';
 import { DialogService } from 'app/service/dialog.service';
+import { RefreshInterval } from '../../configure-rows/configure-rows-enums';
 
 interface AutoPollingStateModel {
   isActive: boolean,
@@ -36,7 +37,7 @@ export class AutoPollingService {
   data = new Subject<SearchResponse>();
 
   private isCongestion = false;
-  private refreshInterval = 10;
+  private refreshInterval = RefreshInterval.TEN_MIN;
   private isPollingActive = POLLING_DEFAULT_STATE;
   private isPending = false;
   private isPollingSuppressed = false;
