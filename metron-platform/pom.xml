@@ -58,7 +58,6 @@
 		<module>elasticsearch-shaded</module>
 		<module>metron-elasticsearch</module>
 		<module>metron-storm-kafka</module>
-		<module>metron-storm-kafka-override</module>
 		<module>metron-zookeeper</module>
     <module>metron-parsing</module>
     <module>metron-hbase-server</module>
