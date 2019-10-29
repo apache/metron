@@ -477,6 +477,8 @@ Options:
 
 A bash script is provided to assist in performing backup and restore operations for Metron Ambari configurations and configurations stored in Zookeeper.
 
+If your Ambari Server is installed on a separate host from Metron, you may need to scp the upgrade_helper.sh script to the Ambari host along with the file `/etc/default/metron`
+
 ```
 # $METRON_HOME/bin/upgrade_helper.sh -h
 5 args required
