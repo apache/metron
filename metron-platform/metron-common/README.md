@@ -25,6 +25,7 @@ limitations under the License.
 * [Topology Errors](topology-errors)
 * [Performance Logging](#performance-logging)
 * [Metron Debugging](#metron-debugging)
+* [Metron Upgrade Helper](#metron-upgrade-helper)
 
 # Stellar Language
 
@@ -470,4 +471,27 @@ Options:
                         Metron home directory
   -p DIRECTORY, --hdp_home=DIRECTORY
                         HDP home directory
+```
+
+# Metron Upgrade Helper
+
+A bash script is provided to assist in performing backup and restore operations for Metron Ambari configurations and configurations stored in Zookeeper.
+
+```
+# $METRON_HOME/bin/upgrade_helper.sh -h
+5 args required
+Usage:
+  mode: [backup|restore] - backup will save configs to a directory named "metron-backup". Restore will take those same configs and restore them to Ambari.
+  ambari_address: host and port for Ambari server, e.g. "node1:8080"
+  username: Ambari admin username
+  password: Ambari admin user password
+  cluster_name: hadoop cluster name. Can be found in Ambari under "Admin > Manage Ambari"
+```
+
+```
+Examples:
+# backup
+$METRON_HOME/bin/upgrade_helper.sh backup node1:8080 admin admin metron_cluster
+# restore
+$METRON_HOME/bin/upgrade_helper.sh restore node1:8080 admin admin metron_cluster
 ```
