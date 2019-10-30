@@ -98,8 +98,6 @@
         <global_metrics_version>3.0.2</global_metrics_version>
         <global_junit_version>4.12</global_junit_version>
         <global_guava_version>17.0</global_guava_version>
-        <global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
-        <global_opencsv_version>3.7</global_opencsv_version>
         <global_java_version>1.8</global_java_version>
         <global_mockito_version>1.10.19</global_mockito_version>
         <global_powermock_version>1.7.0</global_powermock_version>

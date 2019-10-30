@@ -28,7 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commons.config.version>1.10</commons.config.version>
-        <!-- the version of Guava used by storm-kafka-clientis < ${global_guava_version}-->
+        <!-- the version of Guava used by storm-kafka-client is < ${global_guava_version}-->
         <guava_version>16.0.1</guava_version>
     </properties>
     <dependencies>
