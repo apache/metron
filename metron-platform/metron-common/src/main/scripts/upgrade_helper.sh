@@ -25,6 +25,7 @@ if [ "$#" -ne 5 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
     echo "  username: Ambari admin username"
     echo "  password: Ambari admin user password"
     echo "  cluster_name: hadoop cluster name. Can be found in Ambari under \"Admin > Manage Ambari\""
+    echo "  directory_base: (Optional) root directory location where the backup will be written to and read from. Default is the executing directory, \".\", with backup data stored to a subdirectory named \"metron-backup\""
     exit 1
 fi
 
@@ -33,12 +34,14 @@ ambari_address=$2
 username=$3
 password=$4
 cluster_name=$5
+# optional base directory
+outdir_base=${6:-.}
 
 if [ -f "/etc/default/metron" ]; then
   source /etc/default/metron
 fi
 
-OUT_DIR=metron-backup
+OUT_DIR=$outdir_base/metron-backup
 AMBARI_CONFIG_DIR=$OUT_DIR/ambari-configs
 ZK_CONFIG_DIR=$OUT_DIR/zk-configs
 
