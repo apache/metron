@@ -237,6 +237,12 @@
 <!--            <version>${global_junit_version}</version>-->
 <!--        </dependency>-->
         <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${global_junit_jupiter_version}</version>
@@ -246,7 +252,7 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${global_junit_jupiter_version}</version>
-<!--            <scope>test</scope>-->
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -256,7 +262,8 @@
         <dependency>
           <groupId>org.mock-server</groupId>
           <artifactId>mockserver-netty</artifactId>
-          <version>3.10.8</version>
+<!--          <version>3.10.8</version>-->
+          <version>5.6.1</version>
           <scope>test</scope>
           <exclusions>
             <exclusion>
@@ -268,7 +275,8 @@
         <dependency>
           <groupId>org.mock-server</groupId>
           <artifactId>mockserver-client-java</artifactId>
-          <version>3.10.8</version>
+<!--          <version>3.10.8</version>-->
+          <version>5.6.1</version>
           <scope>test</scope>
           <exclusions>
             <exclusion>
@@ -276,6 +284,19 @@
               <artifactId>logback-classic</artifactId>
             </exclusion>
           </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-junit-jupiter</artifactId>
+            <!--          <version>3.10.8</version>-->
+            <version>5.6.2-SNAPSHOT</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <build>

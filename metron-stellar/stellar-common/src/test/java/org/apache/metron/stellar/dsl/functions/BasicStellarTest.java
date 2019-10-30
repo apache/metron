@@ -26,8 +26,8 @@ import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.apache.metron.stellar.dsl.*;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
-import org.junit.Ignore;
 import org.junit.Rule;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
@@ -772,7 +772,7 @@ public class BasicStellarTest {
     assertEquals("/my/path", run(query, ImmutableMap.of("foo", "http://www.google.co.uk/my/path")));
   }
 
-  @Ignore //until field transformations avail to Stellar
+  @Disabled //until field transformations avail to Stellar
   @Test
   public void testProtocolToName() {
     String query = "PROTOCOL_TO_NAME(protocol)";

@@ -26,6 +26,7 @@ import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
 import org.mockserver.client.server.MockServerClient;
@@ -46,6 +47,7 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 @EnableRuleMigrationSupport
+@ExtendWith(MockServerExtension.class)
 public class RestFunctionsIntegrationTest {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
