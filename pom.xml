@@ -167,11 +167,6 @@
                 <artifactId>mockito-core</artifactId>
                 <version>${global_mockito_version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.storm</groupId>
-                <artifactId>storm-kafka</artifactId>
-                <version>${global_storm_version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
