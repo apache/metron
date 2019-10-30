@@ -300,11 +300,11 @@ If you want to make sure you're on the 0.4.0 release branch, do:
 - Build Metron with HDP 2.5 profile:
 ```
 # cd metron
-# mvn clean package -DskipTests -T 2C -P HDP-2.5.0.0,mpack
+# mvn clean package -DskipTests -T 2C -P HDP-3.1,mpack
 # cd metron-deployment/packaging/docker/rpm-docker
-# mvn clean install -DskipTests -PHDP-2.5.0.0
+# mvn clean install -DskipTests -PHDP-3.1
 ```
-If for some reason, the rpm-docker fails with the message "/bin/bash: ./build.sh: Permission denied", try disabling selinux ("setenforce 0") and run "mvn clean install -DskipTests -PHDP-2.5.0.0" again.
+If for some reason, the rpm-docker fails with the message "/bin/bash: ./build.sh: Permission denied", try disabling selinux ("setenforce 0") and run "mvn clean install -DskipTests -PHDP-3.1" again.
 
 - On all nodes, create a localrepo directory and copy the RPMs from Ambari node there:
 ```
@@ -381,7 +381,7 @@ Where 10.10.10.1, 10.10.10.2 and 10.10.10.3 are the IPs of your nodes and node1,
 # yum update -y
 ```
 
-- Check that it was added: 
+- Check that it was added:
 ```
 # yum repolist | grep ambari
 Updates-ambari-2.4.2.0   ambari-2.4.2.0 - Updates                             12
@@ -398,7 +398,7 @@ Updates-ambari-2.4.2.0   ambari-2.4.2.0 - Updates                             12
 # ambari-server install-mpack --mpack=/root/metron/metron-deployment/packaging/ambari/metron-mpack/target/metron_mpack-0.4.0.0.tar.gz --verbose
 ```
 
-- Start Ambari: 
+- Start Ambari:
 ```
 # ambari-server start
 ```
@@ -502,14 +502,14 @@ NameNode | Pig Client | Tez Client
 NodeManager | ResourceManager | YARN Client
 Pig Client | SNameNode | ZooKeeper Client
 Slider Client | Slider Client | ZooKeeper Server
-Spark Client | Spark Client | 
-Spark History Server | Supervisor | 
+Spark Client | Spark Client |
+Spark History Server | Supervisor |
 Storm UI Server | Tez Client
 Supervisor | WebHCat Server
 Tez Client | YARN Client
 YARN Client | ZooKeeper Client
 Zeppelin Notebook | ZooKeeper Server
-ZooKeeper Client | 
+ZooKeeper Client |
 ZooKeeper Server |
 
 - Install everything. Metron REST will probably not work as we still need to add a user and the database to MySQL.
@@ -530,7 +530,7 @@ For example:
 > GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'localhost';
 > quit
 Bye
-# 
+#
 ```
 
 Add the Metron REST username and password to the metronrest database:
