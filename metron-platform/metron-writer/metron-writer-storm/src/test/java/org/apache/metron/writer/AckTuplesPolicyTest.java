@@ -19,15 +19,14 @@ package org.apache.metron.writer;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -37,14 +36,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 public class AckTuplesPolicyTest {
 
@@ -103,8 +96,8 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    Assert.assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
-    Assert.assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
             new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM),
@@ -156,8 +149,8 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    Assert.assertEquals(2, ackTuplesPolicy.getTupleMessageMap().size());
-    Assert.assertEquals(1, ackTuplesPolicy.getTupleErrorMap().size());
+    assertEquals(2, ackTuplesPolicy.getTupleMessageMap().size());
+    assertEquals(1, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(0)).ack(any());
     verify(collector, times(0)).reportError(any());
     verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM), new Values(argThat(new MetronErrorJSONMatcher(expectedError1.getJSONObject()))));
@@ -168,8 +161,8 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    Assert.assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
-    Assert.assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleErrorMap().size());
     verify(collector, times(1)).ack(tuple1);
     verify(collector, times(1)).ack(tuple2);
     verify(collector, times(1)).reportError(e1);
@@ -190,7 +183,7 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    Assert.assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
     verify(collector, times(1)).ack(tuple1);
     verify(collector, times(1)).ack(tuple2);
     verifyNoMoreInteractions(collector);
@@ -212,7 +205,7 @@ public class AckTuplesPolicyTest {
 
     ackTuplesPolicy.onFlush(sensorType, response);
 
-    Assert.assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
+    assertEquals(0, ackTuplesPolicy.getTupleMessageMap().size());
     verify(collector, times(1)).ack(tuple1);
     verifyNoMoreInteractions(collector);
   }

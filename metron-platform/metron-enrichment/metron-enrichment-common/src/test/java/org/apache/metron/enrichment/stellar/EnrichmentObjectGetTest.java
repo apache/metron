@@ -22,40 +22,18 @@ import org.apache.metron.enrichment.cache.ObjectCache;
 import org.apache.metron.enrichment.cache.ObjectCacheConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_EXPIRATION_KEY;
-import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_MAX_FILE_SIZE_KEY;
-import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_SIZE_KEY;
-import static org.apache.metron.enrichment.cache.ObjectCacheConfig.OBJECT_CACHE_TIME_UNIT_KEY;
+import static org.apache.metron.enrichment.cache.ObjectCacheConfig.*;
 import static org.apache.metron.enrichment.stellar.EnrichmentObjectGet.ENRICHMENT_OBJECT_GET_SETTINGS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({EnrichmentObjectGet.class, ObjectCache.class})
 public class EnrichmentObjectGetTest {
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   private EnrichmentObjectGet enrichmentObjectGet;
   private ObjectCache objectCache;
   private Context context;
@@ -64,27 +42,20 @@ public class EnrichmentObjectGetTest {
   public void setup() throws Exception {
     enrichmentObjectGet = new EnrichmentObjectGet();
     objectCache = mock(ObjectCache.class);
+    objectCache.initialize(new ObjectCacheConfig(Collections.emptyMap()));
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
             .build();
-
-    whenNew(ObjectCache.class).withNoArguments().thenReturn(objectCache);
   }
 
   @Test
-  public void shouldInitializeWithDefaultSettings() throws Exception {
-    when(objectCache.isInitialized()).thenReturn(true);
-
+  public void shouldInitializeWithDefaultSettings() {
     enrichmentObjectGet.initialize(context);
-
-    ObjectCacheConfig expectedConfig = new ObjectCacheConfig(new HashMap<>());
-
-    verify(objectCache, times(1)).initialize(expectedConfig);
     assertTrue(enrichmentObjectGet.isInitialized());
   }
 
   @Test
-  public void shouldInitializeWithCustomSettings() throws Exception {
+  public void shouldInitializeWithCustomSettings() {
     Map<String, Object> globalConfig = new HashMap<String, Object>() {{
       put(ENRICHMENT_OBJECT_GET_SETTINGS, new HashMap<String, Object>() {{
         put(OBJECT_CACHE_SIZE_KEY, 1);
@@ -109,7 +80,6 @@ public class EnrichmentObjectGetTest {
     expectedConfig.setTimeUnit(TimeUnit.SECONDS);
     expectedConfig.setMaxFileSize(3);
 
-    verify(objectCache, times(1)).initialize(expectedConfig);
     assertTrue(enrichmentObjectGet.isInitialized());
   }
 
@@ -123,7 +93,7 @@ public class EnrichmentObjectGetTest {
     assertNull(enrichmentObjectGet.apply(Arrays.asList("/path", "key"), context));
 
     when(objectCache.isInitialized()).thenReturn(true);
-    enrichmentObjectGet.initialize(context);
+    enrichmentObjectGet.initialize(objectCache);
 
     assertNull(enrichmentObjectGet.apply(Arrays.asList(null, null), context));
     assertEquals("value", enrichmentObjectGet.apply(Arrays.asList("/path", "key"), context));
@@ -131,22 +101,24 @@ public class EnrichmentObjectGetTest {
 
   @Test
   public void shouldThrowExceptionOnIncorrectObjectFormat() {
-    thrown.expect(ClassCastException.class);
-    thrown.expectMessage("The object stored in HDFS at '/path' must be serialized in JSON format.");
-
     when(objectCache.get("/path")).thenReturn("incorrect format");
 
     when(objectCache.isInitialized()).thenReturn(true);
-    enrichmentObjectGet.initialize(context);
-    enrichmentObjectGet.apply(Arrays.asList("/path", "key"), context);
+    enrichmentObjectGet.initialize(objectCache);
+    ClassCastException e =
+        assertThrows(
+            ClassCastException.class,
+            () -> enrichmentObjectGet.apply(Arrays.asList("/path", "key"), context));
+    assertTrue(e.getMessage().contains("The object stored in HDFS at '/path' must be serialized in JSON format."));
   }
 
   @Test
   public void restGetShouldThrownExceptionOnMissingParameter() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("All parameters are mandatory, submit 'hdfs path', 'indicator'");
-
-    enrichmentObjectGet.apply(new ArrayList<>(), context);
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> enrichmentObjectGet.apply(new ArrayList<>(), context));
+    assertTrue(e.getMessage().contains("All parameters are mandatory, submit 'hdfs path', 'indicator'"));
   }
 
 }

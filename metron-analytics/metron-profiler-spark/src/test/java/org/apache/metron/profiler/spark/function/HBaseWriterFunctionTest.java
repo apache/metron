@@ -25,7 +25,6 @@ import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.spark.ProfileMeasurementAdapter;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_COLUMN_FAMILY;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HBaseWriterFunctionTest {
 
@@ -72,8 +72,8 @@ public class HBaseWriterFunctionTest {
 
     // validate the result
     List<Integer> counts = IteratorUtils.toList(results);
-    Assert.assertEquals(1, counts.size());
-    Assert.assertEquals(1, counts.get(0).intValue());
+    assertEquals(1, counts.size());
+    assertEquals(1, counts.get(0).intValue());
   }
 
   @Test
@@ -96,8 +96,8 @@ public class HBaseWriterFunctionTest {
 
     // validate the result
     List<Integer> counts = IteratorUtils.toList(results);
-    Assert.assertEquals(1, counts.size());
-    Assert.assertEquals(10, counts.get(0).intValue());
+    assertEquals(1, counts.size());
+    assertEquals(10, counts.get(0).intValue());
   }
 
   @Test
@@ -115,8 +115,8 @@ public class HBaseWriterFunctionTest {
 
     // validate the result
     List<Integer> counts = IteratorUtils.toList(results);
-    Assert.assertEquals(1, counts.size());
-    Assert.assertEquals(0, counts.get(0).intValue());
+    assertEquals(1, counts.size());
+    assertEquals(0, counts.get(0).intValue());
   }
 
   /**

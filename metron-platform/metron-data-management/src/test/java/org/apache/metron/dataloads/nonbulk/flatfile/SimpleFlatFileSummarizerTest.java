@@ -20,7 +20,6 @@ package org.apache.metron.dataloads.nonbulk.flatfile;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
@@ -34,14 +33,17 @@ import org.apache.metron.dataloads.nonbulk.flatfile.location.RawLocation;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.Writer;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SimpleFlatFileSummarizerTest {
   /**
@@ -138,11 +140,11 @@ public class SimpleFlatFileSummarizerTest {
     String[] otherArgs = new GenericOptionsParser(config, argv).getRemainingArgs();
 
     CommandLine cli = SummarizeOptions.parse(new PosixParser(), otherArgs);
-    Assert.assertEquals("extractor.json", SummarizeOptions.EXTRACTOR_CONFIG.get(cli).trim());
-    Assert.assertEquals("input.csv", SummarizeOptions.INPUT.get(cli).trim());
-    Assert.assertEquals("log4j", SummarizeOptions.LOG4J_PROPERTIES.get(cli).trim());
-    Assert.assertEquals("2", SummarizeOptions.NUM_THREADS.get(cli).trim());
-    Assert.assertEquals("128", SummarizeOptions.BATCH_SIZE.get(cli).trim());
+    assertEquals("extractor.json", SummarizeOptions.EXTRACTOR_CONFIG.get(cli).trim());
+    assertEquals("input.csv", SummarizeOptions.INPUT.get(cli).trim());
+    assertEquals("log4j", SummarizeOptions.LOG4J_PROPERTIES.get(cli).trim());
+    assertEquals("2", SummarizeOptions.NUM_THREADS.get(cli).trim());
+    assertEquals("128", SummarizeOptions.BATCH_SIZE.get(cli).trim());
   }
 
   public static class InMemoryLocation implements RawLocation {
@@ -255,7 +257,7 @@ public class SimpleFlatFileSummarizerTest {
     String expr = "MAP_GET(DOMAIN_REMOVE_TLD(domain), s) > 0";
     for(String domain : domains) {
       Boolean b = (Boolean)StellarProcessorUtils.run(expr, ImmutableMap.of("s", finalObj.get(), "domain", domain));
-      Assert.assertTrue("Can't find " + domain, b);
+      assertTrue(b, "Can't find " + domain);
     }
   }
 
@@ -287,7 +289,7 @@ public class SimpleFlatFileSummarizerTest {
     String expr = "MAP_GET(DOMAIN_REMOVE_TLD(domain), s) > 0";
     for(String domain : domains) {
       Boolean b = (Boolean)StellarProcessorUtils.run(expr, ImmutableMap.of("s", finalObj.get(), "domain", domain));
-      Assert.assertTrue("Can't find " + domain, b);
+      assertTrue(b, "Can't find " + domain);
     }
   }
 

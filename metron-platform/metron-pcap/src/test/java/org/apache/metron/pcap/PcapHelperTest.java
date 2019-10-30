@@ -25,7 +25,6 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.metron.spout.pcap.Endianness;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.krakenapps.pcap.decoder.ip.Ipv4Packet;
 import org.krakenapps.pcap.decoder.tcp.TcpPacket;
@@ -41,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.common.Constants.Fields;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,7 +83,7 @@ public class PcapHelperTest {
         for(int i = 0;i < reconstitutedPacket.length;++i) {
           System.out.println((i + 1) + ". " + String.format("%02X", pcap[i]) + " = " + String.format("%02X", reconstitutedPacket[i]));
         }
-        Assert.assertArrayEquals(reconstitutedPacket, pcap);
+        assertArrayEquals(reconstitutedPacket, pcap);
       }
     }
   }
@@ -111,13 +112,13 @@ public class PcapHelperTest {
     when(packetInfo.getIpv4Packet()).thenReturn(ipv4Packet);
 
     Map<String, Object> actualFields = PcapHelper.packetToFields(packetInfo);
-    Assert.assertArrayEquals("packet bytes".getBytes(StandardCharsets.UTF_8),
+    assertArrayEquals("packet bytes".getBytes(StandardCharsets.UTF_8),
             (byte[]) actualFields.get(PcapHelper.PacketFields.PACKET_DATA.getName()));
-    Assert.assertEquals("tcp source address", actualFields.get(Fields.SRC_ADDR.getName()));
-    Assert.assertEquals(22, actualFields.get(Fields.SRC_PORT.getName()));
-    Assert.assertEquals("tcp destination address", actualFields.get(Fields.DST_ADDR.getName()));
-    Assert.assertEquals(55791, actualFields.get(Fields.DST_PORT.getName()));
-    Assert.assertEquals(6, actualFields.get(Fields.PROTOCOL.getName()));
+    assertEquals("tcp source address", actualFields.get(Fields.SRC_ADDR.getName()));
+    assertEquals(22, actualFields.get(Fields.SRC_PORT.getName()));
+    assertEquals("tcp destination address", actualFields.get(Fields.DST_ADDR.getName()));
+    assertEquals(55791, actualFields.get(Fields.DST_PORT.getName()));
+    assertEquals(6, actualFields.get(Fields.PROTOCOL.getName()));
   }
 
   @Test
@@ -143,12 +144,12 @@ public class PcapHelperTest {
     when(packetInfo.getIpv4Packet()).thenReturn(ipv4Packet);
 
     Map<String, Object> actualFields = PcapHelper.packetToFields(packetInfo);
-    Assert.assertArrayEquals("packet bytes".getBytes(StandardCharsets.UTF_8),
+    assertArrayEquals("packet bytes".getBytes(StandardCharsets.UTF_8),
             (byte[]) actualFields.get(PcapHelper.PacketFields.PACKET_DATA.getName()));
-    Assert.assertEquals("udp source address", actualFields.get(Fields.SRC_ADDR.getName()));
-    Assert.assertEquals(68, actualFields.get(Fields.SRC_PORT.getName()));
-    Assert.assertEquals("udp destination address", actualFields.get(Fields.DST_ADDR.getName()));
-    Assert.assertEquals(67, actualFields.get(Fields.DST_PORT.getName()));
-    Assert.assertEquals(17, actualFields.get(Fields.PROTOCOL.getName()));
+    assertEquals("udp source address", actualFields.get(Fields.SRC_ADDR.getName()));
+    assertEquals(68, actualFields.get(Fields.SRC_PORT.getName()));
+    assertEquals("udp destination address", actualFields.get(Fields.DST_ADDR.getName()));
+    assertEquals(67, actualFields.get(Fields.DST_PORT.getName()));
+    assertEquals(17, actualFields.get(Fields.PROTOCOL.getName()));
   }
 }

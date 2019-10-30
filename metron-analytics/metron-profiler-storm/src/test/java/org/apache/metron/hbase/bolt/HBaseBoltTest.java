@@ -27,13 +27,13 @@ import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.Constants;
 import org.apache.storm.tuple.Tuple;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -150,7 +150,7 @@ public class HBaseBoltTest extends BaseBoltTest {
 
     // validate - ensure the Puts written with the TTL
     verify(client, times(2)).addMutation(any(), any(), any(), ttlCaptor.capture());
-    Assert.assertEquals(expectedTTL, ttlCaptor.getValue());
+    assertEquals(expectedTTL, ttlCaptor.getValue());
   }
 
   private static Tuple mockTuple(String componentId, String streamId) {

@@ -20,8 +20,9 @@ package org.apache.metron.writer.hdfs;
 
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PathExtensionFileNameFormatTest {
 
@@ -35,7 +36,7 @@ public class PathExtensionFileNameFormatTest {
     FileNameFormat sourceFormat = new PathExtensionFileNameFormat(PATH_EXTENSION, delegate);
     String actual = sourceFormat.getPath();
     String expected = PATH + "/" + PATH_EXTENSION;
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -43,6 +44,6 @@ public class PathExtensionFileNameFormatTest {
     FileNameFormat delegate = new DefaultFileNameFormat().withExtension(EXTENSION).withPath(PATH);
     FileNameFormat sourceFormat = new PathExtensionFileNameFormat("", delegate);
     String actual = sourceFormat.getPath();
-    Assert.assertEquals(PATH + "/", actual);
+    assertEquals(PATH + "/", actual);
   }
 }

@@ -17,24 +17,6 @@
  */
 package org.apache.metron.parsers;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.Constants.Fields;
@@ -52,14 +34,23 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ParserRunnerImpl.class, ReflectionUtils.class, Filters.class})
@@ -192,16 +183,16 @@ public class ParserRunnerImplTest {
 
     {
       // Verify Stellar context
-      Assert.assertEquals(stellarContext, parserRunner.getStellarContext());
+      assertEquals(stellarContext, parserRunner.getStellarContext());
     }
 
     Map<String, ParserComponent> sensorToParserComponentMap = parserRunner.getSensorToParserComponentMap();
     {
       // Verify Bro parser initialization
-      Assert.assertEquals(2, sensorToParserComponentMap.size());
+      assertEquals(2, sensorToParserComponentMap.size());
       ParserComponent broComponent = sensorToParserComponentMap.get("bro");
-      Assert.assertEquals(broParser, broComponent.getMessageParser());
-      Assert.assertEquals(stellarFilter, broComponent.getFilter());
+      assertEquals(broParser, broComponent.getMessageParser());
+      assertEquals(stellarFilter, broComponent.getFilter());
       verify(broParser, times(1)).init();
       verify(broParser, times(1)).configure(broParserConfig);
       verifyNoMoreInteractions(broParser);
@@ -210,8 +201,8 @@ public class ParserRunnerImplTest {
     {
       // Verify Snort parser initialization
       ParserComponent snortComponent = sensorToParserComponentMap.get("snort");
-      Assert.assertEquals(snortParser, snortComponent.getMessageParser());
-      Assert.assertNull(snortComponent.getFilter());
+      assertEquals(snortParser, snortComponent.getMessageParser());
+      assertNull(snortComponent.getFilter());
       verify(snortParser, times(1)).init();
       verify(snortParser, times(1)).configure(snortParserConfig);
       verifyNoMoreInteractions(snortParser);
@@ -269,12 +260,12 @@ public class ParserRunnerImplTest {
     }});
     ParserRunnerResults<JSONObject> parserRunnerResults = parserRunner.execute("bro", rawMessage, parserConfigurations);
 
-    Assert.assertEquals(1, parserRunnerResults.getMessages().size());
-    Assert.assertTrue(parserRunnerResults.getMessages().contains(processedMessage));
-    Assert.assertEquals(3, parserRunnerResults.getErrors().size());
-    Assert.assertTrue(parserRunnerResults.getErrors().contains(processedError));
-    Assert.assertTrue(parserRunnerResults.getErrors().contains(expectedParseError1));
-    Assert.assertTrue(parserRunnerResults.getErrors().contains(expectedParseError2));
+    assertEquals(1, parserRunnerResults.getMessages().size());
+    assertTrue(parserRunnerResults.getMessages().contains(processedMessage));
+    assertEquals(3, parserRunnerResults.getErrors().size());
+    assertTrue(parserRunnerResults.getErrors().contains(processedError));
+    assertTrue(parserRunnerResults.getErrors().contains(expectedParseError1));
+    assertTrue(parserRunnerResults.getErrors().contains(expectedParseError2));
   }
 
   @Test
@@ -300,8 +291,8 @@ public class ParserRunnerImplTest {
             .withThrowable(masterThrowable)
             .withSensorType(Collections.singleton("bro"))
             .addRawMessage(rawMessage.getMessage());
-    Assert.assertEquals(1, parserRunnerResults.getErrors().size());
-    Assert.assertTrue(parserRunnerResults.getErrors().contains(expectedError));
+    assertEquals(1, parserRunnerResults.getErrors().size());
+    assertTrue(parserRunnerResults.getErrors().contains(expectedError));
   }
 
   /**
@@ -330,9 +321,9 @@ public class ParserRunnerImplTest {
     }});
 
     Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
-    Assert.assertTrue(processResult.isPresent());
-    Assert.assertFalse(processResult.get().isError());
-    Assert.assertEquals(expectedOutput, processResult.get().getMessage());
+    assertTrue(processResult.isPresent());
+    assertFalse(processResult.get().isError());
+    assertEquals(expectedOutput, processResult.get().getMessage());
   }
 
   /**
@@ -362,9 +353,9 @@ public class ParserRunnerImplTest {
     }});
 
     Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
-    Assert.assertTrue(processResult.isPresent());
-    Assert.assertFalse(processResult.get().isError());
-    Assert.assertEquals(expectedOutput, processResult.get().getMessage());
+    assertTrue(processResult.isPresent());
+    assertFalse(processResult.get().isError());
+    assertEquals(expectedOutput, processResult.get().getMessage());
   }
 
   @Test
@@ -398,9 +389,9 @@ public class ParserRunnerImplTest {
 
     Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
 
-    Assert.assertTrue(processResult.isPresent());
-    Assert.assertTrue(processResult.get().isError());
-    Assert.assertEquals(expectedMetronError, processResult.get().getError());
+    assertTrue(processResult.isPresent());
+    assertTrue(processResult.get().isError());
+    assertEquals(expectedMetronError, processResult.get().getError());
   }
 
   @Test
@@ -438,8 +429,8 @@ public class ParserRunnerImplTest {
 
     Optional<ParserRunnerImpl.ProcessResult> processResult = parserRunner.processMessage("bro", inputMessage, rawMessage, broParser, parserConfigurations);
 
-    Assert.assertTrue(processResult.isPresent());
-    Assert.assertTrue(processResult.get().isError());
-    Assert.assertEquals(expectedMetronError, processResult.get().getError());
+    assertTrue(processResult.isPresent());
+    assertTrue(processResult.get().isError());
+    assertEquals(expectedMetronError, processResult.get().getError());
   }
 }

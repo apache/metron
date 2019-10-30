@@ -36,35 +36,19 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.json.simple.parser.ParseException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.METAALERTS_INDEX;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_DOC;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.*;
 
 @RunWith(Parameterized.class)
 public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
@@ -231,7 +215,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
       }
     });
     // Should not have results because nested alerts shouldn't be flattened
-    Assert.assertEquals(0, searchResponse.getTotal());
+    assertDocumentEquals(0, searchResponse.getTotal());
 
     // Query against all indices. Only the single active meta alert should be returned.
     // The child alerts should be hidden.
@@ -252,8 +236,8 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     });
 
     // Nested query should match a nested alert
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("meta_active",
+    assertDocumentEquals(1, searchResponse.getTotal());
+    assertDocumentEquals("meta_active",
             searchResponse.getResults().get(0).getSource().get("guid"));
 
     // Query against all indices. The child alert has no actual attached meta alerts, and should
@@ -275,8 +259,8 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     });
 
     // Nested query should match a plain alert
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("message_2",
+    assertDocumentEquals(1, searchResponse.getTotal());
+    assertDocumentEquals("message_2",
             searchResponse.getResults().get(0).getSource().get("guid"));
   }
 

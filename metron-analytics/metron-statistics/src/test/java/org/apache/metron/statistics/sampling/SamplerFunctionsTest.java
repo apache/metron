@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SamplerFunctionsTest {
   static List<Double> sample = new ArrayList<>();
@@ -59,17 +58,17 @@ public class SamplerFunctionsTest {
   }
 
   @Test
-  public void testValidInit_default() throws Exception {
+  public void testValidInit_default() {
     String stmt = "SAMPLE_INIT()";
     Sampler s = (Sampler) StellarProcessorUtils.run(stmt, new HashMap<>());
-    Assert.assertEquals(Sampler.DEFAULT_SIZE, s.getSize());
+    assertEquals(Sampler.DEFAULT_SIZE, s.getSize());
   }
 
   @Test
-  public void testValidInit_withSize() throws Exception {
+  public void testValidInit_withSize() {
     String stmt = "SAMPLE_INIT(size)";
     Sampler s = (Sampler) StellarProcessorUtils.run(stmt, ImmutableMap.of("size", 10 ));
-    Assert.assertEquals(10, s.getSize());
+    assertEquals(10, s.getSize());
   }
 
   @Test
@@ -79,37 +78,37 @@ public class SamplerFunctionsTest {
   }
 
   @Test
-  public void testGet() throws Exception {
+  public void testGet() {
     String stmt = "SAMPLE_GET(SAMPLE_ADD(SAMPLE_INIT(size), values))";
     Iterable<? extends Object> s = (Iterable<? extends Object>) StellarProcessorUtils.run(stmt, ImmutableMap.of("size", 10, "values", sample));
-    Assert.assertEquals(10, Iterables.size(s));
+    assertEquals(10, Iterables.size(s));
     for(Object o : s) {
-      Assert.assertTrue(o instanceof Double);
-      Assert.assertTrue(sample.contains(o));
+      assertTrue(o instanceof Double);
+      assertTrue(sample.contains(o));
     }
   }
 
   @Test
-  public void testAddSingle() throws Exception {
+  public void testAddSingle() {
     String stmt = "SAMPLE_ADD(SAMPLE_INIT(size), value)";
     Sampler s = (Sampler) StellarProcessorUtils.run(stmt, ImmutableMap.of("size", 10, "value", "blah"));
-    Assert.assertEquals(10, s.getSize());
-    Assert.assertTrue(Iterables.getFirst(s.get(), null) instanceof String);
+    assertEquals(10, s.getSize());
+    assertTrue(Iterables.getFirst(s.get(), null) instanceof String);
   }
 
   @Test
-  public void testAddAll() throws Exception {
+  public void testAddAll() {
     String stmt = "SAMPLE_ADD(SAMPLE_INIT(size), value)";
     Sampler s = (Sampler) StellarProcessorUtils.run(stmt, ImmutableMap.of("size", 10, "value", sampleString));
-    Assert.assertEquals(10, s.getSize());
+    assertEquals(10, s.getSize());
     for(Object o : s.get()) {
-      Assert.assertTrue(o instanceof String);
-      Assert.assertTrue(sampleString.contains(o));
+      assertTrue(o instanceof String);
+      assertTrue(sampleString.contains(o));
     }
   }
 
   @Test
-  public void testMerge() throws Exception {
+  public void testMerge() {
     Double sampleMean= null;
     Double mergedSampleMean= null;
     {
@@ -122,12 +121,12 @@ public class SamplerFunctionsTest {
       String stmt = "STATS_MEAN(STATS_ADD(STATS_INIT(), SAMPLE_GET(SAMPLE_MERGE(samples))))";
       mergedSampleMean = (Double) StellarProcessorUtils.run(stmt, ImmutableMap.of("samples", samplers));
     }
-    Assert.assertEquals(sampleMean, mergedSampleMean, .1);
+    assertEquals(sampleMean, mergedSampleMean, .1);
     {
       //Merge the sample with a simpler sampler
       String stmt = "SAMPLE_MERGE(samples, SAMPLE_INIT(10))";
       Sampler s = (Sampler) StellarProcessorUtils.run(stmt, ImmutableMap.of("samples", samplers));
-      Assert.assertEquals(10, s.getSize());
+      assertEquals(10, s.getSize());
     }
   }
 }

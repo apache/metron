@@ -23,11 +23,12 @@ import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GroupByPeriodFunctionTest {
 
@@ -55,9 +56,9 @@ public class GroupByPeriodFunctionTest {
     String groupKey = new GroupByPeriodFunction(new Properties()).call(route);
 
     // should be able to extract the profile, entity and period from the group key
-    Assert.assertEquals("my-profile-name", GroupByPeriodFunction.profileFromKey(groupKey));
-    Assert.assertEquals(entity, GroupByPeriodFunction.entityFromKey(groupKey));
-    Assert.assertEquals(periodId, GroupByPeriodFunction.periodFromKey(groupKey));
+    assertEquals("my-profile-name", GroupByPeriodFunction.profileFromKey(groupKey));
+    assertEquals(entity, GroupByPeriodFunction.entityFromKey(groupKey));
+    assertEquals(periodId, GroupByPeriodFunction.periodFromKey(groupKey));
   }
 
 }

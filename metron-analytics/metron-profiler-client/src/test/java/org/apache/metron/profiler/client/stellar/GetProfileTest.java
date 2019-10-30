@@ -34,7 +34,6 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +41,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the GetProfile class.
@@ -179,8 +178,8 @@ public class GetProfileTest {
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
-    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
+    assertEquals(count, result.size());
+    result.forEach(actual -> assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -211,15 +210,15 @@ public class GetProfileTest {
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
+    assertEquals(count, result.size());
 
     // test the deprecated but allowed "varargs" form of groups specification
     expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), 'weekends')";
     result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
-    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
+    assertEquals(count, result.size());
+    result.forEach(actual -> assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -250,15 +249,15 @@ public class GetProfileTest {
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
+    assertEquals(count, result.size());
 
     // test the deprecated but allowed "varargs" form of groups specification
     expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), 'weekdays', 'tuesday')";
     result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
-    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
+    assertEquals(count, result.size());
+    result.forEach(actual -> assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -306,7 +305,7 @@ public class GetProfileTest {
     List<Integer> result = run(expr, List.class);
 
     // validate - there should be no values from only 4 seconds ago
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
   }
 
   /**
@@ -319,7 +318,7 @@ public class GetProfileTest {
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to fail to read any values because we didn't write any.
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
 
     // execute - read the profile values - with config_override.
     // first two override values are strings, third is deliberately a number.
@@ -334,8 +333,8 @@ public class GetProfileTest {
 
       // validate - expect to read all values from the past 4 hours (16 or 17 values depending on start time)
       // but they should all be the default value.
-      Assert.assertTrue(result.size() == 16 || result.size() == 17);
-      result.forEach(actual -> Assert.assertEquals(defaultVal, actual));
+      assertTrue(result.size() == 16 || result.size() == 17);
+      result.forEach(actual -> assertEquals(defaultVal, actual));
   }
 
   /**
@@ -362,8 +361,8 @@ public class GetProfileTest {
     // validate it is changed in significant way
     @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
-    Assert.assertEquals(PROFILER_PERIOD.get(global), periodDuration2);
-    Assert.assertNotEquals(periodDuration, periodDuration2);
+    assertEquals(PROFILER_PERIOD.get(global), periodDuration2);
+    assertNotEquals(periodDuration, periodDuration2);
 
     // execute - read the profile values - with (wrong) default global config values.
     // No error message at this time, but returns empty results list, because
@@ -373,7 +372,7 @@ public class GetProfileTest {
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to fail to read any values
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
 
     // execute - read the profile values - with config_override.
     // first two override values are strings, third is deliberately a number.
@@ -385,8 +384,8 @@ public class GetProfileTest {
     result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
-    result.forEach(actual -> Assert.assertEquals(expectedValue, actual.intValue()));
+    assertEquals(count, result.size());
+    result.forEach(actual -> assertEquals(expectedValue, actual.intValue()));
   }
 
   /**
@@ -418,8 +417,8 @@ public class GetProfileTest {
     // validate it is changed in significant way
     @SuppressWarnings("unchecked")
     Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
-    Assert.assertEquals(global.get(PROFILER_PERIOD.getKey()), Long.toString(periodDuration2));
-    Assert.assertNotEquals(periodDuration, periodDuration2);
+    assertEquals(global.get(PROFILER_PERIOD.getKey()), Long.toString(periodDuration2));
+    assertNotEquals(periodDuration, periodDuration2);
 
     // execute - read the profile values - with config_override.
     // first two override values are strings, third is deliberately a number.
@@ -433,7 +432,7 @@ public class GetProfileTest {
     List<Integer> result = run(expr, List.class);
 
     // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
+    assertEquals(count, result.size());
 
     // execute - read the profile values - with (wrong) default global config values.
     // No error message at this time, but returns empty results list, because
@@ -442,6 +441,6 @@ public class GetProfileTest {
     result = run(expr, List.class);
 
     // validate - expect to fail to read any values
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
   }
 }

@@ -31,7 +31,6 @@ import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.zookeeper.KeeperException;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -40,6 +39,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
+import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected static final String ERROR_TOPIC = "indexing_error";
@@ -133,7 +133,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       fluxComponent.submitTopology();
       kafkaComponent.writeMessages(Constants.INDEXING_TOPIC, inputMessages);
       List<Map<String, Object>> docs = cleanDocs(runner.process(getProcessor(inputMessages)));
-      Assert.assertEquals(docs.size(), inputMessages.size());
+      assertEquals(docs.size(), inputMessages.size());
       //assert that our input docs are equivalent to the output docs, converting the input docs keys based
       // on the field name converter
       assertInputDocsMatchOutputs(inputDocs, docs, getFieldNameConverter());
@@ -180,7 +180,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             buffer.append(cleanField(kv.getKey())).append(kv.getValue().toString()).append("\n");
           }
         }
-      Assert.fail(buffer.toString());
+      fail(buffer.toString());
     }else {
       for (Map<String, Object> doc : docs) {
         Map<String, Object> msg = new HashMap<>();
@@ -212,7 +212,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
         printMessage(indexDoc);
         dumpMessages("INPUT DOCS:", inputDocs);
       }
-      Assert.assertTrue(foundMatch);
+      assertTrue(foundMatch);
     }
   }
 

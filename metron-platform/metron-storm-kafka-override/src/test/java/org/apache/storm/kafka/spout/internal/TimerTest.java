@@ -17,10 +17,12 @@
  */
 package org.apache.storm.kafka.spout.internal;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TimerTest {
 
@@ -28,9 +30,9 @@ public class TimerTest {
   public void testReset() throws InterruptedException {
     Timer t = new Timer(0, 2, TimeUnit.SECONDS);
     Thread.sleep(1000);
-    Assert.assertFalse(t.isExpiredResetOnTrue());
+    assertFalse(t.isExpiredResetOnTrue());
     Thread.sleep(1000);
-    Assert.assertTrue(t.isExpiredResetOnTrue());
+    assertTrue(t.isExpiredResetOnTrue());
   }
 
 }

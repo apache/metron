@@ -23,10 +23,11 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GeoHashFunctionsTest {
   public static WGS84Point empireStatePoint = new WGS84Point(40.748570, -73.985752);
@@ -50,61 +51,61 @@ public class GeoHashFunctionsTest {
   );
 
   @Test
-  public void testToLatLong_happypath() throws Exception {
+  public void testToLatLong_happypath() {
     Map<String, Object> latLong = (Map<String, Object>)StellarProcessorUtils.run("GEOHASH_TO_LATLONG(hash)"
             , ImmutableMap.of("hash", explicitJutlandHash ) );
-    Assert.assertEquals(jutlandPoint.getLatitude(), (double)latLong.get("latitude"), 1e-3);
-    Assert.assertEquals(jutlandPoint.getLongitude(), (double)latLong.get("longitude"), 1e-3);
+    assertEquals(jutlandPoint.getLatitude(), (double)latLong.get("latitude"), 1e-3);
+    assertEquals(jutlandPoint.getLongitude(), (double)latLong.get("longitude"), 1e-3);
   }
 
   @Test
-  public void testToLatLong_degenerate() throws Exception {
+  public void testToLatLong_degenerate() {
     {
       Map<String, Object> latLong = (Map<String, Object>) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(hash)"
               , ImmutableMap.of("hash", "u"));
-      Assert.assertFalse(Double.isNaN((double) latLong.get("latitude")));
-      Assert.assertFalse(Double.isNaN((double) latLong.get("longitude")));
+      assertFalse(Double.isNaN((double) latLong.get("latitude")));
+      assertFalse(Double.isNaN((double) latLong.get("longitude")));
     }
     {
       Map<String, Object> latLong = (Map<String, Object>) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(hash)"
               , ImmutableMap.of("hash", ""));
-      Assert.assertEquals(0d, (double)latLong.get("latitude"), 1e-3);
-      Assert.assertEquals(0d, (double)latLong.get("longitude"), 1e-3);
+      assertEquals(0d, (double)latLong.get("latitude"), 1e-3);
+      assertEquals(0d, (double)latLong.get("longitude"), 1e-3);
     }
     {
       Map<String, Object> latLong = (Map<String, Object>) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(null)"
               , new HashMap<>());
-      Assert.assertNull(latLong);
+      assertNull(latLong);
     }
   }
 
   @Test
-  public void testHash_fromlatlong() throws Exception {
-    Assert.assertEquals("u4pruydqmv", StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long, 10)"
+  public void testHash_fromlatlong() {
+    assertEquals("u4pruydqmv", StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long, 10)"
                              , ImmutableMap.of("lat", jutlandPoint.getLatitude()
                                               ,"long",jutlandPoint.getLongitude()
                                               )
                              )
     );
 
-    Assert.assertEquals("u4pruydqmvpb", StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long)"
+    assertEquals("u4pruydqmvpb", StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long)"
                              , ImmutableMap.of("lat", jutlandPoint.getLatitude()
                                               ,"long",jutlandPoint.getLongitude()
                                               )
                              )
     );
-    Assert.assertEquals("u4pruydqmv".substring(0, 6), StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long, 6)"
+    assertEquals("u4pruydqmv".substring(0, 6), StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long, 6)"
                              , ImmutableMap.of("lat", jutlandPoint.getLatitude()
                                               ,"long",jutlandPoint.getLongitude()
                                               )
                              )
     );
-    Assert.assertNull(StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat)"
+    assertNull(StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat)"
                              , ImmutableMap.of("lat", jutlandPoint.getLatitude()
                                               )
                              )
     );
-    Assert.assertNull(StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long, 10)"
+    assertNull(StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long, 10)"
                              , ImmutableMap.of("lat", "blah"
                                               ,"long",jutlandPoint.getLongitude()
                                               )
@@ -113,32 +114,32 @@ public class GeoHashFunctionsTest {
   }
 
   @Test
-  public void testHash_fromLocation() throws Exception {
+  public void testHash_fromLocation() {
     Map<String, String> loc = ImmutableMap.of( "latitude", "" + jutlandPoint.getLatitude()
                                              , "longitude","" + jutlandPoint.getLongitude()
                                                                      );
-    Assert.assertEquals("u4pruydqmv", StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc, 10)"
+    assertEquals("u4pruydqmv", StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc, 10)"
                              , ImmutableMap.of("loc", loc
                                               )
                              )
     );
 
-    Assert.assertEquals("u4pruydqmv".substring(0, 6), StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc, 6)"
+    assertEquals("u4pruydqmv".substring(0, 6), StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc, 6)"
                              , ImmutableMap.of("loc", loc
                                               )
                              )
     );
 
-    Assert.assertEquals("u4pruydqmvpb", StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc)"
+    assertEquals("u4pruydqmvpb", StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc)"
                              , ImmutableMap.of("loc", loc
                                               )
                              )
     );
-    Assert.assertNull(StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc)"
+    assertNull(StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc)"
                                                , ImmutableMap.of("loc", ImmutableMap.of( "latitude", "57.64911" ))
                              )
     );
-    Assert.assertNull(StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc, 10)"
+    assertNull(StellarProcessorUtils.run("GEOHASH_FROM_LOC(loc, 10)"
                                                 , ImmutableMap.of("loc", ImmutableMap.of( "latitude", "blah"
                                                                                         , "longitude","10.40740"
                                                                      )
@@ -165,7 +166,7 @@ public class GeoHashFunctionsTest {
   }
 
   @Test
-  public void testMaxDistance_happyPath() throws Exception {
+  public void testMaxDistance_happyPath() {
     Double maxDistance = (double) StellarProcessorUtils.run("GEOHASH_MAX_DIST([empireState, mosconeCenter, jutland])"
             , ImmutableMap.of("empireState", empireStateHash
                     , "mosconeCenter", mosconeCenterHash
@@ -173,11 +174,11 @@ public class GeoHashFunctionsTest {
             )
     );
     double expectedDistance = 8528;
-    Assert.assertEquals(expectedDistance, maxDistance, 1d);
+    assertEquals(expectedDistance, maxDistance, 1d);
   }
 
   @Test
-  public void testMaxDistance_differentOrder() throws Exception {
+  public void testMaxDistance_differentOrder() {
     Double maxDistance = (double) StellarProcessorUtils.run("GEOHASH_MAX_DIST([jutland, mosconeCenter, empireState])"
             , ImmutableMap.of("empireState", empireStateHash
                     , "mosconeCenter", mosconeCenterHash
@@ -185,11 +186,11 @@ public class GeoHashFunctionsTest {
             )
     );
     double expectedDistance = 8528;
-    Assert.assertEquals(expectedDistance, maxDistance, 1d);
+    assertEquals(expectedDistance, maxDistance, 1d);
   }
 
   @Test
-  public void testMaxDistance_withNulls() throws Exception {
+  public void testMaxDistance_withNulls() {
     Double maxDistance = (double) StellarProcessorUtils.run("GEOHASH_MAX_DIST([jutland, mosconeCenter, empireState, null])"
             , ImmutableMap.of("empireState", empireStateHash
                     , "mosconeCenter", mosconeCenterHash
@@ -197,45 +198,45 @@ public class GeoHashFunctionsTest {
             )
     );
     double expectedDistance = 8528;
-    Assert.assertEquals(expectedDistance, maxDistance, 1d);
+    assertEquals(expectedDistance, maxDistance, 1d);
   }
   @Test
-  public void testMaxDistance_allSame() throws Exception {
+  public void testMaxDistance_allSame() {
     Double maxDistance = (double) StellarProcessorUtils.run("GEOHASH_MAX_DIST([jutland, jutland, jutland])"
             , ImmutableMap.of( "jutland", jutlandHash )
     );
-    Assert.assertEquals(0, maxDistance, 1e-6d);
+    assertEquals(0, maxDistance, 1e-6d);
   }
 
   @Test
-  public void testMaxDistance_emptyList() throws Exception {
+  public void testMaxDistance_emptyList() {
     Double maxDistance = (double) StellarProcessorUtils.run("GEOHASH_MAX_DIST([])" , new HashMap<>() );
-    Assert.assertTrue(Double.isNaN(maxDistance));
+    assertTrue(Double.isNaN(maxDistance));
   }
 
   @Test
-  public void testMaxDistance_nullList() throws Exception {
+  public void testMaxDistance_nullList() {
     Double maxDistance = (Double) StellarProcessorUtils.run("GEOHASH_MAX_DIST(null)" , new HashMap<>() );
-    Assert.assertNull(maxDistance);
+    assertNull(maxDistance);
   }
 
   @Test
-  public void testMaxDistance_invalidList() throws Exception {
+  public void testMaxDistance_invalidList() {
     Double maxDistance = (Double) StellarProcessorUtils.run("GEOHASH_MAX_DIST()" , new HashMap<>() );
-    Assert.assertNull(maxDistance);
+    assertNull(maxDistance);
   }
 
-  public void testDistance(Optional<String> method) throws Exception {
+  public void testDistance(Optional<String> method) {
     double expectedDistance = 4128; //in kilometers
     Map<String, Object> vars = ImmutableMap.of("empireState", empireStateHash, "mosconeCenter", mosconeCenterHash);
     //ensure that d(x, y) == d(y, x) and that both are the same as the expected (up to 1 km accuracy)
     {
       String stellarStatement = getDistStellarStatement(ImmutableList.of("mosconeCenter", "empireState"), method);
-      Assert.assertEquals(expectedDistance, (double) StellarProcessorUtils.run(stellarStatement , vars ), 1D );
+      assertEquals(expectedDistance, (double) StellarProcessorUtils.run(stellarStatement , vars ), 1D );
     }
     {
       String stellarStatement = getDistStellarStatement(ImmutableList.of("empireState", "mosconeCenter"), method);
-      Assert.assertEquals(expectedDistance, (double) StellarProcessorUtils.run(stellarStatement , vars ), 1D );
+      assertEquals(expectedDistance, (double) StellarProcessorUtils.run(stellarStatement , vars ), 1D );
     }
   }
 
@@ -252,7 +253,7 @@ public class GeoHashFunctionsTest {
   }
 
   @Test
-  public void testCentroid_List() throws Exception {
+  public void testCentroid_List() {
     //happy path
     {
       double expectedLong = -98.740087 //calculated via http://www.geomidpoint.com/ using the center of gravity or geographic midpoint.
@@ -261,8 +262,8 @@ public class GeoHashFunctionsTest {
       Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID([empireState, mosconeCenter]))"
               , ImmutableMap.of("empireState", empireStateHash, "mosconeCenter", mosconeCenterHash)
       );
-      Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
-      Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+      assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+      assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
     }
     //same point
     {
@@ -272,8 +273,8 @@ public class GeoHashFunctionsTest {
       Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID([empireState, empireState]))"
               , ImmutableMap.of("empireState", empireStateHash)
       );
-      Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
-      Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+      assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+      assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
     }
     //one point
     {
@@ -283,20 +284,20 @@ public class GeoHashFunctionsTest {
       Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID([empireState]))"
               , ImmutableMap.of("empireState", empireStateHash)
       );
-      Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
-      Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+      assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+      assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
     }
     //no points
     {
       Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID([]))"
               , new HashMap<>()
       );
-      Assert.assertNull(centroid);
+      assertNull(centroid);
     }
   }
 
   @Test
-  public void testCentroid_weighted() throws Exception {
+  public void testCentroid_weighted() {
     //happy path
     {
       double expectedLong = -98.740087 //calculated via http://www.geomidpoint.com/ using the center of gravity or geographic midpoint.
@@ -307,8 +308,8 @@ public class GeoHashFunctionsTest {
         Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
                 , ImmutableMap.of("weightedPoints", weightedPoints)
         );
-        Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
-        Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+        assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+        assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
       }
     }
     //same point
@@ -321,8 +322,8 @@ public class GeoHashFunctionsTest {
         Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
                 , ImmutableMap.of("weightedPoints", weightedPoints)
         );
-        Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
-        Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+        assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+        assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
       }
     }
     //no points
@@ -331,7 +332,7 @@ public class GeoHashFunctionsTest {
       Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
                 , ImmutableMap.of("weightedPoints", weightedPoints)
         );
-      Assert.assertNull(centroid);
+      assertNull(centroid);
     }
   }
 }

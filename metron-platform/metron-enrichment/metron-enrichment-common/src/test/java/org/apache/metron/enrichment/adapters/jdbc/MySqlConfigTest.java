@@ -17,9 +17,10 @@
  */
 package org.apache.metron.enrichment.adapters.jdbc;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MySqlConfigTest {
 
@@ -37,8 +38,8 @@ public class MySqlConfigTest {
   }
 
   @Test
-  public void testGetJdbcUrl() throws Exception {
-    Assert.assertEquals(sampleURL, conn.getJdbcUrl());
+  public void testGetJdbcUrl() {
+    assertEquals(sampleURL, conn.getJdbcUrl());
   }
 
 }

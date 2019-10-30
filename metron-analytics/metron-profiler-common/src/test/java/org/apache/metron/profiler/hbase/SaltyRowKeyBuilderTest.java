@@ -22,7 +22,6 @@ package org.apache.metron.profiler.hbase;
 
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 /**
  * Tests the SaltyRowKeyBuilder.
@@ -89,7 +89,7 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertArrayEquals(expected, actual);
+    assertArrayEquals(expected, actual);
   }
 
   /**
@@ -116,7 +116,7 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertArrayEquals(expected, actual);
+    assertArrayEquals(expected, actual);
   }
 
   /**
@@ -142,7 +142,7 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertArrayEquals(expected, actual);
+    assertArrayEquals(expected, actual);
   }
 
   /**
@@ -169,7 +169,7 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertArrayEquals(expected, actual);
+    assertArrayEquals(expected, actual);
   }
 
   /**
@@ -194,7 +194,7 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertArrayEquals(expected, actual);
+    assertArrayEquals(expected, actual);
   }
 
   /**

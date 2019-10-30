@@ -30,12 +30,13 @@ import org.apache.metron.maas.config.Endpoint;
 import org.apache.metron.maas.config.Model;
 import org.apache.metron.maas.config.ModelEndpoint;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServiceDiscoveryIntegrationTest {
   private TestingServer testZkServer;
@@ -93,28 +94,28 @@ public class ServiceDiscoveryIntegrationTest {
     //wait for zk to percolate the changes.
     Thread.sleep(2000);
 
-    Assert.assertEquals(3, discoverer.getEndpoints(new Model("casey", "3.14159")).size());
-    Assert.assertEquals(1, discoverer.getEndpoints(new Model("casey", "3.1416")).size());
-    Assert.assertEquals(0, discoverer.getEndpoints(new Model("casey", "3.17")).size());
+    assertEquals(3, discoverer.getEndpoints(new Model("casey", "3.14159")).size());
+    assertEquals(1, discoverer.getEndpoints(new Model("casey", "3.1416")).size());
+    assertEquals(0, discoverer.getEndpoints(new Model("casey", "3.17")).size());
 
     discoverer.unregisterByContainer("1");
     Thread.sleep(2000);
-    Assert.assertEquals(2, discoverer.getEndpoints(new Model("casey", "3.14159")).size());
-    Assert.assertEquals(1, discoverer.getEndpoints(new Model("casey", "3.1416")).size());
-    Assert.assertEquals(0, discoverer.getEndpoints(new Model("casey", "3.17")).size());
+    assertEquals(2, discoverer.getEndpoints(new Model("casey", "3.14159")).size());
+    assertEquals(1, discoverer.getEndpoints(new Model("casey", "3.1416")).size());
+    assertEquals(0, discoverer.getEndpoints(new Model("casey", "3.17")).size());
 
-    Assert.assertEquals(2, discoverer.listEndpoints(new Model("casey", null)).keySet().size());
-    Assert.assertEquals(1, discoverer.listEndpoints(new Model("casey", "3.1416")).keySet().size());
-    Assert.assertEquals(1, discoverer.listEndpoints(new Model("casey", "3.1416"))
+    assertEquals(2, discoverer.listEndpoints(new Model("casey", null)).keySet().size());
+    assertEquals(1, discoverer.listEndpoints(new Model("casey", "3.1416")).keySet().size());
+    assertEquals(1, discoverer.listEndpoints(new Model("casey", "3.1416"))
                                      .get(new Model("casey", "3.1416")).size()
                        );
-    Assert.assertEquals("4", discoverer.listEndpoints(new Model("casey", "3.1416"))
+    assertEquals("4", discoverer.listEndpoints(new Model("casey", "3.1416"))
                                        .get(new Model("casey", "3.1416"))
                                        .get(0)
                                        .getContainerId()
                        );
-    Assert.assertEquals(0, discoverer.listEndpoints(new Model("casey", "3.17")).keySet().size());
-    Assert.assertEquals(0, discoverer.listEndpoints(new Model("dummy", null)).keySet().size());
+    assertEquals(0, discoverer.listEndpoints(new Model("casey", "3.17")).keySet().size());
+    assertEquals(0, discoverer.listEndpoints(new Model("dummy", null)).keySet().size());
 
   }
   @AfterEach

@@ -17,7 +17,6 @@
  */
 package org.apache.metron.rest.controller;
 
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
@@ -31,7 +30,6 @@ import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.service.PcapService;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -45,20 +43,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -152,21 +148,21 @@ public class PcapControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
 
-    Assert.assertEquals("/base/path", mockPcapJob.getBasePath());
-    Assert.assertEquals("/base/interim/result/path", mockPcapJob.getBaseInterrimResultPath());
-    Assert.assertEquals("/final/output/path", mockPcapJob.getFinalOutputPath());
-    Assert.assertEquals(10000000, mockPcapJob.getStartTimeNs());
-    Assert.assertEquals(20000000, mockPcapJob.getEndTimeNs());
-    Assert.assertEquals(2, mockPcapJob.getNumReducers());
-    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
+    assertEquals("/base/path", mockPcapJob.getBasePath());
+    assertEquals("/base/interim/result/path", mockPcapJob.getBaseInterrimResultPath());
+    assertEquals("/final/output/path", mockPcapJob.getFinalOutputPath());
+    assertEquals(10000000, mockPcapJob.getStartTimeNs());
+    assertEquals(20000000, mockPcapJob.getEndTimeNs());
+    assertEquals(2, mockPcapJob.getNumReducers());
+    assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
     Map<String, String> actualFixedFields = mockPcapJob.getFixedFields();
-    Assert.assertEquals("192.168.1.2", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));
-    Assert.assertEquals("2000", actualFixedFields.get(Constants.Fields.SRC_PORT.getName()));
-    Assert.assertEquals("192.168.1.1", actualFixedFields.get(Constants.Fields.DST_ADDR.getName()));
-    Assert.assertEquals("1000", actualFixedFields.get(Constants.Fields.DST_PORT.getName()));
-    Assert.assertEquals("true", actualFixedFields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName()));
-    Assert.assertEquals("TCP", actualFixedFields.get(Constants.Fields.PROTOCOL.getName()));
-    Assert.assertEquals("filter", actualFixedFields.get(PcapHelper.PacketFields.PACKET_FILTER.getName()));
+    assertEquals("192.168.1.2", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));
+    assertEquals("2000", actualFixedFields.get(Constants.Fields.SRC_PORT.getName()));
+    assertEquals("192.168.1.1", actualFixedFields.get(Constants.Fields.DST_ADDR.getName()));
+    assertEquals("1000", actualFixedFields.get(Constants.Fields.DST_PORT.getName()));
+    assertEquals("true", actualFixedFields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName()));
+    assertEquals("TCP", actualFixedFields.get(Constants.Fields.PROTOCOL.getName()));
+    assertEquals("filter", actualFixedFields.get(PcapHelper.PacketFields.PACKET_FILTER.getName()));
   }
 
 
@@ -181,22 +177,22 @@ public class PcapControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
 
-    Assert.assertEquals("/apps/metron/pcap/input", mockPcapJob.getBasePath());
-    Assert.assertEquals("/apps/metron/pcap/interim", mockPcapJob.getBaseInterrimResultPath());
-    Assert.assertEquals("/apps/metron/pcap/output", mockPcapJob.getFinalOutputPath());
-    Assert.assertEquals(0, mockPcapJob.getStartTimeNs());
-    Assert.assertTrue(beforeJobTime < mockPcapJob.getEndTimeNs() / 1000000);
-    Assert.assertTrue(System.currentTimeMillis() > mockPcapJob.getEndTimeNs() / 1000000);
-    Assert.assertEquals(10, mockPcapJob.getNumReducers());
-    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
+    assertEquals("/apps/metron/pcap/input", mockPcapJob.getBasePath());
+    assertEquals("/apps/metron/pcap/interim", mockPcapJob.getBaseInterrimResultPath());
+    assertEquals("/apps/metron/pcap/output", mockPcapJob.getFinalOutputPath());
+    assertEquals(0, mockPcapJob.getStartTimeNs());
+    assertTrue(beforeJobTime < mockPcapJob.getEndTimeNs() / 1000000);
+    assertTrue(System.currentTimeMillis() > mockPcapJob.getEndTimeNs() / 1000000);
+    assertEquals(10, mockPcapJob.getNumReducers());
+    assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
     Map<String, String> actualFixedFields = mockPcapJob.getFixedFields();
-    Assert.assertEquals("192.168.1.2", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));
-    Assert.assertEquals("2000", actualFixedFields.get(Constants.Fields.SRC_PORT.getName()));
-    Assert.assertEquals("192.168.1.1", actualFixedFields.get(Constants.Fields.DST_ADDR.getName()));
-    Assert.assertEquals("1000", actualFixedFields.get(Constants.Fields.DST_PORT.getName()));
-    Assert.assertEquals("true", actualFixedFields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName()));
-    Assert.assertEquals("TCP", actualFixedFields.get(Constants.Fields.PROTOCOL.getName()));
-    Assert.assertEquals("filter", actualFixedFields.get(PcapHelper.PacketFields.PACKET_FILTER.getName()));
+    assertEquals("192.168.1.2", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));
+    assertEquals("2000", actualFixedFields.get(Constants.Fields.SRC_PORT.getName()));
+    assertEquals("192.168.1.1", actualFixedFields.get(Constants.Fields.DST_ADDR.getName()));
+    assertEquals("1000", actualFixedFields.get(Constants.Fields.DST_PORT.getName()));
+    assertEquals("true", actualFixedFields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName()));
+    assertEquals("TCP", actualFixedFields.get(Constants.Fields.PROTOCOL.getName()));
+    assertEquals("filter", actualFixedFields.get(PcapHelper.PacketFields.PACKET_FILTER.getName()));
   }
 
   @Test
@@ -209,14 +205,14 @@ public class PcapControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.jobStatus").value("RUNNING"));
 
-    Assert.assertEquals("/base/path", mockPcapJob.getBasePath());
-    Assert.assertEquals("/base/interim/result/path", mockPcapJob.getBaseInterrimResultPath());
-    Assert.assertEquals("/final/output/path", mockPcapJob.getFinalOutputPath());
-    Assert.assertEquals(10000000, mockPcapJob.getStartTimeNs());
-    Assert.assertEquals(20000000, mockPcapJob.getEndTimeNs());
-    Assert.assertEquals(2, mockPcapJob.getNumReducers());
-    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof QueryPcapFilter.Configurator);
-    Assert.assertEquals("query", mockPcapJob.getQuery());
+    assertEquals("/base/path", mockPcapJob.getBasePath());
+    assertEquals("/base/interim/result/path", mockPcapJob.getBaseInterrimResultPath());
+    assertEquals("/final/output/path", mockPcapJob.getFinalOutputPath());
+    assertEquals(10000000, mockPcapJob.getStartTimeNs());
+    assertEquals(20000000, mockPcapJob.getEndTimeNs());
+    assertEquals(2, mockPcapJob.getNumReducers());
+    assertTrue(mockPcapJob.getFilterImpl() instanceof QueryPcapFilter.Configurator);
+    assertEquals("query", mockPcapJob.getQuery());
   }
 
   @Test

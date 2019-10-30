@@ -17,23 +17,6 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.startsWith;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
@@ -58,9 +41,29 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
 
@@ -315,14 +318,14 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
     String[] otherArgs = new GenericOptionsParser(config, argv).getRemainingArgs();
 
     CommandLine cli = LoadOptions.parse(new PosixParser(), otherArgs);
-    Assert.assertEquals(extractorJson, LoadOptions.EXTRACTOR_CONFIG.get(cli).trim());
-    Assert.assertEquals(cf, LoadOptions.HBASE_CF.get(cli).trim());
-    Assert.assertEquals(tableName, LoadOptions.HBASE_TABLE.get(cli).trim());
-    Assert.assertEquals(enrichmentJson, LoadOptions.ENRICHMENT_CONFIG.get(cli).trim());
-    Assert.assertEquals(csvFile, LoadOptions.INPUT.get(cli).trim());
-    Assert.assertEquals(log4jProperty, LoadOptions.LOG4J_PROPERTIES.get(cli).trim());
-    Assert.assertEquals("2", LoadOptions.NUM_THREADS.get(cli).trim());
-    Assert.assertEquals("128", LoadOptions.BATCH_SIZE.get(cli).trim());
+    assertEquals(extractorJson, LoadOptions.EXTRACTOR_CONFIG.get(cli).trim());
+    assertEquals(cf, LoadOptions.HBASE_CF.get(cli).trim());
+    assertEquals(tableName, LoadOptions.HBASE_TABLE.get(cli).trim());
+    assertEquals(enrichmentJson, LoadOptions.ENRICHMENT_CONFIG.get(cli).trim());
+    assertEquals(csvFile, LoadOptions.INPUT.get(cli).trim());
+    assertEquals(log4jProperty, LoadOptions.LOG4J_PROPERTIES.get(cli).trim());
+    assertEquals("2", LoadOptions.NUM_THREADS.get(cli).trim());
+    assertEquals("128", LoadOptions.BATCH_SIZE.get(cli).trim());
   }
 
   @Test
@@ -340,12 +343,12 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       results.add(converter.fromResult(r, cf));
       testTable.delete(new Delete(r.getRow()));
     }
-    Assert.assertEquals(NUM_LINES, results.size());
-    Assert.assertTrue(results.get(0).getKey().indicator.startsWith("google"));
-    Assert.assertEquals(results.get(0).getKey().type, "enrichment");
-    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
+    assertEquals(NUM_LINES, results.size());
+    assertTrue(results.get(0).getKey().indicator.startsWith("google"));
+    assertEquals(results.get(0).getKey().type, "enrichment");
+    assertEquals(results.get(0).getValue().getMetadata().size(), 2);
+    assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
+    assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
   }
 
   @Test
@@ -363,12 +366,12 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       results.add(converter.fromResult(r, cf));
       testTable.delete(new Delete(r.getRow()));
     }
-    Assert.assertEquals(NUM_LINES, results.size());
-    Assert.assertTrue(results.get(0).getKey().indicator.startsWith("google"));
-    Assert.assertEquals(results.get(0).getKey().type, "enrichment");
-    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
+    assertEquals(NUM_LINES, results.size());
+    assertTrue(results.get(0).getKey().indicator.startsWith("google"));
+    assertEquals(results.get(0).getKey().type, "enrichment");
+    assertEquals(results.get(0).getValue().getMetadata().size(), 2);
+    assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
+    assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
 
   }
 
@@ -387,12 +390,12 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       results.add(converter.fromResult(r, cf));
       testTable.delete(new Delete(r.getRow()));
     }
-    Assert.assertEquals(NUM_LINES, results.size());
-    Assert.assertTrue(results.get(0).getKey().indicator.startsWith("google"));
-    Assert.assertEquals(results.get(0).getKey().type, "enrichment");
-    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
+    assertEquals(NUM_LINES, results.size());
+    assertTrue(results.get(0).getKey().indicator.startsWith("google"));
+    assertEquals(results.get(0).getKey().type, "enrichment");
+    assertEquals(results.get(0).getValue().getMetadata().size(), 2);
+    assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
+    assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
 
   }
 
@@ -411,12 +414,12 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       results.add(converter.fromResult(r, cf));
       testTable.delete(new Delete(r.getRow()));
     }
-    Assert.assertEquals(2, results.size());
-    Assert.assertTrue(results.get(0).getKey().indicator.startsWith("google"));
-    Assert.assertEquals(results.get(0).getKey().type, "enrichment");
-    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith( "google"));
+    assertEquals(2, results.size());
+    assertTrue(results.get(0).getKey().indicator.startsWith("google"));
+    assertEquals(results.get(0).getKey().type, "enrichment");
+    assertEquals(results.get(0).getValue().getMetadata().size(), 2);
+    assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
+    assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith( "google"));
 
   }
 
@@ -439,12 +442,12 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       results.add(converter.fromResult(r, cf));
       testTable.delete(new Delete(r.getRow()));
     }
-    Assert.assertEquals(NUM_LINES, results.size());
-    Assert.assertTrue(results.get(0).getKey().indicator.startsWith("google"));
-    Assert.assertEquals(results.get(0).getKey().type, "enrichment");
-    Assert.assertEquals(results.get(0).getValue().getMetadata().size(), 2);
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
-    Assert.assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
+    assertEquals(NUM_LINES, results.size());
+    assertTrue(results.get(0).getKey().indicator.startsWith("google"));
+    assertEquals(results.get(0).getKey().type, "enrichment");
+    assertEquals(results.get(0).getValue().getMetadata().size(), 2);
+    assertTrue(results.get(0).getValue().getMetadata().get("meta").toString().startsWith("foo"));
+    assertTrue(results.get(0).getValue().getMetadata().get("host").toString().startsWith("google"));
   }
 
   @Test
@@ -462,13 +465,13 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       results.add(converter.fromResult(r, cf));
       testTable.delete(new Delete(r.getRow()));
     }
-    Assert.assertEquals(NUM_LINES, results.size());
-    Assert.assertThat(results.get(0).getKey().getIndicator(), startsWith("GOOGLE"));
-    Assert.assertThat(results.get(0).getKey().type, equalTo("enrichment"));
-    Assert.assertThat(results.get(0).getValue().getMetadata().size(), equalTo(3));
-    Assert.assertThat(results.get(0).getValue().getMetadata().get("meta").toString(), startsWith("foo"));
-    Assert.assertThat(results.get(0).getValue().getMetadata().get("empty").toString(), startsWith("valfromglobalconfig"));
-    Assert.assertThat(results.get(0).getValue().getMetadata().get("host").toString(), startsWith("GOOGLE"));
+    assertEquals(NUM_LINES, results.size());
+    assertThat(results.get(0).getKey().getIndicator(), startsWith("GOOGLE"));
+    assertThat(results.get(0).getKey().type, equalTo("enrichment"));
+    assertThat(results.get(0).getValue().getMetadata().size(), equalTo(3));
+    assertThat(results.get(0).getValue().getMetadata().get("meta").toString(), startsWith("foo"));
+    assertThat(results.get(0).getValue().getMetadata().get("empty").toString(), startsWith("valfromglobalconfig"));
+    assertThat(results.get(0).getValue().getMetadata().get("host").toString(), startsWith("GOOGLE"));
   }
 
   @Test
@@ -486,12 +489,12 @@ public class SimpleEnrichmentFlatFileLoaderIntegrationTest {
       results.add(converter.fromResult(r, cf));
       testTable.delete(new Delete(r.getRow()));
     }
-    Assert.assertEquals(NUM_LINES, results.size());
-    Assert.assertThat(results.get(0).getKey().getIndicator(), startsWith("GOOGLE"));
-    Assert.assertThat(results.get(0).getKey().type, equalTo("enrichment"));
-    Assert.assertThat(results.get(0).getValue().getMetadata().size(), equalTo(2));
-    Assert.assertThat(results.get(0).getValue().getMetadata().get("meta").toString(), startsWith("foo"));
-    Assert.assertThat(results.get(0).getValue().getMetadata().get("host").toString(), startsWith("GOOGLE"));
+    assertEquals(NUM_LINES, results.size());
+    assertThat(results.get(0).getKey().getIndicator(), startsWith("GOOGLE"));
+    assertThat(results.get(0).getKey().type, equalTo("enrichment"));
+    assertThat(results.get(0).getValue().getMetadata().size(), equalTo(2));
+    assertThat(results.get(0).getValue().getMetadata().get("meta").toString(), startsWith("foo"));
+    assertThat(results.get(0).getValue().getMetadata().get("host").toString(), startsWith("GOOGLE"));
   }
 
 }

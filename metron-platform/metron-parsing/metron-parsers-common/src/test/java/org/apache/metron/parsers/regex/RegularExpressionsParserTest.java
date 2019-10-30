@@ -14,21 +14,23 @@
  */
 package org.apache.metron.parsers.regex;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
-
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RegularExpressionsParserTest {
 
@@ -118,16 +120,16 @@ public class RegularExpressionsParserTest {
         JSONObject parsed = parse(message);
         // Expected
         Map<String, Object> expectedJson = new HashMap<>();
-        Assert.assertEquals(parsed.get("device_name"), "deviceName");
-        Assert.assertEquals(parsed.get("dst_process_name"), "sshd");
-        Assert.assertEquals(parsed.get("dst_process_id"), "11672");
-        Assert.assertEquals(parsed.get("dst_user_id"), "prod");
-        Assert.assertEquals(parsed.get("ip_src_addr"), "22.22.22.22");
-        Assert.assertEquals(parsed.get("ip_src_port"), "55555");
-        Assert.assertEquals(parsed.get("app_protocol"), "ssh2");
-        Assert.assertEquals(parsed.get("original_string"),
+        assertEquals(parsed.get("device_name"), "deviceName");
+        assertEquals(parsed.get("dst_process_name"), "sshd");
+        assertEquals(parsed.get("dst_process_id"), "11672");
+        assertEquals(parsed.get("dst_user_id"), "prod");
+        assertEquals(parsed.get("ip_src_addr"), "22.22.22.22");
+        assertEquals(parsed.get("ip_src_port"), "55555");
+        assertEquals(parsed.get("app_protocol"), "ssh2");
+        assertEquals(parsed.get("original_string"),
             "<38>Jun 20 15:01:17 deviceName sshd[11672]: Accepted publickey for prod from 22.22.22.22 port 55555 ssh2");
-        Assert.assertTrue(parsed.containsKey("timestamp"));
+        assertTrue(parsed.containsKey("timestamp"));
 
     }
 
@@ -207,15 +209,15 @@ public class RegularExpressionsParserTest {
         JSONObject parsed = parse(message);
         // Expected
 
-        Assert.assertEquals(parsed.get("dst_process_name"), "sshd");
-        Assert.assertEquals(parsed.get("dst_process_id"), "11672");
-        Assert.assertEquals(parsed.get("dst_user_id"), "prod");
-        Assert.assertEquals(parsed.get("ip_src_addr"), "22.22.22.22");
-        Assert.assertEquals(parsed.get("ip_src_port"), "55555");
-        Assert.assertEquals(parsed.get("app_protocol"), "ssh2");
-        Assert.assertEquals(parsed.get("original_string"),
+        assertEquals(parsed.get("dst_process_name"), "sshd");
+        assertEquals(parsed.get("dst_process_id"), "11672");
+        assertEquals(parsed.get("dst_user_id"), "prod");
+        assertEquals(parsed.get("ip_src_addr"), "22.22.22.22");
+        assertEquals(parsed.get("ip_src_port"), "55555");
+        assertEquals(parsed.get("app_protocol"), "ssh2");
+        assertEquals(parsed.get("original_string"),
             "<38>Jun 20 15:01:17 deviceName sshd[11672]: Accepted publickey for prod from 22.22.22.22 port 55555 ssh2");
-        Assert.assertTrue(parsed.containsKey("timestamp"));
+        assertTrue(parsed.containsKey("timestamp"));
 
     }
 

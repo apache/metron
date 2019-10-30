@@ -21,61 +21,61 @@ package org.apache.metron.profiler.spark.function.reader;
 import org.apache.metron.profiler.spark.reader.ColumnEncodedTelemetryReader;
 import org.apache.metron.profiler.spark.reader.TelemetryReaders;
 import org.apache.metron.profiler.spark.reader.TextEncodedTelemetryReader;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TelemetryReadersTest {
 
   @Test
   public void testJsonReader() {
     String key = JSON.toString();
-    Assert.assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
+    assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
   }
 
   @Test
   public void testJsonReaderLowerCase() {
     String key = JSON.toString().toLowerCase();
-    Assert.assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
+    assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
   }
 
   @Test
   public void testOrcReader() {
     String key = ORC.toString();
-    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+    assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
   }
 
 
   @Test
   public void testOrcReaderLowerCase() {
     String key = ORC.toString().toLowerCase();
-    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+    assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
   }
 
   @Test
   public void testParquetReader() {
     String key = PARQUET.toString();
-    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+    assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
   }
 
   @Test
   public void testParquetReaderLowerCase() {
     String key = PARQUET.toString().toLowerCase();
-    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+    assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
   }
 
   @Test
   public void testTextReader() {
     String key = TEXT.toString();
-    Assert.assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
+    assertTrue(TelemetryReaders.create(key) instanceof TextEncodedTelemetryReader);
   }
 
   @Test
   public void testColumnReader() {
     String key = COLUMNAR.toString();
-    Assert.assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
+    assertTrue(TelemetryReaders.create(key) instanceof ColumnEncodedTelemetryReader);
   }
 
   @Test

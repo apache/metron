@@ -35,10 +35,9 @@ import org.apache.metron.maas.discovery.ServiceDiscoverer;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.Assert;
-import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -46,6 +45,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StellarMaaSIntegrationTest {
   private static Context context;
@@ -108,53 +108,53 @@ public class StellarMaaSIntegrationTest {
   }
 
   @Test
-  public void testGetEndpointWithoutVersion() throws Exception {
+  public void testGetEndpointWithoutVersion() {
     String stellar = "MAAS_GET_ENDPOINT('dga')";
     Object result = run(stellar, new HashMap<>(), context);
-    Assert.assertTrue(result instanceof Map);
+    assertTrue(result instanceof Map);
     Map<String, String> resMap = (Map<String, String>)result;
-    Assert.assertEquals(resMap.get("url"), "http://localhost:8282");
-    Assert.assertEquals(resMap.get("name"), "dga");
-    Assert.assertEquals(resMap.get("version"), "1.0");
-    Assert.assertEquals(resMap.get("endpoint:apply"), "apply");
+    assertEquals(resMap.get("url"), "http://localhost:8282");
+    assertEquals(resMap.get("name"), "dga");
+    assertEquals(resMap.get("version"), "1.0");
+    assertEquals(resMap.get("endpoint:apply"), "apply");
 
   }
 
   @Test
-  public void testGetEndpointWithVersion() throws Exception {
+  public void testGetEndpointWithVersion() {
     String stellar = "MAAS_GET_ENDPOINT('dga', '1.0')";
     Object result = run(stellar, new HashMap<>(), context);
-    Assert.assertTrue(result instanceof Map);
+    assertTrue(result instanceof Map);
     Map<String, String> resMap = (Map<String, String>)result;
-    Assert.assertEquals(resMap.get("url"), "http://localhost:8282");
-    Assert.assertEquals(resMap.get("name"), "dga");
-    Assert.assertEquals(resMap.get("version"), "1.0");
-    Assert.assertEquals(resMap.get("endpoint:apply"), "apply");
+    assertEquals(resMap.get("url"), "http://localhost:8282");
+    assertEquals(resMap.get("name"), "dga");
+    assertEquals(resMap.get("version"), "1.0");
+    assertEquals(resMap.get("endpoint:apply"), "apply");
   }
 
   @Test
-  public void testGetEndpointWithWrongVersion() throws Exception {
+  public void testGetEndpointWithWrongVersion() {
     String stellar = "MAAS_GET_ENDPOINT('dga', '2.0')";
     Object result = run(stellar, new HashMap<>(), context);
-    Assert.assertNull(result);
+    assertNull(result);
   }
 
   @Test
-  public void testModelApply() throws Exception {
+  public void testModelApply() {
     {
       String stellar = "MAP_GET('is_malicious', MAAS_MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), {'host': host}))";
       Object result = run(stellar, ImmutableMap.of("host", "badguy.com"), context);
-      Assert.assertTrue((Boolean) result);
+      assertTrue((Boolean) result);
     }
     {
       String stellar = "MAP_GET('is_malicious', MAAS_MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), {'host': host}))";
       Object result = run(stellar, ImmutableMap.of("host", "youtube.com"), context);
-      Assert.assertFalse((Boolean) result);
+      assertFalse((Boolean) result);
     }
     {
       String stellar = "MAP_GET('is_malicious', MAAS_MODEL_APPLY(MAAS_GET_ENDPOINT('dga'), 'apply', {'host': host}))";
       Object result = run(stellar, ImmutableMap.of("host", "youtube.com"), context);
-      Assert.assertFalse((Boolean) result);
+      assertFalse((Boolean) result);
     }
 
   }
@@ -164,7 +164,7 @@ public class StellarMaaSIntegrationTest {
     {
       String stellar = "MAP_GET('is_malicious', MAAS_MODEL_APPLY(MAAS_GET_ENDPOINT('dga', '2.0'), {'host': host}))";
       Object result = run(stellar, ImmutableMap.of("host", "youtube.com"), context);
-      Assert.assertNull( result);
+      assertNull( result);
     }
   }
 

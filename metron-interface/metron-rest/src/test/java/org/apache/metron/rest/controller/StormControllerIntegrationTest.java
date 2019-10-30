@@ -24,7 +24,6 @@ import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -45,12 +44,11 @@ import java.util.Map;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -78,7 +76,7 @@ public class StormControllerIntegrationTest {
   private String metronVersion;
 
   @BeforeEach
-  public void setup() throws Exception {
+  public void setup() {
     this.metronVersion = this.environment.getProperty("metron.version");
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
   }
@@ -177,7 +175,7 @@ public class StormControllerIntegrationTest {
     {
       final Map<String, Object> expectedGlobalConfig = globalConfig;
       //we must wait for the config to find its way into the config.
-      TestUtils.assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, globalConfigService.get()));
+      TestUtils.assertEventually(() -> assertEquals(expectedGlobalConfig, globalConfigService.get()));
     }
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
@@ -192,7 +190,7 @@ public class StormControllerIntegrationTest {
     {
       final SensorParserConfig expectedSensorParserConfig = sensorParserConfig;
       //we must wait for the config to find its way into the config.
-      TestUtils.assertEventually(() -> Assert.assertEquals(expectedSensorParserConfig, sensorParserConfigService.findOne("broTest")));
+      TestUtils.assertEventually(() -> assertEquals(expectedSensorParserConfig, sensorParserConfigService.findOne("broTest")));
     }
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))

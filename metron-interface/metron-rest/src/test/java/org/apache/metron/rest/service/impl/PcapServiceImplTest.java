@@ -17,27 +17,6 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -45,11 +24,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.job.JobException;
-import org.apache.metron.job.JobNotFoundException;
-import org.apache.metron.job.JobStatus;
-import org.apache.metron.job.Pageable;
-import org.apache.metron.job.Statusable;
+import org.apache.metron.job.*;
 import org.apache.metron.job.manager.InMemoryJobManager;
 import org.apache.metron.job.manager.JobManager;
 import org.apache.metron.pcap.PcapHelper;
@@ -61,31 +36,33 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.config.PcapJobSupplier;
 import org.apache.metron.rest.mock.MockPcapJob;
 import org.apache.metron.rest.mock.MockPcapJobSupplier;
-import org.apache.metron.rest.model.pcap.FixedPcapOptions;
-import org.apache.metron.rest.model.pcap.FixedPcapRequest;
-import org.apache.metron.rest.model.pcap.PcapStatus;
-import org.apache.metron.rest.model.pcap.Pdml;
-import org.apache.metron.rest.model.pcap.QueryPcapOptions;
-import org.apache.metron.rest.model.pcap.QueryPcapRequest;
+import org.apache.metron.rest.model.pcap.*;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+
 @SuppressWarnings("ALL")
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({PcapToPdmlScriptWrapper.class, ProcessBuilder.class})
 public class PcapServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   /**
    *<?xml version="1.0" encoding="utf-8"?>
    *<?xml-stylesheet type="text/xsl" href="pdml2html.xsl"?>
@@ -183,7 +160,7 @@ public class PcapServiceImplTest {
   PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     environment = mock(Environment.class);
     configuration = new Configuration();
     mockPcapJobSupplier = new MockPcapJobSupplier();
@@ -244,26 +221,26 @@ public class PcapServiceImplTest {
     expectedPcapStatus.setJobStatus(JobStatus.State.RUNNING.name());
     expectedPcapStatus.setDescription("description");
 
-    Assert.assertEquals(expectedPcapStatus, pcapService.submit("user", fixedPcapRequest));
-    Assert.assertEquals(expectedPcapStatus, pcapService.jobStatusToPcapStatus(jobManager.getJob("user", "jobId").getStatus()));
-    Assert.assertEquals("basePath", mockPcapJob.getBasePath());
-    Assert.assertEquals("baseOutputPath", mockPcapJob.getBaseInterrimResultPath());
-    Assert.assertEquals("finalOutputPath", mockPcapJob.getFinalOutputPath());
-    Assert.assertEquals(1000000, mockPcapJob.getStartTimeNs());
-    Assert.assertEquals(2000000, mockPcapJob.getEndTimeNs());
-    Assert.assertEquals(2, mockPcapJob.getNumReducers());
-    Assert.assertEquals(100, mockPcapJob.getRecPerFile());
-    Assert.assertEquals("pcap", mockPcapJob.getYarnQueue());
-    Assert.assertEquals("2C", mockPcapJob.getFinalizerThreadpoolSize());
-    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
+    assertEquals(expectedPcapStatus, pcapService.submit("user", fixedPcapRequest));
+    assertEquals(expectedPcapStatus, pcapService.jobStatusToPcapStatus(jobManager.getJob("user", "jobId").getStatus()));
+    assertEquals("basePath", mockPcapJob.getBasePath());
+    assertEquals("baseOutputPath", mockPcapJob.getBaseInterrimResultPath());
+    assertEquals("finalOutputPath", mockPcapJob.getFinalOutputPath());
+    assertEquals(1000000, mockPcapJob.getStartTimeNs());
+    assertEquals(2000000, mockPcapJob.getEndTimeNs());
+    assertEquals(2, mockPcapJob.getNumReducers());
+    assertEquals(100, mockPcapJob.getRecPerFile());
+    assertEquals("pcap", mockPcapJob.getYarnQueue());
+    assertEquals("2C", mockPcapJob.getFinalizerThreadpoolSize());
+    assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
     Map<String, String> actualFixedFields = mockPcapJob.getFixedFields();
-    Assert.assertEquals("ip_src_addr", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));
-    Assert.assertEquals("1000", actualFixedFields.get(Constants.Fields.SRC_PORT.getName()));
-    Assert.assertEquals("ip_dst_addr", actualFixedFields.get(Constants.Fields.DST_ADDR.getName()));
-    Assert.assertEquals("2000", actualFixedFields.get(Constants.Fields.DST_PORT.getName()));
-    Assert.assertEquals("true", actualFixedFields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName()));
-    Assert.assertEquals("tcp", actualFixedFields.get(Constants.Fields.PROTOCOL.getName()));
-    Assert.assertEquals("filter", actualFixedFields.get(PcapHelper.PacketFields.PACKET_FILTER.getName()));
+    assertEquals("ip_src_addr", actualFixedFields.get(Constants.Fields.SRC_ADDR.getName()));
+    assertEquals("1000", actualFixedFields.get(Constants.Fields.SRC_PORT.getName()));
+    assertEquals("ip_dst_addr", actualFixedFields.get(Constants.Fields.DST_ADDR.getName()));
+    assertEquals("2000", actualFixedFields.get(Constants.Fields.DST_PORT.getName()));
+    assertEquals("true", actualFixedFields.get(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName()));
+    assertEquals("tcp", actualFixedFields.get(Constants.Fields.PROTOCOL.getName()));
+    assertEquals("filter", actualFixedFields.get(PcapHelper.PacketFields.PACKET_FILTER.getName()));
   }
 
   @Test
@@ -289,17 +266,17 @@ public class PcapServiceImplTest {
     expectedPcapStatus.setJobStatus(JobStatus.State.RUNNING.name());
     expectedPcapStatus.setDescription("description");
 
-    Assert.assertEquals(expectedPcapStatus, pcapService.submit("user", fixedPcapRequest));
-    Assert.assertEquals("/base/path", mockPcapJob.getBasePath());
-    Assert.assertEquals("/base/interim/result/path", mockPcapJob.getBaseInterrimResultPath());
-    Assert.assertEquals("/final/output/path", mockPcapJob.getFinalOutputPath());
-    Assert.assertEquals(0, mockPcapJob.getStartTimeNs());
-    Assert.assertTrue(beforeJobTime <= mockPcapJob.getEndTimeNs() / 1000000);
-    Assert.assertTrue(System.currentTimeMillis() >= mockPcapJob.getEndTimeNs() / 1000000);
-    Assert.assertEquals(10, mockPcapJob.getNumReducers());
-    Assert.assertEquals(100, mockPcapJob.getRecPerFile());
-    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
-    Assert.assertEquals(new HashMap<>(), mockPcapJob.getFixedFields());
+    assertEquals(expectedPcapStatus, pcapService.submit("user", fixedPcapRequest));
+    assertEquals("/base/path", mockPcapJob.getBasePath());
+    assertEquals("/base/interim/result/path", mockPcapJob.getBaseInterrimResultPath());
+    assertEquals("/final/output/path", mockPcapJob.getFinalOutputPath());
+    assertEquals(0, mockPcapJob.getStartTimeNs());
+    assertTrue(beforeJobTime <= mockPcapJob.getEndTimeNs() / 1000000);
+    assertTrue(System.currentTimeMillis() >= mockPcapJob.getEndTimeNs() / 1000000);
+    assertEquals(10, mockPcapJob.getNumReducers());
+    assertEquals(100, mockPcapJob.getRecPerFile());
+    assertTrue(mockPcapJob.getFilterImpl() instanceof FixedPcapFilter.Configurator);
+    assertEquals(new HashMap<>(), mockPcapJob.getFixedFields());
   }
 
   @Test
@@ -331,18 +308,18 @@ public class PcapServiceImplTest {
     expectedPcapStatus.setJobStatus(JobStatus.State.RUNNING.name());
     expectedPcapStatus.setDescription("description");
 
-    Assert.assertEquals(expectedPcapStatus, pcapService.submit("user", queryPcapRequest));
-    Assert.assertEquals(expectedPcapStatus, pcapService.jobStatusToPcapStatus(jobManager.getJob("user", "jobId").getStatus()));
-    Assert.assertEquals("basePath", mockPcapJob.getBasePath());
-    Assert.assertEquals("baseOutputPath", mockPcapJob.getBaseInterrimResultPath());
-    Assert.assertEquals("finalOutputPath", mockPcapJob.getFinalOutputPath());
-    Assert.assertEquals(1000000, mockPcapJob.getStartTimeNs());
-    Assert.assertEquals(2000000, mockPcapJob.getEndTimeNs());
-    Assert.assertEquals(2, mockPcapJob.getNumReducers());
-    Assert.assertEquals(100, mockPcapJob.getRecPerFile());
-    Assert.assertTrue(mockPcapJob.getFilterImpl() instanceof QueryPcapFilter.Configurator);
+    assertEquals(expectedPcapStatus, pcapService.submit("user", queryPcapRequest));
+    assertEquals(expectedPcapStatus, pcapService.jobStatusToPcapStatus(jobManager.getJob("user", "jobId").getStatus()));
+    assertEquals("basePath", mockPcapJob.getBasePath());
+    assertEquals("baseOutputPath", mockPcapJob.getBaseInterrimResultPath());
+    assertEquals("finalOutputPath", mockPcapJob.getFinalOutputPath());
+    assertEquals(1000000, mockPcapJob.getStartTimeNs());
+    assertEquals(2000000, mockPcapJob.getEndTimeNs());
+    assertEquals(2, mockPcapJob.getNumReducers());
+    assertEquals(100, mockPcapJob.getRecPerFile());
+    assertTrue(mockPcapJob.getFilterImpl() instanceof QueryPcapFilter.Configurator);
     Map<String, String> actualFixedFields = mockPcapJob.getFixedFields();
-    Assert.assertEquals("query", mockPcapJob.getQuery());
+    assertEquals("query", mockPcapJob.getQuery());
   }
 
   @Test
@@ -405,7 +382,7 @@ public class PcapServiceImplTest {
     expectedPcapStatus.setPercentComplete(100.0);
     expectedPcapStatus.setPageTotal(2);
 
-    Assert.assertEquals(expectedPcapStatus, pcapService.getJobStatus("user", "jobId"));
+    assertEquals(expectedPcapStatus, pcapService.getJobStatus("user", "jobId"));
   }
 
   @Test
@@ -413,7 +390,7 @@ public class PcapServiceImplTest {
     JobManager jobManager = new InMemoryJobManager();
     PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
 
-    Assert.assertNull(pcapService.getJobStatus("user", "jobId"));
+    assertNull(pcapService.getJobStatus("user", "jobId"));
   }
 
   @Test
@@ -458,18 +435,18 @@ public class PcapServiceImplTest {
     PcapStatus expectedRunningPcapStatus = new PcapStatus();
     expectedRunningPcapStatus.setJobId("runningJob");
     expectedRunningPcapStatus.setJobStatus(JobStatus.State.RUNNING.name());
-    Assert.assertEquals(expectedRunningPcapStatus, pcapService.getJobStatus("user", JobStatus.State.RUNNING).get(0));
+    assertEquals(expectedRunningPcapStatus, pcapService.getJobStatus("user", JobStatus.State.RUNNING).get(0));
 
     PcapStatus expectedFailedPcapStatus = new PcapStatus();
     expectedFailedPcapStatus.setJobStatus(JobStatus.State.FAILED.name());
     expectedFailedPcapStatus.setDescription("job exception");
-    Assert.assertEquals(expectedFailedPcapStatus, pcapService.getJobStatus("user", JobStatus.State.FAILED).get(0));
+    assertEquals(expectedFailedPcapStatus, pcapService.getJobStatus("user", JobStatus.State.FAILED).get(0));
 
     PcapStatus expectedSucceededPcapStatus = new PcapStatus();
     expectedSucceededPcapStatus.setJobId("succeededJob");
     expectedSucceededPcapStatus.setJobStatus(JobStatus.State.SUCCEEDED.name());
     expectedSucceededPcapStatus.setPageTotal(5);
-    Assert.assertEquals(expectedSucceededPcapStatus, pcapService.getJobStatus("user", JobStatus.State.SUCCEEDED).get(0));
+    assertEquals(expectedSucceededPcapStatus, pcapService.getJobStatus("user", JobStatus.State.SUCCEEDED).get(0));
   }
 
   @Test
@@ -520,7 +497,7 @@ public class PcapServiceImplTest {
     when(pageable.getPage(0)).thenReturn(actualPath);
     when(jobManager.getJob("user", "jobId")).thenReturn(mockPcapJob);
 
-    Assert.assertEquals("/path", pcapService.getPath("user", "jobId", 1).toUri().getPath());
+    assertEquals("/path", pcapService.getPath("user", "jobId", 1).toUri().getPath());
   }
 
   @Test
@@ -535,8 +512,8 @@ public class PcapServiceImplTest {
     when(mockPcapJob.get()).thenReturn(pageable);
     when(jobManager.getJob("user", "jobId")).thenReturn(mockPcapJob);
 
-    Assert.assertNull(pcapService.getPath("user", "jobId", 0));
-    Assert.assertNull(pcapService.getPath("user", "jobId", 3));
+    assertNull(pcapService.getPath("user", "jobId", 0));
+    assertNull(pcapService.getPath("user", "jobId", 3));
   }
 
   @Test
@@ -604,7 +581,7 @@ public class PcapServiceImplTest {
     doReturn(path).when(pcapService).getPath("user", "jobId", 1);
     when(fileSystem.open(path)).thenReturn(inputStream);
 
-    Assert.assertEquals(inputStream, pcapService.getRawPcap("user", "jobId", 1));
+    assertEquals(inputStream, pcapService.getRawPcap("user", "jobId", 1));
   }
 
   @Test
@@ -676,18 +653,18 @@ public class PcapServiceImplTest {
     pcapService.submit("user", fixedPcapRequest);
 
     Map<String, Object> configuration = pcapService.getConfiguration("user", "jobId");
-    Assert.assertEquals("basePath", configuration.get(PcapOptions.BASE_PATH.getKey()));
-    Assert.assertEquals("finalOutputPath", configuration.get(PcapOptions.FINAL_OUTPUT_PATH.getKey()));
-    Assert.assertEquals(1L, configuration.get(PcapOptions.START_TIME_MS.getKey()));
-    Assert.assertEquals(2L, configuration.get(PcapOptions.END_TIME_MS.getKey()));
-    Assert.assertEquals(2, configuration.get(PcapOptions.NUM_REDUCERS.getKey()));
-    Assert.assertEquals("ip_src_addr", configuration.get(FixedPcapOptions.IP_SRC_ADDR.getKey()));
-    Assert.assertEquals("ip_dst_addr", configuration.get(FixedPcapOptions.IP_DST_ADDR.getKey()));
-    Assert.assertEquals(1000, configuration.get(FixedPcapOptions.IP_SRC_PORT.getKey()));
-    Assert.assertEquals(2000, configuration.get(FixedPcapOptions.IP_DST_PORT.getKey()));
-    Assert.assertEquals("tcp", configuration.get(FixedPcapOptions.PROTOCOL.getKey()));
-    Assert.assertEquals("filter", configuration.get(FixedPcapOptions.PACKET_FILTER.getKey()));
-    Assert.assertEquals(true, configuration.get(FixedPcapOptions.INCLUDE_REVERSE.getKey()));
+    assertEquals("basePath", configuration.get(PcapOptions.BASE_PATH.getKey()));
+    assertEquals("finalOutputPath", configuration.get(PcapOptions.FINAL_OUTPUT_PATH.getKey()));
+    assertEquals(1L, configuration.get(PcapOptions.START_TIME_MS.getKey()));
+    assertEquals(2L, configuration.get(PcapOptions.END_TIME_MS.getKey()));
+    assertEquals(2, configuration.get(PcapOptions.NUM_REDUCERS.getKey()));
+    assertEquals("ip_src_addr", configuration.get(FixedPcapOptions.IP_SRC_ADDR.getKey()));
+    assertEquals("ip_dst_addr", configuration.get(FixedPcapOptions.IP_DST_ADDR.getKey()));
+    assertEquals(1000, configuration.get(FixedPcapOptions.IP_SRC_PORT.getKey()));
+    assertEquals(2000, configuration.get(FixedPcapOptions.IP_DST_PORT.getKey()));
+    assertEquals("tcp", configuration.get(FixedPcapOptions.PROTOCOL.getKey()));
+    assertEquals("filter", configuration.get(FixedPcapOptions.PACKET_FILTER.getKey()));
+    assertEquals(true, configuration.get(FixedPcapOptions.INCLUDE_REVERSE.getKey()));
   }
 
   @Test
@@ -713,12 +690,12 @@ public class PcapServiceImplTest {
     pcapService.submit("user", queryPcapRequest);
 
     Map<String, Object> configuration = pcapService.getConfiguration("user", "jobId");
-    Assert.assertEquals("basePath", configuration.get(PcapOptions.BASE_PATH.getKey()));
-    Assert.assertEquals("finalOutputPath", configuration.get(PcapOptions.FINAL_OUTPUT_PATH.getKey()));
-    Assert.assertEquals(1L, configuration.get(PcapOptions.START_TIME_MS.getKey()));
-    Assert.assertEquals(2L, configuration.get(PcapOptions.END_TIME_MS.getKey()));
-    Assert.assertEquals(2, configuration.get(PcapOptions.NUM_REDUCERS.getKey()));
-    Assert.assertEquals("query", configuration.get(QueryPcapOptions.QUERY.getKey()));
+    assertEquals("basePath", configuration.get(PcapOptions.BASE_PATH.getKey()));
+    assertEquals("finalOutputPath", configuration.get(PcapOptions.FINAL_OUTPUT_PATH.getKey()));
+    assertEquals(1L, configuration.get(PcapOptions.START_TIME_MS.getKey()));
+    assertEquals(2L, configuration.get(PcapOptions.END_TIME_MS.getKey()));
+    assertEquals(2, configuration.get(PcapOptions.NUM_REDUCERS.getKey()));
+    assertEquals("query", configuration.get(QueryPcapOptions.QUERY.getKey()));
   }
 
   @Test
@@ -729,7 +706,7 @@ public class PcapServiceImplTest {
 
     PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, mockPcapJobSupplier, jobManager, pcapToPdmlScriptWrapper);
     Map<String, Object> configuration = pcapService.getConfiguration("user", "jobId");
-    Assert.assertEquals(new HashMap<>(), configuration);
+    assertEquals(new HashMap<>(), configuration);
   }
 
   @Test

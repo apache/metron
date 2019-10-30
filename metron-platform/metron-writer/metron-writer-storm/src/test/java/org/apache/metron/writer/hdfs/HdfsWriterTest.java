@@ -18,14 +18,6 @@
 
 package org.apache.metron.writer.hdfs;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -35,15 +27,23 @@ import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.task.TopologyContext;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 // Suppress ConstantConditions to avoid NPE warnings that only would occur on test failure anyway
 @SuppressWarnings("ConstantConditions")
+@EnableRuleMigrationSupport
 public class HdfsWriterTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -72,7 +72,6 @@ public class HdfsWriterTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testGetHdfsPathNull() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
@@ -82,11 +81,10 @@ public class HdfsWriterTest {
     JSONObject message = new JSONObject();
     Object result = writer.getHdfsPathExtension(SENSOR_NAME,null, message);
     writer.close();
-    Assert.assertEquals(SENSOR_NAME, result);
+    assertEquals(SENSOR_NAME, result);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testGetHdfsPathEmptyString() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
@@ -96,11 +94,10 @@ public class HdfsWriterTest {
     JSONObject message = new JSONObject();
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "", message);
     writer.close();
-    Assert.assertEquals(SENSOR_NAME, result);
+    assertEquals(SENSOR_NAME, result);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testGetHdfsPathConstant() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
@@ -110,7 +107,7 @@ public class HdfsWriterTest {
     JSONObject message = new JSONObject();
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "'new'", message);
     writer.close();
-    Assert.assertEquals("new", result);
+    assertEquals("new", result);
   }
 
   @Test
@@ -125,11 +122,10 @@ public class HdfsWriterTest {
     message.put("test.key", "test.value");
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "test.key", message);
     writer.close();
-    Assert.assertEquals("test.value", result);
+    assertEquals("test.value", result);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testGetHdfsPathFormatConstant() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
@@ -139,7 +135,7 @@ public class HdfsWriterTest {
     JSONObject message = new JSONObject();
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('/test/folder/')", message);
     writer.close();
-    Assert.assertEquals("/test/folder/", result);
+    assertEquals("/test/folder/", result);
   }
 
   @Test
@@ -157,7 +153,7 @@ public class HdfsWriterTest {
     message.put("test.key.3", "test.value.3");
     Object result = writer.getHdfsPathExtension(SENSOR_NAME,"FORMAT('%s/%s/%s', test.key, test.key.2, test.key.3)", message);
     writer.close();
-    Assert.assertEquals("test.value/test.value.2/test.value.3", result);
+    assertEquals("test.value/test.value.2/test.value.3", result);
   }
 
   @Test
@@ -168,7 +164,7 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), config);
     writer.initFileNameFormat(createTopologyContext());
     String filename = writer.fileNameFormat.getName(1,1);
-    Assert.assertEquals("prefix-Xcom-7-1-1.json", filename);
+    assertEquals("prefix-Xcom-7-1-1.json", filename);
     writer.close();
   }
 
@@ -185,14 +181,14 @@ public class HdfsWriterTest {
     message.put("test.key", "test.value");
     message.put("test.key.2", "test.value.2");
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('%s', test.key)", message);
-    Assert.assertEquals("test.value", result);
+    assertEquals("test.value", result);
 
     result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('%s/%s', test.key, test.key.2)", message);
-    Assert.assertEquals("test.value/test.value.2", result);
+    assertEquals("test.value/test.value.2", result);
 
     result = writer.getHdfsPathExtension(SENSOR_NAME, "FORMAT('%s', test.key)", message);
     writer.close();
-    Assert.assertEquals("test.value", result);
+    assertEquals("test.value", result);
   }
 
   @Test
@@ -208,10 +204,10 @@ public class HdfsWriterTest {
     message.put("test.key", "test.value");
     Object result = writer.getHdfsPathExtension(SENSOR_NAME, "TO_UPPER(FORMAT(MAP_GET('key', {'key': 'AbC%s'}), test.key))", message);
     writer.close();
-    Assert.assertEquals("ABCTEST.VALUE", result);
+    assertEquals("ABCTEST.VALUE", result);
   }
 
-  @Test(expected=IllegalArgumentException.class)
+  @Test
   public void testGetHdfsPathNonString() {
     WriterConfiguration config = new IndexingWriterConfiguration(WRITER_NAME, new IndexingConfigurations());
     HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
@@ -219,8 +215,11 @@ public class HdfsWriterTest {
     writer.initFileNameFormat(createTopologyContext());
 
     JSONObject message = new JSONObject();
-    writer.getHdfsPathExtension(SENSOR_NAME, "{'key':'value'}", message);
-    writer.close();
+    try {
+      assertThrows(IllegalArgumentException.class, () -> writer.getHdfsPathExtension(SENSOR_NAME, "{'key':'value'}", message));
+    } finally {
+      writer.close();
+    }
   }
 
   @Test
@@ -239,7 +238,7 @@ public class HdfsWriterTest {
     writer.close();
   }
 
-  @Test(expected=IllegalStateException.class)
+  @Test
   public void testGetSourceHandlerOpenFilesOverMax() throws IOException {
     int maxFiles = 2;
     IndexingConfigurations indexingConfig = new IndexingConfigurations();
@@ -249,10 +248,17 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), config);
     writer.initFileNameFormat(createTopologyContext());
 
-    for(int i = 0; i < maxFiles+1; i++) {
+    for(int i = 0; i < maxFiles; i++) {
       writer.getSourceHandler(SENSOR_NAME, Integer.toString(i), null);
     }
-    writer.close();
+    // Should fail on max files + 1
+    try {
+      assertThrows(
+          IllegalStateException.class,
+          () -> writer.getSourceHandler(SENSOR_NAME, Integer.toString(maxFiles + 1), null));
+    } finally {
+      writer.close();
+    }
   }
 
   @Test
@@ -289,13 +295,13 @@ public class HdfsWriterTest {
 
     // Default to just putting it in the base folder + the sensor name
     File outputFolder = new File(folder.getAbsolutePath() + "/" + SENSOR_NAME);
-    Assert.assertTrue(outputFolder.exists() && outputFolder.isDirectory());
-    Assert.assertEquals(1, outputFolder.listFiles().length);
+    assertTrue(outputFolder.exists() && outputFolder.isDirectory());
+    assertEquals(1, outputFolder.listFiles().length);
 
     for(File file : outputFolder.listFiles()) {
       List<String> lines = Files.readAllLines(file.toPath());
       Collections.sort(lines);
-      Assert.assertEquals(expected, lines);
+      assertEquals(expected, lines);
     }
   }
 
@@ -333,13 +339,13 @@ public class HdfsWriterTest {
     Collections.sort(expected);
 
     File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
-    Assert.assertTrue(outputFolder.exists() && outputFolder.isDirectory());
-    Assert.assertEquals(1, outputFolder.listFiles().length);
+    assertTrue(outputFolder.exists() && outputFolder.isDirectory());
+    assertEquals(1, outputFolder.listFiles().length);
 
     for(File file : outputFolder.listFiles()) {
       List<String> lines = Files.readAllLines(file.toPath());
       Collections.sort(lines);
-      Assert.assertEquals(expected, lines);
+      assertEquals(expected, lines);
     }
   }
 
@@ -376,13 +382,13 @@ public class HdfsWriterTest {
     Collections.sort(expected1);
 
     File outputFolder1 = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
-    Assert.assertTrue(outputFolder1.exists() && outputFolder1.isDirectory());
-    Assert.assertEquals(1, outputFolder1.listFiles().length);
+    assertTrue(outputFolder1.exists() && outputFolder1.isDirectory());
+    assertEquals(1, outputFolder1.listFiles().length);
 
     for(File file : outputFolder1.listFiles()) {
       List<String> lines = Files.readAllLines(file.toPath());
       Collections.sort(lines);
-      Assert.assertEquals(expected1, lines);
+      assertEquals(expected1, lines);
     }
 
     ArrayList<String> expected2 = new ArrayList<>();
@@ -390,13 +396,13 @@ public class HdfsWriterTest {
     Collections.sort(expected2);
 
     File outputFolder2 = new File(folder.getAbsolutePath() + "/test-test.value2/test.value2/");
-    Assert.assertTrue(outputFolder2.exists() && outputFolder2.isDirectory());
-    Assert.assertEquals(1, outputFolder2.listFiles().length);
+    assertTrue(outputFolder2.exists() && outputFolder2.isDirectory());
+    assertEquals(1, outputFolder2.listFiles().length);
 
     for(File file : outputFolder2.listFiles()) {
       List<String> lines = Files.readAllLines(file.toPath());
       Collections.sort(lines);
-      Assert.assertEquals(expected2, lines);
+      assertEquals(expected2, lines);
     }
   }
 
@@ -428,13 +434,13 @@ public class HdfsWriterTest {
     Collections.sort(expected);
 
     File outputFolder = new File(folder.getAbsolutePath() + "/test-null/null/");
-    Assert.assertTrue(outputFolder.exists() && outputFolder.isDirectory());
-    Assert.assertEquals(1, outputFolder.listFiles().length);
+    assertTrue(outputFolder.exists() && outputFolder.isDirectory());
+    assertEquals(1, outputFolder.listFiles().length);
 
     for(File file : outputFolder.listFiles()) {
       List<String> lines = Files.readAllLines(file.toPath());
       Collections.sort(lines);
-      Assert.assertEquals(expected, lines);
+      assertEquals(expected, lines);
     }
   }
 
@@ -468,12 +474,12 @@ public class HdfsWriterTest {
     expected.add(message.toJSONString());
 
     // Assert both messages are in the same file, because the stream stayed open
-    Assert.assertEquals(1, outputFolder.listFiles().length);
+    assertEquals(1, outputFolder.listFiles().length);
     for (File file : outputFolder.listFiles()) {
       List<String> lines = Files.readAllLines(file.toPath());
       // One line per file
-      Assert.assertEquals(2, lines.size());
-      Assert.assertEquals(expected, lines);
+      assertEquals(2, lines.size());
+      assertEquals(expected, lines);
     }
   }
 
@@ -488,7 +494,7 @@ public class HdfsWriterTest {
   }
 
   private TopologyContext createTopologyContext(){
-      Map<Integer, String> taskToComponent = new HashMap<Integer, String>();
+      Map<Integer, String> taskToComponent = new HashMap<>();
       taskToComponent.put(7, "Xcom");
       return new TopologyContext(null, null, taskToComponent, null, null, null, null, null, 7, 6703, null, null, null, null, null, null);
   }

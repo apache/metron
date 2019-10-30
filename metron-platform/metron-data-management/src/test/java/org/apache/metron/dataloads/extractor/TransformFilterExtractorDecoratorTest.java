@@ -24,9 +24,8 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
@@ -35,6 +34,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.util.*;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TransformFilterExtractorDecoratorTest {
 
@@ -107,7 +108,7 @@ public class TransformFilterExtractorDecoratorTest {
     LookupKV expectedLkv = new LookupKV<>(expectedLookupKey, expectedLookupValue);
     List<LookupKV> expectedLkvs = new ArrayList<>();
     expectedLkvs.add(expectedLkv);
-    Assert.assertThat(extracted, CoreMatchers.equalTo(expectedLkvs));
+    assertThat(extracted, CoreMatchers.equalTo(expectedLkvs));
   }
 
   @Test
@@ -124,7 +125,7 @@ public class TransformFilterExtractorDecoratorTest {
     extractedLkvs.add(lkv);
     Mockito.when(extractor.extract("val1,val2,")).thenReturn(extractedLkvs);
     Iterable<LookupKV> extracted = decorator.extract("val1,val2,");
-    Assert.assertThat(extracted, CoreMatchers.equalTo(new ArrayList<>()));
+    assertThat(extracted, CoreMatchers.equalTo(new ArrayList<>()));
   }
 
   @Test
@@ -140,14 +141,14 @@ public class TransformFilterExtractorDecoratorTest {
     extractedLkvs.add(lkv);
     Mockito.when(extractor.extract("val1,,val3")).thenReturn(extractedLkvs);
     Iterable<LookupKV> extracted = decorator.extract("val1,,val3");
-    Assert.assertThat(extracted, CoreMatchers.equalTo(new ArrayList<>()));
+    assertThat(extracted, CoreMatchers.equalTo(new ArrayList<>()));
   }
 
   @Rule
   public ExpectedException exception = ExpectedException.none();
 
   @Test
-  public void bad_value_transform_causes_exception() throws Exception {
+  public void bad_value_transform_causes_exception() {
     final int badValue = 5;
     exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.VALUE_TRANSFORM.toString(), badValue);
@@ -157,7 +158,7 @@ public class TransformFilterExtractorDecoratorTest {
   }
 
   @Test
-  public void bad_value_filter_causes_exception() throws Exception {
+  public void bad_value_filter_causes_exception() {
     final int badValue = 5;
     exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.VALUE_FILTER.toString(), badValue);
@@ -167,7 +168,7 @@ public class TransformFilterExtractorDecoratorTest {
   }
 
   @Test
-  public void bad_indicator_transform_causes_exception() throws Exception {
+  public void bad_indicator_transform_causes_exception() {
     final int badValue = 5;
     exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_TRANSFORM.toString(), badValue);
@@ -177,7 +178,7 @@ public class TransformFilterExtractorDecoratorTest {
   }
 
   @Test
-  public void bad_indicator_filter_causes_exception() throws Exception {
+  public void bad_indicator_filter_causes_exception() {
     final int badValue = 5;
     exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_FILTER.toString(), badValue);

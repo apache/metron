@@ -19,17 +19,17 @@ package org.apache.metron.pcap.filter;
 
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class PcapFiltersTest {
 
   @Test
-  public void creates_pcap_filters() throws Exception {
-    Assert.assertThat("filter type should be Fixed", PcapFilters.FIXED.create(), instanceOf(FixedPcapFilter.class));
-    Assert.assertThat("filter type should be Query", PcapFilters.QUERY.create(), instanceOf(QueryPcapFilter.class));
+  public void creates_pcap_filters() {
+    assertThat("filter type should be Fixed", PcapFilters.FIXED.create(), instanceOf(FixedPcapFilter.class));
+    assertThat("filter type should be Query", PcapFilters.QUERY.create(), instanceOf(QueryPcapFilter.class));
   }
 
 }

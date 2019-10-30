@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -30,12 +29,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class ExtractorTest {
     public static class DummyExtractor implements Extractor
     {
 
         @Override
-        public Iterable<LookupKV> extract(String line) throws IOException {
+        public Iterable<LookupKV> extract(String line) {
             EnrichmentKey key = new EnrichmentKey();
             key.indicator = "dummy";
             key.type = "type";
@@ -55,9 +56,9 @@ public class ExtractorTest {
         LookupKV results = Iterables.getFirst(extractor.extract(null), null);
         EnrichmentKey key = (EnrichmentKey) results.getKey();
         EnrichmentValue value = (EnrichmentValue) results.getValue();
-        Assert.assertEquals("dummy", key.indicator);
-        Assert.assertEquals("type", key.type);
-        Assert.assertEquals("dummy", value.getMetadata().get("indicator"));
+        assertEquals("dummy", key.indicator);
+        assertEquals("type", key.type);
+        assertEquals("dummy", value.getMetadata().get("indicator"));
     }
 
     @Test
@@ -77,8 +78,8 @@ public class ExtractorTest {
         LookupKV results = Iterables.getFirst(handler.getExtractor().extract(null), null);
         EnrichmentKey key = (EnrichmentKey) results.getKey();
         EnrichmentValue value = (EnrichmentValue) results.getValue();
-        Assert.assertEquals("dummy", key.indicator);
-        Assert.assertEquals("type", key.type);
-        Assert.assertEquals("dummy", value.getMetadata().get("indicator"));
+        assertEquals("dummy", key.indicator);
+        assertEquals("type", key.type);
+        assertEquals("dummy", value.getMetadata().get("indicator"));
     }
 }

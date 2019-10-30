@@ -17,8 +17,13 @@
  */
 package org.apache.metron.parsers.fireeye;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
+import org.apache.metron.parsers.AbstractParserConfigTest;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Year;
@@ -27,14 +32,10 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.apache.metron.parsers.AbstractParserConfigTest;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicFireEyeParserTest extends AbstractParserConfigTest {
 
@@ -49,20 +50,20 @@ public class BasicFireEyeParserTest extends AbstractParserConfigTest {
   public void testParse() throws ParseException {
     for (String inputString : inputStrings) {
       JSONObject parsed = parser.parse(inputString.getBytes(StandardCharsets.UTF_8)).get(0);
-      Assert.assertNotNull(parsed);
+      assertNotNull(parsed);
 
       JSONParser parser = new JSONParser();
 
       Map json = (Map) parser.parse(parsed.toJSONString());
 
-      Assert.assertNotNull(json);
-      Assert.assertFalse(json.isEmpty());
+      assertNotNull(json);
+      assertFalse(json.isEmpty());
 
       for (Object o : json.entrySet()) {
         Entry entry = (Entry) o;
         String key = (String) entry.getKey();
         String value = json.get(key).toString();
-        Assert.assertNotNull(value);
+        assertNotNull(value);
       }
     }
   }
@@ -76,7 +77,7 @@ public class BasicFireEyeParserTest extends AbstractParserConfigTest {
     JSONParser parser = new JSONParser();
     Map json = (Map) parser.parse(parsed.toJSONString());
     long expectedTimestamp = ZonedDateTime.of(Year.now(ZoneOffset.UTC).getValue(), 3, 19, 5, 24, 39, 0, ZoneOffset.UTC).toInstant().toEpochMilli();
-    Assert.assertEquals(expectedTimestamp, json.get("timestamp"));
+    assertEquals(expectedTimestamp, json.get("timestamp"));
   }
 
   @Test

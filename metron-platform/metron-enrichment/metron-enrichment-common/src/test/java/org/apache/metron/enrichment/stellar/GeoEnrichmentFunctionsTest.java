@@ -19,10 +19,6 @@
 package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.ImmutableMap;
-import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.enrichment.adapters.maxmind.geo.GeoLiteCityDatabase;
 import org.apache.metron.stellar.common.StellarProcessor;
@@ -33,10 +29,16 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GeoEnrichmentFunctionsTest {
   private static Context context;
@@ -93,7 +95,7 @@ public class GeoEnrichmentFunctionsTest {
 
   public Object run(String rule, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
+    assertTrue(processor.validate(rule, context), rule + " not valid.");
     return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
@@ -106,7 +108,7 @@ public class GeoEnrichmentFunctionsTest {
     try {
       run(stellar, ImmutableMap.of());
     } catch (Exception expected) {
-      Assert.assertTrue(expected.getMessage().contains("File fakefile.mmdb does not exist"));
+      assertTrue(expected.getMessage().contains("File fakefile.mmdb does not exist"));
     }
   }
 
@@ -114,7 +116,7 @@ public class GeoEnrichmentFunctionsTest {
   public void testMissingDbDuringUpdate() {
     String stellar = "GEO_GET()";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertNull("Null IP should return null", result);
+    assertNull(result, "Null IP should return null");
     try {
       GeoLiteCityDatabase.INSTANCE.updateIfNecessary(
           Collections.singletonMap(GeoLiteCityDatabase.GEO_HDFS_FILE, "./fakefile.mmdb"));
@@ -123,68 +125,67 @@ public class GeoEnrichmentFunctionsTest {
     }
     // Should still continue to query the old database, instead of dying.
     result = run(stellar, ImmutableMap.of());
-    Assert.assertNull("Null IP should return null", result);
+    assertNull(result, "Null IP should return null");
   }
 
   @Test
   public void testGetEmpty() {
     String stellar = "GEO_GET()";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertNull("Empty IP should return null", result);
+    assertNull(result, "Empty IP should return null");
   }
 
   @Test
   public void testGetNull() {
     String stellar = "GEO_GET(null)";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertNull("Null IP should return null", result);
+    assertNull(result, "Null IP should return null");
   }
 
-  @Test(expected = org.apache.metron.stellar.dsl.ParseException.class)
+  @Test
   public void testGetUndefined() {
     String stellar = "GEO_GET(undefined)";
-    Object result = run(stellar, ImmutableMap.of());
-    Assert.assertNull("Null IP should return null", result);
+    assertThrows(org.apache.metron.stellar.dsl.ParseException.class, () -> run(stellar, ImmutableMap.of()));
   }
 
   @Test
   public void testGetEmptyString() {
     String stellar = "GEO_GET('  ')";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertNull("Empty IP should return null", result);
+    assertNull(result, "Empty IP should return null");
   }
 
   @Test
   public void testGetLocal() {
     String stellar = "GEO_GET('192.168.0.1')";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertEquals("Local IP should return empty map", new HashMap<String, String>(), result);
+    assertEquals(new HashMap<String, String>(), result, "Local IP should return empty map");
   }
 
   @Test
   public void testGetRemote() {
     String stellar = "GEO_GET('216.160.83.56')";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertEquals("Remote IP should return result based on DB", expectedMessage, result);
+    assertEquals(expectedMessage, result, "Remote IP should return result based on DB");
   }
 
   @Test
   public void testGetRemoteSingleField() {
     String stellar = "GEO_GET('216.160.83.56', ['country'])";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertEquals("Remote IP should return country result based on DB", "US", result);
+    assertEquals("US", result, "Remote IP should return country result based on DB");
   }
 
   @Test
   public void testGetRemoteMultipleFields() {
     String stellar = "GEO_GET('216.160.83.56', ['country', 'city', 'dmaCode', 'location_point'])";
     Object result = run(stellar, ImmutableMap.of());
-    Assert.assertEquals("Remote IP should return country result based on DB", expectedSubsetMessage, result);
+    assertEquals(expectedSubsetMessage, result, "Remote IP should return country result based on DB");
   }
 
-  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
+  @Test
   public void testGetTooManyParams() {
     String stellar = "GEO_GET('216.160.83.56', ['country', 'city', 'dmaCode', 'location_point'], 'garbage')";
-    run(stellar, ImmutableMap.of());
+    assertThrows(org.apache.metron.stellar.dsl.ParseException.class, () -> run(stellar, ImmutableMap.of()));
   }
 }

@@ -17,7 +17,6 @@ package org.apache.metron.stellar.dsl.functions;
 
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -106,8 +105,7 @@ public class TextFunctionsTest {
 
   @Test
   public void testHappyStringFunctions() {
-    Assert
-        .assertTrue(runPredicate("1 == FUZZY_SCORE(metron,'m',english)",
+    assertTrue(runPredicate("1 == FUZZY_SCORE(metron,'m',english)",
             new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
     assertTrue(
         runPredicate("16 == FUZZY_SCORE(metron,'metron',english)",

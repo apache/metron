@@ -21,42 +21,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
-import org.apache.curator.framework.api.GetChildrenBuilder;
-import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("ALL")
 public class SensorIndexingConfigServiceImplTest {
@@ -158,9 +145,9 @@ public class SensorIndexingConfigServiceImplTest {
     when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
     List<String> indices = new ArrayList<String>();
     Iterables.addAll(indices, sensorIndexingConfigService.getAllIndices("elasticsearch"));
-    Assert.assertEquals(2, indices.size());
-    Assert.assertTrue(indices.contains("bro"));
-    Assert.assertTrue(indices.contains("snort"));
+    assertEquals(2, indices.size());
+    assertTrue(indices.contains("bro"));
+    assertTrue(indices.contains("snort"));
   }
 
   @Test
@@ -180,9 +167,9 @@ public class SensorIndexingConfigServiceImplTest {
     when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
     List<String> indices = new ArrayList<String>();
     Iterables.addAll(indices, sensorIndexingConfigService.getAllIndices("elasticsearch"));
-    Assert.assertEquals(2, indices.size());
-    Assert.assertTrue(indices.contains("renamed_bro"));
-    Assert.assertTrue(indices.contains("snort"));
+    assertEquals(2, indices.size());
+    assertTrue(indices.contains("renamed_bro"));
+    assertTrue(indices.contains("snort"));
   }
 
   @Test
@@ -203,10 +190,10 @@ public class SensorIndexingConfigServiceImplTest {
     when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
     List<String> indices = new ArrayList<String>();
     Iterables.addAll(indices, sensorIndexingConfigService.getAllIndices("elasticsearch"));
-    Assert.assertEquals(3, indices.size());
-    Assert.assertTrue(indices.contains("renamed_bro"));
-    Assert.assertTrue(indices.contains("snort"));
-    Assert.assertTrue(indices.contains("yaf"));
+    assertEquals(3, indices.size());
+    assertTrue(indices.contains("renamed_bro"));
+    assertTrue(indices.contains("snort"));
+    assertTrue(indices.contains("yaf"));
   }
 
   @Test
@@ -220,7 +207,7 @@ public class SensorIndexingConfigServiceImplTest {
     when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
     List<String> indices = new ArrayList<String>();
     Iterables.addAll(indices, sensorIndexingConfigService.getAllIndices("elasticsearch"));
-    Assert.assertEquals(0, indices.size());
+    assertEquals(0, indices.size());
   }
 
   @Test

@@ -17,23 +17,21 @@
  */
 package org.apache.metron.storm.common.bolt;
 
+import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Level;
+import org.apache.metron.TestConstants;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
-import org.apache.curator.test.TestingServer;
-import org.apache.metron.TestConstants;
-import org.apache.metron.common.configuration.*;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
 
@@ -89,7 +87,7 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     try {
       StandAloneConfiguredEnrichmentBolt configuredBolt = new StandAloneConfiguredEnrichmentBolt(null);
       configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      Assert.fail("A valid zookeeper url must be supplied");
+      Assertions.fail("A valid zookeeper url must be supplied");
     } catch (RuntimeException e){}
     UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.ERROR);
 
@@ -103,20 +101,20 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     StandAloneConfiguredEnrichmentBolt configuredBolt = new StandAloneConfiguredEnrichmentBolt(zookeeperUrl);
     configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
     waitForConfigUpdate(enrichmentConfigurationTypes);
-    Assert.assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
+    Assertions.assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
 
     configsUpdated = new HashSet<>();
     Map<String, Object> sampleGlobalConfig = sampleConfigurations.getGlobalConfig();
     sampleGlobalConfig.put("newGlobalField", "newGlobalValue");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
-    Assert.assertEquals("Add global config field", sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig());
+    Assertions.assertEquals(sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig(), "Add global config field");
 
     configsUpdated = new HashSet<>();
     sampleGlobalConfig.remove("newGlobalField");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
-    Assert.assertEquals("Remove global config field", sampleConfigurations, configuredBolt.getConfigurations());
+    Assertions.assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Remove global config field");
 
     configsUpdated = new HashSet<>();
     String sensorType = "testSensorConfig";
@@ -134,7 +132,7 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     sampleConfigurations.updateSensorEnrichmentConfig(sensorType, testSensorConfig);
     ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, testSensorConfig, zookeeperUrl);
     waitForConfigUpdate(sensorType);
-    Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBolt.getConfigurations());
+    Assertions.assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Add new sensor config");
     configuredBolt.cleanup();
   }
 }

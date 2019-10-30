@@ -23,21 +23,17 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-
 import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public abstract class UpdateIntegrationTest {
 
@@ -77,7 +73,7 @@ public abstract class UpdateIntegrationTest {
 
     // update the document and validate
     Document updated = getDao().update(toUpdate, Optional.of(SENSOR_NAME));
-    Assert.assertEquals(toUpdate, updated);
+    assertEquals(toUpdate, updated);
 
     // ensure the document was updated in the index
     assertDocumentIndexed(toUpdate);
@@ -107,9 +103,9 @@ public abstract class UpdateIntegrationTest {
 
     // update the documents as a batch and validate
     Map<Document, Optional<String>> updated = getDao().batchUpdate(toUpdate);
-    Assert.assertThat(updated.keySet(), hasItem(document1));
-    Assert.assertThat(updated.keySet(), hasItem(document2));
-    Assert.assertThat(updated.keySet(), hasItem(document3));
+    assertThat(updated.keySet(), hasItem(document1));
+    assertThat(updated.keySet(), hasItem(document2));
+    assertThat(updated.keySet(), hasItem(document3));
 
     // ensure the documents were written to the index
     assertDocumentIndexed(document1);
@@ -129,19 +125,19 @@ public abstract class UpdateIntegrationTest {
     {
       // validate that the comment was made on the returned document
       List<AlertComment> comments = getComments(withComment);
-      Assert.assertEquals(1, comments.size());
-      Assert.assertEquals(commentText, comments.get(0).getComment());
-      Assert.assertEquals(commentUser, comments.get(0).getUsername());
-      Assert.assertEquals(commentTimestamp, comments.get(0).getTimestamp());
+      assertEquals(1, comments.size());
+      assertEquals(commentText, comments.get(0).getComment());
+      assertEquals(commentUser, comments.get(0).getUsername());
+      assertEquals(commentTimestamp, comments.get(0).getTimestamp());
     }
     {
       // validate that the comment was made on the indexed document
       Document indexed = findUpdatedDoc(withComment.getDocument(), withComment.getGuid(), SENSOR_NAME);
       List<AlertComment> comments = getComments(indexed);
-      Assert.assertEquals(1, comments.size());
-      Assert.assertEquals(commentText, comments.get(0).getComment());
-      Assert.assertEquals(commentUser, comments.get(0).getUsername());
-      Assert.assertEquals(commentTimestamp, comments.get(0).getTimestamp());
+      assertEquals(1, comments.size());
+      assertEquals(commentText, comments.get(0).getComment());
+      assertEquals(commentUser, comments.get(0).getUsername());
+      assertEquals(commentTimestamp, comments.get(0).getTimestamp());
     }
   }
 
@@ -171,11 +167,11 @@ public abstract class UpdateIntegrationTest {
 
     // patch the document that has been commented on
     Document patched = getDao().patch(getDao(), pr, Optional.of(withComment.getTimestamp()));
-    Assert.assertEquals("metron", patched.getDocument().get("project"));
+    assertEquals("metron", patched.getDocument().get("project"));
 
     // ensure the patch was made on the indexed document
     Document indexed = findUpdatedDoc(patched.getDocument(), patched.getGuid(), SENSOR_NAME);
-    Assert.assertEquals("metron", indexed.getDocument().get("project"));
+    assertEquals("metron", indexed.getDocument().get("project"));
   }
 
   @Test
@@ -185,20 +181,20 @@ public abstract class UpdateIntegrationTest {
 
     // add a comment on the document
     Document withComments = addAlertComment(guid, "comment", "user1", 1526401584951L);
-    Assert.assertEquals(1, getComments(withComments).size());
+    assertEquals(1, getComments(withComments).size());
 
     // ensure the comment was added to the document in the index
     Document indexedWithComments = findUpdatedDoc(withComments.getDocument(), withComments.getGuid(), withComments.getSensorType());
-    Assert.assertEquals(1, getComments(indexedWithComments).size());
+    assertEquals(1, getComments(indexedWithComments).size());
 
     // remove a comment from the document
     AlertComment toRemove = getComments(withComments).get(0);
     Document noComments = removeAlertComment(guid, toRemove.getComment(), toRemove.getUsername(), toRemove.getTimestamp());
-    Assert.assertEquals(0, getComments(noComments).size());
+    assertEquals(0, getComments(noComments).size());
 
     // ensure the comment was removed from the index
     Document indexedNoComments = findUpdatedDoc(noComments.getDocument(), withComments.getGuid(), withComments.getSensorType());
-    Assert.assertEquals(0, getComments(indexedNoComments).size());
+    assertEquals(0, getComments(indexedNoComments).size());
   }
 
   protected Document addAlertComment(String guid, String comment, String username, long timestamp)
@@ -234,18 +230,18 @@ public abstract class UpdateIntegrationTest {
     Document actual = findUpdatedDoc(expected.getDocument(), expected.getGuid(), expected.getSensorType());
 
     // most fields should match exactly, except the documentID
-    Assert.assertEquals(expected.getGuid(), actual.getGuid());
-    Assert.assertEquals(expected.getTimestamp(), actual.getTimestamp());
-    Assert.assertEquals(expected.getSensorType(), actual.getSensorType());
-    Assert.assertEquals(expected.getDocument(), actual.getDocument());
+    assertEquals(expected.getGuid(), actual.getGuid());
+    assertEquals(expected.getTimestamp(), actual.getTimestamp());
+    assertEquals(expected.getSensorType(), actual.getSensorType());
+    assertEquals(expected.getDocument(), actual.getDocument());
 
     if(expected.getDocumentID().isPresent()) {
       // the documentID was already defined in 'expected', this ID should have been used when the document was indexed
-      Assert.assertEquals(expected.getDocumentID().get(), actual.getDocumentID());
+      assertEquals(expected.getDocumentID().get(), actual.getDocumentID());
 
     } else {
       // if the documentID was not defined, the indexer should have created one
-      Assert.assertNotNull(expected.getDocumentID());
+      assertNotNull(expected.getDocumentID());
     }
 
     return actual;
@@ -258,7 +254,7 @@ public abstract class UpdateIntegrationTest {
 
     // index the document
     Document created = getDao().update(toCreate, Optional.of(SENSOR_NAME));
-    Assert.assertEquals(toCreate, created);
+    assertEquals(toCreate, created);
 
     // ensure the document is indexed
     return assertDocumentIndexed(created);

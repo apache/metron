@@ -19,22 +19,13 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PatchUtilsTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Test
   public void addOperationShouldAddValue() {
     List<Map<String, Object>> patches = new ArrayList<>();
@@ -48,7 +39,7 @@ public class PatchUtilsTest {
       put("path", "value");
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<>()));
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<>()));
   }
 
   @Test
@@ -64,7 +55,7 @@ public class PatchUtilsTest {
       put("remove", new HashMap<>());
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", "value");
       put("remove", new HashMap<String, Object>() {{
         put("path", "removeValue");
@@ -86,7 +77,7 @@ public class PatchUtilsTest {
       put("path", "value");
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("from", "value");
     }}));
   }
@@ -107,7 +98,7 @@ public class PatchUtilsTest {
       }});
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("nested", new HashMap<String, Object>() {{
         put("from", "value");
       }});
@@ -127,7 +118,7 @@ public class PatchUtilsTest {
       put("path", "value");
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("from", "value");
     }}));
   }
@@ -145,7 +136,7 @@ public class PatchUtilsTest {
       put("path", "value");
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", "value");
     }}));
   }
@@ -163,7 +154,7 @@ public class PatchUtilsTest {
       put("path", 100);
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", 100);
     }}));
   }
@@ -181,7 +172,7 @@ public class PatchUtilsTest {
       put("path", Arrays.asList(1, 2, 3));
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", Arrays.asList(1, 2, 3));
     }}));
   }
@@ -203,7 +194,7 @@ public class PatchUtilsTest {
       }});
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", new HashMap<String, Object>() {{
         put("key", "value");
       }});

@@ -23,19 +23,18 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.common.utils.JSONUtils;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ThreatTriageTest {
 
@@ -84,60 +83,78 @@ public class ThreatTriageTest {
   public void smokeTest() throws Exception {
     ThreatTriageProcessor threatTriageProcessor = getProcessor(smokeTestProcessorConfig);
 
-    Assert.assertEquals(
-            "Expected a score of 0",
-            0d,
-            new ThreatTriageProcessor(
-                    new SensorEnrichmentConfig(),
-                    StellarFunctions.FUNCTION_RESOLVER(),
-                    Context.EMPTY_CONTEXT()).apply(
-                    new HashMap<Object, Object>() {{
-                      put("user.type", "admin");
-                      put("asset.type", "web");
-                    }}).getScore(),
-            1e-10);
+    assertEquals(
+        0d,
+        new ThreatTriageProcessor(
+                new SensorEnrichmentConfig(),
+                StellarFunctions.FUNCTION_RESOLVER(),
+                Context.EMPTY_CONTEXT())
+            .apply(
+                new HashMap<Object, Object>() {
+                  {
+                    put("user.type", "admin");
+                    put("asset.type", "web");
+                  }
+                })
+            .getScore(),
+        1e-10,
+        "Expected a score of 0");
 
-    Assert.assertEquals(
-            "Expected a score of 10",
-            10d,
-            threatTriageProcessor.apply(
-                    new HashMap<Object, Object>() {{
-                      put("user.type", "admin");
-                      put("asset.type", "web");
-                    }}
-            ).getScore(),
-            1e-10);
+    assertEquals(
+        10d,
+        threatTriageProcessor
+            .apply(
+                new HashMap<Object, Object>() {
+                  {
+                    put("user.type", "admin");
+                    put("asset.type", "web");
+                  }
+                })
+            .getScore(),
+        1e-10,
+        "Expected a score of 10");
 
-    Assert.assertEquals(
-            "Expected a score of 5",
-            5d,
-            threatTriageProcessor.apply(
-                    new HashMap<Object, Object>() {{
-                      put("user.type", "normal");
-                      put("asset.type", "web");
-                    }}
-            ).getScore(),
-            1e-10);
+    assertEquals(
+        5d,
+        threatTriageProcessor
+            .apply(
+                new HashMap<Object, Object>() {
+                  {
+                    put("user.type", "normal");
+                    put("asset.type", "web");
+                  }
+                })
+            .getScore(),
+        1e-10,
+        "Expected a score of 5");
 
-    Assert.assertEquals(
-            "Expected a score of 0",
-            0d,
-            threatTriageProcessor.apply(
-                    new HashMap<Object, Object>() {{
-                      put("user.type", "foo");
-                      put("asset.type", "bar");
-                    }}).getScore(),
-            1e-10);
+    assertEquals(
+        0d,
+        threatTriageProcessor
+            .apply(
+                new HashMap<Object, Object>() {
+                  {
+                    put("user.type", "foo");
+                    put("asset.type", "bar");
+                  }
+                })
+            .getScore(),
+        1e-10,
+        "Expected a score of 0");
 
-    Assert.assertEquals(
-            "Expected a score of -Inf",
-            Double.NEGATIVE_INFINITY,
-            threatTriageProcessor.apply(
-                    new HashMap<Object, Object>() {{
-                      put("user.type", "abnormal");
-                      put("asset.type", "bar");
-                    }}).getScore(),
-            1e-10);
+    assertEquals(
+        Double.NEGATIVE_INFINITY,
+        threatTriageProcessor
+            .apply(
+                new HashMap<Object, Object>() {
+                  {
+                    put("user.type", "abnormal");
+                    put("asset.type", "bar");
+                  }
+                })
+            .getScore(),
+        1e-10,
+        "Expected a score of -Inf");
   }
 
   /**
@@ -156,9 +173,9 @@ public class ThreatTriageTest {
 
     // expect rules 1 and 2 to have been applied
     List<String> expectedNames = ImmutableList.of("rule 1", "rule 2");
-    Assert.assertEquals(2, score.getRuleScores().size());
+    assertEquals(2, score.getRuleScores().size());
     score.getRuleScores().forEach(ruleScore ->
-            Assert.assertTrue(expectedNames.contains(ruleScore.getRule().getName()))
+            assertTrue(expectedNames.contains(ruleScore.getRule().getName()))
     );
   }
 
@@ -178,9 +195,9 @@ public class ThreatTriageTest {
 
     // expect rule 4 to have been applied
     List<String> expectedNames = ImmutableList.of("rule 4");
-    Assert.assertEquals(1, score.getRuleScores().size());
+    assertEquals(1, score.getRuleScores().size());
     score.getRuleScores().forEach(ruleScore ->
-            Assert.assertTrue(expectedNames.contains(ruleScore.getRule().getName()))
+            assertTrue(expectedNames.contains(ruleScore.getRule().getName()))
     );
   }
 
@@ -199,7 +216,7 @@ public class ThreatTriageTest {
     ThreatScore score = getProcessor(smokeTestProcessorConfig).apply(message);
 
     // expect no rules to have been applied
-    Assert.assertEquals(0, score.getRuleScores().size());
+    assertEquals(0, score.getRuleScores().size());
   }
 
   /**
@@ -232,35 +249,47 @@ public class ThreatTriageTest {
   public void testPositiveMeanAggregationScores() throws Exception {
 
     ThreatTriageProcessor threatTriageProcessor = getProcessor(positiveMeanProcessorConfig);
-    Assert.assertEquals(
-            "Expected a score of 0",
-            5d,
-            threatTriageProcessor.apply(
-                    new HashMap<Object, Object>() {{
-                      put("user.type", "normal");
-                      put("asset.type", "web");
-                    }}).getScore(),
-            1e-10);
+    assertEquals(
+        5d,
+        threatTriageProcessor
+            .apply(
+                new HashMap<Object, Object>() {
+                  {
+                    put("user.type", "normal");
+                    put("asset.type", "web");
+                  }
+                })
+            .getScore(),
+        1e-10,
+        "Expected a score of 0");
 
-    Assert.assertEquals(
-            "Expected a score of 7.5",
-            (10 + 5)/2.0,
-            threatTriageProcessor.apply(
-                    new HashMap<Object, Object>() {{
-                      put("user.type", "admin");
-                      put("asset.type", "web");
-                    }}).getScore(),
-            1e-10);
+    assertEquals(
+        (10 + 5) / 2.0,
+        threatTriageProcessor
+            .apply(
+                new HashMap<Object, Object>() {
+                  {
+                    put("user.type", "admin");
+                    put("asset.type", "web");
+                  }
+                })
+            .getScore(),
+        1e-10,
+        "Expected a score of 7.5");
 
-    Assert.assertEquals(
-            "Expected a score of 0",
-            0d,
-            threatTriageProcessor.apply(
-                    new HashMap<Object, Object>() {{
-                      put("user.type", "foo");
-                      put("asset.type", "bar");
-                    }}).getScore(),
-            1e-10);
+    assertEquals(
+        0d,
+        threatTriageProcessor
+            .apply(
+                new HashMap<Object, Object>() {
+                  {
+                    put("user.type", "foo");
+                    put("asset.type", "bar");
+                  }
+                })
+            .getScore(),
+        1e-10,
+        "Expected a score of 0");
   }
 
   /**
@@ -284,7 +313,7 @@ public class ThreatTriageTest {
   @Test
   public void testWithStellarFunction() throws Exception {
     ThreatTriageProcessor threatTriageProcessor = getProcessor(testWithStellarFunction);
-    Assert.assertEquals(
+    assertEquals(
             10d,
             threatTriageProcessor.apply(
                     new HashMap<Object, Object>() {{
@@ -376,7 +405,7 @@ public class ThreatTriageTest {
   public void shouldAllowNumericRuleScore() throws Exception {
     Map<String, Object> message = new HashMap<>();
     ThreatTriageProcessor threatTriageProcessor = getProcessor(shouldAllowNumericRuleScore);
-    Assert.assertEquals(10d, threatTriageProcessor.apply(message).getScore(), 1e-10);
+    assertEquals(10d, threatTriageProcessor.apply(message).getScore(), 1e-10);
   }
 
   /**
@@ -405,7 +434,7 @@ public class ThreatTriageTest {
     }};
 
     ThreatTriageProcessor threatTriageProcessor = getProcessor(shouldAllowScoreAsStellarExpression);
-    Assert.assertEquals(1010.0d, threatTriageProcessor.apply(message).getScore(), 1e-10);
+    assertEquals(1010.0d, threatTriageProcessor.apply(message).getScore(), 1e-10);
   }
 
   private static ThreatTriageProcessor getProcessor(String config) throws IOException {

@@ -17,18 +17,14 @@
  */
 package org.apache.metron.storm.common.bolt;
 
+import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Level;
-import org.apache.metron.common.configuration.FieldValidator;
+import org.apache.metron.TestConstants;
+import org.apache.metron.common.configuration.*;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
-import org.apache.curator.test.TestingServer;
-import org.apache.metron.TestConstants;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -87,7 +83,7 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     try {
       StandAloneConfiguredParserBolt configuredBolt = new StandAloneConfiguredParserBolt(null);
       configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      Assert.fail("A valid zookeeper url must be supplied");
+      Assertions.fail("A valid zookeeper url must be supplied");
     } catch (RuntimeException e){}
     UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.ERROR);
 
@@ -101,20 +97,20 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     StandAloneConfiguredParserBolt configuredBolt = new StandAloneConfiguredParserBolt(zookeeperUrl);
     configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
     waitForConfigUpdate(parserConfigurationTypes);
-    Assert.assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
+    Assertions.assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
 
     configsUpdated = new HashSet<>();
     Map<String, Object> sampleGlobalConfig = sampleConfigurations.getGlobalConfig();
     sampleGlobalConfig.put("newGlobalField", "newGlobalValue");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
-    Assert.assertEquals("Add global config field", sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig());
+    Assertions.assertEquals(sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig(), "Add global config field");
 
     configsUpdated = new HashSet<>();
     sampleGlobalConfig.remove("newGlobalField");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
-    Assert.assertEquals("Remove global config field", sampleConfigurations, configuredBolt.getConfigurations());
+    Assertions.assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Remove global config field");
 
     configsUpdated = new HashSet<>();
     String sensorType = "testSensorConfig";
@@ -152,9 +148,9 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
           System.out.println(r);
         }
       }
-      Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBoltConfigs);
+      Assertions.assertEquals(sampleConfigurations, configuredBoltConfigs, "Add new sensor config");
     }
-    Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBoltConfigs);
+    Assertions.assertEquals(sampleConfigurations, configuredBoltConfigs, "Add new sensor config");
     configuredBolt.cleanup();
   }
 }

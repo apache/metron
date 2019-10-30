@@ -18,12 +18,6 @@
 
 package org.apache.metron.parsers.csv;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Level;
@@ -32,8 +26,15 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CSVParserTest {
   /**
@@ -62,64 +63,64 @@ public class CSVParserTest {
     parser.configure(config.getParserConfig());
     {
       String line = "#foo,bar,grok";
-      Assert.assertEquals(0, parser.parse(Bytes.toBytes(line)).size());
+      assertEquals(0, parser.parse(Bytes.toBytes(line)).size());
     }
     {
       String line = "";
-      Assert.assertEquals(0, parser.parse(Bytes.toBytes(line)).size());
+      assertEquals(0, parser.parse(Bytes.toBytes(line)).size());
     }
     {
       String line = "foo,bar,grok";
       List<JSONObject> results = parser.parse(Bytes.toBytes(line));
-      Assert.assertEquals(1, results.size());
+      assertEquals(1, results.size());
       JSONObject o = results.get(0);
-      Assert.assertTrue(parser.validate(o));
-      Assert.assertEquals(5, o.size());
-      Assert.assertEquals("foo", o.get("col1"));
-      Assert.assertEquals("bar", o.get("col2"));
-      Assert.assertEquals("grok", o.get("col3"));
+      assertTrue(parser.validate(o));
+      assertEquals(5, o.size());
+      assertEquals("foo", o.get("col1"));
+      assertEquals("bar", o.get("col2"));
+      assertEquals("grok", o.get("col3"));
     }
     {
       String line = "\"foo\", \"bar\",\"grok\"";
       List<JSONObject> results = parser.parse(Bytes.toBytes(line));
-      Assert.assertEquals(1, results.size());
+      assertEquals(1, results.size());
       JSONObject o = results.get(0);
-      Assert.assertTrue(parser.validate(o));
-      Assert.assertEquals(5, o.size());
-      Assert.assertEquals("foo", o.get("col1"));
-      Assert.assertEquals("bar", o.get("col2"));
-      Assert.assertEquals("grok", o.get("col3"));
+      assertTrue(parser.validate(o));
+      assertEquals(5, o.size());
+      assertEquals("foo", o.get("col1"));
+      assertEquals("bar", o.get("col2"));
+      assertEquals("grok", o.get("col3"));
     }
     {
       String line = "foo, bar, grok";
       List<JSONObject> results = parser.parse(Bytes.toBytes(line));
-      Assert.assertEquals(1, results.size());
+      assertEquals(1, results.size());
       JSONObject o = results.get(0);
-      Assert.assertTrue(parser.validate(o));
-      Assert.assertEquals(5, o.size());
-      Assert.assertEquals("foo", o.get("col1"));
-      Assert.assertEquals("bar", o.get("col2"));
-      Assert.assertEquals("grok", o.get("col3"));
+      assertTrue(parser.validate(o));
+      assertEquals(5, o.size());
+      assertEquals("foo", o.get("col1"));
+      assertEquals("bar", o.get("col2"));
+      assertEquals("grok", o.get("col3"));
     }
     {
       String line = " foo , bar , grok ";
       List<JSONObject> results = parser.parse(Bytes.toBytes(line));
-      Assert.assertEquals(1, results.size());
+      assertEquals(1, results.size());
       JSONObject o = results.get(0);
-      Assert.assertTrue(parser.validate(o));
-      Assert.assertEquals(5, o.size());
-      Assert.assertEquals("foo", o.get("col1"));
-      Assert.assertEquals("bar", o.get("col2"));
-      Assert.assertEquals("grok", o.get("col3"));
-      Assert.assertEquals(null, o.get(" col2"));
-      Assert.assertEquals(null, o.get("col3 "));
+      assertTrue(parser.validate(o));
+      assertEquals(5, o.size());
+      assertEquals("foo", o.get("col1"));
+      assertEquals("bar", o.get("col2"));
+      assertEquals("grok", o.get("col3"));
+      assertEquals(null, o.get(" col2"));
+      assertEquals(null, o.get("col3 "));
     }
     {
       UnitTestHelper.setLog4jLevel(CSVParser.class, Level.FATAL);
       String line = "foo";
       try {
         List<JSONObject> results = parser.parse(Bytes.toBytes(line));
-        Assert.fail("Expected exception");
+        fail("Expected exception");
       }
       catch(IllegalStateException iae) {}
       UnitTestHelper.setLog4jLevel(CSVParser.class, Level.ERROR);

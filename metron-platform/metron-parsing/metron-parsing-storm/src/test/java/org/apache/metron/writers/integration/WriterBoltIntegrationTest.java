@@ -17,37 +17,17 @@
  */
 package org.apache.metron.writers.integration;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
-
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.function.Predicate;
-import javax.annotation.Nullable;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
@@ -57,8 +37,19 @@ import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Predicate;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   private ZKServerComponent zkServerComponent;
@@ -167,9 +158,9 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
       // validate the output messages
       Map<String,List<JSONObject>> outputMessages = result.getResult();
       for(JSONObject j : outputMessages.get(Constants.ENRICHMENT_TOPIC)) {
-        Assert.assertEquals("metron", j.get("name"));
-        Assert.assertEquals("output", j.get("route_field"));
-        Assert.assertTrue(ImmutableSet.of("foo", "bar", "baz").contains(j.get("dummy")));
+        assertEquals("metron", j.get("name"));
+        assertEquals("output", j.get("route_field"));
+        assertTrue(ImmutableSet.of("foo", "bar", "baz").contains(j.get("dummy")));
       }
     } finally {
       if(runner != null) {
@@ -200,22 +191,22 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
 
       // validate the output messages
       Map<String,List<JSONObject>> outputMessages = result.getResult();
-      Assert.assertEquals(2, outputMessages.size());
-      Assert.assertEquals(1, outputMessages.get(Constants.ENRICHMENT_TOPIC).size());
-      Assert.assertEquals("valid", outputMessages.get(Constants.ENRICHMENT_TOPIC).get(0).get("action"));
-      Assert.assertEquals(2, outputMessages.get(parserConfig.getErrorTopic()).size());
+      assertEquals(2, outputMessages.size());
+      assertEquals(1, outputMessages.get(Constants.ENRICHMENT_TOPIC).size());
+      assertEquals("valid", outputMessages.get(Constants.ENRICHMENT_TOPIC).get(0).get("action"));
+      assertEquals(2, outputMessages.get(parserConfig.getErrorTopic()).size());
 
       // validate an error message
       JSONObject invalidMessage = outputMessages.get(parserConfig.getErrorTopic()).get(0);
-      Assert.assertEquals(Constants.ErrorType.PARSER_INVALID.getType(), invalidMessage.get(Constants.ErrorFields.ERROR_TYPE.getName()));
+      assertEquals(Constants.ErrorType.PARSER_INVALID.getType(), invalidMessage.get(Constants.ErrorFields.ERROR_TYPE.getName()));
       JSONObject rawMessage = JSONUtils.INSTANCE.load((String) invalidMessage.get(Constants.ErrorFields.RAW_MESSAGE.getName()), JSONObject.class);
-      Assert.assertEquals("foo", rawMessage.get("dummy"));
-      Assert.assertEquals("invalid", rawMessage.get("action"));
+      assertEquals("foo", rawMessage.get("dummy"));
+      assertEquals("invalid", rawMessage.get("action"));
 
       // validate the next error message
       JSONObject errorMessage = outputMessages.get(parserConfig.getErrorTopic()).get(1);
-      Assert.assertEquals(Constants.ErrorType.PARSER_ERROR.getType(), errorMessage.get(Constants.ErrorFields.ERROR_TYPE.getName()));
-      Assert.assertEquals("error", errorMessage.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
+      assertEquals(Constants.ErrorType.PARSER_ERROR.getType(), errorMessage.get(Constants.ErrorFields.ERROR_TYPE.getName()));
+      assertEquals("error", errorMessage.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
 
     } finally {
       if(runner != null) {

@@ -23,12 +23,12 @@ import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class OnlineStatisticsProviderTest {
@@ -38,38 +38,38 @@ public class OnlineStatisticsProviderTest {
                                                , DescriptiveStatistics stats
                                                ) {
     //N
-    Assert.assertEquals(statsProvider.getCount(), stats.getN());
+    assertEquals(statsProvider.getCount(), stats.getN());
     //sum
-    Assert.assertEquals(statsProvider.getSum(), stats.getSum(), 1e-3);
+    assertEquals(statsProvider.getSum(), stats.getSum(), 1e-3);
     //sum of squares
-    Assert.assertEquals(statsProvider.getSumSquares(), stats.getSumsq(), 1e-3);
+    assertEquals(statsProvider.getSumSquares(), stats.getSumsq(), 1e-3);
     //sum of squares
-    Assert.assertEquals(statsProvider.getSumLogs(), summaryStats.getSumOfLogs(), 1e-3);
+    assertEquals(statsProvider.getSumLogs(), summaryStats.getSumOfLogs(), 1e-3);
     //Mean
-    Assert.assertEquals(statsProvider.getMean(), stats.getMean(), 1e-3);
+    assertEquals(statsProvider.getMean(), stats.getMean(), 1e-3);
     //Quadratic Mean
-    Assert.assertEquals(statsProvider.getQuadraticMean(), summaryStats.getQuadraticMean(), 1e-3);
+    assertEquals(statsProvider.getQuadraticMean(), summaryStats.getQuadraticMean(), 1e-3);
     //SD
-    Assert.assertEquals(statsProvider.getStandardDeviation(), stats.getStandardDeviation(), 1e-3);
+    assertEquals(statsProvider.getStandardDeviation(), stats.getStandardDeviation(), 1e-3);
     //Variance
-    Assert.assertEquals(statsProvider.getVariance(), stats.getVariance(), 1e-3);
+    assertEquals(statsProvider.getVariance(), stats.getVariance(), 1e-3);
     //Min
-    Assert.assertEquals(statsProvider.getMin(), stats.getMin(), 1e-3);
+    assertEquals(statsProvider.getMin(), stats.getMin(), 1e-3);
     //Max
-    Assert.assertEquals(statsProvider.getMax(), stats.getMax(), 1e-3);
+    assertEquals(statsProvider.getMax(), stats.getMax(), 1e-3);
 
     //Kurtosis
-    Assert.assertEquals(stats.getKurtosis(), statsProvider.getKurtosis(), 1e-3);
+    assertEquals(stats.getKurtosis(), statsProvider.getKurtosis(), 1e-3);
 
     //Skewness
-    Assert.assertEquals(stats.getSkewness(), statsProvider.getSkewness(), 1e-3);
+    assertEquals(stats.getSkewness(), statsProvider.getSkewness(), 1e-3);
     for(double d = 10.0;d < 100.0;d+=10) {
-      //This is a sketch, so we're a bit more forgiving here in our choice of \epsilon.
-      Assert.assertEquals("Percentile mismatch for " + d +"th %ile"
-                         , statsProvider.getPercentile(d)
-                         , stats.getPercentile(d)
-                         , 1e-2
-                         );
+      // This is a sketch, so we're a bit more forgiving here in our choice of \epsilon.
+      assertEquals(
+          statsProvider.getPercentile(d),
+          stats.getPercentile(d),
+          1e-2,
+          "Percentile mismatch for " + d + "th %ile");
     }
   }
 

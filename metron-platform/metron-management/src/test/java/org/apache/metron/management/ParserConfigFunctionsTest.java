@@ -24,7 +24,6 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,9 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
-import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
+import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ParserConfigFunctionsTest {
 
@@ -74,8 +75,8 @@ public class ParserConfigFunctionsTest {
   public void testAddEmpty() {
     String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
     Map<String, Object> transformations = transform(newConfig);
-    Assert.assertEquals(1, transformations.size());
-    Assert.assertEquals("FOO", transformations.get("upper") );
+    assertEquals(1, transformations.size());
+    assertEquals("FOO", transformations.get("upper") );
   }
 
   @Test
@@ -86,15 +87,15 @@ public class ParserConfigFunctionsTest {
     );
     Map<String, Object> transformations = transform(newConfig, ImmutableMap.of("url", "http://www.google.com"));
     //squid already has 2 transformations, we just added url, which makes 3
-    Assert.assertEquals(4, transformations.size());
-    Assert.assertEquals("FOO", transformations.get("upper") );
+    assertEquals(4, transformations.size());
+    assertEquals("FOO", transformations.get("upper") );
   }
 
   @Test
   public void testAddMalformed() {
     String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('blah'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
     Map<String, Object> transformations = transform(newConfig);
-    Assert.assertEquals(0, transformations.size());
+    assertEquals(0, transformations.size());
   }
 
   @Test
@@ -102,8 +103,8 @@ public class ParserConfigFunctionsTest {
     String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
     newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", newConfig), context);
     Map<String, Object> transformations = transform(newConfig);
-    Assert.assertEquals(1, transformations.size());
-    Assert.assertEquals("FOO", transformations.get("upper") );
+    assertEquals(1, transformations.size());
+    assertEquals("FOO", transformations.get("upper") );
   }
 
   @Test
@@ -111,7 +112,7 @@ public class ParserConfigFunctionsTest {
     String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
     newConfig = (String)run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['upper'])", ImmutableMap.of("config", newConfig), context);
     Map<String, Object> transformations = transform(newConfig);
-    Assert.assertEquals(0, transformations.size());
+    assertEquals(0, transformations.size());
   }
 
   @Test
@@ -119,7 +120,7 @@ public class ParserConfigFunctionsTest {
     String newConfig = (String)run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper', 'lower'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
     newConfig = (String)run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['upper', 'lower'])", ImmutableMap.of("config", newConfig), context);
     Map<String, Object> transformations = transform(newConfig);
-    Assert.assertEquals(0, transformations.size());
+    assertEquals(0, transformations.size());
   }
 
   @Test
@@ -128,15 +129,15 @@ public class ParserConfigFunctionsTest {
       String newConfig = (String) run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
       newConfig = (String) run("PARSER_STELLAR_TRANSFORM_REMOVE(config, ['lower'])", ImmutableMap.of("config", newConfig), context);
       Map<String, Object> transformations = transform(newConfig);
-      Assert.assertEquals(1, transformations.size());
-      Assert.assertEquals("FOO", transformations.get("upper"));
+      assertEquals(1, transformations.size());
+      assertEquals("FOO", transformations.get("upper"));
     }
     {
       String newConfig = (String) run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
       newConfig = (String) run("PARSER_STELLAR_TRANSFORM_REMOVE(config, [''])", ImmutableMap.of("config", newConfig), context);
       Map<String, Object> transformations = transform(newConfig);
-      Assert.assertEquals(1, transformations.size());
-      Assert.assertEquals("FOO", transformations.get("upper"));
+      assertEquals(1, transformations.size());
+      assertEquals("FOO", transformations.get("upper"));
     }
   }
 
@@ -153,7 +154,7 @@ public class ParserConfigFunctionsTest {
   public void testPrint() {
     String newConfig = (String) run("PARSER_STELLAR_TRANSFORM_ADD(config, SHELL_VARS2MAP('upper'))", ImmutableMap.of("config", emptyTransformationsConfig), context);
     String out = (String) run("PARSER_STELLAR_TRANSFORM_PRINT(config )", ImmutableMap.of("config", newConfig), context);
-    Assert.assertEquals(testPrintExpected, out);
+    assertEquals(testPrintExpected, out);
   }
   /**
 ╔═══════╤════════════════╗
@@ -168,7 +169,7 @@ public class ParserConfigFunctionsTest {
   @Test
   public void testPrintEmpty() {
     String out = (String) run("PARSER_STELLAR_TRANSFORM_PRINT(config )", ImmutableMap.of("config", emptyTransformationsConfig), context);
-    Assert.assertEquals(testPrintEmptyExpected, out);
+    assertEquals(testPrintEmptyExpected, out);
   }
 
   @Test
@@ -177,6 +178,6 @@ public class ParserConfigFunctionsTest {
       put("config",null);
     }};
     String out = (String) run("PARSER_STELLAR_TRANSFORM_PRINT(config )", variables, context);
-    Assert.assertNull( out);
+    assertNull(out);
   }
 }

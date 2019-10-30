@@ -18,17 +18,18 @@
 package org.apache.metron.parsers.json;
 
 import com.google.common.collect.ImmutableMap;
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JSONMapParserWrappedQueryTest {
 
@@ -60,26 +61,26 @@ public class JSONMapParserWrappedQueryTest {
       put(JSONMapParser.JSONP_QUERY, "$.foo");
     }});
     List<JSONObject> output = parser.parse(JSON_LIST.getBytes(StandardCharsets.UTF_8));
-    Assert.assertEquals(output.size(), 2);
+    assertEquals(output.size(), 2);
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 4);
+    assertEquals(output.get(0).size(), 4);
     JSONObject message = output.get(0);
-    Assert.assertEquals("foo1", message.get("name"));
-    Assert.assertEquals("bar", message.get("value"));
-    Assert.assertEquals(1.0, message.get("number"));
-    Assert.assertNotNull(message.get("timestamp"));
-    Assert.assertTrue(message.get("timestamp") instanceof Number);
-    Assert.assertNotNull(message.get("number"));
-    Assert.assertTrue(message.get("number") instanceof Number);
+    assertEquals("foo1", message.get("name"));
+    assertEquals("bar", message.get("value"));
+    assertEquals(1.0, message.get("number"));
+    assertNotNull(message.get("timestamp"));
+    assertTrue(message.get("timestamp") instanceof Number);
+    assertNotNull(message.get("number"));
+    assertTrue(message.get("number") instanceof Number);
 
     message = output.get(1);
-    Assert.assertEquals("foo2", message.get("name"));
-    Assert.assertEquals("baz", message.get("value"));
-    Assert.assertEquals(2.0, message.get("number"));
-    Assert.assertNotNull(message.get("timestamp"));
-    Assert.assertTrue(message.get("timestamp") instanceof Number);
-    Assert.assertNotNull(message.get("number"));
-    Assert.assertTrue(message.get("number") instanceof Number);
+    assertEquals("foo2", message.get("name"));
+    assertEquals("baz", message.get("value"));
+    assertEquals(2.0, message.get("number"));
+    assertNotNull(message.get("timestamp"));
+    assertTrue(message.get("timestamp") instanceof Number);
+    assertNotNull(message.get("number"));
+    assertTrue(message.get("number") instanceof Number);
 
   }
 
@@ -100,7 +101,7 @@ public class JSONMapParserWrappedQueryTest {
       put(JSONMapParser.JSONP_QUERY, "$.foo");
     }});
     List<JSONObject> output = parser.parse(JSON_SINGLE.getBytes(StandardCharsets.UTF_8));
-    Assert.assertEquals(0, output.size());
+    assertEquals(0, output.size());
   }
 
   /**
@@ -126,18 +127,18 @@ public class JSONMapParserWrappedQueryTest {
       put(JSONMapParser.JSONP_QUERY, "$.foo");
     }});
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
-    Assert.assertEquals(output.size(), 2);
+    assertEquals(output.size(), 2);
 
     //don't forget the timestamp field!
-    Assert.assertEquals(output.get(0).size(), 1);
+    assertEquals(output.get(0).size(), 1);
 
     JSONObject message = output.get(0);
-    Assert.assertNotNull(message.get("timestamp"));
-    Assert.assertTrue(message.get("timestamp") instanceof Number);
+    assertNotNull(message.get("timestamp"));
+    assertTrue(message.get("timestamp") instanceof Number);
 
     message = output.get(1);
-    Assert.assertNotNull(message.get("timestamp"));
-    Assert.assertTrue(message.get("timestamp") instanceof Number);
+    assertNotNull(message.get("timestamp"));
+    assertTrue(message.get("timestamp") instanceof Number);
   }
 
   @Test(expected = IllegalStateException.class)
@@ -159,16 +160,16 @@ public class JSONMapParserWrappedQueryTest {
         .of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ALLOW.name(),
             JSONMapParser.JSONP_QUERY, "$.foo"));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
-    Assert.assertEquals(output.size(), 2);
-    Assert.assertEquals(output.get(0).size(), 2);
+    assertEquals(output.size(), 2);
+    assertEquals(output.get(0).size(), 2);
     JSONObject message = output.get(0);
-    Assert.assertNotNull(message.get("timestamp"));
-    Assert.assertTrue(message.get("timestamp") instanceof Number);
+    assertNotNull(message.get("timestamp"));
+    assertTrue(message.get("timestamp") instanceof Number);
 
-    Assert.assertEquals(output.get(1).size(), 2);
+    assertEquals(output.get(1).size(), 2);
     message = output.get(1);
-    Assert.assertNotNull(message.get("timestamp"));
-    Assert.assertTrue(message.get("timestamp") instanceof Number);
+    assertNotNull(message.get("timestamp"));
+    assertTrue(message.get("timestamp") instanceof Number);
   }
 
   @Test
@@ -178,23 +179,23 @@ public class JSONMapParserWrappedQueryTest {
         .of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.UNFOLD.name(),
             JSONMapParser.JSONP_QUERY, "$.foo"));
     List<JSONObject> output = parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
-    Assert.assertEquals(output.size(), 2);
-    Assert.assertEquals(output.get(0).size(), 5);
+    assertEquals(output.size(), 2);
+    assertEquals(output.get(0).size(), 5);
     JSONObject message = output.get(0);
-    Assert.assertEquals(message.get("collection.blah"), 7);
-    Assert.assertEquals(message.get("collection.blah2"), "foo");
-    Assert.assertEquals(message.get("collection.bigblah.innerBlah"), "baz");
-    Assert.assertEquals(message.get("collection.bigblah.reallyInnerBlah.color"), "grey");
-    Assert.assertNotNull(message.get("timestamp"));
-    Assert.assertTrue(message.get("timestamp") instanceof Number);
+    assertEquals(message.get("collection.blah"), 7);
+    assertEquals(message.get("collection.blah2"), "foo");
+    assertEquals(message.get("collection.bigblah.innerBlah"), "baz");
+    assertEquals(message.get("collection.bigblah.reallyInnerBlah.color"), "grey");
+    assertNotNull(message.get("timestamp"));
+    assertTrue(message.get("timestamp") instanceof Number);
 
-    Assert.assertEquals(output.get(1).size(), 5);
+    assertEquals(output.get(1).size(), 5);
     message = output.get(1);
-    Assert.assertEquals(message.get("collection.blah"), 8);
-    Assert.assertEquals(message.get("collection.blah2"), "bar");
-    Assert.assertEquals(message.get("collection.bigblah.innerBlah"), "baz2");
-    Assert.assertEquals(message.get("collection.bigblah.reallyInnerBlah.color"), "blue");
-    Assert.assertNotNull(message.get("timestamp"));
-    Assert.assertTrue(message.get("timestamp") instanceof Number);
+    assertEquals(message.get("collection.blah"), 8);
+    assertEquals(message.get("collection.blah2"), "bar");
+    assertEquals(message.get("collection.bigblah.innerBlah"), "baz2");
+    assertEquals(message.get("collection.bigblah.reallyInnerBlah.color"), "blue");
+    assertNotNull(message.get("timestamp"));
+    assertTrue(message.get("timestamp") instanceof Number);
   }
 }

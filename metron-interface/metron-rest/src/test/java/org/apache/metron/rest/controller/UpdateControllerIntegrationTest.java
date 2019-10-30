@@ -18,7 +18,6 @@
 package org.apache.metron.rest.controller;
 
 import com.google.common.collect.ImmutableMap;
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.client.Get;
@@ -29,7 +28,6 @@ import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.rest.service.UpdateService;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -44,17 +42,17 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.NavigableMap;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -165,7 +163,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
     // nothing is recorded in HBase
     MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE);
-    Assert.assertEquals(0,table.size());
+    assertEquals(0,table.size());
 
     // patch the document
     this.mockMvc.perform(patchRequest)
@@ -181,13 +179,13 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.timestamp").value(2));
 
     // the change should be recorded in HBase
-    Assert.assertEquals(1,table.size());
+    assertEquals(1,table.size());
     {
         //ensure hbase is up to date
         Get g = new Get(new HBaseDao.Key(guid,"bro").toBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes(StandardCharsets.UTF_8));
-        Assert.assertEquals(1, columns.size());
+        assertEquals(1, columns.size());
     }
   }
 

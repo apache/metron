@@ -23,7 +23,6 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,6 +35,7 @@ import java.util.Properties;
 
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests the {@link org.apache.metron.profiler.spark.reader.TextEncodedTelemetryReader} class.
@@ -97,7 +97,7 @@ public class TextEncodedTelemetryReaderTest {
 
     // there should be 100 valid JSON records
     Dataset<String> telemetry = TelemetryReaders.TEXT.read(spark, profilerProperties, readerProperties);
-    Assert.assertEquals(100, telemetry.filter(new IsValidJSON()).count());
+    assertEquals(100, telemetry.filter(new IsValidJSON()).count());
   }
 
   @Test
@@ -111,6 +111,6 @@ public class TextEncodedTelemetryReaderTest {
 
     // there should be 100 valid JSON records
     Dataset<String> telemetry = TelemetryReaders.TEXT.read(spark, profilerProperties, readerProperties);
-    Assert.assertEquals(100, telemetry.filter(new IsValidJSON()).count());
+    assertEquals(100, telemetry.filter(new IsValidJSON()).count());
   }
 }

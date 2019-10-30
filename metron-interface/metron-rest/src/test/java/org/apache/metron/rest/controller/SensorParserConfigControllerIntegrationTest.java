@@ -23,7 +23,6 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.service.SensorParserConfigService;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -45,15 +44,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -177,7 +173,7 @@ public class SensorParserConfigControllerIntegrationTest {
   private String password = "password";
 
   @BeforeEach
-  public void setup() throws Exception {
+  public void setup() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
   }
 
@@ -301,7 +297,7 @@ public class SensorParserConfigControllerIntegrationTest {
 
     {
       //we must wait for the config to find its way into the config.
-      TestUtils.assertEventually(() -> Assert.assertNull(sensorParserConfigService.findOne("squidTest")));
+      TestUtils.assertEventually(() -> assertNull(sensorParserConfigService.findOne("squidTest")));
     }
 
     this.mockMvc.perform(get(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)))

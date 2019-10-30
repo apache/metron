@@ -27,14 +27,16 @@ import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.metron.solr.writer.SolrWriter;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SchemaValidationIntegrationTest {
   public static Iterable<String> getData(String sensor) throws IOException {
@@ -50,7 +52,7 @@ public class SchemaValidationIntegrationTest {
     return globalConfig;
   }
 
-  public static SolrComponent createSolrComponent(String sensor) throws Exception {
+  public static SolrComponent createSolrComponent(String sensor) {
     return new SolrComponent.Builder().build();
   }
 
@@ -102,7 +104,7 @@ public class SchemaValidationIntegrationTest {
           messages.add(new BulkMessage<>(String.format("message%d", ++i), new JSONObject(m)));
         }
       }
-      Assert.assertTrue(messages.size() > 0);
+      assertTrue(messages.size() > 0);
 
       SolrWriter solrWriter = new SolrWriter();
 
@@ -160,7 +162,7 @@ public class SchemaValidationIntegrationTest {
       solrWriter.init(null, writerConfig);
 
       BulkWriterResponse response = solrWriter.write(sensorType, writerConfig, messages);
-      Assert.assertTrue(response.getErrors().isEmpty());
+      assertTrue(response.getErrors().isEmpty());
       for (Map<String, Object> m : component.getAllIndexedDocs(sensorType)) {
         Map<String, Object> expected = index.get(getGuid(m));
         for (Map.Entry<String, Object> field : expected.entrySet()) {
@@ -176,10 +178,10 @@ public class SchemaValidationIntegrationTest {
               String s2 = "" + n2.doubleValue();
               isSame = s1.startsWith(s2) || s2.startsWith(s1);
             }
-            Assert.assertTrue("Unable to validate " + field.getKey() + ": " + n1 + " != " + n2, isSame);
+            assertTrue(isSame, "Unable to validate " + field.getKey() + ": " + n1 + " != " + n2);
           }
           else {
-            Assert.assertEquals("Unable to find " + field.getKey(), "" + field.getValue(), "" + m.get(field.getKey()));
+            assertEquals("Unable to find " + field.getKey(), "" + field.getValue(), "" + m.get(field.getKey()));
           }
         }
       }

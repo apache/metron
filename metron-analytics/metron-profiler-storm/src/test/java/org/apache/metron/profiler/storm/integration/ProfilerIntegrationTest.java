@@ -497,7 +497,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   }
 
   @AfterEach
-  public void tearDown() throws Exception {
+  public void tearDown() {
     MockHBaseTableProvider.clear();
     profilerTable.clear();
     if (runner != null) {

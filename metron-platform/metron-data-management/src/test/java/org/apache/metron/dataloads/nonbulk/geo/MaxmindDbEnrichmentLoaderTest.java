@@ -17,9 +17,6 @@
  */
 package org.apache.metron.dataloads.nonbulk.geo;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.File;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
@@ -28,12 +25,16 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.common.utils.CompressionStrategies;
 import org.apache.metron.integration.utils.TestUtils;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MaxmindDbEnrichmentLoaderTest {
   private class MockMaxmindDbEnrichmentLoader extends MaxmindDbEnrichmentLoader {
@@ -68,12 +69,12 @@ public class MaxmindDbEnrichmentLoaderTest {
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
 
     CommandLine cli = MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
-    Assert.assertEquals("testGeoUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
-    Assert.assertEquals("testAsnUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ASN_URL.get(cli).trim());
-    Assert.assertEquals("/test/remoteDirGeo", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
-    Assert.assertEquals("/test/remoteDirAsn", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_ASN_DIR.get(cli).trim());
-    Assert.assertEquals("/test/tmpDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
-    Assert.assertEquals("test:2181", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
+    assertEquals("testGeoUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
+    assertEquals("testAsnUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ASN_URL.get(cli).trim());
+    assertEquals("/test/remoteDirGeo", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
+    assertEquals("/test/remoteDirAsn", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_ASN_DIR.get(cli).trim());
+    assertEquals("/test/tmpDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
+    assertEquals("test:2181", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
   }
 
   @Test
@@ -88,10 +89,10 @@ public class MaxmindDbEnrichmentLoaderTest {
     String[] otherArgs = new GenericOptionsParser(argv).getRemainingArgs();
 
     CommandLine cli = MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.parse(new PosixParser(), otherArgs);
-    Assert.assertEquals("testGeoUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
-    Assert.assertEquals("/test/remoteDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
-    Assert.assertEquals("/test/tmpDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
-    Assert.assertEquals("test:2181", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
+    assertEquals("testGeoUrl", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.GEO_URL.get(cli).trim());
+    assertEquals("/test/remoteDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.REMOTE_GEO_DIR.get(cli).trim());
+    assertEquals("/test/tmpDir", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.TMP_DIR.get(cli).trim());
+    assertEquals("test:2181", MaxmindDbEnrichmentLoader.GeoEnrichmentOptions.ZK_QUORUM.get(cli).trim());
   }
 
   @Test

@@ -46,7 +46,6 @@ import org.apache.metron.maas.submit.ModelSubmission;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.zookeeper.KeeperException;
-import org.junit.Assert;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
@@ -60,6 +59,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MaasIntegrationTest {
   private static final Log LOG =
@@ -157,7 +158,7 @@ public class MaasIntegrationTest {
     LOG.info("Initializing DS Client");
     final Client client = new Client(new Configuration(conf));
     boolean initSuccess = client.init(args);
-    Assert.assertTrue(initSuccess);
+    assertTrue(initSuccess);
     LOG.info("Running DS Client");
     final AtomicBoolean result = new AtomicBoolean(false);
     Thread t = new Thread() {
@@ -201,7 +202,7 @@ public class MaasIntegrationTest {
         break;
       }
     }
-    Assert.assertTrue(errorMessage, verified);
+    assertTrue(verified, errorMessage);
     FileSystem fs = FileSystem.get(conf);
     try {
       new ModelSubmission().execute(FileSystem.get(conf)
@@ -237,13 +238,13 @@ public class MaasIntegrationTest {
           }
           Thread.sleep(2000);
         }
-        Assert.assertTrue(passed);
+        assertTrue(passed);
       }
 
       {
         List<ModelEndpoint> endpoints = discoverer.getEndpoints(new Model("dummy", "1.0"));
-        Assert.assertNotNull(endpoints);
-        Assert.assertEquals(1, endpoints.size());
+        assertNotNull(endpoints);
+        assertEquals(1, endpoints.size());
       }
       new ModelSubmission().execute(FileSystem.get(conf)
               , new String[]{
@@ -269,7 +270,7 @@ public class MaasIntegrationTest {
           }
           Thread.sleep(2000);
         }
-        Assert.assertTrue(passed);
+        assertTrue(passed);
       }
     }
     finally {
@@ -339,10 +340,8 @@ public class MaasIntegrationTest {
       return true;
     }
 
-    Assert.assertTrue("Unknown format for hostname " + appHostname,
-            appHostname.contains("/"));
-    Assert.assertTrue("Unknown format for hostname " + hostname,
-            hostname.contains("/"));
+    assertTrue(appHostname.contains("/"), "Unknown format for hostname " + appHostname);
+    assertTrue(hostname.contains("/"), "Unknown format for hostname " + hostname);
 
     String[] appHostnameParts = appHostname.split("/");
     String[] hostnameParts = hostname.split("/");
@@ -398,7 +397,7 @@ public class MaasIntegrationTest {
         break;
       }
     }
-    Assert.assertTrue(currentContainerLogFileIndex != -1);
+    assertTrue(currentContainerLogFileIndex != -1);
     File[] containerFiles =
             listOfFiles[currentContainerLogFileIndex].listFiles();
 
@@ -420,7 +419,7 @@ public class MaasIntegrationTest {
                 }
               } else if (output.getName().trim().equals("stdout")){
                 if (! Shell.WINDOWS) {
-                  Assert.assertEquals("The current is" + sCurrentLine,
+                  assertEquals("The current is" + sCurrentLine,
                           expectedContent.get(numOfline), sCurrentLine.trim());
                   numOfline++;
                 } else {
@@ -436,7 +435,7 @@ public class MaasIntegrationTest {
              */
             if (Shell.WINDOWS && !count
                     && output.getName().trim().equals("stdout")) {
-              Assert.assertTrue(stdOutContent.containsAll(expectedContent));
+              assertTrue(stdOutContent.containsAll(expectedContent));
             }
           } catch (IOException e) {
             e.printStackTrace();

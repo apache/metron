@@ -17,16 +17,18 @@
  */
 package org.apache.metron.pcap.pattern;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import javax.xml.bind.DatatypeConverter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @RunWith(Parameterized.class)
 public class ByteArrayMatchingUtilTest {
@@ -86,31 +88,31 @@ public class ByteArrayMatchingUtilTest {
 
   @Test
   public void testStringMatch() throws ExecutionException {
-    Assert.assertTrue(strategy.evaluate("`metron`", "metron".getBytes(StandardCharsets.UTF_8)));
-    Assert.assertTrue(strategy.evaluate("`metron`", "metron example".getBytes(StandardCharsets.UTF_8)));
-    Assert.assertTrue(strategy.evaluate("`metron`", "edward metron example".getBytes(StandardCharsets.UTF_8)));
-    Assert.assertFalse(strategy.evaluate("`metron`", "apache".getBytes(StandardCharsets.UTF_8)));
+    assertTrue(strategy.evaluate("`metron`", "metron".getBytes(StandardCharsets.UTF_8)));
+    assertTrue(strategy.evaluate("`metron`", "metron example".getBytes(StandardCharsets.UTF_8)));
+    assertTrue(strategy.evaluate("`metron`", "edward metron example".getBytes(StandardCharsets.UTF_8)));
+    assertFalse(strategy.evaluate("`metron`", "apache".getBytes(StandardCharsets.UTF_8)));
   }
 
   @Test
-  public void testBytesMatch() throws ExecutionException {
-    Assert.assertTrue(strategy.evaluate("2f56abd814bc56420489ca38e7faf8cec3d4", REALPACKET));
-    Assert.assertTrue(strategy.evaluate("2f56..14bc56420489ca38e7faf8cec3d4", REALPACKET));
-    Assert.assertTrue(strategy.evaluate("(2f56)(.){2}(14bc56420489ca38e7faf8cec3d4)", REALPACKET));
-    Assert.assertFalse(strategy.evaluate("(3f56)(.){2}(14bc56420489ca38e7faf8cec3d4)", REALPACKET));
-    Assert.assertFalse(strategy.evaluate("3f56abd814bc56420489ca38e7faf8cec3d4", REALPACKET));
-    Assert.assertTrue(strategy.evaluate("deadbeef", join(DEADBEEF, "metron".getBytes(StandardCharsets.UTF_8))));
-    Assert.assertTrue(strategy.evaluate("deadbeef", join(DEADBEEF, "metron".getBytes(StandardCharsets.UTF_8))));
-    Assert.assertTrue(strategy.evaluate("deadbeef `metron`", join(DEADBEEF, "metron".getBytes(StandardCharsets.UTF_8))));
-    Assert.assertTrue(strategy.evaluate("deadbeef `metron`", join(DEADBEEF, "metronjones".getBytes(StandardCharsets.UTF_8))));
-    Assert.assertTrue(strategy.evaluate("deadbeef `metron`", join(DEADBEEF, "metronjones".getBytes(StandardCharsets.UTF_8), DEADBEEF)));
-    Assert.assertTrue(strategy.evaluate("([ff]){4}", ALLFS));
-    Assert.assertFalse(strategy.evaluate("([ff]){6}", ALLFS));
-    Assert.assertTrue(strategy.evaluate("[^ff]", new byte[] { (byte)0x00 }));
-    Assert.assertTrue(strategy.evaluate("&01", new byte[] { (byte)0x07 }));
-    Assert.assertFalse(strategy.evaluate("&01", new byte[] { (byte)0x00 }));
-    Assert.assertTrue(strategy.evaluate("&01", new byte[] { (byte)0x00, (byte)0x01 }));
-    Assert.assertTrue(strategy.evaluate("(dead).{2}(beef)", DEADBEEF_DONUTHOLE));
+  public void testBytesMatch() {
+    assertTrue(strategy.evaluate("2f56abd814bc56420489ca38e7faf8cec3d4", REALPACKET));
+    assertTrue(strategy.evaluate("2f56..14bc56420489ca38e7faf8cec3d4", REALPACKET));
+    assertTrue(strategy.evaluate("(2f56)(.){2}(14bc56420489ca38e7faf8cec3d4)", REALPACKET));
+    assertFalse(strategy.evaluate("(3f56)(.){2}(14bc56420489ca38e7faf8cec3d4)", REALPACKET));
+    assertFalse(strategy.evaluate("3f56abd814bc56420489ca38e7faf8cec3d4", REALPACKET));
+    assertTrue(strategy.evaluate("deadbeef", join(DEADBEEF, "metron".getBytes(StandardCharsets.UTF_8))));
+    assertTrue(strategy.evaluate("deadbeef", join(DEADBEEF, "metron".getBytes(StandardCharsets.UTF_8))));
+    assertTrue(strategy.evaluate("deadbeef `metron`", join(DEADBEEF, "metron".getBytes(StandardCharsets.UTF_8))));
+    assertTrue(strategy.evaluate("deadbeef `metron`", join(DEADBEEF, "metronjones".getBytes(StandardCharsets.UTF_8))));
+    assertTrue(strategy.evaluate("deadbeef `metron`", join(DEADBEEF, "metronjones".getBytes(StandardCharsets.UTF_8), DEADBEEF)));
+    assertTrue(strategy.evaluate("([ff]){4}", ALLFS));
+    assertFalse(strategy.evaluate("([ff]){6}", ALLFS));
+    assertTrue(strategy.evaluate("[^ff]", new byte[] { (byte)0x00 }));
+    assertTrue(strategy.evaluate("&01", new byte[] { (byte)0x07 }));
+    assertFalse(strategy.evaluate("&01", new byte[] { (byte)0x00 }));
+    assertTrue(strategy.evaluate("&01", new byte[] { (byte)0x00, (byte)0x01 }));
+    assertTrue(strategy.evaluate("(dead).{2}(beef)", DEADBEEF_DONUTHOLE));
   }
 
   public byte[] join(byte[]... array) {

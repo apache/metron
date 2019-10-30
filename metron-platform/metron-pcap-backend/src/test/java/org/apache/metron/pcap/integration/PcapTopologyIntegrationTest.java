@@ -23,18 +23,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import javax.annotation.Nullable;
 import kafka.consumer.ConsumerIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -47,11 +35,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.HDFSUtils;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.MRComponent;
@@ -74,12 +58,20 @@ import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.Ignore;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
   final static String KAFKA_TOPIC = "pcap";
@@ -167,7 +159,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
           for (int i = 0; i < pcapEntries.size(); ++i, it.next()) {
             numMessages++;
           }
-          Assert.assertEquals(pcapEntries.size(), numMessages);
+          assertEquals(pcapEntries.size(), numMessages);
           System.out.println("Wrote " + pcapEntries.size() + " to kafka");
         }
       }
@@ -220,13 +212,13 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     clearOutDirs(inputDir, interimResultDir, outputDir);
 
     File baseDir = new File(new File(targetDir), BASE_DIR);
-    //Assert.assertEquals(0, numFiles(outDir));
-    Assert.assertNotNull(topologiesDir);
-    Assert.assertNotNull(targetDir);
+    //assertEquals(0, numFiles(outDir));
+    assertNotNull(topologiesDir);
+    assertNotNull(targetDir);
     Path pcapFile = new Path(
         "../metron-integration-test/src/main/sample/data/SampleInput/PCAPExampleOutput");
     pcapEntries = Lists.newArrayList(readPcaps(pcapFile, withHeaders));
-    Assert.assertTrue(Iterables.size(pcapEntries) > 0);
+    assertTrue(Iterables.size(pcapEntries) > 0);
     final Properties topologyProperties = new Properties() {{
       setProperty("topology.workers", "1");
       setProperty("topology.worker.childopts", "");
@@ -317,10 +309,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, new HashMap());
     PcapJob<Map<String, String>> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
     Pageable<Path> resultPages = results.get();
     Iterable<byte[]> bytes = Iterables.transform(resultPages, path -> {
       try {
@@ -330,11 +322,9 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertEquals("Expected 2 records returned.", 2, resultPages.getSize());
-    Assert.assertEquals("Expected 1 record in first file.", 1,
-        PcapHelper.toPacketInfo(Iterables.get(bytes, 0)).size());
-    Assert.assertEquals("Expected 1 record in second file.", 1,
-        PcapHelper.toPacketInfo(Iterables.get(bytes, 1)).size());
+    assertEquals(2, resultPages.getSize(), "Expected 2 records returned.");
+    assertEquals(1, PcapHelper.toPacketInfo(Iterables.get(bytes, 0)).size(), "Expected 1 record in first file.");
+    assertEquals(1, PcapHelper.toPacketInfo(Iterables.get(bytes, 1)).size(), "Expected 1 record in second file.");
   }
 
   @Test
@@ -345,10 +335,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, "");
     PcapJob<String> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
     Pageable<Path> resultPages = results.get();
     Iterable<byte[]> bytes = Iterables.transform(resultPages, path -> {
       try {
@@ -358,11 +348,9 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertEquals("Expected 2 records returned.", 2, resultPages.getSize());
-    Assert.assertEquals("Expected 1 record in first file.", 1,
-        PcapHelper.toPacketInfo(Iterables.get(bytes, 0)).size());
-    Assert.assertEquals("Expected 1 record in second file.", 1,
-        PcapHelper.toPacketInfo(Iterables.get(bytes, 1)).size());
+    assertEquals(2, resultPages.getSize(), "Expected 2 records returned.");
+    assertEquals(1, PcapHelper.toPacketInfo(Iterables.get(bytes, 0)).size(), "Expected 1 record in first file.");
+    assertEquals(1, PcapHelper.toPacketInfo(Iterables.get(bytes, 1)).size(), "Expected 1 record in second file.");
   }
 
   @Test
@@ -373,14 +361,14 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.END_TIME_NS.put(configuration, 1);
     PcapJob<Map<String, String>> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-    Assert.assertEquals(100.0, results.getStatus().getPercentComplete(), 0.0);
-    Assert.assertEquals("No results in specified date range.",
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(100.0, results.getStatus().getPercentComplete(), 0.0);
+    assertEquals("No results in specified date range.",
         results.getStatus().getDescription());
-    Assert.assertEquals(results.get().getSize(), 0);
+    assertEquals(results.get().getSize(), 0);
   }
 
   @Test
@@ -393,11 +381,11 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     }});
     PcapJob<Map<String, String>> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-    Assert.assertEquals(results.get().getSize(), 0);
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(results.get().getSize(), 0);
   }
 
   @Test
@@ -408,11 +396,11 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, "ip_dst_addr == '207.28.210.1'");
     PcapJob<String> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-    Assert.assertEquals(results.get().getSize(), 0);
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(results.get().getSize(), 0);
   }
 
   @Test
@@ -425,11 +413,11 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     }});
     PcapJob<Map<String, String>> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-    Assert.assertEquals(results.get().getSize(), 0);
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(results.get().getSize(), 0);
   }
 
   @Test
@@ -440,11 +428,11 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, "protocol == 'foo'");
     PcapJob<String> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
-    Assert.assertEquals(results.get().getSize(), 0);
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(results.get().getSize(), 0);
   }
 
   @Test
@@ -456,10 +444,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, new HashMap<>());
     PcapJob<Map<String, String>> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
     Pageable<Path> resultPages = results.get();
     Iterable<byte[]> bytes = Iterables.transform(resultPages, path -> {
       try {
@@ -469,7 +457,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertEquals(pcapEntries.size(), resultPages.getSize());
+    assertEquals(pcapEntries.size(), resultPages.getSize());
   }
 
   @Test
@@ -481,7 +469,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, "");
     PcapJob<String> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
     Pageable<Path> resultPages = results.get();
@@ -493,7 +481,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertEquals(pcapEntries.size(), resultPages.getSize());
+    assertEquals(pcapEntries.size(), resultPages.getSize());
   }
 
   @Test
@@ -508,10 +496,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.NUM_RECORDS_PER_FILE.put(configuration, 1);
     PcapJob<Map<String, String>> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
     Pageable<Path> resultPages = results.get();
     Iterable<byte[]> bytes = Iterables.transform(resultPages, path -> {
       try {
@@ -521,8 +509,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertTrue(resultPages.getSize() > 0);
-    Assert.assertEquals(Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
+    assertTrue(resultPages.getSize() > 0);
+    assertEquals(Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
           @Override
           public boolean apply(@Nullable JSONObject input) {
             Object prt = input.get(Constants.Fields.DST_PORT.getName());
@@ -533,7 +521,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     );
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PcapMerger.merge(baos, HDFSUtils.readBytes(resultPages.getPage(0)));
-    Assert.assertTrue(baos.toByteArray().length > 0);
+    assertTrue(baos.toByteArray().length > 0);
   }
 
   @Test
@@ -545,10 +533,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, "ip_dst_port == 22");
     PcapJob<String> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
     Pageable<Path> resultPages = results.get();
     Iterable<byte[]> bytes = Iterables.transform(resultPages, path -> {
       try {
@@ -558,7 +546,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertEquals(Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
+    assertEquals(Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
               @Override
               public boolean apply(@Nullable JSONObject input) {
                 Object prt = input.get(Constants.Fields.DST_PORT.getName());
@@ -569,7 +557,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     );
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PcapMerger.merge(baos, HDFSUtils.readBytes(resultPages.getPage(0)));
-    Assert.assertTrue(baos.toByteArray().length > 0);
+    assertTrue(baos.toByteArray().length > 0);
   }
 
   @Test
@@ -581,10 +569,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, "ip_dst_port > 20 and ip_dst_port < 55792");
     PcapJob<String> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
     Pageable<Path> resultPages = results.get();
     Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
       try {
@@ -594,7 +582,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertEquals(Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
+    assertEquals(Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
               @Override
               public boolean apply(@Nullable JSONObject input) {
                 Object prt = input.get(Constants.Fields.DST_PORT.getName());
@@ -605,7 +593,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     );
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PcapMerger.merge(baos, HDFSUtils.readBytes(resultPages.getPage(0)));
-    Assert.assertTrue(baos.toByteArray().length > 0);
+    assertTrue(baos.toByteArray().length > 0);
   }
 
   @Test
@@ -617,10 +605,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     PcapOptions.FIELDS.put(configuration, "ip_dst_port > 55790");
     PcapJob<String> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
     Pageable<Path> resultPages = results.get();
     Iterable<byte[]> bytes = Iterables.transform(resultPages, path -> {
       try {
@@ -630,7 +618,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertEquals(Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
+    assertEquals(Iterables.size(filterPcaps(pcapEntries, new Predicate<JSONObject>() {
               @Override
               public boolean apply(@Nullable JSONObject input) {
                 Object prt = input.get(Constants.Fields.DST_PORT.getName());
@@ -641,7 +629,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     );
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PcapMerger.merge(baos, HDFSUtils.readBytes(resultPages.getPage(0)));
-    Assert.assertTrue(baos.toByteArray().length > 0);
+    assertTrue(baos.toByteArray().length > 0);
   }
 
   @Test
@@ -653,10 +641,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
         .put(configuration, getTimestamp(pcapEntries.size() - 1, pcapEntries) + 1);
     PcapJob<String> job = new PcapJob<>();
     Statusable<Path> results = job.submit(PcapFinalizerStrategies.CLI, configuration);
-    Assert.assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
+    assertEquals(Statusable.JobType.MAP_REDUCE, results.getJobType());
     waitForJob(results);
 
-    Assert.assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
+    assertEquals(JobStatus.State.SUCCEEDED, results.getStatus().getState());
     Iterable<byte[]> bytes = Iterables.transform(results.get(), path -> {
       try {
         return HDFSUtils.readBytes(path);
@@ -665,10 +653,10 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       }
     });
     assertInOrder(bytes);
-    Assert.assertEquals(1, results.get().getSize());
+    assertEquals(1, results.get().getSize());
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PcapMerger.merge(baos, HDFSUtils.readBytes(results.get().getPage(0)));
-    Assert.assertTrue(baos.toByteArray().length > 0);
+    assertTrue(baos.toByteArray().length > 0);
   }
 
   private void waitForJob(Statusable statusable) throws Exception {
@@ -702,7 +690,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
       {
         List<PacketInfo> info = PcapHelper.toPacketInfo(pcapWithHeader);
         for (PacketInfo pi : info) {
-          Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
+          assertEquals(calculatedTs, pi.getPacketTimeInNanos());
           //IF you are debugging and want to see the packets, uncomment the following.
           //System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
         }
@@ -723,8 +711,8 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
     for (byte[] packet : packets) {
       for (JSONObject json : TO_JSONS.apply(packet)) {
         Long current = Long.parseLong(json.get("ts_micro").toString());
-        Assert.assertNotNull(current);
-        Assert.assertTrue(Long.compareUnsigned(current, previous) >= 0);
+        assertNotNull(current);
+        assertTrue(Long.compareUnsigned(current, previous) >= 0);
         previous = current;
       }
     }

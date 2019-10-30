@@ -26,7 +26,6 @@ import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.rest.service.SensorParserGroupService;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -45,15 +44,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -135,11 +131,11 @@ public class SensorParserGroupControllerIntegrationTest {
     this.sensorParserConfigService.save("squid", new SensorParserConfig());
     this.sensorParserConfigService.save("yaf", new SensorParserConfig());
     this.sensorParserConfigService.save("jsonMap", new SensorParserConfig());
-    TestUtils.assertEventually(() -> Assert.assertNotNull(sensorParserConfigService.findOne("bro")));
-    TestUtils.assertEventually(() -> Assert.assertNotNull(sensorParserConfigService.findOne("snort")));
-    TestUtils.assertEventually(() -> Assert.assertNotNull(sensorParserConfigService.findOne("squid")));
-    TestUtils.assertEventually(() -> Assert.assertNotNull(sensorParserConfigService.findOne("yaf")));
-    TestUtils.assertEventually(() -> Assert.assertNotNull(sensorParserConfigService.findOne("jsonMap")));
+    TestUtils.assertEventually(() -> assertNotNull(sensorParserConfigService.findOne("bro")));
+    TestUtils.assertEventually(() -> assertNotNull(sensorParserConfigService.findOne("snort")));
+    TestUtils.assertEventually(() -> assertNotNull(sensorParserConfigService.findOne("squid")));
+    TestUtils.assertEventually(() -> assertNotNull(sensorParserConfigService.findOne("yaf")));
+    TestUtils.assertEventually(() -> assertNotNull(sensorParserConfigService.findOne("jsonMap")));
   }
 
   @Test
@@ -182,7 +178,7 @@ public class SensorParserGroupControllerIntegrationTest {
   public void testUpdate() throws Exception {
     SensorParserGroup group1 = JSONUtils.INSTANCE.load(group1BroSquid, SensorParserGroup.class);
     this.sensorParserGroupService.save(group1);
-    TestUtils.assertEventually(() -> Assert.assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
+    TestUtils.assertEventually(() -> assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
 
     this.mockMvc.perform(post(sensorParserGroupUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(group1BroSquid))
             .andExpect(status().isOk())
@@ -198,7 +194,7 @@ public class SensorParserGroupControllerIntegrationTest {
   public void testFindOne() throws Exception {
     SensorParserGroup group1 = JSONUtils.INSTANCE.load(group1BroSquid, SensorParserGroup.class);
     this.sensorParserGroupService.save(group1);
-    TestUtils.assertEventually(() -> Assert.assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
+    TestUtils.assertEventually(() -> assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
 
     this.mockMvc.perform(get(sensorParserGroupUrl + "/group1").with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -217,10 +213,10 @@ public class SensorParserGroupControllerIntegrationTest {
   public void testGetAll() throws Exception {
     SensorParserGroup group1 = JSONUtils.INSTANCE.load(group1BroSquid, SensorParserGroup.class);
     this.sensorParserGroupService.save(group1);
-    TestUtils.assertEventually(() -> Assert.assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
+    TestUtils.assertEventually(() -> assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
     SensorParserGroup group2 = JSONUtils.INSTANCE.load(group2YafJsonMap, SensorParserGroup.class);
     this.sensorParserGroupService.save(group2);
-    TestUtils.assertEventually(() -> Assert.assertEquals(group2, this.sensorParserGroupService.findOne("group2")));
+    TestUtils.assertEventually(() -> assertEquals(group2, this.sensorParserGroupService.findOne("group2")));
 
     this.mockMvc.perform(get(sensorParserGroupUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -242,7 +238,7 @@ public class SensorParserGroupControllerIntegrationTest {
   public void testError() throws Exception {
     SensorParserGroup group1 = JSONUtils.INSTANCE.load(group1BroSquid, SensorParserGroup.class);
     this.sensorParserGroupService.save(group1);
-    TestUtils.assertEventually(() -> Assert.assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
+    TestUtils.assertEventually(() -> assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
 
     this.mockMvc.perform(post(sensorParserGroupUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(errorGroup))
             .andExpect(status().isInternalServerError())
@@ -256,7 +252,7 @@ public class SensorParserGroupControllerIntegrationTest {
   public void testDelete() throws Exception {
     SensorParserGroup group1 = JSONUtils.INSTANCE.load(group1BroSquid, SensorParserGroup.class);
     this.sensorParserGroupService.save(group1);
-    TestUtils.assertEventually(() -> Assert.assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
+    TestUtils.assertEventually(() -> assertEquals(group1, this.sensorParserGroupService.findOne("group1")));
 
     this.mockMvc.perform(delete(sensorParserGroupUrl + "/group1").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isOk());
@@ -266,7 +262,7 @@ public class SensorParserGroupControllerIntegrationTest {
 
     {
       //we must wait for the config to find its way into the config.
-      TestUtils.assertEventually(() -> Assert.assertNull(sensorParserGroupService.findOne("group1")));
+      TestUtils.assertEventually(() -> assertNull(sensorParserGroupService.findOne("group1")));
     }
   }
 

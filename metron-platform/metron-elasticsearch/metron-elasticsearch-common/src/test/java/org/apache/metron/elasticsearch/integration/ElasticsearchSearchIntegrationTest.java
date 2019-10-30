@@ -30,12 +30,7 @@ import org.apache.metron.elasticsearch.integration.components.ElasticSearchCompo
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.GroupRequest;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
@@ -43,7 +38,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -51,15 +45,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
@@ -195,70 +185,70 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     // getColumnMetadata with only bro
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
-      Assert.assertEquals(262, fieldTypes.size());
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("method"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("ttl"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
+      assertEquals(262, fieldTypes.size());
+      assertEquals(FieldType.KEYWORD, fieldTypes.get("method"));
+      assertEquals(FieldType.KEYWORD, fieldTypes.get("ttl"));
+      assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
+      assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
+      assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
+      assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
+      assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
+      assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
+      assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+      assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+      assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
+      assertEquals(FieldType.TEXT, fieldTypes.get("location_point"));
+      assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
     }
     // getColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(32, fieldTypes.size());
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("sig_generator"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
+      assertEquals(32, fieldTypes.size());
+      assertEquals(FieldType.KEYWORD, fieldTypes.get("sig_generator"));
+      assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
+      assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
+      assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
+      assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
+      assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
+      assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
+      assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
+      assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+      assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+      assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
+      assertEquals(FieldType.TEXT, fieldTypes.get("location_point"));
+      assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
+      assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
     }
   }
 
   @Override
   public void returns_column_data_for_multiple_indices() throws Exception {
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
-    Assert.assertEquals(277, fieldTypes.size());
+    assertEquals(277, fieldTypes.size());
 
     // Ensure internal Metron fields are properly defined
-    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
-    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("alert_status"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
+    assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
+    assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
+    assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
+    assertEquals(FieldType.KEYWORD, fieldTypes.get("alert_status"));
+    assertEquals(FieldType.OTHER, fieldTypes.get("metron_alert"));
 
-    Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-    Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-    Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("suppress_for"));
-    Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
+    assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
+    assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
+    assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
+    assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
+    assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+    assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+    assertEquals(FieldType.DOUBLE, fieldTypes.get("suppress_for"));
+    assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
 
     // Ensure a field defined only in bro is included
-    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("method"));
+    assertEquals(FieldType.KEYWORD, fieldTypes.get("method"));
     // Ensure a field defined only in snort is included
-    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("sig_generator"));
+    assertEquals(FieldType.KEYWORD, fieldTypes.get("sig_generator"));
     // Ensure fields in both bro and snort have type OTHER because they have different types
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("ttl"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("msg"));
+    assertEquals(FieldType.OTHER, fieldTypes.get("ttl"));
+    assertEquals(FieldType.OTHER, fieldTypes.get("msg"));
   }
 
   @Test
@@ -274,10 +264,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   public void different_type_filter_query() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFilterQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);
-    Assert.assertEquals(1, response.getTotal());
+    assertEquals(1, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals("bro", results.get(0).getSource().get("source:type"));
-    Assert.assertEquals("data 1", results.get(0).getSource().get("ttl"));
+    assertEquals("bro", results.get(0).getSource().get("source:type"));
+    assertEquals("data 1", results.get(0).getSource().get("ttl"));
   }
 
   @Override

@@ -18,7 +18,7 @@
 package org.apache.metron.storm.common.bolt;
 
 import org.apache.metron.test.bolt.BaseBoltTest;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,7 +35,7 @@ public class BaseConfiguredBoltTest extends BaseBoltTest {
     int count = 0;
     while (!configsUpdated.equals(expectedConfigUpdates)) {
       if (count++ > 5) {
-        Assert.fail("ConfiguredBolt was not updated in time");
+        Assertions.fail("ConfiguredBolt was not updated in time");
         return;
       }
       try {

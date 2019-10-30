@@ -17,18 +17,8 @@
  */
 package org.apache.metron.solr.writer;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
@@ -38,10 +28,15 @@ import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.hamcrest.Description;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 
 public class SolrWriterTest {
@@ -143,16 +138,16 @@ public class SolrWriterTest {
   }
 
   @Test
-  public void configTest_zookeeperQuorumSpecified() throws Exception {
+  public void configTest_zookeeperQuorumSpecified() {
     String expected = "test";
-    Assert.assertEquals(expected,
+    assertEquals(expected,
             SolrWriter.SolrProperties.ZOOKEEPER_QUORUM.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.ZOOKEEPER_QUORUM.name, expected)
                     , String.class));
   }
 
   @Test(expected=IllegalArgumentException.class)
-  public void configTest_zookeeperQuorumUnpecified() throws Exception {
+  public void configTest_zookeeperQuorumUnpecified() {
     SolrWriter.SolrProperties.ZOOKEEPER_QUORUM.coerceOrDefaultOrExcept(
                     new HashMap<>()
                     , String.class);
@@ -160,124 +155,124 @@ public class SolrWriterTest {
 
 
   @Test
-  public void configTest_commitPerBatchSpecified() throws Exception {
+  public void configTest_commitPerBatchSpecified() {
     Object expected = false;
-    Assert.assertEquals(expected,
+    assertEquals(expected,
             SolrWriter.SolrProperties.COMMIT_PER_BATCH.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.COMMIT_PER_BATCH.name, false)
                     , Boolean.class));
   }
 
   @Test
-  public void configTest_commitPerBatchUnpecified() throws Exception {
-    Assert.assertEquals(SolrWriter.SolrProperties.COMMIT_PER_BATCH.defaultValue.get(),
+  public void configTest_commitPerBatchUnpecified() {
+    assertEquals(SolrWriter.SolrProperties.COMMIT_PER_BATCH.defaultValue.get(),
     SolrWriter.SolrProperties.COMMIT_PER_BATCH.coerceOrDefaultOrExcept(
                     new HashMap<>()
                     , Boolean.class));
-    Assert.assertEquals(SolrWriter.SolrProperties.COMMIT_PER_BATCH.defaultValue.get(),
+    assertEquals(SolrWriter.SolrProperties.COMMIT_PER_BATCH.defaultValue.get(),
     SolrWriter.SolrProperties.COMMIT_PER_BATCH.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.COMMIT_PER_BATCH.name, new DummyClass())
                     , Boolean.class));
   }
 
   @Test
-  public void configTest_commitSoftSpecified() throws Exception {
+  public void configTest_commitSoftSpecified() {
     Object expected = true;
-    Assert.assertEquals(expected,
+    assertEquals(expected,
             SolrWriter.SolrProperties.COMMIT_SOFT.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.COMMIT_SOFT.name, expected)
                     , Boolean.class));
   }
 
   @Test
-  public void configTest_commitSoftUnpecified() throws Exception {
-    Assert.assertEquals(SolrWriter.SolrProperties.COMMIT_SOFT.defaultValue.get(),
+  public void configTest_commitSoftUnpecified() {
+    assertEquals(SolrWriter.SolrProperties.COMMIT_SOFT.defaultValue.get(),
     SolrWriter.SolrProperties.COMMIT_SOFT.coerceOrDefaultOrExcept(
                     new HashMap<>()
                     , Boolean.class));
-    Assert.assertEquals(SolrWriter.SolrProperties.COMMIT_SOFT.defaultValue.get(),
+    assertEquals(SolrWriter.SolrProperties.COMMIT_SOFT.defaultValue.get(),
     SolrWriter.SolrProperties.COMMIT_SOFT.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.COMMIT_SOFT.name, new DummyClass())
                     , Boolean.class));
   }
 
   @Test
-  public void configTest_commitWaitFlushSpecified() throws Exception {
+  public void configTest_commitWaitFlushSpecified() {
     Object expected = false;
-    Assert.assertEquals(expected,
+    assertEquals(expected,
             SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.name, expected)
                     , Boolean.class));
   }
 
   @Test
-  public void configTest_commitWaitFlushUnspecified() throws Exception {
-    Assert.assertEquals(SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.defaultValue.get(),
+  public void configTest_commitWaitFlushUnspecified() {
+    assertEquals(SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.defaultValue.get(),
     SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.coerceOrDefaultOrExcept(
                     new HashMap<>()
                     , Boolean.class));
-    Assert.assertEquals(SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.defaultValue.get(),
+    assertEquals(SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.defaultValue.get(),
     SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.name, new DummyClass())
                     , Boolean.class));
   }
 
   @Test
-  public void configTest_commitWaitSearcherSpecified() throws Exception {
+  public void configTest_commitWaitSearcherSpecified() {
     Object expected = false;
-    Assert.assertEquals(expected,
+    assertEquals(expected,
             SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.name, expected)
                     , Boolean.class));
   }
 
   @Test
-  public void configTest_commitWaitSearcherUnspecified() throws Exception {
-    Assert.assertEquals(SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.defaultValue.get(),
+  public void configTest_commitWaitSearcherUnspecified() {
+    assertEquals(SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.defaultValue.get(),
     SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.coerceOrDefaultOrExcept(
                     new HashMap<>()
                     , Boolean.class));
-    Assert.assertEquals(SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.defaultValue.get(),
+    assertEquals(SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.defaultValue.get(),
     SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.name, new DummyClass())
                     , Boolean.class));
   }
 
   @Test
-  public void configTest_defaultCollectionSpecified() throws Exception {
+  public void configTest_defaultCollectionSpecified() {
     Object expected = "mycollection";
-    Assert.assertEquals(expected,
+    assertEquals(expected,
             SolrWriter.SolrProperties.DEFAULT_COLLECTION.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.DEFAULT_COLLECTION.name, expected)
                     , String.class));
   }
 
   @Test
-  public void configTest_defaultCollectionUnspecified() throws Exception {
-    Assert.assertEquals(SolrWriter.SolrProperties.DEFAULT_COLLECTION.defaultValue.get(),
+  public void configTest_defaultCollectionUnspecified() {
+    assertEquals(SolrWriter.SolrProperties.DEFAULT_COLLECTION.defaultValue.get(),
     SolrWriter.SolrProperties.DEFAULT_COLLECTION.coerceOrDefaultOrExcept(
                     new HashMap<>()
                     , String.class));
   }
 
   @Test
-  public void configTest_httpConfigSpecified() throws Exception {
+  public void configTest_httpConfigSpecified() {
     Object expected = new HashMap<String, Object>() {{
       put("name", "metron");
     }};
-    Assert.assertEquals(expected,
+    assertEquals(expected,
             SolrWriter.SolrProperties.HTTP_CONFIG.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.HTTP_CONFIG.name, expected)
                     , Map.class));
   }
 
   @Test
-  public void configTest_httpConfigUnspecified() throws Exception {
-    Assert.assertEquals(SolrWriter.SolrProperties.HTTP_CONFIG.defaultValue.get(),
+  public void configTest_httpConfigUnspecified() {
+    assertEquals(SolrWriter.SolrProperties.HTTP_CONFIG.defaultValue.get(),
     SolrWriter.SolrProperties.HTTP_CONFIG.coerceOrDefaultOrExcept(
                     new HashMap<>()
                     , Map.class));
-    Assert.assertEquals(SolrWriter.SolrProperties.HTTP_CONFIG.defaultValue.get(),
+    assertEquals(SolrWriter.SolrProperties.HTTP_CONFIG.defaultValue.get(),
     SolrWriter.SolrProperties.HTTP_CONFIG.coerceOrDefaultOrExcept(
                     ImmutableMap.of( SolrWriter.SolrProperties.HTTP_CONFIG.name, new DummyClass())
                     , Map.class));

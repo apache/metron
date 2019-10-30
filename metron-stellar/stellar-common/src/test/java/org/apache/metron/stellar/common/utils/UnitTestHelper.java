@@ -21,7 +21,6 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +34,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class UnitTestHelper {
   public static String findDir(String name) {
@@ -42,7 +42,7 @@ public class UnitTestHelper {
   }
 
   public static String findDir(File startDir, String name) {
-    Stack<File> s = new Stack<File>();
+    Stack<File> s = new Stack<>();
     s.push(startDir);
     while (!s.empty()) {
       File parent = s.pop();
@@ -74,7 +74,7 @@ public class UnitTestHelper {
         System.out.println("Expected " + type + " that I did not index: " + expectedId);
       }
     }
-    Assert.assertFalse(mismatch);
+    assertFalse(mismatch);
   }
 
   public static void verboseLogging() {

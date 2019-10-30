@@ -28,7 +28,6 @@ import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +35,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class WindowLookbackTest {
 
@@ -64,7 +63,7 @@ public class WindowLookbackTest {
     config.put(ProfilerClientConfig.PROFILER_PERIOD.getKey(), 1);
 
     State state = test("1 hour", new Date(), Optional.of(config), Assertions.NOT_EMPTY, Assertions.CONTIGUOUS);
-    Assert.assertEquals(TimeUnit.HOURS.toMillis(1) / durationMs, state.periods.size());
+    assertEquals(TimeUnit.HOURS.toMillis(1) / durationMs, state.periods.size());
   }
 
   @Test
@@ -77,13 +76,13 @@ public class WindowLookbackTest {
                                                                     , resolver
                                                                     , context
                                                                     );
-    Assert.assertEquals(TimeUnit.HOURS.toMillis(1) / getDurationMs(), periods.size());
+    assertEquals(TimeUnit.HOURS.toMillis(1) / getDurationMs(), periods.size());
   }
 
   @Test
   public void testDenseLookback() {
     State state = test("1 hour", Assertions.NOT_EMPTY, Assertions.CONTIGUOUS);
-    Assert.assertEquals(TimeUnit.HOURS.toMillis(1) / getDurationMs(), state.periods.size());
+    assertEquals(TimeUnit.HOURS.toMillis(1) / getDurationMs(), state.periods.size());
   }
 
   @Test
@@ -92,7 +91,7 @@ public class WindowLookbackTest {
                                                            , Assertions.CONTIGUOUS
                                                            , Assertions.INTERVALS_CONTAIN_ALL_PERIODS
                                                            );
-    Assert.assertEquals(TimeUnit.MINUTES.toMillis(90) / getDurationMs(), state.periods.size());
+    assertEquals(TimeUnit.MINUTES.toMillis(90) / getDurationMs(), state.periods.size());
   }
 
   @Test
@@ -101,7 +100,7 @@ public class WindowLookbackTest {
                                                                                          , Assertions.DISCONTIGUOUS
                                                                                          , Assertions.INTERVALS_CONTAIN_ALL_PERIODS
                                                                                          );
-    Assert.assertEquals(TimeUnit.MINUTES.toMillis(60) / getDurationMs(), state.periods.size());
+    assertEquals(TimeUnit.MINUTES.toMillis(60) / getDurationMs(), state.periods.size());
   }
 
   @Test
@@ -148,7 +147,7 @@ public class WindowLookbackTest {
                                                                     );
     State state = new State(windowIntervals, periods);
     for(Assertions assertion : assertions) {
-      Assert.assertTrue(assertion.name(), assertion.test(state));
+      assertTrue(assertion.test(state), assertion.name());
     }
     return state;
   }

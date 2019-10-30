@@ -17,22 +17,6 @@
  */
 package org.apache.metron.integration.components;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -51,9 +35,22 @@ import org.apache.storm.generated.StormTopology;
 import org.apache.storm.thrift.TException;
 import org.apache.storm.thrift.protocol.TProtocolException;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Pattern;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class FluxTopologyComponent implements InMemoryComponent {
 
@@ -253,7 +250,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
     Config conf = FluxBuilder.buildConfig(topologyDef);
     ExecutionContext context = new ExecutionContext(topologyDef, conf);
     StormTopology topology = FluxBuilder.buildTopology(context);
-    Assert.assertNotNull(topology);
+    assertNotNull(topology);
     topology.validate();
     try {
       stormCluster.submitTopology(topologyName, conf, topology);

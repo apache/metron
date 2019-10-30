@@ -18,15 +18,14 @@
 package org.apache.metron.storm.kafka.flux;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SpoutConfigurationTest {
 
@@ -38,13 +37,13 @@ public class SpoutConfigurationTest {
       put("group.id", "foobar");
     }};
     Map<String, Object> spoutConfig = SpoutConfiguration.separate(config);
-    Assert.assertTrue(spoutConfig.containsKey(SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key));
-    Assert.assertEquals(spoutConfig.get(SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key), "UNCOMMITTED_EARLIEST");
-    Assert.assertTrue(spoutConfig.containsKey(SpoutConfiguration.OFFSET_COMMIT_PERIOD_MS.key));
-    Assert.assertEquals(spoutConfig.get(SpoutConfiguration.OFFSET_COMMIT_PERIOD_MS.key), "1000");
-    Assert.assertEquals(2, spoutConfig.size());
-    Assert.assertEquals(1, config.size());
-    Assert.assertEquals(config.get("group.id"), "foobar");
+    assertTrue(spoutConfig.containsKey(SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key));
+    assertEquals(spoutConfig.get(SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key), "UNCOMMITTED_EARLIEST");
+    assertTrue(spoutConfig.containsKey(SpoutConfiguration.OFFSET_COMMIT_PERIOD_MS.key));
+    assertEquals(spoutConfig.get(SpoutConfiguration.OFFSET_COMMIT_PERIOD_MS.key), "1000");
+    assertEquals(2, spoutConfig.size());
+    assertEquals(1, config.size());
+    assertEquals(config.get("group.id"), "foobar");
   }
 
   @Test
@@ -58,7 +57,7 @@ public class SpoutConfigurationTest {
     KafkaSpoutConfig.Builder<Object, Object> builder = new SimpleStormKafkaBuilder(config, "topic", null);
     SpoutConfiguration.configure(builder, spoutConfig);
     KafkaSpoutConfig c = builder.build();
-    Assert.assertEquals(1000, c.getOffsetsCommitPeriodMs() );
+    assertEquals(1000, c.getOffsetsCommitPeriodMs() );
   }
 
 }

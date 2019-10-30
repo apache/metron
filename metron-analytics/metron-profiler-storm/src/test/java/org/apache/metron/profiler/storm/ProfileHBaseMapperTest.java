@@ -25,13 +25,13 @@ import org.apache.metron.common.configuration.profiler.ProfileResult;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.storm.tuple.Tuple;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -77,8 +77,8 @@ public class ProfileHBaseMapperTest {
     profile.setExpires(expiresDays);
 
     Optional<Long> actual = mapper.getTTL(tuple);
-    Assert.assertTrue(actual.isPresent());
-    Assert.assertEquals(expiresDays, (Long) TimeUnit.MILLISECONDS.toDays(actual.get()));
+    assertTrue(actual.isPresent());
+    assertEquals(expiresDays, (Long) TimeUnit.MILLISECONDS.toDays(actual.get()));
   }
 
   /**
@@ -88,6 +88,6 @@ public class ProfileHBaseMapperTest {
   public void testExpiresUndefined() {
     // the TTL should not be defined
     Optional<Long> actual = mapper.getTTL(tuple);
-    Assert.assertFalse(actual.isPresent());
+    assertFalse(actual.isPresent());
   }
 }

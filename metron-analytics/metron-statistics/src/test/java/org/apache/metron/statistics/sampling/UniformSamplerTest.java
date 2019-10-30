@@ -22,7 +22,6 @@ package org.apache.metron.statistics.sampling;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UniformSamplerTest {
   public static final int SAMPLE_SIZE = 2000000;
@@ -71,8 +72,8 @@ public class UniformSamplerTest {
     for(Object d : sample.get()) {
       s.addValue((Double)d);
     }
-    Assert.assertEquals(s.getMean(), distribution.getMean(), .1);
-    Assert.assertEquals(s.getStandardDeviation(), distribution.getStandardDeviation(), .1);
+    assertEquals(s.getMean(), distribution.getMean(), .1);
+    assertEquals(s.getStandardDeviation(), distribution.getStandardDeviation(), .1);
   }
 
   @Test
@@ -87,7 +88,7 @@ public class UniformSamplerTest {
     UniformSampler sampler = new UniformSampler(10);
     Iterable<Sampler> subsamples = getSubsamples(uniformSample);
     Sampler s = SamplerUtil.INSTANCE.merge(subsamples, Optional.of(sampler));
-    Assert.assertEquals(s.getSize(), 10);
+    assertEquals(s.getSize(), 10);
   }
 
 

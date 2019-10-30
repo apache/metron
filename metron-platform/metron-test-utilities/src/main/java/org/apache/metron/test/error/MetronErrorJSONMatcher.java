@@ -18,10 +18,11 @@
 package org.apache.metron.test.error;
 
 import org.apache.storm.tuple.Values;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.json.simple.JSONObject;
-import org.mockito.ArgumentMatcher;
 
-public class MetronErrorJSONMatcher implements ArgumentMatcher<Values> {
+public class MetronErrorJSONMatcher extends BaseMatcher<Values> {
 
   private JSONObject expected;
 
@@ -30,8 +31,9 @@ public class MetronErrorJSONMatcher implements ArgumentMatcher<Values> {
   }
 
   @Override
-  public boolean matches(Values o) {
-    JSONObject actual = (JSONObject) o.get(0);
+  public boolean matches(Object o) {
+    Values values = (Values) o;
+    JSONObject actual = (JSONObject) values.get(0);
     actual.remove("timestamp");
     expected.remove("timestamp");
     actual.remove("stack");
@@ -39,5 +41,10 @@ public class MetronErrorJSONMatcher implements ArgumentMatcher<Values> {
     actual.remove("guid");
     expected.remove("guid");
     return actual.equals(expected);
+  }
+
+  @Override
+  public void describeTo(Description description) {
+    description.appendText("MetronErrorJSONMatcher should return ").appendValue(expected);
   }
 }

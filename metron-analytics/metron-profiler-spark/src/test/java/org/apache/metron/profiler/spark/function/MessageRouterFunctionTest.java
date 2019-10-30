@@ -24,11 +24,11 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.MessageRoute;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -61,8 +61,8 @@ public class MessageRouterFunctionTest {
     Iterator<MessageRoute> iter = function.call(goodMessage);
 
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(1, routes.size());
-    Assert.assertEquals("profile1", routes.get(0).getProfileDefinition().getProfile());
+    assertEquals(1, routes.size());
+    assertEquals("profile1", routes.get(0).getProfileDefinition().getProfile());
   }
 
   @Test
@@ -77,7 +77,7 @@ public class MessageRouterFunctionTest {
 
     // an invalid message should return no routes
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(0, routes.size());
+    assertEquals(0, routes.size());
   }
 
   @Test
@@ -86,9 +86,9 @@ public class MessageRouterFunctionTest {
     Iterator<MessageRoute> iter = function.call(goodMessage);
 
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(2, routes.size());
-    Assert.assertEquals("profile1", routes.get(0).getProfileDefinition().getProfile());
-    Assert.assertEquals("profile2", routes.get(1).getProfileDefinition().getProfile());
+    assertEquals(2, routes.size());
+    assertEquals("profile1", routes.get(0).getProfileDefinition().getProfile());
+    assertEquals("profile2", routes.get(1).getProfileDefinition().getProfile());
   }
 
   @Test
@@ -98,7 +98,7 @@ public class MessageRouterFunctionTest {
 
     // with no timestamp, the message should be ignored
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(0, routes.size());
+    assertEquals(0, routes.size());
   }
 
   @Test
@@ -109,7 +109,7 @@ public class MessageRouterFunctionTest {
 
     // the message should be filtered because it is before `beginAt`
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(0, routes.size());
+    assertEquals(0, routes.size());
   }
 
   @Test
@@ -120,7 +120,7 @@ public class MessageRouterFunctionTest {
 
     // the message should NOT be filtered because it is after 'beginAt'
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(1, routes.size());
+    assertEquals(1, routes.size());
   }
 
   @Test
@@ -131,7 +131,7 @@ public class MessageRouterFunctionTest {
 
     // the message should be filtered because it is after 'endAt'
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(0, routes.size());
+    assertEquals(0, routes.size());
   }
 
   @Test
@@ -142,7 +142,7 @@ public class MessageRouterFunctionTest {
 
     // the message should NOT be filtered because it is before 'endAt'
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(1, routes.size());
+    assertEquals(1, routes.size());
   }
 
   @Test
@@ -154,7 +154,7 @@ public class MessageRouterFunctionTest {
 
     // the message should be filtered because it is outside of [beginAt, endAt]
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(0, routes.size());
+    assertEquals(0, routes.size());
   }
 
   @Test
@@ -166,7 +166,7 @@ public class MessageRouterFunctionTest {
 
     // the message should NOT be filtered because it is after 'endAt'
     List<MessageRoute> routes = Lists.newArrayList(iter);
-    Assert.assertEquals(1, routes.size());
+    assertEquals(1, routes.size());
   }
 
   /**

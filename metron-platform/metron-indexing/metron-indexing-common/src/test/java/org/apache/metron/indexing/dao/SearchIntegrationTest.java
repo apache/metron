@@ -18,30 +18,19 @@
  */
 package org.apache.metron.indexing.dao;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.search.GroupRequest;
-import org.apache.metron.indexing.dao.search.GroupResponse;
-import org.apache.metron.indexing.dao.search.GroupResult;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.Assert;
 import org.junit.Rule;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class SearchIntegrationTest {
   /**
@@ -479,18 +468,18 @@ public abstract class SearchIntegrationTest {
   public void all_query_returns_all_results() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
+    assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals(10, results.size());
+    assertEquals(10, results.size());
     for(int i = 0;i < 5;++i) {
-      Assert.assertEquals("snort", results.get(i).getSource().get(getSourceTypeField()));
-      Assert.assertEquals(getIndexName("snort"), results.get(i).getIndex());
-      Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
+      assertEquals("snort", results.get(i).getSource().get(getSourceTypeField()));
+      assertEquals(getIndexName("snort"), results.get(i).getIndex());
+      assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
     for (int i = 5; i < 10; ++i) {
-      Assert.assertEquals("bro", results.get(i).getSource().get(getSourceTypeField()));
-      Assert.assertEquals(getIndexName("bro"), results.get(i).getIndex());
-      Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
+      assertEquals("bro", results.get(i).getSource().get(getSourceTypeField()));
+      assertEquals(getIndexName("bro"), results.get(i).getIndex());
+      assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
   }
 
@@ -498,10 +487,10 @@ public abstract class SearchIntegrationTest {
   public void find_one_guid() throws Exception {
     GetRequest request = JSONUtils.INSTANCE.load(findOneGuidQuery, GetRequest.class);
     Optional<Map<String, Object>> response = getIndexDao().getLatestResult(request);
-    Assert.assertTrue(response.isPresent());
+    assertTrue(response.isPresent());
     Map<String, Object> doc = response.get();
-    Assert.assertEquals("bro", doc.get(getSourceTypeField()));
-    Assert.assertEquals("3", doc.get("timestamp").toString());
+    assertEquals("bro", doc.get(getSourceTypeField()));
+    assertEquals("3", doc.get("timestamp").toString());
   }
 
   @Test
@@ -512,35 +501,35 @@ public abstract class SearchIntegrationTest {
     for(Document doc : getIndexDao().getAllLatest(request)) {
       docs.put(doc.getGuid(), doc);
     }
-    Assert.assertEquals(2, docs.size());
-    Assert.assertTrue(docs.keySet().contains("bro_1"));
-    Assert.assertTrue(docs.keySet().contains("snort_2"));
-    Assert.assertEquals("bro", docs.get("bro_1").getDocument().get(getSourceTypeField()));
-    Assert.assertEquals("snort", docs.get("snort_2").getDocument().get(getSourceTypeField()));
+    assertEquals(2, docs.size());
+    assertTrue(docs.keySet().contains("bro_1"));
+    assertTrue(docs.keySet().contains("snort_2"));
+    assertEquals("bro", docs.get("bro_1").getDocument().get(getSourceTypeField()));
+    assertEquals("snort", docs.get("snort_2").getDocument().get(getSourceTypeField()));
   }
 
   @Test
   public void filter_query_filters_results() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(filterQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(3, response.getTotal());
+    assertEquals(3, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
-    Assert.assertEquals("9", results.get(0).getSource().get("timestamp").toString());
-    Assert.assertEquals("snort", results.get(1).getSource().get(getSourceTypeField()));
-    Assert.assertEquals("7", results.get(1).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
-    Assert.assertEquals("1", results.get(2).getSource().get("timestamp").toString());
+    assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
+    assertEquals("9", results.get(0).getSource().get("timestamp").toString());
+    assertEquals("snort", results.get(1).getSource().get(getSourceTypeField()));
+    assertEquals("7", results.get(1).getSource().get("timestamp").toString());
+    assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
+    assertEquals("1", results.get(2).getSource().get("timestamp").toString());
   }
 
   @Test
   public void sort_query_sorts_results_ascending() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
+    assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 8001; i < 8011; ++i) {
-      Assert.assertEquals(i, results.get(i - 8001).getSource().get("ip_src_port"));
+      assertEquals(i, results.get(i - 8001).getSource().get("ip_src_port"));
     }
   }
 
@@ -548,35 +537,35 @@ public abstract class SearchIntegrationTest {
   public void sort_ascending_with_missing_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortAscendingWithMissingFields, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
+    assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals(10, results.size());
+    assertEquals(10, results.size());
 
     // the remaining are missing the 'threat:triage:score' and should be sorted last
     for (int i = 0; i < 8; i++) {
-      Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
+      assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
     }
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("10.0", results.get(8).getSource().get("threat:triage:score").toString());
-    Assert.assertEquals("20.0", results.get(9).getSource().get("threat:triage:score").toString());
+    assertEquals("10.0", results.get(8).getSource().get("threat:triage:score").toString());
+    assertEquals("20.0", results.get(9).getSource().get("threat:triage:score").toString());
   }
 
   @Test
   public void sort_descending_with_missing_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortDescendingWithMissingFields, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
+    assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals(10, results.size());
+    assertEquals(10, results.size());
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("20.0", results.get(0).getSource().get("threat:triage:score").toString());
-    Assert.assertEquals("10.0", results.get(1).getSource().get("threat:triage:score").toString());
+    assertEquals("20.0", results.get(0).getSource().get("threat:triage:score").toString());
+    assertEquals("10.0", results.get(1).getSource().get("threat:triage:score").toString());
 
     // the remaining are missing the 'threat:triage:score' and should be sorted last
     for (int i = 2; i < 10; i++) {
-      Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
+      assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
     }
   }
 
@@ -584,26 +573,26 @@ public abstract class SearchIntegrationTest {
   public void results_are_paginated() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(paginationQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
+    assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
-    Assert.assertEquals(3, results.size());
-    Assert.assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
-    Assert.assertEquals("6", results.get(0).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(1).getSource().get(getSourceTypeField()));
-    Assert.assertEquals("5", results.get(1).getSource().get("timestamp").toString());
-    Assert.assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
-    Assert.assertEquals("4", results.get(2).getSource().get("timestamp").toString());
+    assertEquals(3, results.size());
+    assertEquals("snort", results.get(0).getSource().get(getSourceTypeField()));
+    assertEquals("6", results.get(0).getSource().get("timestamp").toString());
+    assertEquals("bro", results.get(1).getSource().get(getSourceTypeField()));
+    assertEquals("5", results.get(1).getSource().get("timestamp").toString());
+    assertEquals("bro", results.get(2).getSource().get(getSourceTypeField()));
+    assertEquals("4", results.get(2).getSource().get("timestamp").toString());
   }
 
   @Test
   public void returns_results_only_for_specified_indices() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(indexQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(5, response.getTotal());
+    assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 5, j = 0; i > 0; i--, j++) {
-      Assert.assertEquals("bro", results.get(j).getSource().get(getSourceTypeField()));
-      Assert.assertEquals(i + "", results.get(j).getSource().get("timestamp").toString());
+      assertEquals("bro", results.get(j).getSource().get(getSourceTypeField()));
+      assertEquals(i + "", results.get(j).getSource().get("timestamp").toString());
     }
   }
 
@@ -612,100 +601,100 @@ public abstract class SearchIntegrationTest {
     String facetQuery = facetQueryRaw.replace("source:type", getSourceTypeField());
     SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
+    assertEquals(10, response.getTotal());
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
-    Assert.assertEquals(8, facetCounts.size());
+    assertEquals(8, facetCounts.size());
     Map<String, Long> sourceTypeCounts = facetCounts.get(getSourceTypeField());
-    Assert.assertEquals(2, sourceTypeCounts.size());
-    Assert.assertEquals(new Long(5), sourceTypeCounts.get("bro"));
-    Assert.assertEquals(new Long(5), sourceTypeCounts.get("snort"));
+    assertEquals(2, sourceTypeCounts.size());
+    assertEquals(new Long(5), sourceTypeCounts.get("bro"));
+    assertEquals(new Long(5), sourceTypeCounts.get("snort"));
     Map<String, Long> ipSrcAddrCounts = facetCounts.get("ip_src_addr");
-    Assert.assertEquals(8, ipSrcAddrCounts.size());
-    Assert.assertEquals(new Long(3), ipSrcAddrCounts.get("192.168.1.1"));
-    Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.2"));
-    Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.3"));
-    Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.4"));
-    Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.5"));
-    Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.6"));
-    Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.7"));
-    Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.8"));
+    assertEquals(8, ipSrcAddrCounts.size());
+    assertEquals(new Long(3), ipSrcAddrCounts.get("192.168.1.1"));
+    assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.2"));
+    assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.3"));
+    assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.4"));
+    assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.5"));
+    assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.6"));
+    assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.7"));
+    assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.8"));
     Map<String, Long> ipSrcPortCounts = facetCounts.get("ip_src_port");
-    Assert.assertEquals(10, ipSrcPortCounts.size());
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8001"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8002"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8003"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8004"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8005"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8006"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8007"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8008"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8009"));
-    Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8010"));
+    assertEquals(10, ipSrcPortCounts.size());
+    assertEquals(new Long(1), ipSrcPortCounts.get("8001"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8002"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8003"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8004"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8005"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8006"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8007"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8008"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8009"));
+    assertEquals(new Long(1), ipSrcPortCounts.get("8010"));
     Map<String, Long> longFieldCounts = facetCounts.get("long_field");
-    Assert.assertEquals(2, longFieldCounts.size());
-    Assert.assertEquals(new Long(8), longFieldCounts.get("10000"));
-    Assert.assertEquals(new Long(2), longFieldCounts.get("20000"));
+    assertEquals(2, longFieldCounts.size());
+    assertEquals(new Long(8), longFieldCounts.get("10000"));
+    assertEquals(new Long(2), longFieldCounts.get("20000"));
     Map<String, Long> timestampCounts = facetCounts.get("timestamp");
-    Assert.assertEquals(10, timestampCounts.size());
-    Assert.assertEquals(new Long(1), timestampCounts.get("1"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("2"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("3"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("4"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("5"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("6"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("7"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("8"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("9"));
-    Assert.assertEquals(new Long(1), timestampCounts.get("10"));
+    assertEquals(10, timestampCounts.size());
+    assertEquals(new Long(1), timestampCounts.get("1"));
+    assertEquals(new Long(1), timestampCounts.get("2"));
+    assertEquals(new Long(1), timestampCounts.get("3"));
+    assertEquals(new Long(1), timestampCounts.get("4"));
+    assertEquals(new Long(1), timestampCounts.get("5"));
+    assertEquals(new Long(1), timestampCounts.get("6"));
+    assertEquals(new Long(1), timestampCounts.get("7"));
+    assertEquals(new Long(1), timestampCounts.get("8"));
+    assertEquals(new Long(1), timestampCounts.get("9"));
+    assertEquals(new Long(1), timestampCounts.get("10"));
     Map<String, Long> latitudeCounts = facetCounts.get("latitude");
-    Assert.assertEquals(2, latitudeCounts.size());
+    assertEquals(2, latitudeCounts.size());
     List<String> latitudeKeys = new ArrayList<>(latitudeCounts.keySet());
     Collections.sort(latitudeKeys);
-    Assert.assertEquals(48.0001, Double.parseDouble(latitudeKeys.get(0)), 0.00001);
-    Assert.assertEquals(48.5839, Double.parseDouble(latitudeKeys.get(1)), 0.00001);
-    Assert.assertEquals(new Long(2), latitudeCounts.get(latitudeKeys.get(0)));
-    Assert.assertEquals(new Long(8), latitudeCounts.get(latitudeKeys.get(1)));
+    assertEquals(48.0001, Double.parseDouble(latitudeKeys.get(0)), 0.00001);
+    assertEquals(48.5839, Double.parseDouble(latitudeKeys.get(1)), 0.00001);
+    assertEquals(new Long(2), latitudeCounts.get(latitudeKeys.get(0)));
+    assertEquals(new Long(8), latitudeCounts.get(latitudeKeys.get(1)));
     Map<String, Long> scoreFieldCounts = facetCounts.get("score");
-    Assert.assertEquals(4, scoreFieldCounts.size());
+    assertEquals(4, scoreFieldCounts.size());
     List<String> scoreFieldKeys = new ArrayList<>(scoreFieldCounts.keySet());
     Collections.sort(scoreFieldKeys);
-    Assert.assertEquals(10.0, Double.parseDouble(scoreFieldKeys.get(0)), 0.00001);
-    Assert.assertEquals(20.0, Double.parseDouble(scoreFieldKeys.get(1)), 0.00001);
-    Assert.assertEquals(50.0, Double.parseDouble(scoreFieldKeys.get(2)), 0.00001);
-    Assert.assertEquals(98.0, Double.parseDouble(scoreFieldKeys.get(3)), 0.00001);
-    Assert.assertEquals(new Long(4), scoreFieldCounts.get(scoreFieldKeys.get(0)));
-    Assert.assertEquals(new Long(2), scoreFieldCounts.get(scoreFieldKeys.get(1)));
-    Assert.assertEquals(new Long(3), scoreFieldCounts.get(scoreFieldKeys.get(2)));
-    Assert.assertEquals(new Long(1), scoreFieldCounts.get(scoreFieldKeys.get(3)));
+    assertEquals(10.0, Double.parseDouble(scoreFieldKeys.get(0)), 0.00001);
+    assertEquals(20.0, Double.parseDouble(scoreFieldKeys.get(1)), 0.00001);
+    assertEquals(50.0, Double.parseDouble(scoreFieldKeys.get(2)), 0.00001);
+    assertEquals(98.0, Double.parseDouble(scoreFieldKeys.get(3)), 0.00001);
+    assertEquals(new Long(4), scoreFieldCounts.get(scoreFieldKeys.get(0)));
+    assertEquals(new Long(2), scoreFieldCounts.get(scoreFieldKeys.get(1)));
+    assertEquals(new Long(3), scoreFieldCounts.get(scoreFieldKeys.get(2)));
+    assertEquals(new Long(1), scoreFieldCounts.get(scoreFieldKeys.get(3)));
     Map<String, Long> isAlertCounts = facetCounts.get("is_alert");
-    Assert.assertEquals(2, isAlertCounts.size());
-    Assert.assertEquals(new Long(6), isAlertCounts.get("true"));
-    Assert.assertEquals(new Long(4), isAlertCounts.get("false"));
+    assertEquals(2, isAlertCounts.size());
+    assertEquals(new Long(6), isAlertCounts.get("true"));
+    assertEquals(new Long(4), isAlertCounts.get("false"));
   }
 
   @Test
   public void disabled_facet_query_returns_null_count() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(disabledFacetQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertNull(response.getFacetCounts());
+    assertNull(response.getFacetCounts());
   }
 
   @Test
   public void missing_type_facet_query() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(missingTypeFacetQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
+    assertEquals(10, response.getTotal());
 
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
-    Assert.assertEquals(1, facetCounts.size());
+    assertEquals(1, facetCounts.size());
     Map<String, Long> snortFieldCounts = facetCounts.get("sig_generator");
-    Assert.assertEquals(5, snortFieldCounts.size());
+    assertEquals(5, snortFieldCounts.size());
 
-    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 5").longValue());
-    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 4").longValue());
-    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 3").longValue());
-    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 2").longValue());
-    Assert.assertEquals(1L, snortFieldCounts.get("sig_generator 1").longValue());
+    assertEquals(1L, snortFieldCounts.get("sig_generator 5").longValue());
+    assertEquals(1L, snortFieldCounts.get("sig_generator 4").longValue());
+    assertEquals(1L, snortFieldCounts.get("sig_generator 3").longValue());
+    assertEquals(1L, snortFieldCounts.get("sig_generator 2").longValue());
+    assertEquals(1L, snortFieldCounts.get("sig_generator 1").longValue());
     response.getFacetCounts();
   }
 
@@ -714,7 +703,7 @@ public abstract class SearchIntegrationTest {
     thrown.expect(Exception.class);
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(3, response.getTotal());
+    assertEquals(3, response.getTotal());
   }
 
   @Test
@@ -730,7 +719,7 @@ public abstract class SearchIntegrationTest {
     // getColumnMetadata with an index that doesn't exist
     {
       Map<String, FieldType> fieldTypes = getIndexDao().getColumnMetadata(Collections.singletonList("someindex"));
-      Assert.assertEquals(0, fieldTypes.size());
+      assertEquals(0, fieldTypes.size());
     }
   }
 
@@ -738,7 +727,7 @@ public abstract class SearchIntegrationTest {
   public void no_results_returned_when_query_does_not_match() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(0, response.getTotal());
+    assertEquals(0, response.getTotal());
   }
 
   @Test
@@ -747,21 +736,21 @@ public abstract class SearchIntegrationTest {
     GroupResponse response = getIndexDao().group(request);
 
     // expect only 1 group for 'ip_src_addr'
-    Assert.assertEquals("ip_src_addr", response.getGroupedBy());
+    assertEquals("ip_src_addr", response.getGroupedBy());
 
     // there are 8 different 'ip_src_addr' values
     List<GroupResult> groups = response.getGroupResults();
-    Assert.assertEquals(8, groups.size());
+    assertEquals(8, groups.size());
 
     // expect dotted-decimal notation in descending order
-    Assert.assertEquals("192.168.1.8", groups.get(0).getKey());
-    Assert.assertEquals("192.168.1.7", groups.get(1).getKey());
-    Assert.assertEquals("192.168.1.6", groups.get(2).getKey());
-    Assert.assertEquals("192.168.1.5", groups.get(3).getKey());
-    Assert.assertEquals("192.168.1.4", groups.get(4).getKey());
-    Assert.assertEquals("192.168.1.3", groups.get(5).getKey());
-    Assert.assertEquals("192.168.1.2", groups.get(6).getKey());
-    Assert.assertEquals("192.168.1.1", groups.get(7).getKey());
+    assertEquals("192.168.1.8", groups.get(0).getKey());
+    assertEquals("192.168.1.7", groups.get(1).getKey());
+    assertEquals("192.168.1.6", groups.get(2).getKey());
+    assertEquals("192.168.1.5", groups.get(3).getKey());
+    assertEquals("192.168.1.4", groups.get(4).getKey());
+    assertEquals("192.168.1.3", groups.get(5).getKey());
+    assertEquals("192.168.1.2", groups.get(6).getKey());
+    assertEquals("192.168.1.1", groups.get(7).getKey());
   }
 
   @Test
@@ -769,51 +758,51 @@ public abstract class SearchIntegrationTest {
     // Group by test case, default order is count descending
     GroupRequest request = JSONUtils.INSTANCE.load(groupByQuery, GroupRequest.class);
     GroupResponse response = getIndexDao().group(request);
-    Assert.assertEquals("is_alert", response.getGroupedBy());
+    assertEquals("is_alert", response.getGroupedBy());
     List<GroupResult> isAlertGroups = response.getGroupResults();
-    Assert.assertEquals(2, isAlertGroups.size());
+    assertEquals(2, isAlertGroups.size());
 
     // isAlert == true group
     GroupResult trueGroup = isAlertGroups.get(0);
-    Assert.assertEquals("true", trueGroup.getKey());
-    Assert.assertEquals(6, trueGroup.getTotal());
-    Assert.assertEquals("latitude", trueGroup.getGroupedBy());
-    Assert.assertEquals(198.0, trueGroup.getScore(), 0.00001);
+    assertEquals("true", trueGroup.getKey());
+    assertEquals(6, trueGroup.getTotal());
+    assertEquals("latitude", trueGroup.getGroupedBy());
+    assertEquals(198.0, trueGroup.getScore(), 0.00001);
     List<GroupResult> trueLatitudeGroups = trueGroup.getGroupResults();
-    Assert.assertEquals(2, trueLatitudeGroups.size());
+    assertEquals(2, trueLatitudeGroups.size());
 
 
     // isAlert == true && latitude == 48.5839 group
     GroupResult trueLatitudeGroup2 = trueLatitudeGroups.get(0);
-    Assert.assertEquals(48.5839, Double.parseDouble(trueLatitudeGroup2.getKey()), 0.00001);
-    Assert.assertEquals(5, trueLatitudeGroup2.getTotal());
-    Assert.assertEquals(148.0, trueLatitudeGroup2.getScore(), 0.00001);
+    assertEquals(48.5839, Double.parseDouble(trueLatitudeGroup2.getKey()), 0.00001);
+    assertEquals(5, trueLatitudeGroup2.getTotal());
+    assertEquals(148.0, trueLatitudeGroup2.getScore(), 0.00001);
 
     // isAlert == true && latitude == 48.0001 group
     GroupResult trueLatitudeGroup1 = trueLatitudeGroups.get(1);
-    Assert.assertEquals(48.0001, Double.parseDouble(trueLatitudeGroup1.getKey()), 0.00001);
-    Assert.assertEquals(1, trueLatitudeGroup1.getTotal());
-    Assert.assertEquals(50.0, trueLatitudeGroup1.getScore(), 0.00001);
+    assertEquals(48.0001, Double.parseDouble(trueLatitudeGroup1.getKey()), 0.00001);
+    assertEquals(1, trueLatitudeGroup1.getTotal());
+    assertEquals(50.0, trueLatitudeGroup1.getScore(), 0.00001);
 
     // isAlert == false group
     GroupResult falseGroup = isAlertGroups.get(1);
-    Assert.assertEquals("false", falseGroup.getKey());
-    Assert.assertEquals("latitude", falseGroup.getGroupedBy());
-    Assert.assertEquals(130.0, falseGroup.getScore(), 0.00001);
+    assertEquals("false", falseGroup.getKey());
+    assertEquals("latitude", falseGroup.getGroupedBy());
+    assertEquals(130.0, falseGroup.getScore(), 0.00001);
     List<GroupResult> falseLatitudeGroups = falseGroup.getGroupResults();
-    Assert.assertEquals(2, falseLatitudeGroups.size());
+    assertEquals(2, falseLatitudeGroups.size());
 
     // isAlert == false && latitude == 48.5839 group
     GroupResult falseLatitudeGroup2 = falseLatitudeGroups.get(0);
-    Assert.assertEquals(48.5839, Double.parseDouble(falseLatitudeGroup2.getKey()), 0.00001);
-    Assert.assertEquals(3, falseLatitudeGroup2.getTotal());
-    Assert.assertEquals(80.0, falseLatitudeGroup2.getScore(), 0.00001);
+    assertEquals(48.5839, Double.parseDouble(falseLatitudeGroup2.getKey()), 0.00001);
+    assertEquals(3, falseLatitudeGroup2.getTotal());
+    assertEquals(80.0, falseLatitudeGroup2.getScore(), 0.00001);
 
     // isAlert == false && latitude == 48.0001 group
     GroupResult falseLatitudeGroup1 = falseLatitudeGroups.get(1);
-    Assert.assertEquals(48.0001, Double.parseDouble(falseLatitudeGroup1.getKey()), 0.00001);
-    Assert.assertEquals(1, falseLatitudeGroup1.getTotal());
-    Assert.assertEquals(50.0, falseLatitudeGroup1.getScore(), 0.00001);
+    assertEquals(48.0001, Double.parseDouble(falseLatitudeGroup1.getKey()), 0.00001);
+    assertEquals(1, falseLatitudeGroup1.getTotal());
+    assertEquals(50.0, falseLatitudeGroup1.getScore(), 0.00001);
   }
 
   @Test
@@ -821,96 +810,96 @@ public abstract class SearchIntegrationTest {
     // Group by with sorting test case where is_alert is sorted by count ascending and ip_src_addr is sorted by term descending
     GroupRequest request = JSONUtils.INSTANCE.load(sortedGroupByQuery, GroupRequest.class);
     GroupResponse response = getIndexDao().group(request);
-    Assert.assertEquals("is_alert", response.getGroupedBy());
+    assertEquals("is_alert", response.getGroupedBy());
     List<GroupResult> isAlertGroups = response.getGroupResults();
-    Assert.assertEquals(2, isAlertGroups.size());
+    assertEquals(2, isAlertGroups.size());
 
     // isAlert == false group
     GroupResult falseGroup = isAlertGroups.get(0);
-    Assert.assertEquals(4, falseGroup.getTotal());
-    Assert.assertEquals("ip_src_addr", falseGroup.getGroupedBy());
+    assertEquals(4, falseGroup.getTotal());
+    assertEquals("ip_src_addr", falseGroup.getGroupedBy());
     List<GroupResult> falseIpSrcAddrGroups = falseGroup.getGroupResults();
-    Assert.assertEquals(4, falseIpSrcAddrGroups.size());
+    assertEquals(4, falseIpSrcAddrGroups.size());
 
     // isAlert == false && ip_src_addr == 192.168.1.8 group
     GroupResult falseIpSrcAddrGroup1 = falseIpSrcAddrGroups.get(0);
-    Assert.assertEquals("192.168.1.8", falseIpSrcAddrGroup1.getKey());
-    Assert.assertEquals(1, falseIpSrcAddrGroup1.getTotal());
-    Assert.assertNull(falseIpSrcAddrGroup1.getGroupedBy());
-    Assert.assertNull(falseIpSrcAddrGroup1.getGroupResults());
+    assertEquals("192.168.1.8", falseIpSrcAddrGroup1.getKey());
+    assertEquals(1, falseIpSrcAddrGroup1.getTotal());
+    assertNull(falseIpSrcAddrGroup1.getGroupedBy());
+    assertNull(falseIpSrcAddrGroup1.getGroupResults());
 
     // isAlert == false && ip_src_addr == 192.168.1.7 group
     GroupResult falseIpSrcAddrGroup2 = falseIpSrcAddrGroups.get(1);
-    Assert.assertEquals("192.168.1.7", falseIpSrcAddrGroup2.getKey());
-    Assert.assertEquals(1, falseIpSrcAddrGroup2.getTotal());
-    Assert.assertNull(falseIpSrcAddrGroup2.getGroupedBy());
-    Assert.assertNull(falseIpSrcAddrGroup2.getGroupResults());
+    assertEquals("192.168.1.7", falseIpSrcAddrGroup2.getKey());
+    assertEquals(1, falseIpSrcAddrGroup2.getTotal());
+    assertNull(falseIpSrcAddrGroup2.getGroupedBy());
+    assertNull(falseIpSrcAddrGroup2.getGroupResults());
 
     // isAlert == false && ip_src_addr == 192.168.1.6 group
     GroupResult falseIpSrcAddrGroup3 = falseIpSrcAddrGroups.get(2);
-    Assert.assertEquals("192.168.1.6", falseIpSrcAddrGroup3.getKey());
-    Assert.assertEquals(1, falseIpSrcAddrGroup3.getTotal());
-    Assert.assertNull(falseIpSrcAddrGroup3.getGroupedBy());
-    Assert.assertNull(falseIpSrcAddrGroup3.getGroupResults());
+    assertEquals("192.168.1.6", falseIpSrcAddrGroup3.getKey());
+    assertEquals(1, falseIpSrcAddrGroup3.getTotal());
+    assertNull(falseIpSrcAddrGroup3.getGroupedBy());
+    assertNull(falseIpSrcAddrGroup3.getGroupResults());
 
     // isAlert == false && ip_src_addr == 192.168.1.2 group
     GroupResult falseIpSrcAddrGroup4 = falseIpSrcAddrGroups.get(3);
-    Assert.assertEquals("192.168.1.2", falseIpSrcAddrGroup4.getKey());
-    Assert.assertEquals(1, falseIpSrcAddrGroup4.getTotal());
-    Assert.assertNull(falseIpSrcAddrGroup4.getGroupedBy());
-    Assert.assertNull(falseIpSrcAddrGroup4.getGroupResults());
+    assertEquals("192.168.1.2", falseIpSrcAddrGroup4.getKey());
+    assertEquals(1, falseIpSrcAddrGroup4.getTotal());
+    assertNull(falseIpSrcAddrGroup4.getGroupedBy());
+    assertNull(falseIpSrcAddrGroup4.getGroupResults());
 
     // isAlert == false group
     GroupResult trueGroup = isAlertGroups.get(1);
-    Assert.assertEquals(6, trueGroup.getTotal());
-    Assert.assertEquals("ip_src_addr", trueGroup.getGroupedBy());
+    assertEquals(6, trueGroup.getTotal());
+    assertEquals("ip_src_addr", trueGroup.getGroupedBy());
     List<GroupResult> trueIpSrcAddrGroups = trueGroup.getGroupResults();
-    Assert.assertEquals(4, trueIpSrcAddrGroups.size());
+    assertEquals(4, trueIpSrcAddrGroups.size());
 
     // isAlert == false && ip_src_addr == 192.168.1.5 group
     GroupResult trueIpSrcAddrGroup1 = trueIpSrcAddrGroups.get(0);
-    Assert.assertEquals("192.168.1.5", trueIpSrcAddrGroup1.getKey());
-    Assert.assertEquals(1, trueIpSrcAddrGroup1.getTotal());
-    Assert.assertNull(trueIpSrcAddrGroup1.getGroupedBy());
-    Assert.assertNull(trueIpSrcAddrGroup1.getGroupResults());
+    assertEquals("192.168.1.5", trueIpSrcAddrGroup1.getKey());
+    assertEquals(1, trueIpSrcAddrGroup1.getTotal());
+    assertNull(trueIpSrcAddrGroup1.getGroupedBy());
+    assertNull(trueIpSrcAddrGroup1.getGroupResults());
 
     // isAlert == false && ip_src_addr == 192.168.1.4 group
     GroupResult trueIpSrcAddrGroup2 = trueIpSrcAddrGroups.get(1);
-    Assert.assertEquals("192.168.1.4", trueIpSrcAddrGroup2.getKey());
-    Assert.assertEquals(1, trueIpSrcAddrGroup2.getTotal());
-    Assert.assertNull(trueIpSrcAddrGroup2.getGroupedBy());
-    Assert.assertNull(trueIpSrcAddrGroup2.getGroupResults());
+    assertEquals("192.168.1.4", trueIpSrcAddrGroup2.getKey());
+    assertEquals(1, trueIpSrcAddrGroup2.getTotal());
+    assertNull(trueIpSrcAddrGroup2.getGroupedBy());
+    assertNull(trueIpSrcAddrGroup2.getGroupResults());
 
     // isAlert == false && ip_src_addr == 192.168.1.3 group
     GroupResult trueIpSrcAddrGroup3 = trueIpSrcAddrGroups.get(2);
-    Assert.assertEquals("192.168.1.3", trueIpSrcAddrGroup3.getKey());
-    Assert.assertEquals(1, trueIpSrcAddrGroup3.getTotal());
-    Assert.assertNull(trueIpSrcAddrGroup3.getGroupedBy());
-    Assert.assertNull(trueIpSrcAddrGroup3.getGroupResults());
+    assertEquals("192.168.1.3", trueIpSrcAddrGroup3.getKey());
+    assertEquals(1, trueIpSrcAddrGroup3.getTotal());
+    assertNull(trueIpSrcAddrGroup3.getGroupedBy());
+    assertNull(trueIpSrcAddrGroup3.getGroupResults());
 
     // isAlert == false && ip_src_addr == 192.168.1.1 group
     GroupResult trueIpSrcAddrGroup4 = trueIpSrcAddrGroups.get(3);
-    Assert.assertEquals("192.168.1.1", trueIpSrcAddrGroup4.getKey());
-    Assert.assertEquals(3, trueIpSrcAddrGroup4.getTotal());
-    Assert.assertNull(trueIpSrcAddrGroup4.getGroupedBy());
-    Assert.assertNull(trueIpSrcAddrGroup4.getGroupResults());
+    assertEquals("192.168.1.1", trueIpSrcAddrGroup4.getKey());
+    assertEquals(3, trueIpSrcAddrGroup4.getTotal());
+    assertNull(trueIpSrcAddrGroup4.getGroupedBy());
+    assertNull(trueIpSrcAddrGroup4.getGroupResults());
   }
 
   @Test
   public void queries_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(10, response.getTotal());
+    assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 0; i < 5; ++i) {
       Map<String, Object> source = results.get(i).getSource();
-      Assert.assertEquals(1, source.size());
-      Assert.assertNotNull(source.get("ip_src_addr"));
+      assertEquals(1, source.size());
+      assertNotNull(source.get("ip_src_addr"));
     }
     for (int i = 5; i < 10; ++i) {
       Map<String, Object> source = results.get(i).getSource();
-      Assert.assertEquals(1, source.size());
-      Assert.assertNotNull(source.get("ip_src_addr"));
+      assertEquals(1, source.size());
+      assertNotNull(source.get("ip_src_addr"));
     }
   }
 
@@ -918,12 +907,12 @@ public abstract class SearchIntegrationTest {
   public void sort_by_guid() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortByGuidQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    Assert.assertEquals(5, response.getTotal());
+    assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 0; i < 5; ++i) {
       Map<String, Object> source = results.get(i).getSource();
-      Assert.assertEquals(1, source.size());
-      Assert.assertEquals(source.get("guid"), "bro_" + (i + 1));
+      assertEquals(1, source.size());
+      assertEquals(source.get("guid"), "bro_" + (i + 1));
     }
   }
 

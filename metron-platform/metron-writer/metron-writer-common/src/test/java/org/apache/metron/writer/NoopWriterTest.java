@@ -17,24 +17,26 @@
  */
 package org.apache.metron.writer;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NoopWriterTest {
   @Test
   public void testFixedLatencyConfig() {
     NoopWriter writer = new NoopWriter().withLatency("10");
-    Assert.assertTrue(writer.sleepFunction instanceof NoopWriter.FixedLatency);
+    assertTrue(writer.sleepFunction instanceof NoopWriter.FixedLatency);
     NoopWriter.FixedLatency sleepFunction = (NoopWriter.FixedLatency)writer.sleepFunction;
-    Assert.assertEquals(10, sleepFunction.getLatency());
+    assertEquals(10, sleepFunction.getLatency());
   }
 
   private void ensureRandomLatencyConfig(String latencyConfig, int min, int max) {
     NoopWriter writer = new NoopWriter().withLatency(latencyConfig);
-    Assert.assertTrue(writer.sleepFunction instanceof NoopWriter.RandomLatency);
+    assertTrue(writer.sleepFunction instanceof NoopWriter.RandomLatency);
     NoopWriter.RandomLatency sleepFunction = (NoopWriter.RandomLatency)writer.sleepFunction;
-    Assert.assertEquals(min, sleepFunction.getMin());
-    Assert.assertEquals(max, sleepFunction.getMax());
+    assertEquals(min, sleepFunction.getMin());
+    assertEquals(max, sleepFunction.getMax());
   }
 
   @Test

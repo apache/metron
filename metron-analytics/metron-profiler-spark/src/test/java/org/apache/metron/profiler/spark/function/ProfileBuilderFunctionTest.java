@@ -25,7 +25,6 @@ import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.spark.ProfileMeasurementAdapter;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -33,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATION_UNITS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ProfileBuilderFunctionTest {
@@ -75,10 +75,10 @@ public class ProfileBuilderFunctionTest {
     ProfileMeasurementAdapter measurement = function.call("profile1-192.168.1.1-0", routes.iterator());
 
     // validate the measurement
-    Assert.assertEquals(entity, measurement.getEntity());
-    Assert.assertEquals(profile.getProfile(), measurement.getProfileName());
-    Assert.assertEquals(routes.size(), measurement.toProfileMeasurement().getProfileValue());
-    Assert.assertEquals(expectedPeriod.getPeriod(), (long) measurement.getPeriodId());
+    assertEquals(entity, measurement.getEntity());
+    assertEquals(profile.getProfile(), measurement.getProfileName());
+    assertEquals(routes.size(), measurement.toProfileMeasurement().getProfileValue());
+    assertEquals(expectedPeriod.getPeriod(), (long) measurement.getPeriodId());
   }
 
   /**

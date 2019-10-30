@@ -31,30 +31,17 @@ import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class KafkaWriterTest {
 
@@ -138,7 +125,7 @@ public class KafkaWriterTest {
                           put("kafka_topic", "metron");
                          }}).get()
                        );
-    Assert.assertFalse( writer.getKafkaTopic(new JSONObject()).isPresent() );
+    assertFalse( writer.getKafkaTopic(new JSONObject()).isPresent() );
 
   }
 
@@ -159,7 +146,7 @@ public class KafkaWriterTest {
                           put("kafka_topic", "metron");
                          }}).get()
                        );
-    Assert.assertFalse( writer.getKafkaTopic(new JSONObject()).isPresent() );
+    assertFalse( writer.getKafkaTopic(new JSONObject()).isPresent() );
   }
 
   @Test
@@ -178,7 +165,7 @@ public class KafkaWriterTest {
                           put("kafka_topic", "metron");
                          }}).get()
                        );
-    Assert.assertTrue( writer.getKafkaTopic(new JSONObject()).isPresent() );
+    assertTrue( writer.getKafkaTopic(new JSONObject()).isPresent() );
   }
 
   @Test

@@ -17,8 +17,9 @@
  */
 package org.apache.metron.enrichment.adapters.threatintel;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ThreatIntelConfigTest {
 
@@ -41,12 +42,12 @@ public class ThreatIntelConfigTest {
     tic.withTrackerHBaseCF(trackCf);
     tic.withTrackerHBaseTable(trackTable);
 
-    Assert.assertEquals(cf, tic.getHBaseCF());
-    Assert.assertEquals(table, tic.getHBaseTable());
-    Assert.assertEquals(trackCf, tic.getTrackerHBaseCF());
-    Assert.assertEquals(trackTable, tic.getTrackerHBaseTable());
-    Assert.assertEquals(expectedInsertion, tic.getExpectedInsertions());
-    Assert.assertEquals(millionseconds, tic.getMillisecondsBetweenPersists());
+    assertEquals(cf, tic.getHBaseCF());
+    assertEquals(table, tic.getHBaseTable());
+    assertEquals(trackCf, tic.getTrackerHBaseCF());
+    assertEquals(trackTable, tic.getTrackerHBaseTable());
+    assertEquals(expectedInsertion, tic.getExpectedInsertions());
+    assertEquals(millionseconds, tic.getMillisecondsBetweenPersists());
 
   }
 

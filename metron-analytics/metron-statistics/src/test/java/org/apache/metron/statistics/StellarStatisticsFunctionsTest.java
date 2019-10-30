@@ -32,7 +32,6 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,7 +40,6 @@ import org.junit.runners.Parameterized;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.*;
@@ -88,10 +86,10 @@ public class StellarStatisticsFunctionsTest {
       Number leftVal = func.apply(left);
       Number rightVal = func.apply(left);
       if(epsilon != null) {
-        Assert.assertEquals((double)leftVal, (double)rightVal, epsilon);
+        assertEquals((double)leftVal, (double)rightVal, epsilon);
       }
       else {
-        Assert.assertEquals(leftVal, rightVal);
+        assertEquals(leftVal, rightVal);
       }
     }
     catch(UnsupportedOperationException uoe) {
@@ -426,9 +424,9 @@ public class StellarStatisticsFunctionsTest {
     StatisticsProvider provider = (StatisticsProvider)run("STATS_INIT(" + windowSize + ")", variables);
     provider.addValue(10);
     variables.put("stats", provider);
-    Assert.assertEquals(0, run(format("STATS_BIN(stats, %f)", 9.0), variables));
-    Assert.assertEquals(0, run(format("STATS_BIN(stats, %f)", 10.0), variables));
-    Assert.assertEquals(3, run(format("STATS_BIN(stats, %f)", 11.0), variables));
+    assertEquals(0, run(format("STATS_BIN(stats, %f)", 9.0), variables));
+    assertEquals(0, run(format("STATS_BIN(stats, %f)", 10.0), variables));
+    assertEquals(3, run(format("STATS_BIN(stats, %f)", 11.0), variables));
   }
 
   public void statsBinRunner(List<Number> splits) {

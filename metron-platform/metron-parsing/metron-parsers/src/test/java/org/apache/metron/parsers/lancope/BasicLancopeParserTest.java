@@ -17,23 +17,25 @@
  */
 package org.apache.metron.parsers.lancope;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
-
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BasicLancopeParserTest extends AbstractParserConfigTest {
 
@@ -51,12 +53,12 @@ public class BasicLancopeParserTest extends AbstractParserConfigTest {
   public void testParse() throws ParseException, IOException, ProcessingException {
     for (String inputString : inputStrings) {
       JSONObject parsed = parser.parse(inputString.getBytes(StandardCharsets.UTF_8)).get(0);
-      Assert.assertNotNull(parsed);
+      assertNotNull(parsed);
 
       JSONParser parser = new JSONParser();
 
       Map<?, ?> json = (Map<?, ?>) parser.parse(parsed.toJSONString());
-      Assert.assertTrue(validateJsonData(getSchemaJsonString(), json.toString()));
+      assertTrue(validateJsonData(getSchemaJsonString(), json.toString()));
     }
   }
 

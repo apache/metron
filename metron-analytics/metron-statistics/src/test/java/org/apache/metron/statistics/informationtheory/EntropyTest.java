@@ -17,18 +17,18 @@
  */
 package org.apache.metron.statistics.informationtheory;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EntropyTest {
   @Test
-  public void entropyTest() throws Exception {
+  public void entropyTest() {
     //test empty collection
-    Assert.assertEquals(0.0, (Double) run("IT_ENTROPY({})", new HashMap<>()), 0.0);
+    assertEquals(0.0, (Double) run("IT_ENTROPY({})", new HashMap<>()), 0.0);
 
     /*
     Now consider the string aaaaaaaaaabbbbbccccc or 10 a's followed by 5 b's and 5 c's.
@@ -40,6 +40,6 @@ public class EntropyTest {
       -p(a)*log_2(p(a)) - p(b)*log_2(p(b)) - p(c)*log_2(p(c)) =
       -0.5*-1 - 0.25*-2 - 0.25*-2 = 1.5
      */
-    Assert.assertEquals(1.5, (Double) run("IT_ENTROPY({ 'a' : 10, 'b' : 5, 'c' : 5} )", new HashMap<>()), 0.0);
+    assertEquals(1.5, (Double) run("IT_ENTROPY({ 'a' : 10, 'b' : 5, 'c' : 5} )", new HashMap<>()), 0.0);
   }
 }

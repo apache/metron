@@ -18,20 +18,7 @@
 
 package org.apache.metron.indexing.integration;
 
-import static org.apache.metron.indexing.dao.HBaseDao.HBASE_CF;
-import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -40,9 +27,17 @@ import org.apache.metron.indexing.dao.search.AlertComment;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.apache.metron.indexing.dao.HBaseDao.HBASE_CF;
+import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
 
@@ -92,26 +87,26 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
   public void testKeySerializationRemainsConstant() throws IOException {
     HBaseDao.Key k = new HBaseDao.Key("guid", "sensorType");
     byte[] raw = k.toBytes();
-    Assert.assertArrayEquals(raw, expectedKeySerialization);
+    assertArrayEquals(raw, expectedKeySerialization);
   }
 
 
   @Test
   public void testKeySerialization() throws Exception {
     HBaseDao.Key k = new HBaseDao.Key("guid", "sensorType");
-    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+    assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
   }
 
   @Test(expected = IllegalStateException.class)
   public void testKeySerializationWithInvalidGuid() throws Exception {
     HBaseDao.Key k = new HBaseDao.Key(null, "sensorType");
-    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+    assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
   }
 
   @Test(expected = IllegalStateException.class)
   public void testKeySerializationWithInvalidSensorType() throws Exception {
     HBaseDao.Key k = new HBaseDao.Key("guid", null);
-    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+    assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
   }
 
   @Test
@@ -124,7 +119,7 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
 
     Document actualDocument = hbaseDao.getLatest("message_1", SENSOR_TYPE);
     Document expectedDocument = alerts.get(1);
-    Assert.assertEquals(expectedDocument, actualDocument);
+    assertEquals(expectedDocument, actualDocument);
   }
 
   @Test
@@ -134,14 +129,14 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
     hbaseDao.update(alert, Optional.empty());
 
     Document actualDocument = hbaseDao.getLatest("message_0", SENSOR_TYPE);
-    Assert.assertEquals(alert, actualDocument);
+    assertEquals(alert, actualDocument);
 
     alert.getDocument().put("field", "value");
     alert.setTimestamp(0L);
     hbaseDao.update(alert, Optional.empty());
 
     actualDocument = hbaseDao.getLatest("message_0", SENSOR_TYPE);
-    Assert.assertEquals(alert.getDocument(), actualDocument.getDocument());
+    assertEquals(alert.getDocument(), actualDocument.getDocument());
   }
 
   @Test
@@ -163,10 +158,10 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
     for (int i = 0; i < expectedCount; i++) {
       Document expectedDocument = alerts.get(i + 1);
       Document actualDocument = results.next();
-      Assert.assertEquals(expectedDocument, actualDocument);
+      assertEquals(expectedDocument, actualDocument);
     }
 
-    Assert.assertFalse("Result size should be 12 but was greater", results.hasNext());
+    assertFalse(results.hasNext(), "Result size should be 12 but was greater");
   }
 
   protected List<Document> buildAlerts(int count) throws IOException {

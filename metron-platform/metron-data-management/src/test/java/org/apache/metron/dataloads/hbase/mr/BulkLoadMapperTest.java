@@ -26,12 +26,14 @@ import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class BulkLoadMapperTest {
     /**
@@ -68,23 +70,23 @@ public class BulkLoadMapperTest {
         }});
         {
             mapper.map(null, new Text("#google.com,1,foo"), null);
-            Assert.assertTrue(puts.size() == 0);
+            assertEquals(0, puts.size());
         }
         {
             mapper.map(null, new Text("google.com,1,foo"), null);
-            Assert.assertTrue(puts.size() == 1);
+            assertEquals(1, puts.size());
             EnrichmentKey expectedKey = new EnrichmentKey() {{
                 indicator = "google.com";
                 type = "threat";
             }};
             EnrichmentConverter converter = new EnrichmentConverter();
             Put put = puts.get(new ImmutableBytesWritable(expectedKey.toBytes()));
-            Assert.assertNotNull(puts);
+            assertNotNull(puts);
             LookupKV<EnrichmentKey, EnrichmentValue> results = converter.fromPut(put, "cf");
-            Assert.assertEquals(results.getKey().indicator, "google.com");
-            Assert.assertEquals(results.getValue().getMetadata().size(), 2);
-            Assert.assertEquals(results.getValue().getMetadata().get("meta"), "foo");
-            Assert.assertEquals(results.getValue().getMetadata().get("host"), "google.com");
+            assertEquals(results.getKey().indicator, "google.com");
+            assertEquals(results.getValue().getMetadata().size(), 2);
+            assertEquals(results.getValue().getMetadata().get("meta"), "foo");
+            assertEquals(results.getValue().getMetadata().get("host"), "google.com");
         }
 
     }

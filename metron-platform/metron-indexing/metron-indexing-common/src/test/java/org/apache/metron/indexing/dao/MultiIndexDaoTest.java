@@ -18,31 +18,22 @@
 
 package org.apache.metron.indexing.dao;
 
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.GroupRequest;
-import org.apache.metron.indexing.dao.search.GroupResponse;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class MultiIndexDaoTest {
   @Rule
@@ -68,7 +59,7 @@ public class MultiIndexDaoTest {
   @Test
   public void shouldUpdateAll() throws IOException {
     Document actual = multiIndexDao.update(document1, Optional.of("bro"));
-    Assert.assertEquals(document1, actual);
+    assertEquals(document1, actual);
 
     // both 'backing' daos should have received the update
     verify(dao1).update(eq(document1), eq(Optional.of("bro")));
@@ -91,7 +82,7 @@ public class MultiIndexDaoTest {
     }};
 
     Map<Document, Optional<String>> actual = multiIndexDao.batchUpdate(updates);
-    Assert.assertEquals(updates, actual);
+    assertEquals(updates, actual);
 
     // both 'backing' daos should have received the updates
     verify(dao1).batchUpdate(eq(updates));
@@ -119,7 +110,7 @@ public class MultiIndexDaoTest {
     when(dao2.getLatest("guid", "bro")).thenReturn(document2);
 
     Document expected = new Document(new HashMap<>(), "guid", "bro", 2L);
-    Assert.assertEquals(expected, multiIndexDao.getLatest("guid", "bro"));
+    assertEquals(expected, multiIndexDao.getLatest("guid", "bro"));
   }
 
   @Test
@@ -132,7 +123,7 @@ public class MultiIndexDaoTest {
     when(dao2.addCommentToAlert(request, latest)).thenReturn(document2);
 
     Document expected = new Document(new HashMap<>(), "guid", "bro", 2L);
-    Assert.assertEquals(expected, multiIndexDao.addCommentToAlert(request, latest));
+    assertEquals(expected, multiIndexDao.addCommentToAlert(request, latest));
   }
 
   @Test(expected = IOException.class)
@@ -158,7 +149,7 @@ public class MultiIndexDaoTest {
     when(dao2.removeCommentFromAlert(request, latest)).thenReturn(document2);
 
     Document expected = new Document(new HashMap<>(), "guid", "bro", 2L);
-    Assert.assertEquals(expected, multiIndexDao.removeCommentFromAlert(request, latest));
+    assertEquals(expected, multiIndexDao.removeCommentFromAlert(request, latest));
   }
 
   @Test(expected = IOException.class)
@@ -186,7 +177,7 @@ public class MultiIndexDaoTest {
     when(dao2.getColumnMetadata(eq(indices))).thenReturn(expected);
 
     Map<String, FieldType> actual = multiIndexDao.getColumnMetadata(indices);
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -198,7 +189,7 @@ public class MultiIndexDaoTest {
     when(dao2.getColumnMetadata(eq(indices))).thenReturn(null);
 
     Map<String, FieldType> actual = multiIndexDao.getColumnMetadata(indices);
-    Assert.assertNull(actual);
+    assertNull(actual);
   }
 
   @Test
@@ -210,7 +201,7 @@ public class MultiIndexDaoTest {
     when(dao2.search(eq(request))).thenReturn(expected);
 
     SearchResponse actual = multiIndexDao.search(request);
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -221,7 +212,7 @@ public class MultiIndexDaoTest {
     when(dao2.search(eq(request))).thenReturn(null);
 
     SearchResponse actual = multiIndexDao.search(request);
-    Assert.assertNull(actual);
+    assertNull(actual);
   }
 
   @Test
@@ -233,7 +224,7 @@ public class MultiIndexDaoTest {
     when(dao2.group(eq(request))).thenReturn(expected);
 
     GroupResponse actual = multiIndexDao.group(request);
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -244,6 +235,6 @@ public class MultiIndexDaoTest {
     when(dao2.group(eq(request))).thenReturn(null);
 
     GroupResponse actual = multiIndexDao.group(request);
-    Assert.assertNull(actual);
+    assertNull(actual);
   }
 }

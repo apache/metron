@@ -40,20 +40,17 @@ import org.apache.metron.integration.UnableToStartException;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   private static final String SENSOR_NAME= "test";
@@ -173,6 +170,6 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     Response response = client
             .getLowLevelClient()
             .performRequest("PUT", "/_template/test_template", Collections.emptyMap(), broEntity);
-    Assert.assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.equalTo(200));
+    assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.equalTo(200));
   }
 }

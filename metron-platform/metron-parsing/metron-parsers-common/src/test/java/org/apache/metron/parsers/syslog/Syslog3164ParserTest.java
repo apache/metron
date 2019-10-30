@@ -19,12 +19,11 @@
 package org.apache.metron.parsers.syslog;
 
 import com.github.palindromicity.syslog.dsl.SyslogFieldKeys;
-import java.nio.charset.StandardCharsets;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -34,7 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Syslog3164ParserTest {
 
@@ -130,13 +129,13 @@ public class Syslog3164ParserTest {
 
   @Test
   public void testHappyPath() {
-    test(expectedMessage1, (message) -> Assert.assertEquals(expectedHostNameOne, message.get(SyslogFieldKeys.HEADER_HOSTNAME.getField())));
+    test(expectedMessage1, (message) -> assertEquals(expectedHostNameOne, message.get(SyslogFieldKeys.HEADER_HOSTNAME.getField())));
   }
 
 
   @Test()
   public void testNotValid() {
-    test( "not valid", (message) -> Assert.assertTrue(false));
+    test( "not valid", (message) -> assertTrue(false));
   }
 
   public void test( String line, Consumer<JSONObject> msgIdChecker) {
@@ -160,10 +159,10 @@ public class Syslog3164ParserTest {
             .append(SYSLOG_LINE_ALL);
     Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(builder.toString().getBytes(
         StandardCharsets.UTF_8));
-    Assert.assertNotNull(resultOptional);
-    Assert.assertTrue(resultOptional.isPresent());
+    assertNotNull(resultOptional);
+    assertTrue(resultOptional.isPresent());
     List<JSONObject> parsedList = resultOptional.get().getMessages();
-    Assert.assertEquals(3,parsedList.size());
+    assertEquals(3,parsedList.size());
   }
 
   @Test
@@ -183,8 +182,8 @@ public class Syslog3164ParserTest {
             .append("\nOHMY!");
     Optional<MessageParserResult<JSONObject>> output = parser.parseOptionalResult(builder.toString().getBytes(
         StandardCharsets.UTF_8));
-    Assert.assertTrue(output.isPresent());
-    Assert.assertEquals(3,output.get().getMessages().size());
-    Assert.assertEquals(3,output.get().getMessageThrowables().size());
+    assertTrue(output.isPresent());
+    assertEquals(3,output.get().getMessages().size());
+    assertEquals(3,output.get().getMessageThrowables().size());
   }
 }

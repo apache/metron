@@ -33,7 +33,6 @@ import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
 import static org.apache.metron.profiler.client.stellar.VerboseProfile.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the VerboseProfile class.
@@ -114,15 +114,15 @@ public class VerboseProfileTest {
     // expect to see all values over the past 4 hours
     List<Map<String, Object>> results;
     results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))", List.class);
-    Assert.assertEquals(count, results.size());
+    assertEquals(count, results.size());
     for(Map<String, Object> actual: results) {
-      Assert.assertEquals("profile1", actual.get(PROFILE_KEY));
-      Assert.assertEquals("entity1", actual.get(ENTITY_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_START_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_END_KEY));
-      Assert.assertNotNull(actual.get(GROUPS_KEY));
-      Assert.assertEquals(expectedValue, actual.get(VALUE_KEY));
+      assertEquals("profile1", actual.get(PROFILE_KEY));
+      assertEquals("entity1", actual.get(ENTITY_KEY));
+      assertNotNull(actual.get(PERIOD_KEY));
+      assertNotNull(actual.get(PERIOD_START_KEY));
+      assertNotNull(actual.get(PERIOD_END_KEY));
+      assertNotNull(actual.get(GROUPS_KEY));
+      assertEquals(expectedValue, actual.get(VALUE_KEY));
     }
   }
 
@@ -148,15 +148,15 @@ public class VerboseProfileTest {
     // expect to see all values over the past 4 hours for the group
     List<Map<String, Object>> results;
     results = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), groups)", List.class);
-    Assert.assertEquals(count, results.size());
+    assertEquals(count, results.size());
     for(Map<String, Object> actual: results) {
-      Assert.assertEquals("profile1", actual.get(PROFILE_KEY));
-      Assert.assertEquals("entity1", actual.get(ENTITY_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_START_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_END_KEY));
-      Assert.assertNotNull(actual.get(GROUPS_KEY));
-      Assert.assertEquals(expectedValue, actual.get(VALUE_KEY));
+      assertEquals("profile1", actual.get(PROFILE_KEY));
+      assertEquals("entity1", actual.get(ENTITY_KEY));
+      assertNotNull(actual.get(PERIOD_KEY));
+      assertNotNull(actual.get(PERIOD_START_KEY));
+      assertNotNull(actual.get(PERIOD_END_KEY));
+      assertNotNull(actual.get(GROUPS_KEY));
+      assertEquals(expectedValue, actual.get(VALUE_KEY));
     }
   }
 
@@ -177,7 +177,7 @@ public class VerboseProfileTest {
     // expect to get NO measurements over the past 4 seconds
     List<Map<String, Object>> result;
     result = run("PROFILE_VERBOSE('profile1', 'entity1', PROFILE_FIXED(4, 'SECONDS'))", List.class);
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
   }
 
   @Test
@@ -191,17 +191,17 @@ public class VerboseProfileTest {
     List<Map<String, Object>> results = run(expr, List.class);
 
     // expect to get the default value instead of no results
-    Assert.assertTrue(results.size() == 16 || results.size() == 17);
+    assertTrue(results.size() == 16 || results.size() == 17);
     for(Map<String, Object> actual: results) {
-      Assert.assertEquals("profile1", actual.get(PROFILE_KEY));
-      Assert.assertEquals("entity1", actual.get(ENTITY_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_START_KEY));
-      Assert.assertNotNull(actual.get(PERIOD_END_KEY));
-      Assert.assertNotNull(actual.get(GROUPS_KEY));
+      assertEquals("profile1", actual.get(PROFILE_KEY));
+      assertEquals("entity1", actual.get(ENTITY_KEY));
+      assertNotNull(actual.get(PERIOD_KEY));
+      assertNotNull(actual.get(PERIOD_START_KEY));
+      assertNotNull(actual.get(PERIOD_END_KEY));
+      assertNotNull(actual.get(GROUPS_KEY));
 
       // expect the default value
-      Assert.assertEquals(defaultVal, actual.get(VALUE_KEY));
+      assertEquals(defaultVal, actual.get(VALUE_KEY));
     }
 
   }
