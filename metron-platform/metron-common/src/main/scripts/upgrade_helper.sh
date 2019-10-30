@@ -25,7 +25,7 @@ if [ "$#" -ne 5 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
     echo "  username: Ambari admin username"
     echo "  password: Ambari admin user password"
     echo "  cluster_name: hadoop cluster name. Can be found in Ambari under \"Admin > Manage Ambari\""
-    exit -1
+    exit 1
 fi
 
 mode=$1
@@ -74,7 +74,7 @@ if [ "$mode" == "backup" ]; then
 elif [ "$mode" == "restore" ]; then
     if [ ! -d "$OUT_DIR" ]; then
         echo Backup directory not found, aborting
-        exit -1
+        exit 1
     fi
     if [ -f "/var/lib/ambari-server/resources/scripts/configs.py" ]; then
         if [ -d "$AMBARI_CONFIG_DIR" ]; then
@@ -113,5 +113,5 @@ elif [ "$mode" == "restore" ]; then
         echo Skipping Metron config restore - Metron not found on this host
     fi
 else
-    echo Mode \"$mode\" not recognized. Exiting.
+    echo Mode "$mode" not recognized. Exiting.
 fi
