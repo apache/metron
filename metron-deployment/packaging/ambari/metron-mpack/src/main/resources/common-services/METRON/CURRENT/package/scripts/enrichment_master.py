@@ -69,10 +69,10 @@ class Enrichment(Script):
             commands.init_kafka_acls()
         if not commands.is_hbase_configured():
             commands.create_hbase_tables()
-        if not commands.is_hbase_coprocessor_configured():
-            commands.load_enrichment_coprocessor()
         if params.security_enabled and not commands.is_hbase_acl_configured():
             commands.set_hbase_acls()
+        if not commands.is_hbase_coprocessor_configured():
+            commands.load_enrichment_coprocessor()
         if not commands.is_maxmind_configured():
             commands.init_maxmind()
 
