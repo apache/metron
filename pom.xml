@@ -148,7 +148,7 @@
                 <global_hbase_guava_version>17.0</global_hbase_guava_version>
                 <global_storm_version>1.2.1</global_storm_version>
                 <global_storm_kafka_version>1.2.3</global_storm_kafka_version>
-                <global_spark_version>2.3.1</global_spark_version>
+                <global_spark_version>2.3.2</global_spark_version>
                 <global_elasticsearch_version>5.6.14</global_elasticsearch_version>
                 <global_solr_version>7.4.0</global_solr_version>
                 <global_zeppelin_version>0.8.0</global_zeppelin_version>
