@@ -24,14 +24,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
-import org.mockserver.client.server.MockServerClient;
-import org.mockserver.junit.MockServerRule;
-import org.mockserver.junit.ProxyRule;
+import org.mockserver.integration.ClientAndServer;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -43,22 +41,21 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+
 @EnableRuleMigrationSupport
-@ExtendWith(MockServerExtension.class)
 public class RestFunctionsIntegrationTest {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
-  @Rule
-  public MockServerRule mockServerRule = new MockServerRule(this);
+  private static final int MOCK_PROXY_PORT = 1080;
 
-  @Rule
-  public ProxyRule proxyRule = new ProxyRule(1080, this);
+  // Use plain Java API, because we can't use the @Rule and the JUnit5 extension isn't released.
+  private ClientAndServer mockServerClient;
 
-  private MockServerClient mockServerClient;
   private String baseUri;
   private String getUri;
   private String emptyGetUri;
@@ -73,6 +70,8 @@ public class RestFunctionsIntegrationTest {
 
   @BeforeEach
   public void setup() throws Exception {
+    mockServerClient = startClientAndServer(MOCK_PROXY_PORT);
+
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
             .build();
@@ -84,7 +83,7 @@ public class RestFunctionsIntegrationTest {
     FileUtils.writeStringToFile(proxyBasicAuthPasswordFile, proxyAuthPassword, StandardCharsets.UTF_8);
 
     // By default, the mock server expects a GET request with the path set to /get
-    baseUri = String.format("http://localhost:%d", mockServerRule.getPort());
+    baseUri = String.format("http://localhost:%d", MOCK_PROXY_PORT);
     getUri = baseUri + "/get";
     emptyGetUri = baseUri + "/get/empty";
     postUri = baseUri + "/post";
@@ -115,6 +114,11 @@ public class RestFunctionsIntegrationTest {
                     .withPath("/post/empty"))
             .respond(response()
                     .withStatusCode(404));
+  }
+
+  @AfterEach
+  public void teardown() {
+    mockServerClient.stop();
   }
 
   /**
@@ -166,7 +170,7 @@ public class RestFunctionsIntegrationTest {
 
     context.addCapability(Context.Capabilities.GLOBAL_CONFIG, () -> new HashMap<String, Object>() {{
       put(PROXY_HOST, "localhost");
-      put(PROXY_PORT, proxyRule.getHttpPort());
+      put(PROXY_PORT, MOCK_PROXY_PORT);
     }});
 
     Map<String, Object> actual = (Map<String, Object>) run(String.format("REST_GET('%s')", getUri), context);
@@ -237,7 +241,8 @@ public class RestFunctionsIntegrationTest {
   @Test
   @SuppressWarnings("unchecked")
   public void restGetShouldTimeout() {
-    String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
+    String uri = String.format("http://localhost:%d/get", MOCK_PROXY_PORT);
+
     mockServerClient.when(
             request()
                     .withMethod("GET")
@@ -272,7 +277,7 @@ public class RestFunctionsIntegrationTest {
   @Test
   @SuppressWarnings("unchecked")
   public void restGetShouldTimeoutWithSuppliedTimeout() {
-    String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
+    String uri = String.format("http://localhost:%d/get", MOCK_PROXY_PORT);
     mockServerClient.when(
             request()
                     .withMethod("GET")
@@ -424,8 +429,9 @@ public class RestFunctionsIntegrationTest {
     ParseException e = assertThrows(ParseException.class, () -> run(String.format("REST_POST('%s', 'malformed json')", postUri), context));
     assertEquals(
         String.format(
-            "Unable to parse: REST_POST('%s', 'malformed json') due to: POST data 'malformed json' must be properly formatted JSON.  "
-                + "Set the 'enforce.json' property to false to disable this check.",
+            "Unable to parse REST_POST('http://localhost:1080/post', 'malformed json'): " +
+                    "Unable to parse: REST_POST('%s', 'malformed json') due to: POST data 'malformed json' must be properly formatted JSON.  " +
+                    "Set the 'enforce.json' property to false to disable this check.",
             postUri),
         e.getMessage());
   }
