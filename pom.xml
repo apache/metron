@@ -93,12 +93,7 @@
         <global_antlr_version>4.5</global_antlr_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_classindex_version>3.3</global_classindex_version>
-        <global_hbase_version>1.1.1</global_hbase_version>
-        <global_hbase_guava_version>12.0</global_hbase_guava_version>
-        <global_storm_version>1.0.3</global_storm_version>
-        <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
         <global_pcap_version>1.7.1</global_pcap_version>
-        <global_elasticsearch_version>5.6.14</global_elasticsearch_version>
         <global_json_simple_version>1.1.1</global_json_simple_version>
         <global_metrics_version>3.0.2</global_metrics_version>
         <global_junit_version>4.12</global_junit_version>
@@ -120,10 +115,10 @@
         <global_checkstyle_version>8.0</global_checkstyle_version>
         <global_log4j_core_version>2.1</global_log4j_core_version>
         <global_simple_syslog_version>0.0.3</global_simple_syslog_version>
-        <global_spark_version>2.3.1</global_spark_version>
         <global_httpclient_version>4.3.2</global_httpclient_version>
         <global_aesh_version>0.66.19</global_aesh_version>
         <global_jacoco_version>0.8.3</global_jacoco_version>
+        <global_slf4j_version>1.7.25</global_slf4j_version>
         <argLine></argLine>
     </properties>
     <profiles>
@@ -134,7 +129,6 @@
             </activation>
             <properties>
                 <global_kafka_version>2.0.0</global_kafka_version>
-                <global_slf4j_version>1.7.25</global_slf4j_version>
                 <global_storm_version>1.2.1</global_storm_version>
                 <global_storm_kafka_version>1.2.3</global_storm_kafka_version>
                 <global_zeppelin_version>0.8.0</global_zeppelin_version>
@@ -142,6 +136,8 @@
                 <global_hadoop_version>3.1.1</global_hadoop_version>
                 <global_hbase_version>2.0.2</global_hbase_version>
                 <global_hbase_guava_version>17.0</global_hbase_guava_version>
+                <global_spark_version>2.3.1</global_spark_version>
+                <global_elasticsearch_version>5.6.14</global_elasticsearch_version>
                 <!-- For Zookeeper/Curator version compatibility see
                       http://curator.apache.org/zk-compatibility.html -->
                 <global_zookeeper_version>3.4.6</global_zookeeper_version>
