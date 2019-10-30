@@ -66,6 +66,7 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
                         , ServiceDiscoverer serviceDiscoverer
                         )
   {
+    LOG.info("Initializing container request listener");
     this.nmClient = nmClient;
     this.amRMClient = amRMClient;
     this.serviceDiscoverer = serviceDiscoverer;
@@ -74,11 +75,14 @@ public class ContainerRequestListener implements AMRMClientAsync.CallbackHandler
 
 
   public void removeContainers(int number, ModelRequest request) {
+    LOG.info("Making request to remove container");
     int i = 0;
     for(Container c : state.getList(request)) {
       if(i < number) {
+        LOG.info(String.format("Making request to removing container id: %s, node: %s", c.getId(), c.getNodeId()));
         amRMClient.releaseAssignedContainer(c.getId());
         nmClient.stopContainerAsync(c.getId(), c.getNodeId());
+        LOG.info(String.format("Done making request to removing container id: %s, node: %s", c.getId(), c.getNodeId()));
       }
       else {
         break;

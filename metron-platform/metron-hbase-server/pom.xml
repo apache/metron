@@ -34,6 +34,12 @@
         <guava.version>${global_hbase_guava_version}</guava.version>
     </properties>
 
+    <!--
+     Metron HBase server is meant to be deployed as a single uber jar. It's expected that
+     all runtime dependencies will be included in the jar or be provided by the environment
+     in which this jar will be run.
+     -->
+
     <dependencies>
 
         <!-- Metron -->
@@ -58,15 +64,33 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>metron-enrichment-common</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
+            <!-- We depend on this for some Zookeeper upload operations -->
             <groupId>org.apache.metron</groupId>
             <artifactId>stellar-common</artifactId>
             <version>${project.parent.version}</version>
             <classifier>uber</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-enrichment-common</artifactId>
+            <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-hbase-common</artifactId>
+            <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- HBase -->

@@ -29,6 +29,27 @@
     </properties>
     <dependencies>
         <dependency>
+            <!-- prevents Spark from pulling in newer versions of jackson
+                (1.9.x) which conflict with metron's ${global_jackson_version} -->
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${global_jackson_version}</version>
+        </dependency>
+        <dependency>
+            <!-- prevents Spark from pulling in newer versions of jackson
+                (1.9.x) which conflict with metron's ${global_jackson_version} -->
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${global_jackson_version}</version>
+        </dependency>
+        <dependency>
+            <!-- prevents Spark from pulling in newer versions of jackson
+                (1.9.x) which conflict with metron's ${global_jackson_version} -->
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_2.11</artifactId>
+            <version>${global_jackson_version}</version>
+        </dependency>
+        <dependency>
           <groupId>org.apache.spark</groupId>
           <artifactId>spark-core_2.11</artifactId>
           <version>${global_spark_version}</version>
@@ -197,6 +218,12 @@
                                 <relocation>
                                     <pattern>com.tdunning</pattern>
                                     <shadedPattern>org.apache.metron.tdunning</shadedPattern>
+                                </relocation>
+                                <!-- We have conflicts with Spark's version of Jackson. This avoids that issue by
+                                     by relocating the packages. -->
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.apache.metron.jackson.${global_jackson_version}</shadedPattern>
                                 </relocation>
                             </relocations>
                             <artifactSet>

@@ -169,7 +169,9 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
   @AfterClass
   public static void teardown() throws Exception {
-    HBaseUtil.INSTANCE.teardown(testUtil);
+    if (null != testUtil) {
+      HBaseUtil.INSTANCE.teardown(testUtil);
+    }
     componentRunner.stop();
     resetLogging();
   }

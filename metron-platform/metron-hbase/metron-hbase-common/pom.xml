@@ -101,7 +101,6 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <classifier>tests</classifier>
             <version>${global_hadoop_version}</version>
             <scope>provided</scope>
             <exclusions>
@@ -129,7 +128,6 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
-            <classifier>tests</classifier>
             <version>${global_hadoop_version}</version>
             <scope>provided</scope>
             <exclusions>

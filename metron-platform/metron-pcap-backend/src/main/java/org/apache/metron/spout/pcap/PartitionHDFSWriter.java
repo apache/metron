@@ -212,7 +212,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
       close();
 
       if(fs instanceof LocalFileSystem) {
-        outputStream = new FSDataOutputStream(new FileOutputStream(new File(path.toString())));
+        outputStream = new FSDataOutputStream(new FileOutputStream(new File(path.toString())), new FileSystem.Statistics(fs.getScheme()));
         syncHandler = SyncHandlers.LOCAL.getHandler();
       }
       else {

@@ -16,18 +16,23 @@
  * limitations under the License.
  */
 package org.apache.metron.maas.service;
-import java.io.*;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
-
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.RetryPolicy;
@@ -35,6 +40,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.util.Shell;
@@ -45,10 +51,10 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.YarnComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.maas.discovery.ServiceDiscoverer;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.Model;
 import org.apache.metron.maas.config.ModelEndpoint;
+import org.apache.metron.maas.discovery.ServiceDiscoverer;
 import org.apache.metron.maas.queue.ZKQueue;
 import org.apache.metron.maas.submit.ModelSubmission;
 import org.apache.metron.maas.util.ConfigUtil;
@@ -71,6 +77,7 @@ public class MaasIntegrationTest {
   @BeforeClass
   public static void setupBeforeClass() throws Exception {
     UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
+    UnitTestHelper.setLog4jLevel(org.apache.log4j.Level.ERROR);
     LOG.info("Starting up YARN cluster");
 
     zkServerComponent = new ZKServerComponent();
@@ -180,10 +187,12 @@ public class MaasIntegrationTest {
       List<ApplicationReport> apps = yarnClient.getApplications();
       if (apps.size() == 0 ) {
         Thread.sleep(10);
+        LOG.info("No YARN apps found yet, retrying.");
         continue;
       }
       ApplicationReport appReport = apps.get(0);
       if(appReport.getHost().equals("N/A")) {
+        LOG.info("YARN apps found but not ready yet, retrying.");
         Thread.sleep(10);
         continue;
       }
@@ -193,8 +202,10 @@ public class MaasIntegrationTest {
                       + appReport.getRpcPort() + "'.";
       if (checkHostname(appReport.getHost()) && appReport.getRpcPort() == -1) {
         verified = true;
+        LOG.info("Yarn app verified");
       }
       if (appReport.getYarnApplicationState() == YarnApplicationState.FINISHED) {
+        LOG.info("Yarn app state returned FINISHED");
         break;
       }
     }
@@ -223,14 +234,17 @@ public class MaasIntegrationTest {
           try {
             List<ModelEndpoint> endpoints = discoverer.getEndpoints(new Model("dummy", "1.0"));
             if (endpoints != null && endpoints.size() == 1) {
-              LOG.trace("Found endpoints: " + endpoints.get(0));
+              LOG.info("Found endpoints: " + endpoints.get(0));
               String output = makeRESTcall(new URL(endpoints.get(0).getEndpoint().getUrl() + "/echo/casey"));
               if (output.contains("casey")) {
                 passed = true;
                 break;
               }
+            } else {
+              LOG.info("Did not find endpoints, retrying");
             }
           } catch (Exception e) {
+            LOG.info("Rest call failed", e);
           }
           Thread.sleep(2000);
         }

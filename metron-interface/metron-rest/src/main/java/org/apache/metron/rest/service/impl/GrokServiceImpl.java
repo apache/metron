@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.commons.io.IOUtils;
-import org.apache.directory.api.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
@@ -68,7 +68,7 @@ public class GrokServiceImpl implements GrokService {
             if (grokValidation.getPatternLabel() == null) {
               throw new RestException("Pattern label is required");
             }
-            if (Strings.isEmpty(grokValidation.getStatement())) {
+            if (StringUtils.isEmpty(grokValidation.getStatement())) {
               throw new RestException("Grok statement is required");
             }
             Grok grok = new Grok();
