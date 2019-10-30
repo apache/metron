@@ -83,7 +83,7 @@ Option 3 is more likely to have the latest code.
 
 # Getting Started
 
-To start exploring the capabilities of Apache Metron [follow these instructions to launch Metron in a single-node VM](metron-deployment/development/centos6) on your own hardware.  
+To start exploring the capabilities of Apache Metron [follow these instructions to launch Metron in a single-node VM](metron-deployment/development/centos7) on your own hardware.  
 
 # Building Metron
 

@@ -274,7 +274,7 @@ echo ""
 read -p "  run vagrant full_dev? [yN] " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  cd "$WORK/apache-metron_${METRON_VERSION}-$RC/metron-deployment/development/centos6" || exit 1
+  cd "$WORK/apache-metron_${METRON_VERSION}-$RC/metron-deployment/development/centos7" || exit 1
   if [[ ${DID_BUILD} -ne 1 ]]; then
     vagrant up
   else

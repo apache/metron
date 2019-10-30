@@ -15,10 +15,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-Metron on CentOS 6
+Metron on CentOS 7
 ==================
 
-This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running CentOS 6.
+This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running CentOS 7.
 
 Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.
 
@@ -68,7 +68,7 @@ Any platform that supports these tools is suitable, but the following instructio
 1. Deploy Metron
 
     ```
-    cd metron-deployment/development/centos6
+    cd metron-deployment/development/centos7
     vagrant up
     ```
 
@@ -128,7 +128,24 @@ Tags are listed in the playbooks.  Here are some frequently used tags:
 
 #### Sensors
 
-By default, the Metron development environment uses sensor stubs to mimic the behavior of the full sensors.  This is done because the full sensors take a significant amount of time and CPU to build, install, and run.
+By default, the Metron development environment uses stubs to mimic the behavior of running the full, demo sensor suit.  For example, rather than running an instance of Zeek and feeding it raw pcap, we simply publish a fixed set of Zeek's output.  This is done because the full, demo sensors take a significant amount of time and CPU to build, install, and run.
+
+A separate Systemd service is installed for each demo sensor.  This allows each sensor to be started or stopped independently. Start the demo sensor stubs by running the following commands.
+```
+systemctl start sensor-stubs-bro
+systemctl start sensor-stubs-snort
+systemctl start sensor-stubs-yaf
+```
+
+Stop the demo sensor stubs by running the following commands.
+```
+systemctl stop sensor-stubs-bro
+systemctl stop sensor-stubs-snort
+systemctl stop sensor-stubs-yaf
+```
+
+
+##### Full Sensors
 
 From time to time you may want to install the full sensors for testing (see the specifics of what that means [here](../../ansible/playbooks/sensor_install.yml)).  This can be done by running the following command:
 
@@ -136,7 +153,9 @@ From time to time you may want to install the full sensors for testing (see the 
 vagrant --ansible-skip-tags="sensor-stubs" up
 ```
 
-This will skip only the `sensor-stubs` tag, allowing the ansible roles with the `sensors` tag to be run.  This provisions the full sensors in a 'testing mode' so that they are more active, and thus more useful for testing (more details on that [here](../../ansible/roles/sensor-test-mode/)).  **However**, when vagrant completes the sensors will NOT be running.  In order to start the sensors and simulate traffic through them (which will create a fair amount of load on your test system), complete the below steps:
+This will skip only the `sensor-stubs` tag, allowing the ansible roles with the `sensors` tag to be run.  This provisions the full sensors in a 'testing mode' so that they are more active, and thus more useful for testing (more details on that [here](../../ansible/roles/sensor-test-mode/)).  
+
+**However**, when vagrant completes the sensors will NOT be running.  In order to start the sensors and simulate traffic through them (which will create a fair amount of load on your test system), complete the below steps:
 
 ```
 vagrant ssh
@@ -146,4 +165,3 @@ service yaf restart
 service snortd restart
 service snort-producer restart
 ```
-

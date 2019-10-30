@@ -67,7 +67,7 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 
 #### How?
 
-To deploy Metron in a VM running on your computer, follow the instructions at [development/centos6](development/centos6).
+To deploy Metron in a VM running on your computer, follow the instructions at [development/centos7](development/centos7).
 
 #### How do I address services crashing when running Metron on a single VM?
 
