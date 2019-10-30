@@ -268,7 +268,7 @@ class EnrichmentCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
 
-        cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
+        cmd = "echo \"grant '{0}', 'CRW', '{1}'\" | hbase shell -n"
         add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_hbase_table)
         Execute(add_enrichment_acl_cmd,
                 tries=3,
@@ -278,6 +278,7 @@ class EnrichmentCommands:
                 user=self.__params.hbase_user
                 )
 
+        cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
         add_enrichment_list_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_list_hbase_table)
         Execute(add_enrichment_list_acl_cmd,
                 tries=3,
