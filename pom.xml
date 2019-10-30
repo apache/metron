@@ -90,12 +90,12 @@
         <!-- build tooling -->
         <global_java_version>1.8</global_java_version>
         <global_shade_version>3.2.0</global_shade_version>
-        <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
         <global_surefire_version>2.18</global_surefire_version>
-        <global_checkstyle_version>2.17</global_checkstyle_version>
-        <global_jacoco_version>0.8.3</global_jacoco_version>
         <maven_version>[3.3.1,)</maven_version>
+        <maven_checkstyle_version>2.17</maven_checkstyle_version>
+        <maven_jacoco_version>0.8.3</maven_jacoco_version>
+        <maven_errorprone_version>2.0.14</maven_errorprone_version>
         <maven_assembly_version>2.6</maven_assembly_version>
         <maven_site_version>3.6</maven_site_version>
         <maven_compiler_version>3.5.1</maven_compiler_version>
@@ -141,7 +141,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <!-- core platform components -->
+                <!-- core platform -->
                 <global_kafka_version>2.0.0</global_kafka_version>
                 <global_hadoop_version>3.1.1</global_hadoop_version>
                 <global_hbase_version>2.0.2</global_hbase_version>
@@ -237,7 +237,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>${global_checkstyle_version}</version>
+                    <version>${maven_checkstyle_version}</version>
                     <dependencies>
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
@@ -280,7 +280,7 @@
                     <dependency>
                         <groupId>com.google.errorprone</groupId>
                         <artifactId>error_prone_core</artifactId>
-                        <version>${global_errorprone_core_version}</version>
+                        <version>${maven_errorprone_version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -299,7 +299,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${global_jacoco_version}</version>
+                <version>${maven_jacoco_version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -414,7 +414,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${global_checkstyle_version}</version>
+                <version>${maven_checkstyle_version}</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
@@ -502,7 +502,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${global_checkstyle_version}</version>
+                <version>${maven_checkstyle_version}</version>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
                     <excludes>**/generated/**/*</excludes>
@@ -519,7 +519,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${global_jacoco_version}</version>
+                <version>${maven_jacoco_version}</version>
                 <reportSets>
                     <reportSet>
                         <reports>
