@@ -20,14 +20,11 @@ package org.apache.metron.common.field.validation;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.FieldValidator;
-import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class QueryValidationTest extends BaseValidationTest{
@@ -94,31 +91,31 @@ public class QueryValidationTest extends BaseValidationTest{
 
   @Test
   public void testPositive() throws IOException {
-    Assert.assertTrue(execute(validQueryConfig, ImmutableMap.of("field1", "foo")));
+    assertTrue(execute(validQueryConfig, ImmutableMap.of("field1", "foo")));
   }
 
   @Test
   public void testPositive_map() throws IOException {
-    Assert.assertTrue(execute(validQueryConfig_map, ImmutableMap.of("dc", "la")));
+    assertTrue(execute(validQueryConfig_map, ImmutableMap.of("dc", "la")));
   }
   @Test
   public void testNegative_map() throws IOException {
-    Assert.assertFalse(execute(validQueryConfig_map, ImmutableMap.of("dc", "nyc")));
-    Assert.assertFalse(execute(validQueryConfig_map, ImmutableMap.of("foo", "nyc")));
+    assertFalse(execute(validQueryConfig_map, ImmutableMap.of("dc", "nyc")));
+    assertFalse(execute(validQueryConfig_map, ImmutableMap.of("foo", "nyc")));
   }
   @Test
   public void testNegative() throws IOException {
-    Assert.assertFalse(execute(validQueryConfig, ImmutableMap.of("field2", "foo")));
+    assertFalse(execute(validQueryConfig, ImmutableMap.of("field2", "foo")));
   }
 
-  @Test(expected=IllegalStateException.class)
-  public void testInvalidConfig_missingConfig() throws IOException {
-    getConfiguration(invalidQueryConfig1);
+  @Test
+  public void testInvalidConfig_missingConfig() {
+    assertThrows(IllegalStateException.class, () -> getConfiguration(invalidQueryConfig1));
   }
 
-  @Test(expected=IllegalStateException.class)
-  public void testInvalidConfig_invalidQuery() throws IOException {
-    getConfiguration(invalidQueryConfig2);
+  @Test
+  public void testInvalidConfig_invalidQuery() {
+    assertThrows(IllegalStateException.class, () -> getConfiguration(invalidQueryConfig2));
   }
 
 

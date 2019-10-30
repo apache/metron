@@ -26,7 +26,7 @@ import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -77,7 +77,7 @@ public class StellarClasspathFunctionResolver {
     config.put(STELLAR_VFS_PATHS.param(), configuration.get("fs.defaultFS") + "/classpath-resources/.*.jar");
     ClasspathFunctionResolver resolver = create(config);
     HashSet<String> functions = new HashSet<>(Lists.newArrayList(resolver.getFunctions()));
-    Assert.assertTrue(functions.contains("NOW"));
+    Assertions.assertTrue(functions.contains("NOW"));
   }
 
 }

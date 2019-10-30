@@ -18,49 +18,58 @@
 
 package org.apache.metron.common.utils;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RuntimeErrorsTest {
-
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-
   @Test
-  public void illegal_arg_throws_exception_with_reason() throws Exception {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("illegal arg happened");
-    exception.expectCause(nullValue(Throwable.class));
-    RuntimeErrors.ILLEGAL_ARG.throwRuntime("illegal arg happened");
+  public void illegal_arg_throws_exception_with_reason() {
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> RuntimeErrors.ILLEGAL_ARG.throwRuntime("illegal arg happened"));
+    assertTrue(e.getMessage().contains("illegal arg happened"));
+    assertThat(e.getCause(), nullValue(Throwable.class));
   }
 
   @Test
-  public void illegal_arg_throws_exception_with_reason_and_cause() throws Exception {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("illegal arg happened");
-    exception.expectCause(instanceOf(IOException.class));
-    RuntimeErrors.ILLEGAL_ARG.throwRuntime("illegal arg happened", new IOException("bad io"));
+  public void illegal_arg_throws_exception_with_reason_and_cause() {
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                RuntimeErrors.ILLEGAL_ARG.throwRuntime(
+                    "illegal arg happened", new IOException("bad io")));
+    assertTrue(e.getMessage().contains("illegal arg happened"));
+    assertThat(e.getCause(), instanceOf(IOException.class));
   }
 
   @Test
-  public void illegal_state_throws_exception_with_reason() throws Exception {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("illegal state happened");
-    exception.expectCause(nullValue(Throwable.class));
-    RuntimeErrors.ILLEGAL_STATE.throwRuntime("illegal state happened");
+  public void illegal_state_throws_exception_with_reason() {
+    IllegalStateException e =
+        assertThrows(
+            IllegalStateException.class,
+            () -> RuntimeErrors.ILLEGAL_STATE.throwRuntime("illegal state happened"));
+    assertTrue(e.getMessage().contains("illegal state happened"));
+    assertThat(e.getCause(), nullValue(Throwable.class));
   }
 
   @Test
-  public void illegal_state_throws_exception_with_reason_and_cause() throws Exception {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("illegal state happened");
-    exception.expectCause(instanceOf(IOException.class));
-    RuntimeErrors.ILLEGAL_STATE.throwRuntime("illegal state happened", new IOException("bad io"));
+  public void illegal_state_throws_exception_with_reason_and_cause() {
+    IllegalStateException e =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                RuntimeErrors.ILLEGAL_STATE.throwRuntime(
+                    "illegal state happened", new IOException("bad io")));
+    assertTrue(e.getMessage().contains("illegal state happened"));
+    assertThat(e.getCause(), instanceOf(IOException.class));
   }
 }

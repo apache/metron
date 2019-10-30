@@ -17,35 +17,27 @@
  */
 package org.apache.metron.common.utils.file;
 
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class ReaderSpliteratorTest {
   /**
@@ -81,11 +73,11 @@ public class ReaderSpliteratorTest {
   }
 
   private static void validateMapCount(Map<String, Integer> count) {
-    Assert.assertEquals(5, count.size());
-    Assert.assertEquals(3, (int)count.get("foo"));
-    Assert.assertEquals(2, (int)count.get("bar"));
-    Assert.assertEquals(1, (int)count.get("and"));
-    Assert.assertEquals(1, (int)count.get("the"));
+    assertEquals(5, count.size());
+    assertEquals(3, (int)count.get("foo"));
+    assertEquals(2, (int)count.get("bar"));
+    assertEquals(1, (int)count.get("and"));
+    assertEquals(1, (int)count.get("the"));
   }
 
   @Test
@@ -139,7 +131,7 @@ public class ReaderSpliteratorTest {
                     Map<String, Integer> threads =
                       stream.parallel().map(s -> Thread.currentThread().getName())
                               .collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
-                    Assert.assertTrue(threads.size() > 0);
+                    assertTrue(threads.size() > 0);
             }
     ).get();
     return numSplits.get();
@@ -149,7 +141,7 @@ public class ReaderSpliteratorTest {
   public void testSmallBatch() throws ExecutionException, InterruptedException, IOException {
     //With 9 elements and a batch of 1, we should have ceil(9/1) = 9 batches
     try(BufferedReader reader = getReader()) {
-      Assert.assertEquals(9, getNumberOfBatches(new ReaderSpliterator(reader, 1)));
+      assertEquals(9, getNumberOfBatches(new ReaderSpliterator(reader, 1)));
     }
   }
 
@@ -157,7 +149,7 @@ public class ReaderSpliteratorTest {
   public void testMediumBatch() throws ExecutionException, InterruptedException, IOException {
     //With 9 elements and a batch of 2, we should have ceil(9/2) = 5 batches
     try(BufferedReader reader = getReader()) {
-      Assert.assertEquals(5, getNumberOfBatches(new ReaderSpliterator(reader, 2)));
+      assertEquals(5, getNumberOfBatches(new ReaderSpliterator(reader, 2)));
     }
   }
 
@@ -165,7 +157,7 @@ public class ReaderSpliteratorTest {
   public void testOneBigBatch() throws ExecutionException, InterruptedException, IOException {
     //With 9 elements and a batch of 10, we should only have one batch
     try(BufferedReader reader = getReader()) {
-      Assert.assertEquals(1, getNumberOfBatches(new ReaderSpliterator(reader, 10)));
+      assertEquals(1, getNumberOfBatches(new ReaderSpliterator(reader, 10)));
     }
   }
 

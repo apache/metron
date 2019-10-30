@@ -25,10 +25,12 @@ import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RemoveTransformationTest {
   /**
@@ -52,7 +54,7 @@ public class RemoveTransformationTest {
       put("field1", "foo");
     }});
     handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
-    Assert.assertFalse(input.containsKey("field1"));
+    assertFalse(input.containsKey("field1"));
   }
 
   /**
@@ -80,8 +82,8 @@ public class RemoveTransformationTest {
       }});
       handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
       //no removal happened because field2 does not exist
-      Assert.assertTrue(input.containsKey("field1"));
-      Assert.assertFalse(input.containsKey("field2"));
+      assertTrue(input.containsKey("field1"));
+      assertFalse(input.containsKey("field2"));
     }
     {
       JSONObject input = new JSONObject(new HashMap<String, Object>() {{
@@ -90,8 +92,8 @@ public class RemoveTransformationTest {
       }});
       handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
       //no removal happened because field2 != bar
-      Assert.assertTrue(input.containsKey("field1"));
-      Assert.assertTrue(input.containsKey("field2"));
+      assertTrue(input.containsKey("field1"));
+      assertTrue(input.containsKey("field2"));
     }
     {
       JSONObject input = new JSONObject(new HashMap<String, Object>() {{
@@ -100,8 +102,8 @@ public class RemoveTransformationTest {
       }});
       //removal of field1 happens because field2 exists and is 'bar'
       handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
-      Assert.assertFalse(input.containsKey("field1"));
-      Assert.assertTrue(input.containsKey("field2"));
+      assertFalse(input.containsKey("field1"));
+      assertTrue(input.containsKey("field2"));
     }
   }
 }

@@ -18,29 +18,24 @@
 
 package org.apache.metron.common.utils;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.junit.jupiter.api.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
-@RunWith(Enclosed.class)
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
 public class KafkaUtilsTest {
-  @RunWith(MockitoJUnitRunner.class)
   public static class ZkMockedUtils {
     @Mock
     CuratorFramework client;
@@ -128,38 +123,26 @@ public class KafkaUtilsTest {
     }
   }
 
-  @RunWith(Parameterized.class)
-  public static class ParameterizedEndPointParsing {
-    static String[] hostnames = new String[]{"node1", "localhost", "192.168.0.1", "my.domain.com"};
-    static String[] schemes = new String[]{"SSL", "PLAINTEXTSASL", "PLAINTEXT", "SASL_PLAINTEXT"};
-    static String[] ports = new String[]{"6667", "9091", null};
-
-    private String endpoint;
-    private String expected;
-
-    public ParameterizedEndPointParsing(String endpoint, String expected) {
-      this.endpoint = endpoint;
-      this.expected = expected;
-    }
-
-    @Parameters(name = "{index}:endpoint({0}={1})")
-    public static Collection<Object[]> data() {
-      List<Object[]> ret = new ArrayList<>();
-      for (String scheme : schemes) {
-        for (String hostname : hostnames) {
-          for (String port : ports) {
-            port = port != null ? (":" + port) : "";
-            String expected = hostname + port;
-            ret.add(new Object[]{scheme + "://" + expected, expected});
-          }
+  public static Stream<Object[]> data() {
+    String[] hostnames = new String[]{"node1", "localhost", "192.168.0.1", "my.domain.com"};
+    String[] schemes = new String[]{"SSL", "PLAINTEXTSASL", "PLAINTEXT", "SASL_PLAINTEXT"};
+    String[] ports = new String[]{"6667", "9091", null};
+    List<Object[]> ret = new ArrayList<>();
+    for (String scheme : schemes) {
+      for (String hostname : hostnames) {
+        for (String port : ports) {
+          port = port != null ? (":" + port) : "";
+          String expected = hostname + port;
+          ret.add(new Object[]{scheme + "://" + expected, expected});
         }
       }
-      return ret;
     }
+    return ret.stream();
+  }
 
-    @Test
-    public void testEndpointParsing() throws URISyntaxException {
-      assertEquals(expected, KafkaUtils.INSTANCE.fromEndpoint(endpoint).get(0));
-    }
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testEndpointParsing(String endpoint, String expected) {
+    assertEquals(expected, KafkaUtils.INSTANCE.fromEndpoint(endpoint).get(0));
   }
 }

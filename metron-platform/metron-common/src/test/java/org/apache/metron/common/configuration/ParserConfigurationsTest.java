@@ -18,17 +18,16 @@
 
 package org.apache.metron.common.configuration;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertThat;
+import org.adrianwalker.multilinestring.Multiline;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.adrianwalker.multilinestring.Multiline;
-import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ParserConfigurationsTest {
 

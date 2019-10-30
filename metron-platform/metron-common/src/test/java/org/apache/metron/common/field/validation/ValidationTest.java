@@ -20,13 +20,12 @@ package org.apache.metron.common.field.validation;
 
 import com.google.common.collect.ImmutableList;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.FieldValidator;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ValidationTest extends BaseValidationTest{
   /**
@@ -69,21 +68,21 @@ public class ValidationTest extends BaseValidationTest{
   public void testValidConfiguration() throws IOException {
     {
       Configurations configurations = getConfiguration(validValidationConfigWithStringInput);
-      Assert.assertNotNull(configurations.getFieldValidations());
-      Assert.assertEquals(1, configurations.getFieldValidations().size());
-      Assert.assertEquals(ImmutableList.of("field1"), configurations.getFieldValidations().get(0).getInput());
+      assertNotNull(configurations.getFieldValidations());
+      assertEquals(1, configurations.getFieldValidations().size());
+      assertEquals(ImmutableList.of("field1"), configurations.getFieldValidations().get(0).getInput());
     }
     {
       Configurations configurations = getConfiguration(validValidationConfigWithListInput);
-      Assert.assertNotNull(configurations.getFieldValidations());
-      Assert.assertEquals(1, configurations.getFieldValidations().size());
-      Assert.assertEquals(ImmutableList.of("field1", "field2"), configurations.getFieldValidations().get(0).getInput());
+      assertNotNull(configurations.getFieldValidations());
+      assertEquals(1, configurations.getFieldValidations().size());
+      assertEquals(ImmutableList.of("field1", "field2"), configurations.getFieldValidations().get(0).getInput());
     }
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testInvalidConfiguration() throws IOException {
-    getConfiguration(invalidValidationConfig);
+  @Test
+  public void testInvalidConfiguration() {
+    assertThrows(IllegalStateException.class, () -> getConfiguration(invalidValidationConfig));
   }
 
 }

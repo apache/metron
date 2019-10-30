@@ -17,15 +17,14 @@
  */
 package org.apache.metron.common.configuration;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
-import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Collections;
 
@@ -80,12 +79,9 @@ public class ConfigurationTest {
 
 
     private void checkResult( Configuration configuration ){
-
-        assertEquals("File contains 1 entry: ",1,configuration.getGlobalConfig().size());
+        assertEquals(1, configuration.getGlobalConfig().size(), "File contains 1 entry: ");
         String testValue = configuration.getGlobalConfig().get(TEST_PROPERTY).toString();
-        assertEquals(TEST_PROPERTY + " should be \"" + TEST_VALUE + "\"",TEST_VALUE,testValue);
-
-
+        assertEquals(TEST_VALUE, testValue, TEST_PROPERTY + " should be \"" + TEST_VALUE + "\"");
     }
 }
 

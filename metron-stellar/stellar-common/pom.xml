@@ -229,30 +229,23 @@
             <artifactId>httpclient</artifactId>
             <version>${global_httpclient_version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            &lt;!&ndash; junit dependency added with default scope to allow inclusion of StellarProcessorUtils in main jar.-->
-<!--                 It is excluded from the uber-jar. &ndash;&gt;-->
-<!--            <groupId>junit</groupId>-->
-<!--            <artifactId>junit</artifactId>-->
-<!--            <version>${global_junit_version}</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>2.2</version>
+            <artifactId>hamcrest-core</artifactId>
+            <version>${global_hamcrest_version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- junit dependency added with default scope to allow inclusion of StellarProcessorUtils in main jar.
+             It is excluded from the uber-jar. -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${global_junit_jupiter_version}</version>
-<!--            <scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${global_junit_jupiter_version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -385,7 +378,7 @@
                                 <excludes>
                                     <exclude>org.slf4j.impl*</exclude>
                                     <exclude>org.slf4j:slf4j-log4j*</exclude>
-                                    <exclude>junit</exclude>
+                                    <exclude>org.junit.jupiter:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <transformers>

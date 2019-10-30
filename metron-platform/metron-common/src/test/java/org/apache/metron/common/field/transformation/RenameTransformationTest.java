@@ -24,10 +24,12 @@ import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class RenameTransformationTest {
   /**
@@ -56,14 +58,14 @@ public class RenameTransformationTest {
       }
     }});
     handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
-    Assert.assertEquals("f1", input.get("new_field1"));
-    Assert.assertEquals("f2", input.get("new_field2"));
+    assertEquals("f1", input.get("new_field1"));
+    assertEquals("f2", input.get("new_field2"));
     for(int i = 3;i <= 10;++i) {
-      Assert.assertEquals("f" + i, input.get("old_field" + i));
+      assertEquals("f" + i, input.get("old_field" + i));
     }
-    Assert.assertFalse(input.containsKey("old_field1"));
-    Assert.assertFalse(input.containsKey("old_field2"));
-    Assert.assertEquals(10, input.size());
+    assertFalse(input.containsKey("old_field1"));
+    assertFalse(input.containsKey("old_field2"));
+    assertEquals(10, input.size());
   }
 
   /**
@@ -90,10 +92,10 @@ public class RenameTransformationTest {
       }
     }});
     handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
-    Assert.assertFalse(input.containsKey("new_field1"));
+    assertFalse(input.containsKey("new_field1"));
     for(int i = 2;i <= 10;++i) {
-      Assert.assertEquals("f" + i, input.get("old_field" + i));
+      assertEquals("f" + i, input.get("old_field" + i));
     }
-    Assert.assertEquals(9, input.size());
+    assertEquals(9, input.size());
   }
 }

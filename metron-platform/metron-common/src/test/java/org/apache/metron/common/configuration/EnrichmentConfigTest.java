@@ -22,10 +22,12 @@ import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.configuration.enrichment.handler.Configs;
 import org.apache.metron.common.utils.JSONUtils;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EnrichmentConfigTest {
   /**
@@ -50,9 +52,9 @@ public class EnrichmentConfigTest {
   public void testSerialization() throws Exception
   {
     EnrichmentConfig config = JSONUtils.INSTANCE.load(sourceConfigStr, EnrichmentConfig.class);
-    Assert.assertTrue(config.getFieldMap().get("stellar") instanceof Map);
-    Assert.assertTrue(config.getEnrichmentConfigs().get("stellar") instanceof ConfigHandler);
-    Assert.assertEquals(Configs.STELLAR, ((ConfigHandler)config.getEnrichmentConfigs().get("stellar")).getType());
+    assertTrue(config.getFieldMap().get("stellar") instanceof Map);
+    assertTrue(config.getEnrichmentConfigs().get("stellar") instanceof ConfigHandler);
+    assertEquals(Configs.STELLAR, ((ConfigHandler)config.getEnrichmentConfigs().get("stellar")).getType());
   }
 
 

@@ -17,22 +17,18 @@
  */
 package org.apache.metron.common.configuration;
 
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.apache.commons.io.IOUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SensorEnrichmentConfigTest {
 
@@ -42,8 +38,8 @@ public class SensorEnrichmentConfigTest {
     Map<String, byte[]> testSensorConfigMap = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.ENRICHMENTS_CONFIGS_PATH);
     byte[] sensorConfigBytes = testSensorConfigMap.get("yaf");
     SensorEnrichmentConfig sensorEnrichmentConfig = SensorEnrichmentConfig.fromBytes(sensorConfigBytes);
-    Assert.assertNotNull(sensorEnrichmentConfig);
-    Assert.assertTrue(sensorEnrichmentConfig.toString() != null && sensorEnrichmentConfig.toString().length() > 0);
+    assertNotNull(sensorEnrichmentConfig);
+    assertTrue(sensorEnrichmentConfig.toString() != null && sensorEnrichmentConfig.toString().length() > 0);
   }
 
   @Test
@@ -56,7 +52,7 @@ public class SensorEnrichmentConfigTest {
       }
       SensorEnrichmentConfig config2 = SensorEnrichmentConfig.fromBytes(config.toJSON().getBytes(
           StandardCharsets.UTF_8));
-      Assert.assertEquals(config2, config);
+      assertEquals(config2, config);
     }
   }
 }

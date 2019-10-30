@@ -18,19 +18,19 @@
 
 package org.apache.metron.common.utils;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JSONUtilsTest {
 

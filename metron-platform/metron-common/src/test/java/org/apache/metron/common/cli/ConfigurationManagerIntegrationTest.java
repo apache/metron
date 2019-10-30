@@ -18,32 +18,9 @@
 
 package org.apache.metron.common.cli;
 
-import static org.apache.metron.common.cli.ConfigurationManager.PatchMode.ADD;
-import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
-import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
-import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
-import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
-import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
-import static org.apache.metron.common.utils.StringUtils.stripLines;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ArrayUtils;
@@ -57,9 +34,25 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.utils.TestUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.apache.metron.common.cli.ConfigurationManager.PatchMode.ADD;
+import static org.apache.metron.common.configuration.ConfigurationType.*;
+import static org.apache.metron.common.utils.StringUtils.stripLines;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConfigurationManagerIntegrationTest {
   private TestingServer testZkServer;
@@ -144,12 +137,12 @@ public class ConfigurationManagerIntegrationTest {
 
   private void validateConfigsOnDisk(File configDir) throws IOException {
     File globalConfigFile = new File(configDir, "global.json");
-    Assert.assertTrue("Global config does not exist", globalConfigFile.exists());
+    assertTrue(globalConfigFile.exists(), "Global config does not exist");
     validateConfig("global", GLOBAL, new String(Files.readAllBytes(Paths.get(globalConfigFile.toURI())),
         StandardCharsets.UTF_8));
     for(String sensor : sensors) {
       File sensorFile = new File(configDir, ENRICHMENT.getDirectory() + "/" + sensor + ".json");
-      Assert.assertTrue(sensor + " config does not exist", sensorFile.exists());
+      assertTrue(sensorFile.exists(), sensor + " config does not exist");
       validateConfig(sensor, ENRICHMENT, new String(Files.readAllBytes(Paths.get(sensorFile.toURI())),
           StandardCharsets.UTF_8));
     }
@@ -193,7 +186,7 @@ public class ConfigurationManagerIntegrationTest {
     ConfigurationsUtils.visitConfigs(client, new ConfigurationsUtils.ConfigurationVisitor() {
       @Override
       public void visit(ConfigurationType configurationType, String name, String data) {
-        Assert.assertTrue(data.length() > 0);
+        assertTrue(data.length() > 0);
         validateConfig(name, configurationType, data);
         if(configurationType == GLOBAL) {
           validateConfig(name, configurationType, data);
@@ -204,11 +197,11 @@ public class ConfigurationManagerIntegrationTest {
         }
       }
     });
-    Assert.assertEquals(true, foundGlobal.get());
-    Assert.assertEquals(sensorsInZookeeper, sensors);
+    assertTrue(foundGlobal.get());
+    assertEquals(sensorsInZookeeper, sensors);
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testPushAllWithBadConfig() throws Exception {
 
     // create a bad global config
@@ -219,9 +212,8 @@ public class ConfigurationManagerIntegrationTest {
     File squidConfigFile = new File(parsersDir, "squid.json");
     TestUtils.write(squidConfigFile, badParserConfig);
 
-    pushAllConfigs(configDir.getAbsolutePath());
-
     // exception expected as the global and parser config is invalid
+    assertThrows(RuntimeException.class, () -> pushAllConfigs(configDir.getAbsolutePath()));
   }
 
   /**
@@ -243,7 +235,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(globalConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(GLOBAL), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   /**
@@ -252,7 +244,7 @@ public class ConfigurationManagerIntegrationTest {
   @Multiline
   private static String badGlobalConfig;
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testPushGlobalWithBadConfig() throws Exception {
 
     // create the config
@@ -260,9 +252,8 @@ public class ConfigurationManagerIntegrationTest {
     TestUtils.write(configFile, badGlobalConfig);
 
     // push the global config
-    pushConfigs(GLOBAL, configDir);
-
     // exception expected as the global config is invalid
+    assertThrows(RuntimeException.class, () -> pushConfigs(GLOBAL, configDir));
   }
 
   private void pushConfigs(ConfigurationType type, File configPath) throws Exception {
@@ -357,7 +348,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(squidParserConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(PARSER, Optional.of("myparser")), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   /**
@@ -369,7 +360,7 @@ public class ConfigurationManagerIntegrationTest {
   @Multiline
   private static String badParserConfig;
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testPushParserWithBadConfig() throws Exception {
 
     // create a parser config
@@ -377,9 +368,8 @@ public class ConfigurationManagerIntegrationTest {
     TestUtils.write(configFile, badParserConfig);
 
     // push the parser config
-    pushConfigs(PARSER, configDir, Optional.of("badparser"));
-
     // exception expected as the parser config is invalid
+    assertThrows(RuntimeException.class, () -> pushConfigs(PARSER, configDir, Optional.of("badparser")));
   }
 
   /**
@@ -417,7 +407,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(someEnrichmentConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(ENRICHMENT, Optional.of("myenrichment")), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   /**
@@ -436,7 +426,7 @@ public class ConfigurationManagerIntegrationTest {
   @Multiline
   private static String badEnrichmentConfig;
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testPushEnrichmentWithBadConfig() throws Exception {
 
     // create enrichment config
@@ -444,9 +434,8 @@ public class ConfigurationManagerIntegrationTest {
     TestUtils.write(configFile, badEnrichmentConfig);
 
     // push enrichment config
-    pushConfigs(ENRICHMENT, configDir, Optional.of("badenrichment"));
-
     // exception expected as the enrichment config is invalid
+    assertThrows(RuntimeException.class, () -> pushConfigs(ENRICHMENT, configDir, Optional.of("badenrichment")));
   }
 
   /**
@@ -484,7 +473,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(someIndexingConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(INDEXING, Optional.of("myindex")), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   /**
@@ -495,7 +484,7 @@ public class ConfigurationManagerIntegrationTest {
   @Multiline
   private static String badIndexingConfig;
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testPushIndexingWithBadConfig() throws Exception {
 
     // write the indexing config
@@ -503,9 +492,8 @@ public class ConfigurationManagerIntegrationTest {
     TestUtils.write(configFile, badIndexingConfig);
 
     // push the index config
-    pushConfigs(INDEXING, configDir, Optional.of("myindex"));
-
     // exception expected as the indexing config is invalid
+    assertThrows(RuntimeException.class, () -> pushConfigs(INDEXING, configDir, Optional.of("myindex")));
   }
 
   /**
@@ -539,7 +527,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(someProfilerConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(PROFILER, configName), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   /**
@@ -554,7 +542,7 @@ public class ConfigurationManagerIntegrationTest {
   @Multiline
   private static String badProfilerConfig;
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testPushProfilerWithBadConfig() throws Exception {
 
     // write the indexing config
@@ -562,10 +550,9 @@ public class ConfigurationManagerIntegrationTest {
     TestUtils.write(configFile, badProfilerConfig);
 
     // push the index config
-    Optional<String> configName = Optional.empty();
-    pushConfigs(PROFILER, configDir, configName);
-
     // exception expected as the profiler config is invalid
+    Optional<String> configName = Optional.empty();
+    assertThrows(RuntimeException.class, () -> pushConfigs(PROFILER, configDir, configName));
   }
 
   /**
@@ -598,7 +585,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate the patch
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(expectedSomeConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(GLOBAL, Optional.of("global")), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   private void patchConfigs(ConfigurationType type, Optional<File> patchPath,
@@ -678,7 +665,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate the patch
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(expectedPatchedParser);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(PARSER, Optional.of("myparser")), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   @Test
@@ -695,7 +682,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate the patch
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(expectedPatchedParser);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(PARSER, Optional.of("myparser")), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   /**
@@ -710,7 +697,7 @@ public class ConfigurationManagerIntegrationTest {
   @Multiline
   public static String badParserPatch;
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testPatchParserWithBadConfig() throws Exception {
 
     // create a patch file that when applied makes the parser config invalid
@@ -723,7 +710,16 @@ public class ConfigurationManagerIntegrationTest {
     pushConfigs(PARSER, configDir, Optional.of("myparser"));
 
     // patch the configuration
-    patchConfigs(PARSER, Optional.of(patchFile), Optional.of("myparser"), Optional.empty(), Optional.empty(), Optional.empty());
+    assertThrows(
+        RuntimeException.class,
+        () ->
+            patchConfigs(
+                PARSER,
+                Optional.of(patchFile),
+                Optional.of("myparser"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()));
   }
 
   /**
@@ -753,7 +749,7 @@ public class ConfigurationManagerIntegrationTest {
     // validate the patch
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(expectedComplexConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(GLOBAL, Optional.of("global")), 1));
-    Assert.assertThat(actual, equalTo(expected));
+    assertThat(actual, equalTo(expected));
   }
 
   /**
@@ -768,7 +764,7 @@ public class ConfigurationManagerIntegrationTest {
   @Multiline
   public static String badProfilerPatch;
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testPatchProfilerWithBadConfig() throws Exception {
 
     // create a patch file that when applied makes the profiler config invalid
@@ -783,7 +779,16 @@ public class ConfigurationManagerIntegrationTest {
     pushConfigs(PROFILER, configDir, Optional.empty());
 
     // patch the profiler config
-    patchConfigs(PROFILER, Optional.of(patchFile), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    assertThrows(
+        RuntimeException.class,
+        () ->
+            patchConfigs(
+                PROFILER,
+                Optional.of(patchFile),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()));
   }
 
 

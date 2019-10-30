@@ -113,6 +113,7 @@
         <global_metrics_version>3.0.2</global_metrics_version>
 <!--        <global_junit_version>4.12</global_junit_version>-->
         <global_junit_jupiter_version>5.5.2</global_junit_jupiter_version>
+        <global_hamcrest_version>1.3</global_hamcrest_version>
         <global_guava_version>17.0</global_guava_version>
         <global_hbase_guava_version>12.0</global_hbase_guava_version>
         <global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
