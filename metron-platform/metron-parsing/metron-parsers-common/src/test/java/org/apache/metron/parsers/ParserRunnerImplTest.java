@@ -42,10 +42,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+//import static org.powermock.api.mockito.PowerMockito.mockStatic;
+//import static org.powermock.api.mockito.PowerMockito.when;
 
 //@RunWith(PowerMockRunner.class)
 //@PrepareForTest({ParserRunnerImpl.class, ReflectionUtils.class, Filters.class})
@@ -113,8 +112,8 @@ public class ParserRunnerImplTest {
     broParser = mock(MessageParser.class);
     snortParser = mock(MessageParser.class);
     stellarFilter = mock(StellarFilter.class);
-    mockStatic(ReflectionUtils.class);
-    mockStatic(Filters.class);
+//    mockStatic(ReflectionUtils.class);
+//    mockStatic(Filters.class);
     when(broParser.getReadCharset()).thenReturn(StandardCharsets.UTF_8);
 
     when(ReflectionUtils.createInstance("org.apache.metron.parsers.bro.BasicBroParser")).thenReturn(broParser);

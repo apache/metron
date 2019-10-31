@@ -324,9 +324,6 @@ public class PcapServiceImplTest {
 
   @Test
   public void submitShouldThrowExceptionOnRunningJobFound() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("Cannot submit job because a job is already running.  Please contact the administrator to cancel job(s) with id(s) jobId");
-
     PcapStatus runningStatus1 = new PcapStatus();
     runningStatus1.setJobStatus("RUNNING");
     runningStatus1.setJobId("jobId1");
@@ -338,15 +335,13 @@ public class PcapServiceImplTest {
     doReturn(Arrays.asList(runningStatus1, runningStatus2)).when(pcapService).getJobStatus("user", JobStatus.State.RUNNING);
     when(environment.getProperty(MetronRestConstants.USER_JOB_LIMIT_SPRING_PROPERTY, Integer.class, 1)).thenReturn(2);
 
-    pcapService.submit("user", new FixedPcapRequest());
+    RestException e = assertThrows(RestException.class, () -> pcapService.submit("user", new FixedPcapRequest()));
+    assertEquals("Cannot submit job because a job is already running.  Please contact the administrator to cancel job(s) with id(s) jobId", e.getMessage());
   }
 
 
   @Test
   public void fixedShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("some job exception");
-
     FixedPcapRequest fixedPcapRequest = new FixedPcapRequest();
     JobManager jobManager = mock(JobManager.class);
     PcapJobSupplier pcapJobSupplier = new PcapJobSupplier();
@@ -355,7 +350,8 @@ public class PcapServiceImplTest {
     doReturn(fileSystem).when(pcapService).getFileSystem();
     when(jobManager.submit(pcapJobSupplier, "user")).thenThrow(new JobException("some job exception"));
 
-    pcapService.submit("user", fixedPcapRequest);
+    RestException e = assertThrows(RestException.class, () -> pcapService.submit("user", fixedPcapRequest));
+    assertEquals("some job exception", e.getMessage());
   }
 
   @Test
@@ -395,14 +391,12 @@ public class PcapServiceImplTest {
 
   @Test
   public void getStatusShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("some job exception");
-
     JobManager jobManager = mock(JobManager.class);
     when(jobManager.getJob("user", "jobId")).thenThrow(new JobException("some job exception"));
 
     PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
-    pcapService.getJobStatus("user", "jobId");
+    RestException e = assertThrows(RestException.class, () -> pcapService.getJobStatus("user", "jobId"));
+    assertEquals("some job exception", e.getMessage());
   }
 
   @Test
@@ -553,9 +547,6 @@ public class PcapServiceImplTest {
 
   @Test
   public void getPdmlShouldThrowException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("some exception");
-
     Path path = new Path("./target");
     PcapToPdmlScriptWrapper pcapToPdmlScriptWrapper = spy(new PcapToPdmlScriptWrapper());
     PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
@@ -567,7 +558,8 @@ public class PcapServiceImplTest {
     doReturn(pb).when(pcapToPdmlScriptWrapper).getProcessBuilder("/path/to/pdml/script", "target");
     PowerMockito.when(pb.start()).thenThrow(new IOException("some exception"));
 
-    pcapService.getPdml("user", "jobId", 1);
+    RestException e = assertThrows(RestException.class, () -> pcapService.getPdml("user", "jobId", 1));
+    assertEquals("some exception", e.getMessage());
   }
 
   @Test
@@ -610,9 +602,6 @@ public class PcapServiceImplTest {
 
   @Test
   public void getRawShouldThrowException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("some exception");
-
     Path path = new Path("./target");
     PcapServiceImpl pcapService = spy(new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), new InMemoryJobManager<>(), pcapToPdmlScriptWrapper));
     FileSystem fileSystem = mock(FileSystem.class);
@@ -621,7 +610,8 @@ public class PcapServiceImplTest {
     doReturn(path).when(pcapService).getPath("user", "jobId", 1);
     when(fileSystem.open(path)).thenThrow(new IOException("some exception"));
 
-    pcapService.getRawPcap("user", "jobId", 1);
+    RestException e = assertThrows(RestException.class, () -> pcapService.getRawPcap("user", "jobId", 1));
+    assertEquals("some exception", e.getMessage());
   }
 
   @Test
@@ -711,14 +701,12 @@ public class PcapServiceImplTest {
 
   @Test
   public void getConfigurationShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("some job exception");
-
     JobManager jobManager = mock(JobManager.class);
     when(jobManager.getJob("user", "jobId")).thenThrow(new JobException("some job exception"));
 
     PcapServiceImpl pcapService = new PcapServiceImpl(environment, configuration, new PcapJobSupplier(), jobManager, pcapToPdmlScriptWrapper);
-    pcapService.getConfiguration("user", "jobId");
+    RestException e = assertThrows(RestException.class, () -> pcapService.getConfiguration("user", "jobId"));
+    assertEquals("some job exception", e.getMessage());
   }
 
 }

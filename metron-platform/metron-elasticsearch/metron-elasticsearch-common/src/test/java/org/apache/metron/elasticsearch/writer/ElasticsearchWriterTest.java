@@ -29,32 +29,21 @@ import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ElasticsearchWriter.class, ElasticsearchUtils.class})
+//import org.powermock.core.classloader.annotations.PrepareForTest;
+//import org.powermock.modules.junit4.PowerMockRunner;
+//import static org.powermock.api.mockito.PowerMockito.mockStatic;
+
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest({ElasticsearchWriter.class, ElasticsearchUtils.class})
 public class ElasticsearchWriterTest {
 
     Map stormConf;
@@ -260,7 +249,7 @@ public class ElasticsearchWriterTest {
         when(writerConfiguration.isSetDocumentId("bro")).thenReturn(true);
         when(writerConfiguration.getFieldNameConverter("bro")).thenReturn("NOOP");
 
-        mockStatic(ElasticsearchUtils.class);
+//        mockStatic(ElasticsearchUtils.class);
         when(ElasticsearchUtils.getIndexFormat(globals())).thenReturn(new SimpleDateFormat());
         when(ElasticsearchUtils.getIndexName(eq("bro"), any(), eq(writerConfiguration))).thenReturn("bro_index");
 

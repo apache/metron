@@ -50,6 +50,7 @@ import java.util.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
@@ -174,10 +175,9 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   @Test
   public void bad_facet_query_throws_exception() throws Exception {
-    thrown.expect(InvalidSearchException.class);
-    thrown.expectMessage("Failed to execute search");
     SearchRequest request = JSONUtils.INSTANCE.load(badFacetQuery, SearchRequest.class);
-    dao.search(request);
+    InvalidSearchException e = assertThrows(InvalidSearchException.class, () -> dao.search(request));
+    assertEquals("Failed to execute search", e.getMessage());
   }
 
   @Override
@@ -254,10 +254,9 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   @Test
   public void throws_exception_on_aggregation_queries_on_non_string_non_numeric_fields()
       throws Exception {
-    thrown.expect(InvalidSearchException.class);
-    thrown.expectMessage("Failed to execute search");
     GroupRequest request = JSONUtils.INSTANCE.load(badGroupQuery, GroupRequest.class);
-    dao.group(request);
+    InvalidSearchException e = assertThrows(InvalidSearchException.class, () -> dao.group(request));
+    assertEquals("Failed to execute search", e.getMessage());
   }
 
   @Test

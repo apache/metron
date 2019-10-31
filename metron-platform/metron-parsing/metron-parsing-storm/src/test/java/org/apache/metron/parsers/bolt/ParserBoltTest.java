@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ParserBoltTest extends BaseBoltTest {
