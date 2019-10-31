@@ -77,7 +77,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   private manualQueryFieldChangeSubs: Subscription;
   private manualQueryInputEl: ElementRef;
   @ViewChild('manualQuery') set manualQuery(el: ElementRef) {
-    if (el && !this.manualQueryInputEl) {
+    if (el) {
       this.manualQueryInputEl = el;
       this.manualQueryFieldChangeSubs = this.addManualQueryFieldChangeStream(el.nativeElement);
     }
