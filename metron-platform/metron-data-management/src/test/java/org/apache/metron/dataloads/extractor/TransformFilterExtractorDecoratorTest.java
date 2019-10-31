@@ -24,10 +24,8 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.hamcrest.CoreMatchers;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -36,6 +34,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TransformFilterExtractorDecoratorTest {
 
@@ -144,47 +143,40 @@ public class TransformFilterExtractorDecoratorTest {
     assertThat(extracted, CoreMatchers.equalTo(new ArrayList<>()));
   }
 
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-
   @Test
   public void bad_value_transform_causes_exception() {
     final int badValue = 5;
-    exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.VALUE_TRANSFORM.toString(), badValue);
     decorator = new TransformFilterExtractorDecorator(extractor);
     decorator.setZkClient(Optional.of(zkClient));
-    decorator.initialize(config1);
+    assertThrows(ClassCastException.class, () -> decorator.initialize(config1));
   }
 
   @Test
   public void bad_value_filter_causes_exception() {
     final int badValue = 5;
-    exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.VALUE_FILTER.toString(), badValue);
     decorator = new TransformFilterExtractorDecorator(extractor);
     decorator.setZkClient(Optional.of(zkClient));
-    decorator.initialize(config1);
+    assertThrows(ClassCastException.class, () -> decorator.initialize(config1));
   }
 
   @Test
   public void bad_indicator_transform_causes_exception() {
     final int badValue = 5;
-    exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_TRANSFORM.toString(), badValue);
     decorator = new TransformFilterExtractorDecorator(extractor);
     decorator.setZkClient(Optional.of(zkClient));
-    decorator.initialize(config1);
+    assertThrows(ClassCastException.class, () -> decorator.initialize(config1));
   }
 
   @Test
   public void bad_indicator_filter_causes_exception() {
     final int badValue = 5;
-    exception.expect(ClassCastException.class);
     config1.put(TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_FILTER.toString(), badValue);
     decorator = new TransformFilterExtractorDecorator(extractor);
     decorator.setZkClient(Optional.of(zkClient));
-    decorator.initialize(config1);
+    assertThrows(ClassCastException.class, () -> decorator.initialize(config1));
   }
 
 }

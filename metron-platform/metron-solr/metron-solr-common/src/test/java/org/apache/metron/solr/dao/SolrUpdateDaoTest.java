@@ -17,24 +17,6 @@
  */
 package org.apache.metron.solr.dao;
 
-import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
-import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.spy;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
@@ -49,22 +31,28 @@ import org.apache.metron.indexing.util.IndexingCacheUtil;
 import org.apache.metron.solr.matcher.SolrInputDocumentListMatcher;
 import org.apache.metron.solr.matcher.SolrInputDocumentMatcher;
 import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.common.SolrInputDocument;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.IOException;
+import java.util.*;
+
+import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
+import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * This class contains tests specific to the SolrUpdateDao implementation.  It also returns the SolrUpdateDao
  * implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a common set of tests that all Dao
  * implementations must pass.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({CollectionAdminRequest.class})
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest({CollectionAdminRequest.class})
 public class SolrUpdateDaoTest extends UpdateDaoTest {
 
   private SolrClient client;
@@ -95,7 +83,7 @@ public class SolrUpdateDaoTest extends UpdateDaoTest {
 
   @SuppressWarnings("unchecked")
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     client = mock(SolrClient.class);
     solrRetrieveLatestDao = new SolrRetrieveLatestDao(client, accessConfig);
     solrUpdateDao = new SolrUpdateDao(client, solrRetrieveLatestDao, accessConfig);

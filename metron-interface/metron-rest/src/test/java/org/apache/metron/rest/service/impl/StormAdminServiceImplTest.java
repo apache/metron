@@ -22,18 +22,10 @@ import org.apache.metron.common.configuration.SensorParserGroup;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologyStatusCode;
-import org.apache.metron.rest.service.GlobalConfigService;
-import org.apache.metron.rest.service.SensorParserConfigService;
-import org.apache.metron.rest.service.SensorParserGroupService;
-import org.apache.metron.rest.service.StormAdminService;
-import org.apache.metron.rest.service.StormStatusService;
+import org.apache.metron.rest.service.*;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,9 +36,6 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ALL")
 public class StormAdminServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   StormCLIWrapper stormCLIClientWrapper;
   StormAdminService stormAdminService;
   GlobalConfigService globalConfigService;

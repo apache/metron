@@ -22,10 +22,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.metron.stellar.common.generated.StellarParser;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Token;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.Serializable;
 
@@ -35,9 +33,6 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ALL")
 public class ComparisonOperatorsEvaluatorTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   ComparisonExpressionEvaluator evaluator;
 
   @BeforeEach

@@ -22,24 +22,22 @@ import org.apache.metron.common.error.MetronError;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.OutputCollector;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
 
 public class ErrorUtilsTest {
 
   @Test
-  public void handleErrorShouldEmitAndReportError() throws Exception {
+  public void handleErrorShouldEmitAndReportError() {
     Throwable e = new Exception("error");
     MetronError error = new MetronError().withMessage("error message").withThrowable(e);
     OutputCollector collector = mock(OutputCollector.class);
 
     StormErrorUtils.handleError(collector, error);
-    verify(collector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
+    verify(collector, times(1)).emit(ArgumentMatchers.eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
     verify(collector, times(1)).reportError(any());
   }
 }

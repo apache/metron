@@ -33,8 +33,7 @@ import java.util.Map;
 
 import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
 import static org.apache.metron.management.EnrichmentConfigFunctionsTest.toMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class IndexingConfigFunctionsTest {
 
@@ -77,14 +76,12 @@ public class IndexingConfigFunctionsTest {
     assertEquals(2,  IndexingConfigurations.getBatchTimeout((Map<String, Object>) config.get("hdfs")));
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void testSetBatchBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);
     }};
-    run("INDEXING_SET_BATCH(config, 'hdfs', 10)"
-                             , variables
-    );
+    assertThrows(ParseException.class, () -> run("INDEXING_SET_BATCH(config, 'hdfs', 10)", variables));
   }
 
   @Test
@@ -96,14 +93,12 @@ public class IndexingConfigFunctionsTest {
     assertTrue(IndexingConfigurations.isEnabled((Map<String, Object>) config.get("hdfs")));
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void testSetEnabledBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);
     }};
-    run("INDEXING_SET_ENABLED(config, 'hdfs', 10)"
-                             , variables
-    );
+    assertThrows(ParseException.class, () -> run("INDEXING_SET_ENABLED(config, 'hdfs', 10)", variables));
   }
 
   @Test
@@ -115,13 +110,11 @@ public class IndexingConfigFunctionsTest {
     assertEquals("foo", IndexingConfigurations.getIndex((Map<String, Object>)config.get("hdfs"), null));
   }
 
-  @Test(expected= ParseException.class)
+  @Test
   public void testSetIndexBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);
     }};
-    run("INDEXING_SET_INDEX(config, 'hdfs', NULL)"
-            , variables
-    );
+    assertThrows(ParseException.class, () -> run("INDEXING_SET_INDEX(config, 'hdfs', NULL)", variables));
   }
 }

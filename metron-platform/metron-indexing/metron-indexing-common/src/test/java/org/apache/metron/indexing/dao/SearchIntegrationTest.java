@@ -23,10 +23,8 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.*;
 
@@ -461,9 +459,6 @@ public abstract class SearchIntegrationTest {
 
   protected static InMemoryComponent indexComponent;
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void all_query_returns_all_results() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
@@ -700,18 +695,16 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public void different_type_facet_query() throws Exception {
-    thrown.expect(Exception.class);
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
     SearchResponse response = getIndexDao().search(request);
-    assertEquals(3, response.getTotal());
+    assertThrows(Exception.class, () -> response.getTotal());
   }
 
   @Test
   public void exceeding_max_results_throws_exception() throws Exception {
-    thrown.expect(InvalidSearchException.class);
-    thrown.expectMessage("Search result size must be less than 100");
     SearchRequest request = JSONUtils.INSTANCE.load(exceededMaxResultsQuery, SearchRequest.class);
-    getIndexDao().search(request);
+    InvalidSearchException e = assertThrows(InvalidSearchException.class, () -> getIndexDao().search(request));
+    assertEquals("Search result size must be less than 100", e.getMessage());
   }
 
   @Test

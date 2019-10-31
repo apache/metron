@@ -28,29 +28,17 @@ import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.functions.MapFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.Rule;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.rules.TestName;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the KafkaFunctions class.
@@ -586,7 +574,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
 
     // expect not to have waited more than roughly 1000 millis
     long wait = System.currentTimeMillis() - before;
-    assertTrue("Expected wait not to exceed max wait; actual wait = " + wait, wait < 2 * 1000);
+    assertTrue(wait < 2 * 1000, "Expected wait not to exceed max wait; actual wait = " + wait);
 
     // expect no messages
     List<String> expected = Collections.emptyList();

@@ -23,7 +23,6 @@ import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PacketPayload;
 import org.krakenapps.pcap.packet.PcapPacket;
 
-import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -46,19 +45,19 @@ public class PcapPackerComparatorTest {
   private static final PcapPacketComparator comp = new PcapPacketComparator();
 
   @Test
-  public void testEqual() throws ParseException {
+  public void testEqual() {
     PacketHeader ph = new PacketHeader((int) JULY_26_SECONDS, 0, 0, 0);
     PcapPacket packet = new PcapPacket(ph, EMPTY_PAYLOAD);
 
     PacketHeader ph2 = new PacketHeader((int) JULY_26_SECONDS, 0, 0, 0);
     PcapPacket packet2 = new PcapPacket(ph2, EMPTY_PAYLOAD);
 
-    assertEquals("Timestamps should be equal", comp.compare(packet, packet2), 0);
-    assertEquals("Timestamps should be equal", comp.compare(packet2, packet), 0);
+    assertEquals(comp.compare(packet, packet2), 0, "Timestamps should be equal");
+    assertEquals(comp.compare(packet2, packet), 0, "Timestamps should be equal");
   }
 
   @Test
-  public void testDifferingSeconds() throws ParseException {
+  public void testDifferingSeconds() {
     PacketHeader ph = new PacketHeader((int) JULY_26_SECONDS, 0, 0, 0);
     PcapPacket earlier = new PcapPacket(ph, EMPTY_PAYLOAD);
 
@@ -66,12 +65,12 @@ public class PcapPackerComparatorTest {
     PcapPacket later = new PcapPacket(ph2, EMPTY_PAYLOAD);
 
     PcapPacketComparator comp = new PcapPacketComparator();
-    assertTrue("Earlier should be less than later", comp.compare(earlier, later) < 0);
-    assertTrue("Later should be greater than earlier", comp.compare(later, earlier) > 0);
+    assertTrue(comp.compare(earlier, later) < 0, "Earlier should be less than later");
+    assertTrue(comp.compare(later, earlier) > 0, "Later should be greater than earlier");
   }
 
   @Test
-  public void testDifferingMicroseconds() throws ParseException {
+  public void testDifferingMicroseconds() {
     PacketHeader ph = new PacketHeader((int) JULY_26_SECONDS, 0, 0, 0);
     PcapPacket earlier = new PcapPacket(ph, EMPTY_PAYLOAD);
 
@@ -79,12 +78,12 @@ public class PcapPackerComparatorTest {
     PcapPacket later = new PcapPacket(ph2, EMPTY_PAYLOAD);
 
     PcapPacketComparator comp = new PcapPacketComparator();
-    assertTrue("Earlier should be less than later", comp.compare(earlier, later) < 0);
-    assertTrue("Later should be greater than earlier", comp.compare(later, earlier) > 0);
+    assertTrue(comp.compare(earlier, later) < 0, "Earlier should be less than later");
+    assertTrue(comp.compare(later, earlier) > 0, "Later should be greater than earlier");
   }
 
   @Test
-  public void testBothSmallDifferences() throws ParseException {
+  public void testBothSmallDifferences() {
     PacketHeader ph = new PacketHeader((int) JULY_26_SECONDS, 0, 0, 0);
     PcapPacket earlier = new PcapPacket(ph, EMPTY_PAYLOAD);
 
@@ -92,12 +91,12 @@ public class PcapPackerComparatorTest {
     PcapPacket later = new PcapPacket(ph2, EMPTY_PAYLOAD);
 
     PcapPacketComparator comp = new PcapPacketComparator();
-    assertTrue("Earlier should be less than later", comp.compare(earlier, later) < 0);
-    assertTrue("Later should be greater than earlier", comp.compare(later, earlier) > 0);
+    assertTrue(comp.compare(earlier, later) < 0, "Earlier should be less than later");
+    assertTrue(comp.compare(later, earlier) > 0, "Later should be greater than earlier");
   }
 
   @Test
-  public void testLargeDifference() throws ParseException {
+  public void testLargeDifference() {
     PacketHeader ph = new PacketHeader((int) JULY_26_SECONDS, 0, 0, 0);
     PcapPacket earlier = new PcapPacket(ph, EMPTY_PAYLOAD);
 
@@ -105,7 +104,7 @@ public class PcapPackerComparatorTest {
     PcapPacket later = new PcapPacket(ph2, EMPTY_PAYLOAD);
 
     PcapPacketComparator comp = new PcapPacketComparator();
-    assertTrue("Earlier should be less than later", comp.compare(earlier, later) < 0);
-    assertTrue("Later should be greater than earlier", comp.compare(later, earlier) > 0);
+    assertTrue(comp.compare(earlier, later) < 0, "Earlier should be less than later");
+    assertTrue(comp.compare(later, earlier) > 0, "Later should be greater than earlier");
   }
 }

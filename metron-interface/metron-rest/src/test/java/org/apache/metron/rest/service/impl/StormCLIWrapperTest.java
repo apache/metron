@@ -20,9 +20,7 @@ package org.apache.metron.rest.service.impl;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -36,29 +34,23 @@ import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 @SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})
 public class StormCLIWrapperTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   private ProcessBuilder processBuilder;
   private Environment environment;
   private Process process;
   private StormCLIWrapper stormCLIWrapper;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     processBuilder = mock(ProcessBuilder.class);
     environment = mock(Environment.class);
     process = mock(Process.class);
@@ -238,22 +230,18 @@ public class StormCLIWrapperTest {
 
   @Test
   public void runCommandShouldReturnRestExceptionOnError() throws Exception {
-    exception.expect(RestException.class);
-
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
     when(processBuilder.start()).thenThrow(new IOException());
 
-    stormCLIWrapper.runCommand(new String[]{"storm", "kill"});
+    assertThrows(RestException.class, () -> stormCLIWrapper.runCommand(new String[]{"storm", "kill"}));
   }
 
   @Test
   public void stormClientVersionInstalledShouldReturnRestExceptionOnError() throws Exception {
-    exception.expect(RestException.class);
-
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
     when(processBuilder.start()).thenThrow(new IOException());
 
-    stormCLIWrapper.stormClientVersionInstalled();
+    assertThrows(RestException.class, () -> stormCLIWrapper.stormClientVersionInstalled());
   }
 
   @Test

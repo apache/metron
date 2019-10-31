@@ -21,14 +21,20 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.metron.stellar.dsl.Context;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 @RunWith(Parameterized.class)
 public class FileSystemFunctionsTest {
@@ -79,7 +85,7 @@ public class FileSystemFunctionsTest {
   }
 
   @BeforeEach
-  public void setup() throws IOException {
+  public void setup() {
     if(type == FileSystemFunctions.FS_TYPE.HDFS) {
       prefix=hdfsPrefix;
       fsGetter = () -> hdfsCluster.getFileSystem();

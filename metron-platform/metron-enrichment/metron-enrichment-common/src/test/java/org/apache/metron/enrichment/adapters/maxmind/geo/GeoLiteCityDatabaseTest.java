@@ -32,6 +32,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -46,6 +47,7 @@ import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTE
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+@EnableRuleMigrationSupport
 public class GeoLiteCityDatabaseTest {
 
   private static Context context;

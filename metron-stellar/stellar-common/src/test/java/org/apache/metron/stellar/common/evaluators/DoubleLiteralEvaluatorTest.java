@@ -20,19 +20,14 @@ package org.apache.metron.stellar.common.evaluators;
 
 import org.apache.metron.stellar.common.generated.StellarParser;
 import org.apache.metron.stellar.dsl.Token;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class DoubleLiteralEvaluatorTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   NumberEvaluator<StellarParser.DoubleLiteralContext> evaluator;
   StellarParser.DoubleLiteralContext context;
 
@@ -61,9 +56,6 @@ public class DoubleLiteralEvaluatorTest {
 
   @Test
   public void throwIllegalArgumentExceptionWhenContextIsNull() {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Cannot evaluate a context that is null.");
-
     IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(null, null));
     assertEquals("Cannot evaluate a context that is null.", e.getMessage());
   }

@@ -87,18 +87,6 @@
 			<version>${global_junit_jupiter_version}</version>
 			<scope>test</scope>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.powermock</groupId>-->
-<!--			<artifactId>powermock-module-junit4</artifactId>-->
-<!--			<version>${global_powermock_version}</version>-->
-<!--			<scope>test</scope>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.powermock</groupId>-->
-<!--			<artifactId>powermock-api-mockito</artifactId>-->
-<!--			<version>${global_powermock_version}</version>-->
-<!--			<scope>test</scope>-->
-<!--		</dependency>-->
 		<dependency>
 			<groupId>org.adrianwalker</groupId>
 			<artifactId>multiline-string</artifactId>

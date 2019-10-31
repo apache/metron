@@ -25,7 +25,6 @@ import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.metron.solr.dao.SolrDao;
@@ -45,7 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SolrSearchIntegrationTest extends SearchIntegrationTest {
   private static SolrComponent solrComponent;
@@ -141,10 +140,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
       assertEquals(FieldType.TEXT, fieldTypes.get("ttl"));
 
       // Field only present in Snort
-      assertEquals(null, fieldTypes.get("dgmlen"));
+      assertNull(fieldTypes.get("dgmlen"));
 
       // Field that doesn't exist
-      assertEquals(null, fieldTypes.get("fake.field"));
+      assertNull(fieldTypes.get("fake.field"));
     }
     // getColumnMetadata with only snort
     {
@@ -177,10 +176,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
       assertEquals(FieldType.INTEGER, fieldTypes.get("ttl"));
 
       // Field only present in Bro
-      assertEquals(null, fieldTypes.get("username"));
+      assertNull(fieldTypes.get("username"));
 
       // Field that doesn't exist
-      assertEquals(null, fieldTypes.get("fake.field"));
+      assertNull(fieldTypes.get("fake.field"));
     }
   }
 
@@ -222,14 +221,14 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     assertEquals(FieldType.OTHER, fieldTypes.get("ttl"));
 
     // Field that doesn't exist
-    assertEquals(null, fieldTypes.get("fake.field"));
+    assertNull(fieldTypes.get("fake.field"));
   }
 
   @Test
+  @Override
   public void different_type_filter_query() throws Exception {
-    thrown.expect(InvalidSearchException.class);
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFilterQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    assertThrows(InvalidSearchException.class, () -> dao.search(request));
   }
 
   @Override

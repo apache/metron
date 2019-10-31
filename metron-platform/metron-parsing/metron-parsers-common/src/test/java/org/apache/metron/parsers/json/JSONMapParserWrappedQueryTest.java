@@ -84,13 +84,13 @@ public class JSONMapParserWrappedQueryTest {
 
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testInvalidJSONPathThrows() {
     JSONMapParser parser = new JSONMapParser();
     parser.configure(new HashMap<String, Object>() {{
       put(JSONMapParser.JSONP_QUERY, "$$..$$SDSE$#$#.");
     }});
-    List<JSONObject> output = parser.parse(JSON_LIST.getBytes(StandardCharsets.UTF_8));
+    assertThrows(IllegalStateException.class, () -> parser.parse(JSON_LIST.getBytes(StandardCharsets.UTF_8)));
 
   }
 
@@ -141,14 +141,14 @@ public class JSONMapParserWrappedQueryTest {
     assertTrue(message.get("timestamp") instanceof Number);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testCollectionHandlingError() {
     JSONMapParser parser = new JSONMapParser();
     parser.configure(ImmutableMap
         .of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ERROR.name(),
             JSONMapParser.JSONP_QUERY, "$.foo"));
     UnitTestHelper.setLog4jLevel(BasicParser.class, Level.FATAL);
-    parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
+    assertThrows(IllegalStateException.class, () -> parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8)));
     UnitTestHelper.setLog4jLevel(BasicParser.class, Level.ERROR);
   }
 

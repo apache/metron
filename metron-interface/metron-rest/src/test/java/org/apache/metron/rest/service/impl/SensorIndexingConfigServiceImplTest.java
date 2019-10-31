@@ -33,10 +33,8 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -47,9 +45,6 @@ import static org.mockito.Mockito.*;
 
 @SuppressWarnings("ALL")
 public class SensorIndexingConfigServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   ObjectMapper objectMapper;
   CuratorFramework curatorFramework;
   SensorIndexingConfigService sensorIndexingConfigService;
@@ -88,14 +83,12 @@ public class SensorIndexingConfigServiceImplTest {
 
   @Test
   public void deleteShouldProperlyCatchNonNoNodeExceptionAndThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-
     DeleteBuilder builder = mock(DeleteBuilder.class);
 
     when(curatorFramework.delete()).thenReturn(builder);
     when(builder.forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro")).thenThrow(Exception.class);
 
-    assertFalse(sensorIndexingConfigService.delete("bro"));
+    assertThrows(RestException.class, () -> sensorIndexingConfigService.delete("bro"));
   }
 
   @Test
@@ -247,15 +240,13 @@ public class SensorIndexingConfigServiceImplTest {
 
   @Test
   public void saveShouldWrapExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
     when(setDataBuilder.forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro", broJson.getBytes(
         StandardCharsets.UTF_8))).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
-    sensorIndexingConfigService.save("bro", new HashMap<>());
+    assertThrows(RestException.class, () -> sensorIndexingConfigService.save("bro", new HashMap<>()));
   }
 
   @Test

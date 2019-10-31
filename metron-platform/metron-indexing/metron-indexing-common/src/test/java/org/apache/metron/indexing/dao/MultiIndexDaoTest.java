@@ -21,24 +21,18 @@ package org.apache.metron.indexing.dao;
 import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class MultiIndexDaoTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   private MultiIndexDao multiIndexDao;
   private IndexDao dao1;
   private IndexDao dao2;
@@ -66,12 +60,12 @@ public class MultiIndexDaoTest {
     verify(dao2).update(eq(document1), eq(Optional.of("bro")));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void shouldThrowExceptionWithPartialFailureOnUpdate() throws IOException {
     // dao2 will throw an exception causing the 'partial failure'
     when(dao2.update(any(), any())).thenThrow(new IllegalStateException());
 
-    multiIndexDao.update(document1, Optional.of("bro"));
+    assertThrows(IOException.class, () -> multiIndexDao.update(document1, Optional.of("bro")));
   }
 
   @Test
@@ -89,7 +83,7 @@ public class MultiIndexDaoTest {
     verify(dao2).batchUpdate(eq(updates));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void shouldThrowExceptionWithPartialFailureOnBatchUpdate() throws IOException {
     // dao2 will throw an exception causing the 'partial failure'
     when(dao2.batchUpdate(any())).thenThrow(new IllegalStateException());
@@ -99,7 +93,7 @@ public class MultiIndexDaoTest {
       put(document2, Optional.of("bro"));
     }};
 
-    multiIndexDao.batchUpdate(updates);
+    assertThrows(IOException.class, () -> multiIndexDao.batchUpdate(updates));
   }
 
   @Test
@@ -126,7 +120,7 @@ public class MultiIndexDaoTest {
     assertEquals(expected, multiIndexDao.addCommentToAlert(request, latest));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void shouldThrowExceptionWithPartialFailureOnAddComment() throws Exception {
     Document latest = mock(Document.class);
     CommentAddRemoveRequest request = new CommentAddRemoveRequest();
@@ -136,7 +130,7 @@ public class MultiIndexDaoTest {
     when(dao1.addCommentToAlert(request, latest)).thenReturn(document1);
     when(dao2.addCommentToAlert(request, latest)).thenThrow(new IllegalStateException());
 
-    multiIndexDao.addCommentToAlert(request, latest);
+    assertThrows(IOException.class, () -> multiIndexDao.addCommentToAlert(request, latest));
   }
 
   @Test
@@ -152,7 +146,7 @@ public class MultiIndexDaoTest {
     assertEquals(expected, multiIndexDao.removeCommentFromAlert(request, latest));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void shouldThrowExceptionWithPartialFailureOnRemoveComment() throws Exception {
     Document latest = mock(Document.class);
     CommentAddRemoveRequest request = new CommentAddRemoveRequest();
@@ -162,12 +156,12 @@ public class MultiIndexDaoTest {
     when(dao1.removeCommentFromAlert(request, latest)).thenReturn(document1);
     when(dao2.removeCommentFromAlert(request, latest)).thenThrow(new IllegalStateException());
 
-    multiIndexDao.removeCommentFromAlert(request, latest);
+    assertThrows(IOException.class, () -> multiIndexDao.removeCommentFromAlert(request, latest));
   }
 
   @Test
   public void shouldGetColumnMetadata() throws Exception {
-    List<String> indices = Arrays.asList("bro");
+    List<String> indices = Collections.singletonList("bro");
 
     Map<String, FieldType> expected = new HashMap<String, FieldType>() {{
       put("bro", FieldType.TEXT);
@@ -182,7 +176,7 @@ public class MultiIndexDaoTest {
 
   @Test
   public void shouldGetColumnMetadataWithNulls() throws Exception {
-    List<String> indices = Arrays.asList("bro");
+    List<String> indices = Collections.singletonList("bro");
 
     // both 'backing' DAOs respond with null
     when(dao1.getColumnMetadata(eq(indices))).thenReturn(null);

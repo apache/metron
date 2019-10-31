@@ -28,14 +28,15 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
+@EnableRuleMigrationSupport
 public class MaxmindDbEnrichmentLoaderTest {
   private class MockMaxmindDbEnrichmentLoader extends MaxmindDbEnrichmentLoader {
     @Override
@@ -118,9 +119,6 @@ public class MaxmindDbEnrichmentLoaderTest {
     assertTrue(fs.exists(new Path(remoteDir + "/" + dbFile.getName())));
   }
 
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-
   @Test
   public void loader_throws_exception_on_bad_gzip_file() throws Exception {
     File dbFile = new File(remoteDir.getAbsolutePath() + "/MaxmindDbEnrichmentLoaderTest.mmdb");
@@ -128,10 +126,9 @@ public class MaxmindDbEnrichmentLoaderTest {
 
     String geoUrl = "file://" + dbFile.getAbsolutePath();
     int numRetries = 2;
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("Unable to download geo enrichment database.");
     MaxmindDbEnrichmentLoader loader = new MockMaxmindDbEnrichmentLoader();
-    loader.downloadGeoFile(geoUrl, tmpDir.getAbsolutePath(), numRetries);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> loader.downloadGeoFile(geoUrl, tmpDir.getAbsolutePath(), numRetries));
+    assertEquals("Unable to download geo enrichment database.", e.getMessage());
   }
 
 }

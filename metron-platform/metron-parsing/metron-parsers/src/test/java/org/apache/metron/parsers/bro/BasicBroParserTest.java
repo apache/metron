@@ -36,8 +36,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicBroParserTest {
 	private BasicBroParser broParser = new BasicBroParser();
@@ -97,7 +96,7 @@ public class BasicBroParserTest {
 	 * }
 	 */
 	@Multiline
-	public final static String unwrappedBroMessage;
+	public static String unwrappedBroMessage;
 
 	@Test
 	public void testUnwrappedBroMessage() throws ParseException {
@@ -148,7 +147,7 @@ public class BasicBroParserTest {
 	 * }
 	 */
         @Multiline
-	public final static String httpBroMessage;
+	public static String httpBroMessage;
 
 	@SuppressWarnings("rawtypes")
 	@Test
@@ -262,7 +261,7 @@ public class BasicBroParserTest {
          * }
 	 */
 	@Multiline
-	public final static String httpBroDecimalMessage;
+	public static String httpBroDecimalMessage;
 
 	@SuppressWarnings("rawtypes")
 	@Test
@@ -320,7 +319,7 @@ public class BasicBroParserTest {
          * }
 	 */
 	@Multiline
-	public final static String dnsBroMessage;
+	public static String dnsBroMessage;
 
 	@SuppressWarnings("rawtypes")
 	@Test
@@ -369,7 +368,7 @@ public class BasicBroParserTest {
          * }
 	 */
 	@Multiline
-	public final static String filesBroMessage;
+	public static String filesBroMessage;
 
 	@SuppressWarnings("rawtypes")
 	@Test
@@ -419,7 +418,7 @@ public class BasicBroParserTest {
          * }
 	 */
 	@Multiline
-	public final static String connBroMessage;
+	public static String connBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -471,7 +470,7 @@ public class BasicBroParserTest {
          * }
 	 */
         @Multiline
-	public final static String dpdBroMessage;
+	public static String dpdBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -519,7 +518,7 @@ public class BasicBroParserTest {
          * }
 	 */
         @Multiline
-	public final static String ftpBroMessage;
+    public static String ftpBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -564,7 +563,7 @@ public class BasicBroParserTest {
          * }
 	 */
 	@Multiline
-	public final static String knownCertsBroMessage;
+    public static String knownCertsBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -609,7 +608,7 @@ public class BasicBroParserTest {
          * }
 	 */
 	@Multiline
-	public final static String smtpBroMessage;
+    public static String smtpBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -662,7 +661,7 @@ public class BasicBroParserTest {
          * }
 	 */
 	@Multiline
-	public final static String sslBroMessage;
+    public static String sslBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -711,7 +710,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String weirdBroMessage;
+    public static String weirdBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -762,7 +761,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String noticeBroMessage;
+    public static String noticeBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -814,7 +813,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String dhcpBroMessage;
+    public static String dhcpBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -864,7 +863,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String sshBroMessage;
+    public static String sshBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -913,7 +912,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String softwareBroMessage;
+    public static String softwareBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -954,7 +953,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String softwareBroMessage2;
+    public static String softwareBroMessage2;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -994,7 +993,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String radiusBroMessageFailed;
+    public static String radiusBroMessageFailed;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -1035,7 +1034,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String radiusBroMessageSuccess;
+    public static String radiusBroMessageSuccess;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -1082,7 +1081,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String x509BroMessage;
+    public static String x509BroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -1125,7 +1124,7 @@ public class BasicBroParserTest {
          * }
 	 */
 	@Multiline
-	public final static String knownDevicesBroMessage;
+    public static String knownDevicesBroMessage;
 
         @SuppressWarnings("rawtypes")
 	@Test
@@ -1170,7 +1169,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String rfbBroMessage;
+    public static String rfbBroMessage;
 
         @SuppressWarnings("rawtypes")
         @Test
@@ -1232,7 +1231,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String statsBroMessage;
+    public static String statsBroMessage;
 
         @SuppressWarnings("rawtypes")
         @Test
@@ -1285,7 +1284,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String captureLossBroMessage;
+    public static String captureLossBroMessage;
 
         @SuppressWarnings("rawtypes")
         @Test
@@ -1337,7 +1336,7 @@ public class BasicBroParserTest {
          * }
          */
         @Multiline
-        public final static String sipBroMessage;
+    public static String sipBroMessage;
 
         @SuppressWarnings("rawtypes")
         @Test
@@ -1400,7 +1399,7 @@ public class BasicBroParserTest {
 	 * }
 	 */
 	@Multiline
-	public final static String protocolKeyCleanedUp;
+    public static String protocolKeyCleanedUp;
 
 	@SuppressWarnings("rawtypes")
 	@Test
@@ -1420,14 +1419,14 @@ public class BasicBroParserTest {
 		assertTrue(broJson.get("original_string").toString().startsWith("HTTP"));
 	}
 
-	@Test(expected=IllegalStateException.class)
-	public void testBadMessage()  throws ParseException {
-		broParser.parse("{ \"foo\" : \"bar\"}".getBytes(StandardCharsets.UTF_8));
+	@Test
+	public void testBadMessage() {
+		assertThrows(IllegalStateException.class, () -> broParser.parse("{ \"foo\" : \"bar\"}".getBytes(StandardCharsets.UTF_8)));
 	}
 
-	@Test(expected=IllegalStateException.class)
+	@Test
 	public void testBadMessageNonJson() {
-		broParser.parse("foo bar".getBytes(StandardCharsets.UTF_8));
+		assertThrows(IllegalStateException.class, () -> broParser.parse("foo bar".getBytes(StandardCharsets.UTF_8)));
 	}
 
   @Test

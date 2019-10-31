@@ -26,22 +26,25 @@ import org.apache.metron.common.writer.BulkMessage;
 import org.apache.metron.enrichment.integration.utils.SampleUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrInputDocument;
-import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 
 public class SolrWriterTest {
 
-  static class CollectionRequestMatcher extends ArgumentMatcher<QueryRequest> {
+  static class CollectionRequestMatcher implements ArgumentMatcher<QueryRequest> {
 
     private String name;
 
@@ -50,19 +53,17 @@ public class SolrWriterTest {
     }
 
     @Override
-    public boolean matches(Object o) {
-      QueryRequest queryRequest = (QueryRequest) o;
+    public boolean matches(QueryRequest queryRequest) {
       return name.equals(queryRequest.getParams().get("action"));
     }
 
     @Override
-    public void describeTo(Description description) {
-      description.appendText(name);
+    public String toString() {
+        return name;
     }
   }
 
-  static class SolrInputDocumentMatcher extends ArgumentMatcher<Collection<SolrInputDocument>> {
-
+  static class SolrInputDocumentMatcher implements ArgumentMatcher<List<SolrInputDocument>> {
 
     List<Map<String, Object>> expectedDocs;
 
@@ -71,8 +72,7 @@ public class SolrWriterTest {
     }
 
     @Override
-    public boolean matches(Object o) {
-      List<SolrInputDocument> docs = (List<SolrInputDocument>)o;
+    public boolean matches(List<SolrInputDocument> docs) {
       int size = docs.size();
       if(size != expectedDocs.size()) {
         return false;
@@ -90,8 +90,8 @@ public class SolrWriterTest {
     }
 
     @Override
-    public void describeTo(Description description) {
-      description.appendText(expectedDocs.toString());
+    public String toString() {
+        return expectedDocs.toString();
     }
 
   }
@@ -146,11 +146,13 @@ public class SolrWriterTest {
                     , String.class));
   }
 
-  @Test(expected=IllegalArgumentException.class)
+  @Test
   public void configTest_zookeeperQuorumUnpecified() {
-    SolrWriter.SolrProperties.ZOOKEEPER_QUORUM.coerceOrDefaultOrExcept(
-                    new HashMap<>()
-                    , String.class);
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            SolrWriter.SolrProperties.ZOOKEEPER_QUORUM.coerceOrDefaultOrExcept(
+                new HashMap<>(), String.class));
   }
 
 

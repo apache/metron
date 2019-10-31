@@ -26,10 +26,8 @@ import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.apache.metron.stellar.dsl.*;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
-import org.junit.Rule;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.*;
 
@@ -1111,9 +1109,6 @@ public class BasicStellarTest {
 
     assertTrue(runPredicate("( RET_TRUE('foo', true, false) or ( foo == null or THROW('exception') ) or THROW('and exception')) or THROW('or exception')", new DefaultVariableResolver(x -> null,x -> false)));
   }
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void non_boolean_predicate_throws_exception() {

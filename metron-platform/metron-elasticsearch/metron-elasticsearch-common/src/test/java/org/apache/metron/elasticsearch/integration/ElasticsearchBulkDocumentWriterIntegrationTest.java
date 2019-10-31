@@ -33,28 +33,16 @@ import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.json.simple.JSONObject;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.ClassRule;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
@@ -128,7 +116,7 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
         // ensure the documents were written
         for(Document expected: documents) {
             Document actual = retrieveDao.getLatest(expected.getGuid(), expected.getSensorType());
-            assertNotNull("No document found", actual);
+            assertNotNull(actual, "No document found");
             assertEquals(expected.getGuid(), actual.getGuid());
             assertEquals(expected.getSensorType(), actual.getSensorType());
             assertEquals(expected.getDocument(), actual.getDocument());

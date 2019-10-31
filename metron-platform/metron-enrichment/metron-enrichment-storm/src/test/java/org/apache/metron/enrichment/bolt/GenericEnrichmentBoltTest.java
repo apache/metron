@@ -17,22 +17,7 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.google.common.collect.ImmutableMap;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.TestConstants;
@@ -48,7 +33,6 @@ import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.tuple.Values;
-import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -58,12 +42,25 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
 
   private static final String sampleConfigPath = "../" + TestConstants.SAMPLE_CONFIG_PATH;
   private static final String enrichmentConfigPath = "../" + sampleSensorEnrichmentConfigPath;
 
-  protected class EnrichedMessageMatcher extends ArgumentMatcher<Values> {
+  protected class EnrichedMessageMatcher implements ArgumentMatcher<Values> {
 
     private String expectedKey;
     private JSONObject expectedMessage;
@@ -74,8 +71,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     }
 
     @Override
-    public boolean matches(Object o) {
-      Values values = (Values) o;
+    public boolean matches(Values values) {
       String actualKey = (String) values.get(0);
       JSONObject actualMessage = (JSONObject) values.get(1);
       removeTimingFields(actualMessage);
@@ -83,8 +79,8 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     }
 
     @Override
-    public void describeTo(Description description) {
-      description.appendText(String.format("[%s]", expectedMessage));
+    public String toString() {
+      return String.format("[%s]", expectedMessage);
     }
 
   }

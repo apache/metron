@@ -20,19 +20,14 @@ package org.apache.metron.stellar.common.evaluators;
 
 import org.apache.metron.stellar.common.generated.StellarParser;
 import org.apache.metron.stellar.dsl.Token;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class IntLiteralEvaluatorTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   NumberEvaluator<StellarParser.IntLiteralContext> evaluator;
   StellarParser.IntLiteralContext context;
 

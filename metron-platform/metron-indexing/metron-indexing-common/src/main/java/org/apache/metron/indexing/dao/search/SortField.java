@@ -17,6 +17,8 @@
  */
 package org.apache.metron.indexing.dao.search;
 
+import java.util.Objects;
+
 public class SortField {
   private String field;
   private SortOrder sortOrder;
@@ -35,6 +37,11 @@ public class SortField {
 
   public void setSortOrder(String sortOrder) {
     this.sortOrder = SortOrder.fromString(sortOrder);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(field, sortOrder);
   }
 
   @Override

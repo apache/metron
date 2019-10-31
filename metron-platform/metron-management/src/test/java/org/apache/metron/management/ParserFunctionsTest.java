@@ -242,10 +242,9 @@ public class ParserFunctionsTest {
     assertEquals(expected, actual);
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testInitFromInvalidValue() {
-    execute("PARSER_INIT('bro', 22)", StellarParserRunner.class);
-    fail("expected exception");
+    assertThrows(ParseException.class, () -> execute("PARSER_INIT('bro', 22)", StellarParserRunner.class));
   }
 
   @Test
@@ -263,14 +262,13 @@ public class ParserFunctionsTest {
     assertEquals(expected, actual);
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testInitMissingFromZookeeper() throws Exception {
     // there is no config for 'bro' in zookeeper
     CuratorFramework zkClient = zkClientMissingPath("/metron/topology/parsers/bro");
     context.addCapability(Context.Capabilities.ZOOKEEPER_CLIENT, () -> zkClient);
 
-    execute("PARSER_INIT('bro')", StellarParserRunner.class);
-    fail("expected exception");
+    assertThrows(ParseException.class, () -> execute("PARSER_INIT('bro')", StellarParserRunner.class));
   }
 
   /**

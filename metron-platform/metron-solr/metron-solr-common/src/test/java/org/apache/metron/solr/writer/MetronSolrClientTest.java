@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
 
 public class MetronSolrClientTest {
 
-  static class CollectionRequestMatcher extends ArgumentMatcher<QueryRequest> {
+  static class CollectionRequestMatcher implements ArgumentMatcher<QueryRequest> {
 
     private String name;
 
@@ -44,14 +44,13 @@ public class MetronSolrClientTest {
     }
 
     @Override
-    public boolean matches(Object o) {
-      QueryRequest queryRequest = (QueryRequest) o;
+    public boolean matches(QueryRequest queryRequest) {
       return name.equals(queryRequest.getParams().get("action"));
     }
 
     @Override
-    public void describeTo(Description description) {
-      description.appendText(name);
+    public String toString() {
+        return name;
     }
   }
 

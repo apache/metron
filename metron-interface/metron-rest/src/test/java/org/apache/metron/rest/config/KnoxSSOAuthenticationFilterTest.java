@@ -27,12 +27,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.rest.security.SecurityUtils;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.query.LdapQuery;
@@ -55,37 +50,22 @@ import java.util.Date;
 
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({KnoxSSOAuthenticationFilter.class, SignedJWT.class, SecurityContextHolder.class, SecurityUtils.class, RSASSAVerifier.class})
 public class KnoxSSOAuthenticationFilterTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Test
   public void shouldThrowExceptionOnMissingLdapTemplate() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("KnoxSSO requires LDAP. You must add 'ldap' to the active profiles.");
-
-    new KnoxSSOAuthenticationFilter("userSearchBase",
-            mock(Path.class),
-            "knoxKeyString",
-            "knoxCookie",
-            null
-            );
+    IllegalStateException e =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                new KnoxSSOAuthenticationFilter(
+                    "userSearchBase", mock(Path.class), "knoxKeyString", "knoxCookie", null));
+    assertEquals("KnoxSSO requires LDAP. You must add 'ldap' to the active profiles.", e.getMessage());
   }
 
   @Test

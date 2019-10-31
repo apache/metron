@@ -31,8 +31,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LoadOptionsTest {
   @Test
@@ -90,8 +89,8 @@ public class LoadOptionsTest {
     assertEquals(template, templates.get(0));
   }
 
-  @Test(expected=IllegalStateException.class)
+  @Test
   public void testTemplateMissing() {
-    LoadOptions.createConfig(LoadOptions.parse(new PosixParser(), new String[]{"-t", "target/template2"}));
+    assertThrows(IllegalStateException.class, () -> LoadOptions.createConfig(LoadOptions.parse(new PosixParser(), new String[]{"-t", "target/template2"})));
   }
 }

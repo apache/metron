@@ -18,10 +18,9 @@
 package org.apache.metron.solr.matcher;
 
 import org.apache.solr.common.SolrInputDocument;
-import org.hamcrest.Description;
 import org.mockito.ArgumentMatcher;
 
-public class SolrInputDocumentMatcher extends ArgumentMatcher<SolrInputDocument> {
+public class SolrInputDocumentMatcher implements ArgumentMatcher<SolrInputDocument> {
 
   private SolrInputDocument expectedSolrInputDocument;
 
@@ -30,8 +29,7 @@ public class SolrInputDocumentMatcher extends ArgumentMatcher<SolrInputDocument>
   }
 
   @Override
-  public boolean matches(Object o) {
-    SolrInputDocument solrInputDocument = (SolrInputDocument) o;
+  public boolean matches(SolrInputDocument solrInputDocument) {
     for(String field: solrInputDocument.getFieldNames()) {
       Object expectedValue = expectedSolrInputDocument.getField(field).getValue();
       Object value = solrInputDocument.getField(field).getValue();
@@ -44,7 +42,7 @@ public class SolrInputDocumentMatcher extends ArgumentMatcher<SolrInputDocument>
   }
 
   @Override
-  public void describeTo(Description description) {
-    description.appendValue(expectedSolrInputDocument);
+  public String toString() {
+    return expectedSolrInputDocument.toString();
   }
 }

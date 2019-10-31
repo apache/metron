@@ -22,18 +22,14 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.metron.stellar.common.generated.StellarParser;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Token;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"unchecked"})
 public class ComparisonExpressionWithOperatorEvaluatorTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   final ComparisonExpressionWithOperatorEvaluator evaluator = ComparisonExpressionWithOperatorEvaluator.INSTANCE;
 
   @Test
@@ -86,9 +82,6 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
 
   @Test
   public void unexpectedOperatorShouldThrowException() {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operations. The following expression is invalid: ");
-
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(0D);
 

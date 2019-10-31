@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -76,8 +77,8 @@ public class ElasticsearchRequestSubmitterTest {
     assertNotNull(actual);
   }
 
-  @Test(expected = InvalidSearchException.class)
-  public void searchShouldFailWhenNotOK() throws InvalidSearchException, IOException {
+  @Test
+  public void searchShouldFailWhenNotOK() throws IOException {
 
     // mocks
     SearchResponse response = mock(SearchResponse.class);
@@ -90,7 +91,7 @@ public class ElasticsearchRequestSubmitterTest {
 
     // search should succeed
     ElasticsearchRequestSubmitter submitter = setup(response);
-    submitter.submitSearch(request);
+    assertThrows(IllegalArgumentException.class, () -> submitter.submitSearch(request));
   }
 
   @Test

@@ -34,13 +34,8 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,13 +47,9 @@ import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ParserRunnerImpl.class, ReflectionUtils.class, Filters.class})
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest({ParserRunnerImpl.class, ReflectionUtils.class, Filters.class})
 public class ParserRunnerImplTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   /**
    {
    "fieldValidations" : [
@@ -135,46 +126,39 @@ public class ParserRunnerImplTest {
 
   @Test
   public void shouldThrowExceptionOnEmptyParserSupplier() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("A parser config supplier must be set before initializing the ParserRunner.");
-
-    parserRunner.init(null, null);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> parserRunner.init(null, null));
+    assertEquals("A parser config supplier must be set before initializing the ParserRunner.", e.getMessage());
   }
 
   @Test
   public void shouldThrowExceptionOnEmptyStellarContext() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("A stellar context must be set before initializing the ParserRunner.");
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> parserRunner.init(() -> parserConfigurations, null));
+    assertEquals("A stellar context must be set before initializing the ParserRunner.", e.getMessage());
 
-    parserRunner.init(() -> parserConfigurations, null);
   }
 
   @Test
   public void initShouldThrowExceptionOnMissingSensorParserConfig() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("Could not initialize parsers.  Cannot find configuration for sensor test.");
-
     parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
       add("test");
     }});
 
-    parserRunner.init(() -> parserConfigurations, mock(Context.class));
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> parserRunner.init(() -> parserConfigurations, mock(Context.class)));
+    assertEquals("Could not initialize parsers.  Cannot find configuration for sensor test.", e.getMessage());
   }
 
   @Test
   public void executeShouldThrowExceptionOnMissingSensorParserConfig() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("Could not execute parser.  Cannot find configuration for sensor test.");
-
     parserRunner = new ParserRunnerImpl(new HashSet<String>() {{
       add("test");
     }});
 
-    parserRunner.execute("test", mock(RawMessage.class), parserConfigurations);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> parserRunner.execute("test", mock(RawMessage.class), parserConfigurations));
+    assertEquals("Could not initialize parsers.  Cannot find configuration for sensor test.", e.getMessage());
   }
 
   @Test
-  public void shouldInit() throws Exception {
+  public void shouldInit() {
     Context stellarContext = mock(Context.class);
     Map<String, Object> broParserConfig = parserConfigurations.getSensorParserConfig("bro").getParserConfig();
     Map<String, Object> snortParserConfig = parserConfigurations.getSensorParserConfig("snort").getParserConfig();

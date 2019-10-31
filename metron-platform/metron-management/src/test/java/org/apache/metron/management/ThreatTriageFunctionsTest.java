@@ -170,14 +170,14 @@ public class ThreatTriageFunctionsTest {
     assertEquals("20", greater.getScoreExpression());
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void testAddMalformed() {
-    Object o = run(
-            "THREAT_TRIAGE_ADD(config, { 'rule': SHELL_GET_EXPRESSION('foo'), 'score' : 10 } )"
-            , toMap("config", configStr
-            )
-    );
-    assertEquals(configStr, o);
+    assertThrows(
+        ParseException.class,
+        () ->
+            run(
+                "THREAT_TRIAGE_ADD(config, { 'rule': SHELL_GET_EXPRESSION('foo'), 'score' : 10 } )",
+                toMap("config", configStr)));
   }
 
   @Test
@@ -395,13 +395,12 @@ Aggregation: MAX*/
     assertEquals(testPrintEmptyExpected, out);
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testPrintNull() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config", null);
     }};
-    String out = (String) run("THREAT_TRIAGE_PRINT(config)", variables);
-    assertEquals(out, testPrintEmptyExpected);
+    assertThrows(ParseException.class, () -> run("THREAT_TRIAGE_PRINT(config)", variables));
   }
 
   /**
@@ -444,9 +443,9 @@ Aggregation: MAX*/
     assertEquals(1, engine.getRiskLevelRules().size());
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testTriageInitWithBadArg() {
-    run("THREAT_TRIAGE_INIT(missing)");
+      assertThrows(ParseException.class, () -> run("THREAT_TRIAGE_INIT(missing)"));
   }
 
   @Test
@@ -540,7 +539,7 @@ Aggregation: MAX*/
     assertEquals("MAX", score.get(ThreatTriageFunctions.AGG_KEY));
   }
 
-  @Test(expected = Exception.class)
+  @Test
   public void testTriageScoreWithNoMessage() {
 
     // add a triage rule
@@ -555,7 +554,7 @@ Aggregation: MAX*/
     vars.put("engine", engine);
 
     // score the message
-    run("THREAT_TRIAGE_SCORE(11, engine)", vars);
+    assertThrows(Exception.class, () -> run("THREAT_TRIAGE_SCORE(11, engine)", vars));
   }
 
   @Test

@@ -60,7 +60,7 @@ public class IndexingCacheUtilTest {
     when(indexingConfigs.getSensorIndexingConfig("bro")).thenReturn(broIndexingConfig);
     when(cache.get(IndexingConfigurations.class)).thenReturn(indexingConfigs);
 
-    assertEquals("Should default to sensor type on missing sensor config", "snort", IndexingCacheUtil.getIndexLookupFunction(cache, "writer").apply("snort"));
-    assertEquals("Should default to sensor type on missing writer config", "bro", IndexingCacheUtil.getIndexLookupFunction(cache, "someWriter").apply("bro"));
+    assertEquals("snort", IndexingCacheUtil.getIndexLookupFunction(cache, "writer").apply("snort"), "Should default to sensor type on missing sensor config");
+    assertEquals("bro", IndexingCacheUtil.getIndexLookupFunction(cache, "someWriter").apply("bro"), "Should default to sensor type on missing writer config");
   }
 }

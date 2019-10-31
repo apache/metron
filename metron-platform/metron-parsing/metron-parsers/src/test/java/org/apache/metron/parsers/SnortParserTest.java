@@ -24,26 +24,20 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.parsers.snort.BasicSnortParser;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SnortParserTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   /**
    01/27/16-16:01:04.877970 ,129,12,1,"Consecutive TCP small segments, exceeding threshold",TCP,10.0.2.2,56642,10.0.2.15,22,52:54:00:12:35:02,08:00:27:7F:93:2D,0x4E,***AP***,0x9AFF3D7,0xC8761D52,,0xFFFF,64,0,59677,64,65536,,,,
    **/
@@ -54,7 +48,7 @@ public class SnortParserTest {
   @Test
   public void testGoodMessage() {
     BasicSnortParser parser = new BasicSnortParser();
-    parser.configure(new HashMap());
+    parser.configure(Collections.emptyMap());
     Map out = parser.parse(goodMessage.getBytes(StandardCharsets.UTF_8)).get(0);
     assertEquals(out.get("msg"), "Consecutive TCP small segments, exceeding threshold");
     assertEquals(out.get("sig_rev"), "1");
@@ -87,12 +81,11 @@ public class SnortParserTest {
 
   @Test
   public void testBadMessage() {
-    thrown.expect(IllegalStateException.class);
     BasicSnortParser parser = new BasicSnortParser();
     parser.init();
     UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.FATAL);
     parser.parse("foo bar".getBytes(StandardCharsets.UTF_8));
-    UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.ERROR);
+    assertThrows(IllegalStateException.class, () -> UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.ERROR));
   }
 
   @Test
@@ -130,23 +123,22 @@ public class SnortParserTest {
 
   @Test
   public void throws_exception_on_bad_config_timezone() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(startsWith("Unable to find ZoneId"));
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("dateFormat", "MM/dd/yyyy-HH:mm:ss.SSSSSS");
     parserConfig.put("timeZone", "blahblahBADZONE");
     BasicSnortParser parser = new BasicSnortParser();
-    parser.configure(parserConfig);
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> parser.configure(parserConfig));
+    assertTrue(e.getMessage().startsWith("Unable to find ZoneId"));
   }
 
   @Test
   public void throws_exception_on_bad_config_date_format() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(startsWith("Unknown pattern letter:"));
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("dateFormat", "BADFORMAT");
     BasicSnortParser parser = new BasicSnortParser();
-    parser.configure(parserConfig);
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> parser.configure(parserConfig));
+    assertTrue(e.getMessage().startsWith("Unknown pattern letter:"));
+
   }
 
   @Test

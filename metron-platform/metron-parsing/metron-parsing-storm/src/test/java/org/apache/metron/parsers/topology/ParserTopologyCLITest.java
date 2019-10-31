@@ -38,8 +38,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ParserTopologyCLITest {
 
@@ -113,12 +112,13 @@ public class ParserTopologyCLITest {
     happyPath(false);
   }
 
-  @Test(expected=ParseException.class)
-  public void testCLI_insufficientArg() throws ParseException {
+  @Test
+  public void testCLI_insufficientArg() {
     UnitTestHelper.setLog4jLevel(Parser.class, Level.FATAL);
-    CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
-                                      .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-                                      .build(true);
+      assertThrows(ParseException.class, () ->
+              new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
+              .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
+              .build(true));
     UnitTestHelper.setLog4jLevel(Parser.class, Level.ERROR);
   }
 

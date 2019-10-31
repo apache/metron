@@ -27,6 +27,7 @@ import java.io.StringReader;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SamplerTest {
   private static final int SIMULATION_SIZE = 10000;
@@ -123,18 +124,18 @@ public class SamplerTest {
     }
   }
 
-  @Test(expected=IllegalArgumentException.class)
-  public void testDistributionRead_garbage() throws IOException {
-    BiasedSampler.readDistribution(new BufferedReader(new StringReader("blah foo")), true);
+  @Test
+  public void testDistributionRead_garbage() {
+    assertThrows(IllegalArgumentException.class, () -> BiasedSampler.readDistribution(new BufferedReader(new StringReader("blah foo")), true));
   }
 
-  @Test(expected=IllegalArgumentException.class)
-  public void testDistributionRead_negative() throws IOException {
-    BiasedSampler.readDistribution(new BufferedReader(new StringReader("80,-20")), true);
+  @Test
+  public void testDistributionRead_negative() {
+    assertThrows(IllegalArgumentException.class, () -> BiasedSampler.readDistribution(new BufferedReader(new StringReader("80,-20")), true));
   }
 
-  @Test(expected=IllegalArgumentException.class)
-  public void testDistributionRead_over100() throws IOException {
-    BiasedSampler.readDistribution(new BufferedReader(new StringReader("200,20")), true);
+  @Test
+  public void testDistributionRead_over100() {
+    assertThrows(IllegalArgumentException.class, () -> BiasedSampler.readDistribution(new BufferedReader(new StringReader("200,20")), true));
   }
 }

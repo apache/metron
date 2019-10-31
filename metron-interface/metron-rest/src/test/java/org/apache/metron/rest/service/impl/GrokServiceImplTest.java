@@ -17,17 +17,6 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import java.io.File;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import oi.thekraken.grok.api.Grok;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -36,24 +25,31 @@ import org.apache.metron.rest.model.GrokValidation;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.HdfsService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-public class GrokServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
+import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+public class GrokServiceImplTest {
   private Environment environment;
   private Grok grok;
   private HdfsService hdfsService;
   private GrokService grokService;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     environment = mock(Environment.class);
     grok = mock(Grok.class);
     hdfsService = new HdfsServiceImpl(new Configuration());
@@ -61,14 +57,14 @@ public class GrokServiceImplTest {
   }
 
   @Test
-  public void getCommonGrokPattersShouldCallGrokToGetPatterns() throws Exception {
+  public void getCommonGrokPattersShouldCallGrokToGetPatterns() {
     grokService.getCommonGrokPatterns();
 
     verify(grok).getPatterns();
   }
 
   @Test
-  public void getCommonGrokPattersShouldCallGrokToGetPatternsAndNotAlterValue() throws Exception {
+  public void getCommonGrokPattersShouldCallGrokToGetPatternsAndNotAlterValue() {
     final Map<String, String> actual = new HashMap<String, String>() {{
       put("k", "v");
       put("k1", "v1");
@@ -84,44 +80,37 @@ public class GrokServiceImplTest {
   }
 
   @Test
-  public void validateGrokStatementShouldThrowExceptionWithNullStringAsPatternLabel() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("Pattern label is required");
-
+  public void validateGrokStatementShouldThrowExceptionWithNullStringAsPatternLabel() {
     GrokValidation grokValidation = new GrokValidation();
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData("asdf asdf");
     grokValidation.setStatement("LABEL %{WORD:word1} %{WORD:word2}");
 
-    grokService.validateGrokStatement(grokValidation);
+    RestException e = assertThrows(RestException.class, () -> grokService.validateGrokStatement(grokValidation));
+    assertEquals("Pattern label is required", e.getMessage());
   }
 
   @Test
-  public void validateGrokStatementShouldThrowExceptionWithEmptyStringAsStatement() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("Grok statement is required");
-
+  public void validateGrokStatementShouldThrowExceptionWithEmptyStringAsStatement() {
     GrokValidation grokValidation = new GrokValidation();
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData("asdf asdf");
     grokValidation.setPatternLabel("LABEL");
     grokValidation.setStatement("");
 
-    grokService.validateGrokStatement(grokValidation);
+    RestException e = assertThrows(RestException.class, () -> grokService.validateGrokStatement(grokValidation));
   }
 
   @Test
   public void validateGrokStatementShouldThrowExceptionWithNullStringAsStatement() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("Grok statement is required");
-
     GrokValidation grokValidation = new GrokValidation();
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData("asdf asdf");
     grokValidation.setPatternLabel("LABEL");
     grokValidation.setStatement(null);
 
-    grokService.validateGrokStatement(grokValidation);
+    RestException e = assertThrows(RestException.class, () -> grokService.validateGrokStatement(grokValidation));
+    assertEquals("Grok statement is required", e.getMessage());
   }
 
   @Test
@@ -178,15 +167,13 @@ public class GrokServiceImplTest {
   }
 
   @Test
-  public void invalidGrokStatementShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-
+  public void invalidGrokStatementShouldThrowRestException() {
     GrokValidation grokValidation = new GrokValidation();
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData(null);
     grokValidation.setStatement("LABEL %{WORD:word1} %{WORD:word2");
 
-    grokService.validateGrokStatement(grokValidation);
+    assertThrows(RestException.class, () -> grokService.validateGrokStatement(grokValidation));
   }
 
   @Test
@@ -207,11 +194,9 @@ public class GrokServiceImplTest {
   }
 
   @Test
-  public void missingGrokStatementShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("A grokStatement must be provided");
-
-    grokService.saveTemporary(null, "squid");
+  public void missingGrokStatementShouldThrowRestException() {
+    RestException e = assertThrows(RestException.class, () -> grokService.saveTemporary(null, "squid"));
+    assertEquals("A grokStatement must be provided", e.getMessage());
   }
 
   @Test
@@ -222,10 +207,8 @@ public class GrokServiceImplTest {
   }
 
   @Test
-  public void getStatementFromClasspathShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("Could not find a statement at path /bad/path");
-
-    grokService.getStatementFromClasspath("/bad/path");
+  public void getStatementFromClasspathShouldThrowRestException() {
+    RestException e = assertThrows(RestException.class, () -> grokService.getStatementFromClasspath("/bad/path"));
+    assertEquals("Could not find a statement at path /bad/path", e.getMessage());
   }
 }

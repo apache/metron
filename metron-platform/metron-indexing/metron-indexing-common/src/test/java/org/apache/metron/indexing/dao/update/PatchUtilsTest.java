@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PatchUtilsTest {
   @Test
@@ -203,9 +204,6 @@ public class PatchUtilsTest {
 
   @Test
   public void testOperationShouldThrowExceptionOnFailedCompare() {
-    exception.expect(PatchException.class);
-    exception.expectMessage("TEST operation failed: supplied value [value1] != target value [value2]");
-
     List<Map<String, Object>> patches = new ArrayList<>();
     patches.add(new HashMap<String, Object>() {{
       put(PatchUtils.OP, PatchOperation.TEST.name());
@@ -213,42 +211,41 @@ public class PatchUtilsTest {
       put(PatchUtils.VALUE, "value1");
     }});
 
-    PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
-      put("path", "value2");
-    }});
+    PatchException e = assertThrows(PatchException.class,
+            () -> PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+              put("path", "value2"); }})
+    );
+    assertEquals("TEST operation failed: supplied value [value1] != target value [value2]", e.getMessage());
   }
 
   @Test
   public void shouldThrowExceptionOnInvalidPath() {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Invalid path: /missing/path");
-
     List<Map<String, Object>> patches = new ArrayList<>();
     patches.add(new HashMap<String, Object>() {{
       put(PatchUtils.OP, PatchOperation.REMOVE.name());
       put(PatchUtils.PATH, "/missing/path");
     }});
 
-    PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
-      put("path", "value");
-    }});
-
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+            () -> PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+              put("path", "value"); }})
+    );
+    assertEquals("Invalid path: /missing/path", e.getMessage());
   }
 
   @Test
   public void shouldThrowExceptionOnInvalidOperation() {
-    exception.expect(UnsupportedOperationException.class);
-    exception.expectMessage("The invalid operation is not supported");
-
     List<Map<String, Object>> patches = new ArrayList<>();
     patches.add(new HashMap<String, Object>() {{
       put(PatchUtils.OP, "invalid");
       put(PatchUtils.PATH, "/path");
     }});
 
-    PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
-      put("path", "value");
-    }});
+    UnsupportedOperationException e = assertThrows(UnsupportedOperationException.class,
+            () -> PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+              put("path", "value"); }})
+    );
+    assertEquals("The invalid operation is not supported", e.getMessage());
 
   }
 }

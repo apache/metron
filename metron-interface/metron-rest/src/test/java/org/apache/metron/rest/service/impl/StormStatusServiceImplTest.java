@@ -25,9 +25,7 @@ import org.apache.metron.rest.model.TopologySummary;
 import org.apache.metron.rest.service.SensorParserGroupService;
 import org.apache.metron.rest.service.StormStatusService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,9 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.apache.metron.rest.MetronRestConstants.STORM_UI_SPRING_PROPERTY;
-import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_SUMMARY_URL;
-import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_URL;
+import static org.apache.metron.rest.MetronRestConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,8 +45,6 @@ public class StormStatusServiceImplTest {
   private static final String HTTP_STORM_UI = "http://storm_ui";
   private static final String HTTPS_STORM_UI = "https://storm_ui";
   private static final String NO_PROTOCOL_STORM_UI = "storm_ui";
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
 
   Environment environment;
   RestTemplate restTemplate;

@@ -17,15 +17,6 @@
  */
 package org.apache.metron.parsers.paloalto;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThat;
-
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
@@ -33,16 +24,26 @@ import org.json.simple.parser.ParseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     parser = new BasicPaloAltoFirewallParser();
   }
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseSystem61() throws ParseException {
+  public void testParseSystem61() {
     final String SYSTEM_61 = "1,2017/08/11 12:37:58,008900008659,SYSTEM,general,1,2017/08/11 11:37:58,vsys1,eventId_test,object_test,Futureuse1_test,futureuse2_test,management,high,Description_test,1354,0x0";
 
     JSONObject actual = parser.parse(SYSTEM_61.getBytes(StandardCharsets.UTF_8)).get(0);
@@ -72,7 +73,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseSystem80() throws ParseException {
+  public void testParseSystem80() {
     final String SYSTEM_80 = "1,2017/08/11 12:37:58,008900008659,SYSTEM,general,1,2017/08/11 11:37:58,vsys1,eventId_test,object_test,Futureuse1_test,futureuse2_test,management,high,Description_test,1354,0x0,12,34,45,0,virSys1,dev-something200-01";
 
     JSONObject actual = parser.parse(SYSTEM_80.getBytes(StandardCharsets.UTF_8)).get(0);
@@ -109,7 +110,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseConfig61NoCustomFields() throws ParseException {
+  public void testParseConfig61NoCustomFields() {
     final String CONFIG_61_customFields = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config,1354,0x0";
 
     JSONObject actual = parser.parse(CONFIG_61_customFields.getBytes(StandardCharsets.UTF_8)).get(0);
@@ -142,7 +143,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseConfig61CustomFields() throws ParseException {
+  public void testParseConfig61CustomFields() {
     final String CONFIG_61_noCustomFields = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config,1354,0x0,/FatherNode/KidNode/GrandsonNode1,/FatherNode/KidNode/GrandsonNode2";
 
     JSONObject actual = parser.parse(CONFIG_61_noCustomFields.getBytes(StandardCharsets.UTF_8)).get(0);
@@ -177,7 +178,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseConfig70And80NoCustomFields() throws ParseException {
+  public void testParseConfig70And80NoCustomFields() {
     final String CONFIG_70_80_noCustomFields = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config,1354,0x0,12,34,45,0,virSys1,dev-something200-01";
 
     JSONObject actual = parser.parse(CONFIG_70_80_noCustomFields.getBytes(StandardCharsets.UTF_8)).get(0);
@@ -216,7 +217,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseConfig70And80CustomFields() throws ParseException {
+  public void testParseConfig70And80CustomFields() {
     final String CONFIG_70_80_customFields = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded,config shared log-settings config,/FatherNode/KidNode/GrandsonNode1,/FatherNode/KidNode/GrandsonNode2,1354,0x0,12,34,45,0,virSys1,dev-something200-01";
 
     JSONObject actual = parser.parse(CONFIG_70_80_customFields.getBytes(StandardCharsets.UTF_8)).get(0);
@@ -259,7 +260,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseThreat60() throws ParseException {
+  public void testParseThreat60() {
     JSONObject actual = parser.parse(THREAT_60.getBytes(StandardCharsets.UTF_8)).get(0);
 
     JSONObject expected = new JSONObject();
@@ -314,7 +315,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseTraffic60() throws ParseException {
+  public void testParseTraffic60() {
     JSONObject actual = parser.parse(TRAFFIC_60.getBytes(StandardCharsets.UTF_8)).get(0);
 
     JSONObject expected = new JSONObject();
@@ -369,7 +370,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseThreat70() throws ParseException {
+  public void testParseThreat70() {
     JSONObject actual = parser.parse(THREAT_70.getBytes(StandardCharsets.UTF_8)).get(0);
 
     JSONObject expected = new JSONObject();
@@ -430,7 +431,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseTraffic70() throws ParseException {
+  public void testParseTraffic70() {
     JSONObject actual = parser.parse(TRAFFIC_70.getBytes(StandardCharsets.UTF_8)).get(0);
 
     JSONObject expected = new JSONObject();
@@ -491,7 +492,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseTraffic71() throws ParseException {
+  public void testParseTraffic71() {
     JSONObject actual = parser.parse(TRAFFIC_71.getBytes(StandardCharsets.UTF_8)).get(0);
 
     JSONObject expected = new JSONObject();
@@ -552,7 +553,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseThreat71() throws ParseException {
+  public void testParseThreat71() {
     JSONObject actual = parser.parse(THREAT_71.getBytes(StandardCharsets.UTF_8)).get(0);
 
     JSONObject expected = new JSONObject();
@@ -612,7 +613,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseThreat80() throws ParseException {
+  public void testParseThreat80() {
     JSONObject actual = parser.parse(THREAT_80.getBytes(StandardCharsets.UTF_8)).get(0);
 
     JSONObject expected = new JSONObject();
@@ -677,7 +678,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseTraffic80() throws ParseException {
+  public void testParseTraffic80() {
     JSONObject actual = parser.parse(TRAFFIC_80.getBytes(StandardCharsets.UTF_8)).get(0);
 
     JSONObject expected = new JSONObject();
@@ -740,7 +741,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseInvalidLogTypeMessage() throws ParseException {
+  public void testParseInvalidLogTypeMessage() {
     final String unsupportedLogTypeMessage = "1,2017/08/11 12:37:58,008900008659,INVALIDlogType,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config,1354,0x0";
     List<JSONObject> actual = parser.parse(unsupportedLogTypeMessage.getBytes(
         StandardCharsets.UTF_8));
@@ -750,7 +751,7 @@ public class BasicPaloAltoFirewallParserTest extends AbstractParserConfigTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseInvalidVersionMessage() throws ParseException {
+  public void testParseInvalidVersionMessage() {
     final String invalidLengthMessage = "1,2017/08/11 12:37:58,008900008659,CONFIG,0,1,2017/08/11 11:37:58,192.168.14.162,vsys1,edit,admin,Web,Succeeded, config shared log-settings config";
 
     JSONObject actual = parser.parse(invalidLengthMessage.getBytes(StandardCharsets.UTF_8)).get(0);

@@ -17,9 +17,7 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -234,7 +232,7 @@ public class ElasticsearchDaoTest {
   }
 
 
-  @Test(expected = InvalidSearchException.class)
+  @Test
   public void searchShouldThrowExceptionWhenMaxResultsAreExceeded() throws Exception {
 
     int maxSearchResults = 20;
@@ -243,7 +241,7 @@ public class ElasticsearchDaoTest {
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setSize(maxSearchResults + 1);
     searchRequest.setQuery("");
-    dao.search(searchRequest);
+    assertThrows(InvalidSearchException.class, () -> dao.search(searchRequest));
     // exception expected - size > max
   }
 

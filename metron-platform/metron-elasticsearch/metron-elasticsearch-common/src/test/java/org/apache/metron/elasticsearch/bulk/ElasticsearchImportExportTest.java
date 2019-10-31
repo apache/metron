@@ -18,16 +18,17 @@
 
 package org.apache.metron.elasticsearch.bulk;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.integration.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ElasticsearchImportExportTest {
 

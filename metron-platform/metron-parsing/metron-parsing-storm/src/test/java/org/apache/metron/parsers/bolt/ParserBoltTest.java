@@ -36,9 +36,7 @@ import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.storm.Config;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
@@ -48,15 +46,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ParserBoltTest extends BaseBoltTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Mock
   private Tuple t1;
 
@@ -127,12 +121,18 @@ public class ParserBoltTest extends BaseBoltTest {
 
   @Test
   public void shouldThrowExceptionOnInvalidBatchTimeoutDivisor() {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("batchTimeoutDivisor must be positive. Value provided was -1");
-
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserRunner, new HashMap<String, WriterHandler>() {{
-      put("yaf", writerHandler);
-    }}).withBatchTimeoutDivisor(-1);
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new ParserBolt(
+                        "zookeeperUrl",
+                        parserRunner,
+                        new HashMap<String, WriterHandler>() {{
+                          put("yaf", writerHandler);
+                        }})
+                    .withBatchTimeoutDivisor(-1));
+    assertEquals("batchTimeoutDivisor must be positive. Value provided was -1", e.getMessage());
   }
 
   @Test
@@ -202,9 +202,6 @@ public class ParserBoltTest extends BaseBoltTest {
 
   @Test
   public void shouldThrowExceptionOnMissingConfig() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("Unable to retrieve a parser config for yaf");
-
     Map stormConf = mock(Map.class);
 
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserRunner, new HashMap<String, WriterHandler>() {{
@@ -214,7 +211,8 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.setCuratorFramework(client);
     parserBolt.setZKCache(cache);
 
-    parserBolt.prepare(stormConf, topologyContext, outputCollector);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> parserBolt.prepare(stormConf, topologyContext, outputCollector));
+    assertEquals("Unable to retrieve a parser config for yaf", e.getMessage());
   }
 
 

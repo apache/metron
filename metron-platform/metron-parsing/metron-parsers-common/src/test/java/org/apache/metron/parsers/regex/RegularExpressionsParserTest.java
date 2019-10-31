@@ -29,8 +29,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RegularExpressionsParserTest {
 
@@ -238,13 +237,13 @@ public class RegularExpressionsParserTest {
     public static String invalidParserConfig;
     //@formatter:on
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testMalformedRegex() throws Exception {
         String message =
             "<38>Jun 20 15:01:17 deviceName sshd[11672]: Accepted publickey for prod from 22.22.22.22 port 55555 ssh2";
         JSONObject parserConfig = (JSONObject) new JSONParser().parse(invalidParserConfig);
         regularExpressionsParser.configure(parserConfig);
-        parse(message);
+        assertThrows(IllegalStateException.class, () -> parse(message));
     }
 
     //@formatter:off
@@ -263,13 +262,13 @@ public class RegularExpressionsParserTest {
     public static String noRecordTypeParserConfig;
     //@formatter:on
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testNoRecordTypeRegex() throws Exception {
         String message =
             "<38>Jun 20 15:01:17 deviceName sshd[11672]: Accepted publickey for prod from 22.22.22.22 port 55555 ssh2";
         JSONObject parserConfig = (JSONObject) new JSONParser().parse(noRecordTypeParserConfig);
         regularExpressionsParser.configure(parserConfig);
-        parse(message);
+        assertThrows(IllegalStateException.class, () -> parse(message));
     }
 
     private JSONObject parse(String message) throws Exception {

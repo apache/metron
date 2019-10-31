@@ -18,10 +18,10 @@
 
 package org.apache.metron.pcap;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class PcapFilenameHelperTest {
 

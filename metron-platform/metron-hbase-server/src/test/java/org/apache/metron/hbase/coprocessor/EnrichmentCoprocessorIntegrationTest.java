@@ -18,17 +18,6 @@
 
 package org.apache.metron.hbase.coprocessor;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
@@ -54,6 +43,13 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
@@ -203,7 +199,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
           "{ \"apache\" : \"metron\" }");
     }
     List<String> enrichmentsList = HelperDao.readRecords(enrichmentListTable);
-    assertThat(new HashSet<String>(enrichmentsList), equalTo(expectedEnrichmentTypes));
+    assertThat(new HashSet<>(enrichmentsList), equalTo(expectedEnrichmentTypes));
   }
 
 }

@@ -100,11 +100,11 @@ public class JSONMapParserTest {
     assertTrue(message.get("timestamp") instanceof Number);
   }
 
-  @Test(expected=IllegalStateException.class)
+  @Test
   public void testCollectionHandlingError() {
     parser.configure(ImmutableMap.of(JSONMapParser.MAP_STRATEGY_CONFIG, JSONMapParser.MapStrategy.ERROR.name()));
     UnitTestHelper.setLog4jLevel(BasicParser.class, Level.FATAL);
-    parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8));
+    assertThrows(IllegalStateException.class, () -> parser.parse(collectionHandlingJSON.getBytes(StandardCharsets.UTF_8)));
     UnitTestHelper.setLog4jLevel(BasicParser.class, Level.ERROR);
   }
 

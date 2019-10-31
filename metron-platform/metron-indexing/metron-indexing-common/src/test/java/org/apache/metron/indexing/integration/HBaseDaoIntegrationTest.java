@@ -56,7 +56,7 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
   };
 
   @BeforeEach
-  public void startHBase() throws Exception {
+  public void startHBase() {
     AccessConfig accessConfig = new AccessConfig();
     accessConfig.setMaxSearchResults(1000);
     accessConfig.setMaxSearchGroups(1000);
@@ -72,7 +72,7 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
   }
 
   @AfterEach
-  public void clearTable() throws Exception {
+  public void clearTable() {
     MockHBaseTableProvider.clear();
   }
 
@@ -81,7 +81,7 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
    * caused a key to change serialization, so keys from previous releases will not be able to be found
    * under your scheme.  Please either provide a migration plan or undo this change.  DO NOT CHANGE THIS
    * TEST BLITHELY!
-   * @throws Exception
+   * @throws IOException
    */
   @Test
   public void testKeySerializationRemainsConstant() throws IOException {
@@ -97,16 +97,16 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
     assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testKeySerializationWithInvalidGuid() throws Exception {
+  @Test
+  public void testKeySerializationWithInvalidGuid() {
     HBaseDao.Key k = new HBaseDao.Key(null, "sensorType");
-    assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+    assertThrows(IllegalStateException.class, () ->  HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testKeySerializationWithInvalidSensorType() throws Exception {
+  @Test
+  public void testKeySerializationWithInvalidSensorType() {
     HBaseDao.Key k = new HBaseDao.Key("guid", null);
-    assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+    assertThrows(IllegalStateException.class, () -> HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
   }
 
   @Test
@@ -176,7 +176,6 @@ public class HBaseDaoIntegrationTest extends UpdateIntegrationTest  {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testRemoveComments() throws Exception {
     Map<String, Object> fields = new HashMap<>();
     fields.put("guid", "add_comment");
