@@ -25,7 +25,6 @@ import org.apache.metron.solr.matcher.ModifiableSolrParamsMatcher;
 import org.apache.metron.solr.matcher.SolrQueryMatcher;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
 import org.apache.solr.client.solrj.response.PivotField;
@@ -44,10 +43,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
-//import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest({CollectionAdminRequest.class})
 public class SolrSearchDaoTest {
   private SolrClient client;
   private AccessConfig accessConfig;
@@ -55,15 +51,12 @@ public class SolrSearchDaoTest {
   private SolrRetrieveLatestDao solrRetrieveLatestDao;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     client = mock(SolrClient.class);
     accessConfig = mock(AccessConfig.class);
     when(accessConfig.getIndexSupplier()).thenReturn(sensorType -> sensorType);
     solrSearchDao = new SolrSearchDao(client, accessConfig);
     solrRetrieveLatestDao = new SolrRetrieveLatestDao(client, accessConfig);
-//    mockStatic(CollectionAdminRequest.class);
-//    client.
-//    when(CollectionAdminRequest.listCollections(client)).thenReturn(Arrays.asList("bro", "snort"));
   }
 
   @Test
@@ -102,12 +95,8 @@ public class SolrSearchDaoTest {
   }
 
   @Test
-  public void searchShouldThrowInvalidSearchExceptionOnNullGroup() throws Exception {
-//    exception.expect(InvalidSearchException.class);
-//    exception.expectMessage("At least 1 group must be provided.");
-
+  public void searchShouldThrowInvalidSearchExceptionOnNullGroup() {
     GroupRequest groupRequest = mock(GroupRequest.class);
-    GroupResponse groupResponse = mock(GroupResponse.class);
 
     solrSearchDao = spy(new SolrSearchDao(client, accessConfig));
     when(groupRequest.getQuery()).thenReturn("query");
@@ -115,17 +104,14 @@ public class SolrSearchDaoTest {
     when(groupRequest.getScoreField()).thenReturn(Optional.of("scoreField"));
     when(groupRequest.getIndices()).thenReturn(Arrays.asList("bro", "snort"));
 
-    assertEquals(groupResponse, solrSearchDao.group(groupRequest));
+    InvalidSearchException e = assertThrows(InvalidSearchException.class, () -> solrSearchDao.group(groupRequest));
+    assertEquals("At least 1 group must be provided.", e.getMessage());
     verifyNoMoreInteractions(client);
   }
 
   @Test
-  public void searchShouldThrowInvalidSearchExceptionOnEmptyGroup() throws Exception {
-//    exception.expect(InvalidSearchException.class);
-//    exception.expectMessage("At least 1 group must be provided.");
-
+  public void searchShouldThrowInvalidSearchExceptionOnEmptyGroup() {
     GroupRequest groupRequest = mock(GroupRequest.class);
-    GroupResponse groupResponse = mock(GroupResponse.class);
 
     solrSearchDao = spy(new SolrSearchDao(client, accessConfig));
     when(groupRequest.getQuery()).thenReturn("query");
@@ -133,7 +119,8 @@ public class SolrSearchDaoTest {
     when(groupRequest.getScoreField()).thenReturn(Optional.of("scoreField"));
     when(groupRequest.getIndices()).thenReturn(Arrays.asList("bro", "snort"));
 
-    assertEquals(groupResponse, solrSearchDao.group(groupRequest));
+    InvalidSearchException e = assertThrows(InvalidSearchException.class, () -> solrSearchDao.group(groupRequest));
+    assertEquals("At least 1 group must be provided.", e.getMessage());
     verifyNoMoreInteractions(client);
   }
 
@@ -174,8 +161,14 @@ public class SolrSearchDaoTest {
     expectedSolrQuery.set("facet", true);
     expectedSolrQuery.set("facet.pivot", "{!stats=piv1}field1,field2");
 
+    // Feed back an appropriate response regarding the collections
+    NamedList<Object> namedList = new NamedList<>();
+    namedList.add("collections", Arrays.asList("bro","snort"));
+    when(client.request(any(), any())).thenReturn(namedList);
+
     assertEquals(groupResponse, solrSearchDao.group(groupRequest));
     verify(client).query(argThat(new SolrQueryMatcher(expectedSolrQuery)));
+    verify(client).request(any(), any());
     verify(solrSearchDao).buildGroupResponse(groupRequest, queryResponse);
 
     verifyNoMoreInteractions(client);
@@ -250,6 +243,11 @@ public class SolrSearchDaoTest {
         .addField("field1").addField("field2")
         .addFacetField("facetField1", "facetField2");
     exceptedSolrQuery.set("collection", "bro,snort");
+
+    // Feed back an appropriate response regarding the collections
+    NamedList<Object> namedList = new NamedList<>();
+    namedList.add("collections", Arrays.asList("bro","snort"));
+    when(client.request(any(), any())).thenReturn(namedList);
 
     SolrQuery solrQuery = solrSearchDao.buildSearchRequest(searchRequest, "field1,field2");
     assertThat(solrQuery, new SolrQueryMatcher(exceptedSolrQuery).asHamcrestMatcher());

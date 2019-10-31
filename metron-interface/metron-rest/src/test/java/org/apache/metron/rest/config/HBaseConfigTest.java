@@ -25,9 +25,6 @@ import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.HashMap;
 
@@ -35,11 +32,9 @@ import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE
 import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_TABLE;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({HTableProvider.class, HBaseConfiguration.class, HBaseConfig.class})
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest({HTableProvider.class, HBaseConfiguration.class, HBaseConfig.class})
 public class HBaseConfigTest {
 
   private GlobalConfigService globalConfigService;
@@ -49,7 +44,7 @@ public class HBaseConfigTest {
   public void setUp() {
     globalConfigService = mock(GlobalConfigService.class);
     hBaseConfig = new HBaseConfig(globalConfigService);
-    mockStatic(HBaseConfiguration.class);
+//    mockStatic(HBaseConfiguration.class);
   }
 
   @Test
@@ -59,7 +54,7 @@ public class HBaseConfigTest {
       put(USER_SETTINGS_HBASE_CF, "global_config_user_settings_cf");
     }});
     HTableProvider htableProvider = mock(HTableProvider.class);
-    whenNew(HTableProvider.class).withNoArguments().thenReturn(htableProvider);
+//    whenNew(HTableProvider.class).withNoArguments().thenReturn(htableProvider);
     Configuration configuration = mock(Configuration.class);
     when(HBaseConfiguration.create()).thenReturn(configuration);
 

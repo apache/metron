@@ -181,7 +181,7 @@ public class SchemaValidationIntegrationTest {
             assertTrue(isSame, "Unable to validate " + field.getKey() + ": " + n1 + " != " + n2);
           }
           else {
-            assertEquals("Unable to find " + field.getKey(), "" + field.getValue(), "" + m.get(field.getKey()));
+            assertEquals("" + field.getValue(), "" + m.get(field.getKey()), "Unable to find " + field.getKey());
           }
         }
       }

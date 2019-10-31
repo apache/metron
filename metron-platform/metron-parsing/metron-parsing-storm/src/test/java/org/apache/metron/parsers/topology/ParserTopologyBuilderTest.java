@@ -37,11 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-//import org.powermock.core.classloader.annotations.PrepareForTest;
-//import org.powermock.modules.junit4.PowerMockRunner;
-//import static org.powermock.api.mockito.PowerMockito.spy;
-//import static org.powermock.api.mockito.PowerMockito.when;
-
 //@RunWith(PowerMockRunner.class)
 //@PrepareForTest(ParserTopologyBuilder.class)
 public class ParserTopologyBuilderTest {

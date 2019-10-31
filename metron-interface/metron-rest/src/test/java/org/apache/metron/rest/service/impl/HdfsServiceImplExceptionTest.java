@@ -24,18 +24,16 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.HdfsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({HdfsServiceImpl.class, FileSystem.class})
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest({HdfsServiceImpl.class, FileSystem.class})
 public class HdfsServiceImplExceptionTest {
     private Configuration configuration;
     private HdfsService hdfsService;
@@ -46,7 +44,7 @@ public class HdfsServiceImplExceptionTest {
         configuration = new Configuration();
         hdfsService = new HdfsServiceImpl(configuration);
 
-        mockStatic(FileSystem.class);
+//        mockStatic(FileSystem.class);
     }
 
     @Test

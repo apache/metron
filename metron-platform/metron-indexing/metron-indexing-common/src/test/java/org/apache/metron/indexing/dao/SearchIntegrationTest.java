@@ -696,8 +696,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void different_type_facet_query() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
-    SearchResponse response = getIndexDao().search(request);
-    assertThrows(Exception.class, () -> response.getTotal());
+    assertThrows(InvalidSearchException.class, () -> getIndexDao().search(request));
   }
 
   @Test

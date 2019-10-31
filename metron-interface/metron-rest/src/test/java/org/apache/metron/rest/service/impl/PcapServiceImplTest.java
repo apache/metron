@@ -40,8 +40,6 @@ import org.apache.metron.rest.model.pcap.*;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.springframework.core.env.Environment;
 
 import java.io.ByteArrayInputStream;
@@ -56,11 +54,9 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @SuppressWarnings("ALL")
-@PrepareForTest({PcapToPdmlScriptWrapper.class, ProcessBuilder.class})
+//@PrepareForTest({PcapToPdmlScriptWrapper.class, ProcessBuilder.class})
 public class PcapServiceImplTest {
   /**
    *<?xml version="1.0" encoding="utf-8"?>
@@ -519,14 +515,14 @@ public class PcapServiceImplTest {
     when(fileSystem.exists(path)).thenReturn(true);
     doReturn(path).when(pcapService).getPath("user", "jobId", 1);
     doReturn(new ByteArrayInputStream(pdmlXml.getBytes(StandardCharsets.UTF_8))).when(pcapToPdmlScriptWrapper).getRawInputStream(fileSystem, path);
-    ProcessBuilder pb = PowerMockito.mock(ProcessBuilder.class);
-    Process p = PowerMockito.mock(Process.class);
+    ProcessBuilder pb = mock(ProcessBuilder.class);
+    Process p = mock(Process.class);
     OutputStream outputStream = new ByteArrayOutputStream();
     when(p.getOutputStream()).thenReturn(outputStream);
     when(p.isAlive()).thenReturn(true);
     when(p.getInputStream()).thenReturn(new ByteArrayInputStream(pdmlXml.getBytes(StandardCharsets.UTF_8)));
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(pb);
-    PowerMockito.when(pb.start()).thenReturn(p);
+//    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(pb);
+    when(pb.start()).thenReturn(p);
 
     assertEquals(JSONUtils.INSTANCE.load(expectedPdml, Pdml.class), pcapService.getPdml("user", "jobId", 1));
   }
@@ -553,9 +549,9 @@ public class PcapServiceImplTest {
     doReturn(fileSystem).when(pcapService).getFileSystem();
     when(fileSystem.exists(path)).thenReturn(true);
     doReturn(path).when(pcapService).getPath("user", "jobId", 1);
-    ProcessBuilder pb = PowerMockito.mock(ProcessBuilder.class);
+    ProcessBuilder pb = mock(ProcessBuilder.class);
     doReturn(pb).when(pcapToPdmlScriptWrapper).getProcessBuilder("/path/to/pdml/script", "target");
-    PowerMockito.when(pb.start()).thenThrow(new IOException("some exception"));
+    when(pb.start()).thenThrow(new IOException("some exception"));
 
     RestException e = assertThrows(RestException.class, () -> pcapService.getPdml("user", "jobId", 1));
     assertEquals("some exception", e.getMessage());

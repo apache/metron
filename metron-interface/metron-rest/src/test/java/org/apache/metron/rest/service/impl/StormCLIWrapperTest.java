@@ -21,9 +21,6 @@ import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 
 import java.io.ByteArrayInputStream;
@@ -35,9 +32,7 @@ import java.util.Map;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-//import static org.powermock.api.mockito.PowerMockito.*;
 
 //@RunWith(PowerMockRunner.class)
 //@PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})

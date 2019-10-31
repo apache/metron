@@ -52,8 +52,8 @@ import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+//import static org.powermock.api.mockito.PowerMockito.mockStatic;
+//import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 public class KnoxSSOAuthenticationFilterTest {
   @Test
@@ -79,11 +79,11 @@ public class KnoxSSOAuthenticationFilterTest {
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
     SignedJWT signedJWT = mock(SignedJWT.class);
-    mockStatic(SignedJWT.class);
+//    mockStatic(SignedJWT.class);
     JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder().subject("userName").build();
     Authentication authentication = mock(Authentication.class);
     SecurityContext securityContext = mock(SecurityContext.class);
-    mockStatic(SecurityContextHolder.class);
+//    mockStatic(SecurityContextHolder.class);
 
     when(request.getHeader("Authorization")).thenReturn(null);
     doReturn("serializedJWT").when(knoxSSOAuthenticationFilter).getJWTFromCookie(request);
@@ -133,7 +133,7 @@ public class KnoxSSOAuthenticationFilterTest {
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
     SignedJWT signedJWT = mock(SignedJWT.class);
-    mockStatic(SignedJWT.class);
+//    mockStatic(SignedJWT.class);
 
     when(request.getHeader("Authorization")).thenReturn(null);
     doReturn("serializedJWT").when(knoxSSOAuthenticationFilter).getJWTFromCookie(request);
@@ -158,7 +158,7 @@ public class KnoxSSOAuthenticationFilterTest {
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
     SignedJWT signedJWT = mock(SignedJWT.class);
-    mockStatic(SignedJWT.class);
+//    mockStatic(SignedJWT.class);
     JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder().subject("userName").build();
 
     when(request.getHeader("Authorization")).thenReturn(null);
@@ -260,9 +260,9 @@ public class KnoxSSOAuthenticationFilterTest {
       when(jwtToken.getSignature()).thenReturn(signature);
       RSAPublicKey rsaPublicKey = mock(RSAPublicKey.class);
       RSASSAVerifier rsaSSAVerifier = mock(RSASSAVerifier.class);
-      mockStatic(SecurityUtils.class);
+//      mockStatic(SecurityUtils.class);
       when(SecurityUtils.parseRSAPublicKey("knoxKeyString")).thenReturn(rsaPublicKey);
-      whenNew(RSASSAVerifier.class).withArguments(rsaPublicKey).thenReturn(rsaSSAVerifier);
+//      whenNew(RSASSAVerifier.class).withArguments(rsaPublicKey).thenReturn(rsaSSAVerifier);
       {
         // Should be invalid if token verify throws an exception
         when(jwtToken.verify(rsaSSAVerifier)).thenThrow(new JOSEException("verify exception"));

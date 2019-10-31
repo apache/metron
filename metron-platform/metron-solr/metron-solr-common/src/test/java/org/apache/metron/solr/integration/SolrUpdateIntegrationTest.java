@@ -38,8 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   private static SolrComponent solrComponent;
@@ -156,6 +155,6 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     Document errorDoc2= new Document(documentMap, "error", "error", 0L);
 
     SolrException e = assertThrows(SolrException.class, () -> getDao().update(errorDoc2, Optional.of("error")));
-    assertEquals("Document contains at least one immense term in field=\"error_hash\"", e.getMessage());
+    assertTrue(e.getMessage().contains("Document contains at least one immense term in field=\"error_hash\""));
   }
 }

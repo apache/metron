@@ -36,10 +36,6 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-//import org.powermock.core.classloader.annotations.PrepareForTest;
-//import org.powermock.modules.junit4.PowerMockRunner;
-//import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
 //@RunWith(PowerMockRunner.class)
 //@PrepareForTest({ElasticsearchWriter.class, ElasticsearchUtils.class})
 public class ElasticsearchWriterTest {

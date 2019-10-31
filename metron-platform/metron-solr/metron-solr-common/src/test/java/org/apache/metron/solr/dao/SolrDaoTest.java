@@ -22,7 +22,6 @@ import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.solr.client.solrj.SolrClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,12 +32,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-// TODO fix
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest({SolrDao.class, SolrClientFactory.class})
 public class SolrDaoTest {
   private SolrClient client;
   private SolrSearchDao solrSearchDao;
@@ -80,7 +77,20 @@ public class SolrDaoTest {
   }
 
   @Test
-  public void initShouldCreateDaos() throws Exception {
+  public void testInitShouldCreateDaos() {
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setGlobalConfigSupplier(() ->
+            new HashMap<String, Object>() {{
+              put(SOLR_ZOOKEEPER, "zookeeper:2181");
+            }}
+    );
+    solrDao = new SolrDao();
+    solrDao.init(accessConfig);
+    assertTrue(solrDao.daosSetup());
+  }
+
+  @Test
+  public void testDaoDelegatesQueries() throws Exception {
     AccessConfig accessConfig = new AccessConfig();
     accessConfig.setGlobalConfigSupplier(() ->
         new HashMap<String, Object>() {{
@@ -88,15 +98,13 @@ public class SolrDaoTest {
         }}
     );
 
-    solrDao = spy(new SolrDao());
-    when(SolrClientFactory.create(accessConfig.getGlobalConfigSupplier().get())).thenReturn(client);
-//    whenNew(SolrSearchDao.class).withArguments(client, accessConfig).thenReturn(solrSearchDao);
-//    whenNew(SolrRetrieveLatestDao.class).withArguments(client, accessConfig)
-//        .thenReturn(solrRetrieveLatestDao);
-//    whenNew(SolrUpdateDao.class).withArguments(client, solrRetrieveLatestDao, accessConfig)
-//        .thenReturn(solrUpdateDao);
-//    whenNew(SolrColumnMetadataDao.class).withArguments(client)
-//        .thenReturn(solrColumnMetadataDao);
+    solrDao = spy(new SolrDao(
+            client,
+            accessConfig,
+            solrSearchDao,
+            solrUpdateDao,
+            solrRetrieveLatestDao,
+            solrColumnMetadataDao));
 
     solrDao.init(accessConfig);
 

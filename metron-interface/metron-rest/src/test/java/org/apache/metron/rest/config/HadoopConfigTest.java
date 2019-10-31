@@ -22,9 +22,6 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.metron.rest.MetronRestConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 
 import java.io.IOException;
@@ -34,8 +31,11 @@ import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({HadoopConfig.class, UserGroupInformation.class})
+//import org.powermock.core.classloader.annotations.PrepareForTest;
+//import org.powermock.modules.junit4.PowerMockRunner;
+
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest({HadoopConfig.class, UserGroupInformation.class})
 public class HadoopConfigTest {
 
   private Environment environment;

@@ -19,9 +19,6 @@ package org.apache.metron.rest.service.impl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 
 import java.io.ByteArrayInputStream;
@@ -31,12 +28,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})
 public class DockerStormCLIWrapperTest {
   private ProcessBuilder processBuilder;
   private Environment environment;
@@ -52,7 +47,7 @@ public class DockerStormCLIWrapperTest {
 
   @Test
   public void getProcessBuilderShouldProperlyGenerateProcessorBuilder() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(any()).thenReturn(processBuilder);
+//    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(any()).thenReturn(processBuilder);
 
     when(processBuilder.environment()).thenReturn(new HashMap<>());
     when(processBuilder.command()).thenReturn(new ArrayList<>());
