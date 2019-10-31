@@ -25,14 +25,9 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -58,12 +53,12 @@ public class ElasticsearchColumnMetadataDaoTest {
           Map<String, FieldMapping> mappings) {
     ElasticsearchClient client = new ElasticsearchClient(mock(RestClient.class), mock(RestHighLevelClient.class)) {
       @Override
-      public String[] getIndices() throws IOException {
+      public String[] getIndices() {
         return indices;
       }
 
       @Override
-      public Map<String, FieldMapping> getMappingByIndex(String[] indices) throws IOException {
+      public Map<String, FieldMapping> getMappingByIndex(String[] indices) {
         return mappings;
       }
     };

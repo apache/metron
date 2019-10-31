@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.*;
 
 /**
@@ -267,7 +265,7 @@ public class HBaseClientTest {
   public void testFailureToGetAll() throws IOException {
     // used to trigger a failure condition in `HbaseClient.getAll`
     Table table = mock(Table.class);
-    when(table.get(anyListOf(Get.class))).thenThrow(new IOException("exception!"));
+    when(table.get(anyList())).thenThrow(new IOException("exception!"));
 
     TableProvider tableProvider = mock(TableProvider.class);
     when(tableProvider.getTable(any(), any())).thenReturn(table);

@@ -52,7 +52,6 @@ import java.util.Map;
 
 import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("ALL")

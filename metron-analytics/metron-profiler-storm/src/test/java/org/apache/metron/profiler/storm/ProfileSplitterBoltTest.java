@@ -41,8 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import static org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration.VALUE;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**

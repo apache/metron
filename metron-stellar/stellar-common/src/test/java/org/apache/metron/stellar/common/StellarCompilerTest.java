@@ -33,8 +33,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class StellarCompilerTest  {
@@ -72,11 +70,11 @@ public class StellarCompilerTest  {
     verify(numberLiteralEvaluator).evaluate(ctx, null);
     assertEquals(1, tokenStack.size());
     assertEquals(tokenStack.getFirst(), result);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
-    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
+    verifyNoInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
@@ -92,11 +90,11 @@ public class StellarCompilerTest  {
     verify(numberLiteralEvaluator).evaluate(ctx, null);
     assertEquals(1, tokenStack.size());
     assertEquals(tokenStack.getFirst(), result);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
-    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
+    verifyNoInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
@@ -112,11 +110,11 @@ public class StellarCompilerTest  {
     verify(numberLiteralEvaluator).evaluate(ctx, null);
     assertEquals(1, tokenStack.size());
     assertEquals(tokenStack.getFirst(), result);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
-    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
+    verifyNoInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
@@ -132,11 +130,11 @@ public class StellarCompilerTest  {
     verify(numberLiteralEvaluator).evaluate(ctx, null);
     assertEquals(1, tokenStack.size());
     assertEquals(tokenStack.getFirst(), result);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
-    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
+    verifyNoInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
@@ -157,10 +155,10 @@ public class StellarCompilerTest  {
     assertEquals(1, tokenStack.size());
     assertEquals(tokenStack.getFirst(), result);
     verify(comparisonExpressionWithOperatorEvaluator).evaluate(any(Token.class), any(Token.class), eq(mockOp), any());
-    verifyZeroInteractions(numberLiteralEvaluator);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
+    verifyNoInteractions(numberLiteralEvaluator);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
   }
 }

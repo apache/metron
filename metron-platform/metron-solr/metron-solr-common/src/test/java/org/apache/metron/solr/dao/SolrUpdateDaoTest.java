@@ -42,8 +42,6 @@ import java.util.*;
 import static org.apache.metron.indexing.dao.IndexDao.COMMENTS_FIELD;
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**

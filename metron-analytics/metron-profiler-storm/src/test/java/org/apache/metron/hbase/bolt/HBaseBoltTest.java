@@ -34,8 +34,6 @@ import org.mockito.ArgumentCaptor;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**

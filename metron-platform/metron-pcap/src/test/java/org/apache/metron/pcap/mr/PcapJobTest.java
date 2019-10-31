@@ -47,7 +47,6 @@ import java.util.*;
 import static java.lang.Long.toUnsignedString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 public class PcapJobTest {

@@ -40,7 +40,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class StormParserDriver extends ParserDriver {

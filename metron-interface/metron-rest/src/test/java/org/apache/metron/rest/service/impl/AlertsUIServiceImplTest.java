@@ -17,25 +17,8 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.system.FakeClock;
 import org.apache.metron.rest.MetronRestConstants;
@@ -50,7 +33,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-@SuppressWarnings("unchecked")
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
+
 public class AlertsUIServiceImplTest {
 
   public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
@@ -80,9 +69,8 @@ public class AlertsUIServiceImplTest {
   private String user2 = "user2";
   private FakeClock clock;
 
-  @SuppressWarnings("unchecked")
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     kafkaService = mock(KafkaService.class);
     environment = mock(Environment.class);
     userSettingsClient = mock(UserSettingsClient.class);
@@ -122,7 +110,7 @@ public class AlertsUIServiceImplTest {
     alertsUIService.escalateAlerts(Arrays.asList(alert1, alert2));
     verify(kafkaService).produceMessage(escalationTopic, escalationMessage1);
     verify(kafkaService).produceMessage(escalationTopic, escalationMessage2);
-    verifyZeroInteractions(kafkaService);
+    verifyNoMoreInteractions(kafkaService);
   }
 
   @Test

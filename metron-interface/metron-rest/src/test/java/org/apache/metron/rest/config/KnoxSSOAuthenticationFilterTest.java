@@ -51,7 +51,6 @@ import java.util.Date;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;

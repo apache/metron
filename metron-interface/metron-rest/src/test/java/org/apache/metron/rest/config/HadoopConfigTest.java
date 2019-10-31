@@ -30,13 +30,7 @@ import org.springframework.core.env.Environment;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
+import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
@@ -48,7 +42,7 @@ public class HadoopConfigTest {
   private HadoopConfig hadoopConfig;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     environment = mock(Environment.class);
     hadoopConfig = new HadoopConfig(environment);
     mockStatic(UserGroupInformation.class);

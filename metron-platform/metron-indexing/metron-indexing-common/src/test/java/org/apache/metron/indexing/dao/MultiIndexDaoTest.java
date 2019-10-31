@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class MultiIndexDaoTest {

@@ -36,8 +36,6 @@ import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
 import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("ALL")

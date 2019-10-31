@@ -113,7 +113,7 @@ public class SolrColumnMetadataTest {
     doThrow(new SolrServerException("solr exception")).when(solrColumnMetadataDao).getIndexFields("bro");
 
     IOException e = assertThrows(IOException.class, () -> solrColumnMetadataDao.getColumnMetadata(Arrays.asList("bro", "snort")));
-    assertEquals("solr exception", e.getMessage());
+    assertTrue(e.getMessage().contains("solr exception"));
   }
 
   @Test

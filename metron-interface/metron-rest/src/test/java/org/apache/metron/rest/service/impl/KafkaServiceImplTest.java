@@ -42,7 +42,6 @@ import org.springframework.kafka.core.ConsumerFactory;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
@@ -92,7 +91,7 @@ public class KafkaServiceImplTest {
 
     assertEquals(Sets.newHashSet(), listedTopics);
 
-    verifyZeroInteractions(zkUtils);
+    verifyNoInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils, adminUtils);
@@ -108,7 +107,7 @@ public class KafkaServiceImplTest {
 
     assertEquals(Sets.newHashSet(), listedTopics);
 
-    verifyZeroInteractions(zkUtils);
+    verifyNoInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
@@ -127,7 +126,7 @@ public class KafkaServiceImplTest {
 
     assertEquals(Sets.newHashSet("topic1", "topic2", "topic3"), listedTopics);
 
-    verifyZeroInteractions(zkUtils);
+    verifyNoInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
@@ -147,7 +146,7 @@ public class KafkaServiceImplTest {
 
     assertEquals(Sets.newHashSet("topic1", "topic2", "topic3"), listedTopics);
 
-    verifyZeroInteractions(zkUtils);
+    verifyNoInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
@@ -159,7 +158,7 @@ public class KafkaServiceImplTest {
 
     assertFalse(kafkaService.deleteTopic("non_existent_topic"));
 
-    verifyZeroInteractions(zkUtils);
+    verifyNoInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
@@ -228,7 +227,7 @@ public class KafkaServiceImplTest {
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer, times(0)).partitionsFor("t");
     verify(kafkaConsumer).close();
-    verifyZeroInteractions(zkUtils);
+    verifyNoInteractions(zkUtils);
     verifyNoMoreInteractions(kafkaConsumer);
   }
 
@@ -278,7 +277,7 @@ public class KafkaServiceImplTest {
     verify(kafkaConsumer, times(2)).position(topicPartition);
     verify(kafkaConsumer).seek(topicPartition, 0);
 
-    verifyZeroInteractions(zkUtils, adminUtils);
+    verifyNoInteractions(zkUtils, adminUtils);
   }
 
   @Test
@@ -290,7 +289,7 @@ public class KafkaServiceImplTest {
 
     String expectedMessage = "{\"field\":\"value\"}";
     verify(kafkaProducer).send(new ProducerRecord<>(topicName, expectedMessage));
-    verifyZeroInteractions(kafkaProducer);
+    verifyNoInteractions(kafkaProducer);
   }
 
   @Test

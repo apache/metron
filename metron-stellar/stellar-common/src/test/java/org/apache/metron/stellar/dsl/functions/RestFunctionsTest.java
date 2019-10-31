@@ -50,7 +50,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static org.apache.metron.stellar.dsl.functions.RestConfig.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 /**

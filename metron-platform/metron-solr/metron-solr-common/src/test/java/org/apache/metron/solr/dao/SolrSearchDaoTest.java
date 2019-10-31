@@ -40,10 +40,9 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 //import static org.powermock.api.mockito.PowerMockito.mockStatic;
 

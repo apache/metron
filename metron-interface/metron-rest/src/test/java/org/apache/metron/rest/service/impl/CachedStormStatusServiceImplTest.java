@@ -30,7 +30,6 @@ import org.mockito.MockitoAnnotations;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class CachedStormStatusServiceImplTest {

@@ -29,7 +29,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +59,7 @@ public class ConfigurationTest {
         when(curatorFramework.checkExists()).thenReturn(existsBuilder);
         when(curatorFramework.getData()).thenReturn(getDataBuilder);
         when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
-        when(getChildrenBuilder.forPath(anyString())).thenReturn(Collections.<String> emptyList());
+        when(getChildrenBuilder.forPath(any())).thenReturn(Collections.emptyList());
 
         Configuration configuration = new Configuration(Paths.get("foo"));
         configuration.curatorFramework = curatorFramework;

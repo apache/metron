@@ -17,7 +17,6 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -27,17 +26,15 @@ import org.springframework.core.env.Environment;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.anyVararg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.powermock.api.mockito.PowerMockito.*;
 
-@SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})
 public class DockerStormCLIWrapperTest {
@@ -46,7 +43,7 @@ public class DockerStormCLIWrapperTest {
   private DockerStormCLIWrapper dockerStormCLIWrapper;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     processBuilder = mock(ProcessBuilder.class);
     environment = mock(Environment.class);
 
@@ -55,7 +52,7 @@ public class DockerStormCLIWrapperTest {
 
   @Test
   public void getProcessBuilderShouldProperlyGenerateProcessorBuilder() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
+    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(any()).thenReturn(processBuilder);
 
     when(processBuilder.environment()).thenReturn(new HashMap<>());
     when(processBuilder.command()).thenReturn(new ArrayList<>());

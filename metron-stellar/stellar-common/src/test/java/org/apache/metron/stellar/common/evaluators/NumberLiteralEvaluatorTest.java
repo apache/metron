@@ -58,7 +58,7 @@ public class NumberLiteralEvaluatorTest {
     NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
     verify(intLiteralContextNumberEvaluator).evaluate(context, null);
-    verifyZeroInteractions(doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
+    verifyNoInteractions(doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
   }
 
   @Test
@@ -67,7 +67,7 @@ public class NumberLiteralEvaluatorTest {
     NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
     verify(doubleLiteralContextNumberEvaluator).evaluate(context, null);
-    verifyZeroInteractions(intLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
+    verifyNoInteractions(intLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
   }
 
   @Test
@@ -76,7 +76,7 @@ public class NumberLiteralEvaluatorTest {
     NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
     verify(floatLiteralContextNumberEvaluator).evaluate(context, null);
-    verifyZeroInteractions(doubleLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
+    verifyNoInteractions(doubleLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
   }
 
   @Test
@@ -85,7 +85,7 @@ public class NumberLiteralEvaluatorTest {
     NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
     verify(longLiteralContextNumberEvaluator).evaluate(context, null);
-    verifyZeroInteractions(doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
+    verifyNoInteractions(doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
   }
 
   @Test
@@ -95,6 +95,6 @@ public class NumberLiteralEvaluatorTest {
     ParseException e = assertThrows(ParseException.class, () -> NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null));
     assertEquals("Does not support evaluation for type " + context.getClass(), e.getMessage());
 
-    verifyZeroInteractions(longLiteralContextNumberEvaluator, doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
+    verifyNoInteractions(longLiteralContextNumberEvaluator, doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
   }
 }

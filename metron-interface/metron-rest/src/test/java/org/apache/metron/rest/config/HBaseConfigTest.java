@@ -65,7 +65,7 @@ public class HBaseConfigTest {
 
     hBaseConfig.userSettingsClient();
     verify(htableProvider).getTable(configuration, "global_config_user_settings_table");
-    verifyZeroInteractions(htableProvider);
+    verifyNoInteractions(htableProvider);
   }
 
   @Test
