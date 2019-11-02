@@ -78,6 +78,7 @@ export class SensorParserConfigComponent implements OnInit {
   grokStatement = '';
   patternLabel = '';
   currentSensors = [];
+  paramsID: string;
 
   editMode: boolean = false;
 
@@ -191,8 +192,8 @@ export class SensorParserConfigComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      let id = params['id'];
-      this.init(id);
+      this.paramsID = params['id'];
+      this.init(this.paramsID);
     });
     this.createForms();
     this.getAvailableParsers();
@@ -208,10 +209,6 @@ export class SensorParserConfigComponent implements OnInit {
     );
     group['parserClassName'] = new FormControl(
       this.sensorParserConfig.parserClassName,
-      Validators.required
-    );
-    group['timestampField'] = new FormControl(
-      this.sensorParserConfig.timestampField,
       Validators.required
     );
     group['grokStatement'] = new FormControl(this.grokStatement);
@@ -317,6 +314,9 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onParserTypeChange(): void {
+    if (this.paramsID === 'new' && this.isGrokParser(this.sensorParserConfig)) {
+      this.sensorParserConfig.parserConfig.timestampField = 'timestamp';
+    }
     this.parserClassValid =
       this.sensorParserConfig.parserClassName !== undefined &&
       this.sensorParserConfig.parserClassName.length > 0;
@@ -338,7 +338,7 @@ export class SensorParserConfigComponent implements OnInit {
             this.kafkaTopicValid &&
             this.parserClassValid &&
             (!isGrokParser || this.isGrokStatementValid()) &&
-            (!isGrokParser || !!this.sensorParserConfig.timestampField);
+            (!isGrokParser || !!this.sensorParserConfig.parserConfig.timestampField);
   }
 
   getKafkaStatus() {
