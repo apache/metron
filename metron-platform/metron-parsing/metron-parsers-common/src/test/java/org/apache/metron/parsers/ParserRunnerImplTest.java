@@ -25,9 +25,7 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.parsers.ParserRunnerImpl.ProcessResult;
-import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.filters.StellarFilter;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
@@ -44,8 +42,6 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest({ParserRunnerImpl.class, ReflectionUtils.class, Filters.class})
 public class ParserRunnerImplTest {
   /**
    {
@@ -97,6 +93,7 @@ public class ParserRunnerImplTest {
 
 
   @BeforeEach
+  @SuppressWarnings("unchecked")
   public void setup() throws IOException {
     parserConfigurations = new ParserConfigurations();
     SensorParserConfig broConfig = SensorParserConfig.fromBytes(broConfigString.getBytes(
@@ -114,10 +111,10 @@ public class ParserRunnerImplTest {
 //    mockStatic(Filters.class);
     when(broParser.getReadCharset()).thenReturn(StandardCharsets.UTF_8);
 
-    when(ReflectionUtils.createInstance("org.apache.metron.parsers.bro.BasicBroParser")).thenReturn(broParser);
-    when(ReflectionUtils.createInstance("org.apache.metron.parsers.snort.BasicSnortParser")).thenReturn(snortParser);
-    when(Filters.get("org.apache.metron.parsers.filters.StellarFilter", broConfig.getParserConfig()))
-            .thenReturn(stellarFilter);
+//    when(ReflectionUtils.createInstance("org.apache.metron.parsers.bro.BasicBroParser")).thenReturn(broParser);
+//    when(ReflectionUtils.createInstance("org.apache.metron.parsers.snort.BasicSnortParser")).thenReturn(snortParser);
+//    when(Filters.get("org.apache.metron.parsers.filters.StellarFilter", broConfig.getParserConfig()))
+//            .thenReturn(stellarFilter);
 
   }
 
@@ -151,15 +148,23 @@ public class ParserRunnerImplTest {
     }});
 
     IllegalStateException e = assertThrows(IllegalStateException.class, () -> parserRunner.execute("test", mock(RawMessage.class), parserConfigurations));
-    assertEquals("Could not initialize parsers.  Cannot find configuration for sensor test.", e.getMessage());
+    assertEquals("Could not execute parser.  Cannot find configuration for sensor test.", e.getMessage());
   }
 
   @Test
   public void shouldInit() {
     Context stellarContext = mock(Context.class);
-    Map<String, Object> broParserConfig = parserConfigurations.getSensorParserConfig("bro").getParserConfig();
-    Map<String, Object> snortParserConfig = parserConfigurations.getSensorParserConfig("snort").getParserConfig();
+    SensorParserConfig broParserConfig = parserConfigurations.getSensorParserConfig("bro");
+    SensorParserConfig snortParserConfig = parserConfigurations.getSensorParserConfig("snort");
 
+    // Effectively using a spy to avoid calling static methods. However, we're using mock with settings to use the constuctor.
+    // This forces the use of the doReturn Mockito declaration.
+    // This is all because the configurations use parsers from metron-parsers, which are not available in metron-parsers-common
+    parserRunner = mock(ParserRunnerImpl.class,
+            withSettings().useConstructor(new HashSet<>(Arrays.asList("bro", "snort"))).defaultAnswer(CALLS_REAL_METHODS));
+    doReturn(broParser).when(parserRunner).createParserInstance(broParserConfig);
+    doReturn(snortParser).when(parserRunner).createParserInstance(snortParserConfig);
+    doReturn(stellarFilter).when(parserRunner).getMessageFilter(eq(broParserConfig), any());
     parserRunner.init(() -> parserConfigurations, stellarContext);
 
     {
@@ -175,7 +180,7 @@ public class ParserRunnerImplTest {
       assertEquals(broParser, broComponent.getMessageParser());
       assertEquals(stellarFilter, broComponent.getFilter());
       verify(broParser, times(1)).init();
-      verify(broParser, times(1)).configure(broParserConfig);
+      verify(broParser, times(1)).configure(broParserConfig.getParserConfig());
       verifyNoMoreInteractions(broParser);
       verifyNoMoreInteractions(stellarFilter);
     }
@@ -185,13 +190,13 @@ public class ParserRunnerImplTest {
       assertEquals(snortParser, snortComponent.getMessageParser());
       assertNull(snortComponent.getFilter());
       verify(snortParser, times(1)).init();
-      verify(snortParser, times(1)).configure(snortParserConfig);
+      verify(snortParser, times(1)).configure(snortParserConfig.getParserConfig());
       verifyNoMoreInteractions(snortParser);
     }
   }
 
   /**
-   * This is only testig the execute method. It mocks out processMessage().
+   * This is only testing the execute method. It mocks out processMessage().
    */
   @Test
   public void shouldExecute() {

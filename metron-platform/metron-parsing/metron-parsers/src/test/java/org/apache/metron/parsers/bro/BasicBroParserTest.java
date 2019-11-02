@@ -69,7 +69,7 @@ public class BasicBroParserTest {
 						Pair.of(12345678.111111d, "12345678.111111")
 		};
 		for (Pair pair : pairs) {
-			assertEquals("Format did not match", pair.getRight(), BasicBroParser.DECIMAL_FORMAT.get().format(pair.getLeft()));
+			assertEquals(pair.getRight(), BasicBroParser.DECIMAL_FORMAT.get().format(pair.getLeft()), "Format did not match");
 		}
 	}
 

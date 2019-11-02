@@ -91,7 +91,7 @@ public class ElasticsearchRequestSubmitterTest {
 
     // search should succeed
     ElasticsearchRequestSubmitter submitter = setup(response);
-    assertThrows(IllegalArgumentException.class, () -> submitter.submitSearch(request));
+    assertThrows(InvalidSearchException.class, () -> submitter.submitSearch(request));
   }
 
   @Test

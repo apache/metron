@@ -131,7 +131,7 @@ public class ElasticsearchMetaAlertDaoTest {
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
     createRequest.setAlerts(Collections.singletonList(new GetRequest("don't", "care")));
-    assertThrows(IllegalArgumentException.class, () -> emaDao.createMetaAlert(createRequest));
+    assertThrows(InvalidCreateException.class, () -> emaDao.createMetaAlert(createRequest));
   }
 
   @Test

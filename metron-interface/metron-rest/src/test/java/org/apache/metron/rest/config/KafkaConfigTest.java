@@ -17,16 +17,17 @@
  */
 package org.apache.metron.rest.config;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.Map;
 import org.apache.metron.rest.MetronRestConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class KafkaConfigTest {
 
@@ -34,13 +35,13 @@ public class KafkaConfigTest {
   private KafkaConfig kafkaConfig;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     environment = mock(Environment.class);
     kafkaConfig = new KafkaConfig(environment);
   }
 
   @Test
-  public void kafkaConfigShouldProperlyReturnConsumerProperties() throws Exception {
+  public void kafkaConfigShouldProperlyReturnConsumerProperties() {
     when(environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY)).thenReturn("broker urls");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
 
@@ -56,7 +57,7 @@ public class KafkaConfigTest {
   }
 
   @Test
-  public void kafkaConfigShouldProperlyReturnProducerProperties() throws Exception {
+  public void kafkaConfigShouldProperlyReturnProducerProperties() {
     when(environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY)).thenReturn("broker urls");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
 

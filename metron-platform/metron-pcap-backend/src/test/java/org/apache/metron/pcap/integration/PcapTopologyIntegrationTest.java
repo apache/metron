@@ -58,11 +58,7 @@ import org.apache.metron.spout.pcap.Endianness;
 import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.junit.Ignore;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -114,7 +110,7 @@ public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
 
   // This will eventually be completely deprecated.
   // As it takes a significant amount of testing, the test is being disabled.
-  @Ignore
+  @Disabled
   @Test
   public void testTimestampInPacket() throws Exception {
     setupTopology(new Function<Properties, Void>() {

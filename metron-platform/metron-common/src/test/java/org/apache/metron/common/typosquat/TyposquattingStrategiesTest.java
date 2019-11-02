@@ -97,8 +97,8 @@ public class TyposquattingStrategiesTest {
     }
   }
 
-  public static Stream<TyposquattingStrategies> strategies() {
-    return Stream.of(TyposquattingStrategies.values());
+  public static TyposquattingStrategies[] strategies() {
+    return TyposquattingStrategies.values();
   }
 
   @ParameterizedTest

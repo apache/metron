@@ -49,8 +49,6 @@ import static org.mockito.Mockito.*;
  * implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a common set of tests that all Dao
  * implementations must pass.
  */
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest({CollectionAdminRequest.class})
 public class SolrUpdateDaoTest extends UpdateDaoTest {
 
   private SolrClient client;
@@ -79,7 +77,6 @@ public class SolrUpdateDaoTest extends UpdateDaoTest {
     accessConfig.setIndexSupplier(IndexingCacheUtil.getIndexLookupFunction(cache, "solr"));
   }
 
-  @SuppressWarnings("unchecked")
   @BeforeEach
   public void setUp() {
     client = mock(SolrClient.class);

@@ -21,14 +21,9 @@ import org.apache.metron.rest.MetronRestConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
-import org.springframework.security.kerberos.client.KerberosRestTemplate;
-import org.springframework.web.client.RestTemplate;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest({RestTemplateConfig.class, KerberosRestTemplate.class, RestTemplate.class})
 public class RestTemplateConfigTest {
 
   private Environment environment;
@@ -37,24 +32,30 @@ public class RestTemplateConfigTest {
   @BeforeEach
   public void setUp() {
     environment = mock(Environment.class);
-    restTemplateConfig = new RestTemplateConfig(environment);
+    restTemplateConfig = mock(RestTemplateConfig.class,
+            withSettings().useConstructor(environment).defaultAnswer(CALLS_REAL_METHODS));
   }
 
   @Test
-  public void restTemplateShouldReturnProperTemplate() {
+  public void restTemplateShouldReturnProperNonKerberosTemplate() {
     when(environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY)).thenReturn("metron keytabLocation");
     when(environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY)).thenReturn("metron principal");
 
-//    whenNew(KerberosRestTemplate.class).withParameterTypes(String.class, String.class).withArguments("metron keytabLocation", "metron principal").thenReturn(null);
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
+
+    verify(restTemplateConfig, times(0)).getKerberosRestTemplate(any(), any());
+  }
+
+  @Test
+  public void restTemplateShouldReturnProperKerberosTemplate() {
+    when(environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY)).thenReturn("metron keytabLocation");
+    when(environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY)).thenReturn("metron principal");
+
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
 
     restTemplateConfig.restTemplate();
-//    verifyNew(KerberosRestTemplate.class).withArguments("metron keytabLocation", "metron principal");
+    verify(restTemplateConfig).getKerberosRestTemplate("metron keytabLocation", "metron principal");
 
-//    whenNew(RestTemplate.class).withNoArguments().thenReturn(null);
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
-
-    restTemplateConfig.restTemplate();
-//    verifyNew(RestTemplate.class).withNoArguments();
   }
 }

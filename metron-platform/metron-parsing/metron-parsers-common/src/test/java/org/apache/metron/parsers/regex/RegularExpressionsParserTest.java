@@ -36,7 +36,7 @@ public class RegularExpressionsParserTest {
     private RegularExpressionsParser regularExpressionsParser;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    public void setUp() {
         regularExpressionsParser = new RegularExpressionsParser();
     }
 
@@ -239,11 +239,8 @@ public class RegularExpressionsParserTest {
 
     @Test
     public void testMalformedRegex() throws Exception {
-        String message =
-            "<38>Jun 20 15:01:17 deviceName sshd[11672]: Accepted publickey for prod from 22.22.22.22 port 55555 ssh2";
         JSONObject parserConfig = (JSONObject) new JSONParser().parse(invalidParserConfig);
-        regularExpressionsParser.configure(parserConfig);
-        assertThrows(IllegalStateException.class, () -> parse(message));
+        assertThrows(IllegalStateException.class, () -> regularExpressionsParser.configure(parserConfig));
     }
 
     //@formatter:off
@@ -264,11 +261,8 @@ public class RegularExpressionsParserTest {
 
     @Test
     public void testNoRecordTypeRegex() throws Exception {
-        String message =
-            "<38>Jun 20 15:01:17 deviceName sshd[11672]: Accepted publickey for prod from 22.22.22.22 port 55555 ssh2";
         JSONObject parserConfig = (JSONObject) new JSONParser().parse(noRecordTypeParserConfig);
-        regularExpressionsParser.configure(parserConfig);
-        assertThrows(IllegalStateException.class, () -> parse(message));
+        assertThrows(IllegalStateException.class, () -> regularExpressionsParser.configure(parserConfig));
     }
 
     private JSONObject parse(String message) throws Exception {

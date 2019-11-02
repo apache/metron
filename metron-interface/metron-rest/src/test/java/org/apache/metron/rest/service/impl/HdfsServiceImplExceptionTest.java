@@ -21,7 +21,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.service.HdfsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,67 +28,49 @@ import java.io.IOException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest({HdfsServiceImpl.class, FileSystem.class})
 public class HdfsServiceImplExceptionTest {
-    private Configuration configuration;
-    private HdfsService hdfsService;
+    private HdfsServiceImpl hdfsService;
+    private FileSystem fileSystem;
     private String testDir = "./target/hdfsUnitTest";
 
     @BeforeEach
-    public void setup() {
-        configuration = new Configuration();
-        hdfsService = new HdfsServiceImpl(configuration);
-
-//        mockStatic(FileSystem.class);
+    public void setup() throws IOException {
+        Configuration configuration = new Configuration();
+        hdfsService = mock(HdfsServiceImpl.class, withSettings().useConstructor(configuration).defaultAnswer(CALLS_REAL_METHODS));
+        fileSystem = mock(FileSystem.class);
+        doReturn(fileSystem).when(hdfsService).getFileSystem();
     }
 
     @Test
     public void listShouldWrapExceptionInRestException() throws Exception {
-      FileSystem fileSystem = mock(FileSystem.class);
-      when(FileSystem.get(configuration)).thenReturn(fileSystem);
-      when(fileSystem.listStatus(new Path(testDir))).thenThrow(new IOException());
-
+      doThrow(new IOException()).when(fileSystem).listStatus(new Path(testDir));
       assertThrows(RestException.class, () -> hdfsService.list(new Path(testDir)));
     }
 
     @Test
     public void readShouldWrapExceptionInRestException() throws Exception {
-        FileSystem fileSystem = mock(FileSystem.class);
-        when(FileSystem.get(configuration)).thenReturn(fileSystem);
-        when(fileSystem.open(new Path(testDir))).thenThrow(new IOException());
-
-        assertThrows(RestException.class, () -> hdfsService.read(new Path(testDir)));
+      doThrow(new IOException()).when(fileSystem).open(new Path(testDir));
+      assertThrows(RestException.class, () -> hdfsService.read(new Path(testDir)));
     }
 
     @Test
     public void writeShouldWrapExceptionInRestException() throws Exception {
-        FileSystem fileSystem = mock(FileSystem.class);
-        when(FileSystem.get(configuration)).thenReturn(fileSystem);
-        when(fileSystem.create(new Path(testDir), true)).thenThrow(new IOException());
-
+        doThrow(new IOException()).when(fileSystem).create(new Path(testDir), true);
         assertThrows(RestException.class,
                 () -> hdfsService.write(new Path(testDir), "contents".getBytes(UTF_8),null, null,null));
     }
 
     @Test
-    public void writeShouldThrowIfInvalidPermissions() throws Exception {
-        FileSystem fileSystem = mock(FileSystem.class);
-        when(FileSystem.get(configuration)).thenReturn(fileSystem);
-
+    public void writeShouldThrowIfInvalidPermissions() {
         assertThrows(RestException.class,
                 () -> hdfsService.write(new Path(testDir,"test"),"oops".getBytes(UTF_8), "foo", "r-x","r--"));
     }
 
     @Test
     public void deleteShouldWrapExceptionInRestException() throws Exception {
-        FileSystem fileSystem = mock(FileSystem.class);
-        when(FileSystem.get(configuration)).thenReturn(fileSystem);
-        when(fileSystem.delete(new Path(testDir), false)).thenThrow(new IOException());
-
+        doThrow(new IOException()).when(fileSystem).delete(new Path(testDir), false);
         assertThrows(RestException.class, () -> hdfsService.delete(new Path(testDir), false));
     }
 }

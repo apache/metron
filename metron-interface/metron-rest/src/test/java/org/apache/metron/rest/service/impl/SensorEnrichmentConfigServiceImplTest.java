@@ -39,14 +39,13 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SuppressWarnings("ALL")
 public class SensorEnrichmentConfigServiceImplTest {
   ObjectMapper objectMapper;
   CuratorFramework curatorFramework;
@@ -76,7 +75,7 @@ public class SensorEnrichmentConfigServiceImplTest {
   private HBaseClient hBaseClient;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
     cache = mock(ConfigurationsCache.class);
@@ -110,7 +109,7 @@ public class SensorEnrichmentConfigServiceImplTest {
     DeleteBuilder builder = mock(DeleteBuilder.class);
 
     when(curatorFramework.delete()).thenReturn(builder);
-    when(builder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro")).thenReturn(null);
+    doNothing().when(builder).forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro");
 
     assertTrue(sensorEnrichmentConfigService.delete("bro"));
 
@@ -150,7 +149,7 @@ public class SensorEnrichmentConfigServiceImplTest {
     when(cache.get(eq(EnrichmentConfigurations.class)))
             .thenReturn(configs);
 
-    assertEquals(new ArrayList() {{
+    assertEquals(new ArrayList<String>() {{
       add("bro");
       add("squid");
     }}, sensorEnrichmentConfigService.getAllTypes());
@@ -170,7 +169,7 @@ public class SensorEnrichmentConfigServiceImplTest {
     when(cache.get( eq(EnrichmentConfigurations.class)))
             .thenReturn(configs);
 
-    assertEquals(new HashMap() {{ put("bro", sensorEnrichmentConfig);}}, sensorEnrichmentConfigService.getAll());
+    assertEquals(Collections.singletonMap("bro", sensorEnrichmentConfig), sensorEnrichmentConfigService.getAll());
   }
 
   @Test
@@ -215,7 +214,7 @@ public class SensorEnrichmentConfigServiceImplTest {
   }
 
   @Test
-  public void getAvailableThreatTriageAggregatorsShouldReturnAggregators() throws Exception {
+  public void getAvailableThreatTriageAggregatorsShouldReturnAggregators() {
     assertEquals(new ArrayList<String>() {{
       add("MAX");
       add("MIN");
@@ -228,11 +227,11 @@ public class SensorEnrichmentConfigServiceImplTest {
   private SensorEnrichmentConfig getTestSensorEnrichmentConfig() {
     SensorEnrichmentConfig sensorEnrichmentConfig = new SensorEnrichmentConfig();
     EnrichmentConfig enrichmentConfig = new EnrichmentConfig();
-    enrichmentConfig.setFieldMap(new HashMap() {{ put("geo", Arrays.asList("ip_dst_addr")); }});
+    enrichmentConfig.setFieldMap(Collections.singletonMap("geo", Collections.singletonList("ip_dst_addr")));
     sensorEnrichmentConfig.setEnrichment(enrichmentConfig);
     ThreatIntelConfig threatIntelConfig = new ThreatIntelConfig();
-    threatIntelConfig.setFieldMap(new HashMap() {{ put("hbaseThreatIntel", Arrays.asList("ip_src_addr")); }});
-    threatIntelConfig.setFieldToTypeMap(new HashMap() {{ put("ip_src_addr", Arrays.asList("malicious_ip")); }});
+    threatIntelConfig.setFieldMap(Collections.singletonMap("hbaseThreatIntel", Collections.singletonList("ip_src_addr")));
+    threatIntelConfig.setFieldToTypeMap(Collections.singletonMap("ip_src_addr", Collections.singletonList("malicious_ip")));
     sensorEnrichmentConfig.setThreatIntel(threatIntelConfig);
     return sensorEnrichmentConfig;
   }

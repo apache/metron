@@ -29,6 +29,7 @@ import org.mockito.Mock;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -123,7 +124,7 @@ public class KafkaUtilsTest {
     }
   }
 
-  public static Stream<Object[]> data() {
+  public static List<Object[]> data() {
     String[] hostnames = new String[]{"node1", "localhost", "192.168.0.1", "my.domain.com"};
     String[] schemes = new String[]{"SSL", "PLAINTEXTSASL", "PLAINTEXT", "SASL_PLAINTEXT"};
     String[] ports = new String[]{"6667", "9091", null};
@@ -137,7 +138,7 @@ public class KafkaUtilsTest {
         }
       }
     }
-    return ret.stream();
+    return ret;
   }
 
   @ParameterizedTest

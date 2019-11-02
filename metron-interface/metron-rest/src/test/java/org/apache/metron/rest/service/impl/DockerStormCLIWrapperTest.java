@@ -27,11 +27,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.mockito.Mockito.*;
 
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})
 public class DockerStormCLIWrapperTest {
   private ProcessBuilder processBuilder;
   private Environment environment;
@@ -42,12 +42,13 @@ public class DockerStormCLIWrapperTest {
     processBuilder = mock(ProcessBuilder.class);
     environment = mock(Environment.class);
 
-    dockerStormCLIWrapper = new DockerStormCLIWrapper(environment);
+    dockerStormCLIWrapper = mock(DockerStormCLIWrapper.class,
+            withSettings().useConstructor(environment).defaultAnswer(CALLS_REAL_METHODS));
   }
 
   @Test
   public void getProcessBuilderShouldProperlyGenerateProcessorBuilder() throws Exception {
-//    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(any()).thenReturn(processBuilder);
+    doReturn(processBuilder).when(dockerStormCLIWrapper).getDockerEnvironmentProcessBuilder();
 
     when(processBuilder.environment()).thenReturn(new HashMap<>());
     when(processBuilder.command()).thenReturn(new ArrayList<>());
@@ -63,12 +64,11 @@ public class DockerStormCLIWrapperTest {
 
 
     ProcessBuilder actualBuilder = dockerStormCLIWrapper.getProcessBuilder("oo", "ooo");
+    assertThat(actualBuilder.environment(), hasEntry("METRON_VERSION", "1"));
+    assertThat(actualBuilder.environment(), hasEntry("DOCKER_HOST", "tcp://192.168.99.100:2376"));
 
-    assertEquals(new HashMap<String, String>() {{
-      put("METRON_VERSION", "1");
-      put("DOCKER_HOST", "tcp://192.168.99.100:2376");
-    }}, actualBuilder.environment());
-    assertEquals(new ArrayList<>(), actualBuilder.command());
+      // Needs to contain what we normally construct + what we passed in.
+    assertThat(actualBuilder.command(), contains("docker-compose", "-f", "/test", "-p", "metron", "exec", "storm", "oo", "ooo"));
 
     verify(process).waitFor();
   }

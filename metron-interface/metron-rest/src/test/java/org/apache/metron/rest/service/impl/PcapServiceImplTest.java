@@ -331,7 +331,7 @@ public class PcapServiceImplTest {
     when(environment.getProperty(MetronRestConstants.USER_JOB_LIMIT_SPRING_PROPERTY, Integer.class, 1)).thenReturn(2);
 
     RestException e = assertThrows(RestException.class, () -> pcapService.submit("user", new FixedPcapRequest()));
-    assertEquals("Cannot submit job because a job is already running.  Please contact the administrator to cancel job(s) with id(s) jobId", e.getMessage());
+    assertTrue(e.getMessage().contains("Cannot submit job because a job is already running.  Please contact the administrator to cancel job(s) with id(s) jobId"));
   }
 
 
@@ -521,7 +521,7 @@ public class PcapServiceImplTest {
     when(p.getOutputStream()).thenReturn(outputStream);
     when(p.isAlive()).thenReturn(true);
     when(p.getInputStream()).thenReturn(new ByteArrayInputStream(pdmlXml.getBytes(StandardCharsets.UTF_8)));
-//    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(pb);
+    doReturn(pb).when(pcapToPdmlScriptWrapper).getProcessBuilder(any());
     when(pb.start()).thenReturn(p);
 
     assertEquals(JSONUtils.INSTANCE.load(expectedPdml, Pdml.class), pcapService.getPdml("user", "jobId", 1));

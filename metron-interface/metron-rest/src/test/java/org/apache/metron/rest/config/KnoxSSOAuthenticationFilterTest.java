@@ -26,14 +26,12 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.io.FileUtils;
-import org.apache.metron.rest.security.SecurityUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletResponse;
@@ -52,8 +50,6 @@ import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-//import static org.powermock.api.mockito.PowerMockito.mockStatic;
-//import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 public class KnoxSSOAuthenticationFilterTest {
   @Test
@@ -79,19 +75,18 @@ public class KnoxSSOAuthenticationFilterTest {
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
     SignedJWT signedJWT = mock(SignedJWT.class);
-//    mockStatic(SignedJWT.class);
     JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder().subject("userName").build();
     Authentication authentication = mock(Authentication.class);
     SecurityContext securityContext = mock(SecurityContext.class);
-//    mockStatic(SecurityContextHolder.class);
 
     when(request.getHeader("Authorization")).thenReturn(null);
     doReturn("serializedJWT").when(knoxSSOAuthenticationFilter).getJWTFromCookie(request);
-    when(SignedJWT.parse("serializedJWT")).thenReturn(signedJWT);
+//    when(SignedJWT.parse("serializedJWT")).thenReturn(signedJWT);
+    doReturn(signedJWT).when(knoxSSOAuthenticationFilter).parseJWT(any());
     when(signedJWT.getJWTClaimsSet()).thenReturn(jwtClaimsSet);
     doReturn(true).when(knoxSSOAuthenticationFilter).isValid(signedJWT, "userName");
     doReturn(authentication).when(knoxSSOAuthenticationFilter).getAuthentication("userName", request);
-    when(SecurityContextHolder.getContext()).thenReturn(securityContext);
+    doReturn(securityContext).when(knoxSSOAuthenticationFilter).getSecurityContext();
 
     knoxSSOAuthenticationFilter.doFilter(request, response, chain);
 
@@ -132,12 +127,10 @@ public class KnoxSSOAuthenticationFilterTest {
     HttpServletRequest request = mock(HttpServletRequest.class);
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
-    SignedJWT signedJWT = mock(SignedJWT.class);
-//    mockStatic(SignedJWT.class);
 
     when(request.getHeader("Authorization")).thenReturn(null);
     doReturn("serializedJWT").when(knoxSSOAuthenticationFilter).getJWTFromCookie(request);
-    when(SignedJWT.parse("serializedJWT")).thenThrow(new ParseException("parse exception", 0));
+    doThrow(new ParseException("parse exception", 0)).when(knoxSSOAuthenticationFilter).parseJWT(any());
 
     knoxSSOAuthenticationFilter.doFilter(request, response, chain);
 
@@ -158,12 +151,11 @@ public class KnoxSSOAuthenticationFilterTest {
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
     SignedJWT signedJWT = mock(SignedJWT.class);
-//    mockStatic(SignedJWT.class);
     JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder().subject("userName").build();
 
     when(request.getHeader("Authorization")).thenReturn(null);
     doReturn("serializedJWT").when(knoxSSOAuthenticationFilter).getJWTFromCookie(request);
-    when(SignedJWT.parse("serializedJWT")).thenReturn(signedJWT);
+    doReturn(signedJWT).when(knoxSSOAuthenticationFilter).parseJWT(any());
     when(signedJWT.getJWTClaimsSet()).thenReturn(jwtClaimsSet);
     doReturn(false).when(knoxSSOAuthenticationFilter).isValid(signedJWT, "userName");
 
@@ -260,9 +252,7 @@ public class KnoxSSOAuthenticationFilterTest {
       when(jwtToken.getSignature()).thenReturn(signature);
       RSAPublicKey rsaPublicKey = mock(RSAPublicKey.class);
       RSASSAVerifier rsaSSAVerifier = mock(RSASSAVerifier.class);
-//      mockStatic(SecurityUtils.class);
-      when(SecurityUtils.parseRSAPublicKey("knoxKeyString")).thenReturn(rsaPublicKey);
-//      whenNew(RSASSAVerifier.class).withArguments(rsaPublicKey).thenReturn(rsaSSAVerifier);
+      doReturn(rsaSSAVerifier).when(knoxSSOAuthenticationFilter).getRSASSAVerifier();
       {
         // Should be invalid if token verify throws an exception
         when(jwtToken.verify(rsaSSAVerifier)).thenThrow(new JOSEException("verify exception"));
@@ -344,7 +334,7 @@ public class KnoxSSOAuthenticationFilterTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void getAuthenticationShouldProperlyPopulateAuthentication() throws Exception {
+  public void getAuthenticationShouldProperlyPopulateAuthentication() {
     LdapTemplate ldapTemplate = mock(LdapTemplate.class);
     KnoxSSOAuthenticationFilter knoxSSOAuthenticationFilter = spy(new KnoxSSOAuthenticationFilter("ou=people,dc=hadoop,dc=apache,dc=org",
             mock(Path.class),

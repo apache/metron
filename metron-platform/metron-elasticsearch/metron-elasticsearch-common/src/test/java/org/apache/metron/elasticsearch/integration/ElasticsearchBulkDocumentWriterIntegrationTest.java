@@ -34,11 +34,15 @@ import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.json.simple.JSONObject;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -46,8 +50,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
-    @ClassRule
-    public static TemporaryFolder indexDir = new TemporaryFolder();
+    @TempDir
+    static File indexDir;
+
     private static String broTemplatePath = "../../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/bro_index.template";
     private static ElasticSearchComponent elasticsearch;
     private ElasticsearchClient client;
@@ -61,7 +66,7 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
         elasticsearch = new ElasticSearchComponent.Builder()
                 .withHttpPort(9211)
-                .withIndexDir(indexDir.getRoot())
+                .withIndexDir(indexDir)
                 .withAccessConfig(accessConfig)
                 .build();
         elasticsearch.start();

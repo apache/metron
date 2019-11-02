@@ -77,8 +77,7 @@ public class HDFSDataPrunerTest {
     public void testFailsOnTodaysDate() {
         assertThrows(
             StartDateException.class,
-            () ->
-                new HDFSDataPruner(todaysDate, 30, "file:///", dataPath.getAbsolutePath() + "/file-*"));
+            () -> new HDFSDataPruner(todaysDate, 30, "file:///", dataPath.getAbsolutePath() + "/file-*"));
     }
 
     @Test

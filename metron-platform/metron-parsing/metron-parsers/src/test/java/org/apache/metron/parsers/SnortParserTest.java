@@ -84,8 +84,8 @@ public class SnortParserTest {
     BasicSnortParser parser = new BasicSnortParser();
     parser.init();
     UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.FATAL);
-    parser.parse("foo bar".getBytes(StandardCharsets.UTF_8));
-    assertThrows(IllegalStateException.class, () -> UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.ERROR));
+    assertThrows(IllegalStateException.class, () -> parser.parse("foo bar".getBytes(StandardCharsets.UTF_8)));
+    UnitTestHelper.setLog4jLevel(BasicSnortParser.class, Level.ERROR);
   }
 
   @Test

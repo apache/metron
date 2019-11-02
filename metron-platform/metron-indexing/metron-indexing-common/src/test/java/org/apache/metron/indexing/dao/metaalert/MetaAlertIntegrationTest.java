@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.*;
@@ -830,6 +831,8 @@ public abstract class MetaAlertIntegrationTest {
 
   // This test is important enough that everyone should implement it, but is pretty specific to
   // implementation
+  // The function is provided for any store specific translation of queryIndice in parameterized tests, e.g. ES appends "_index"
+  // and "*"
   @Test
   public abstract void shouldSearchByNestedAlert() throws Exception;
 

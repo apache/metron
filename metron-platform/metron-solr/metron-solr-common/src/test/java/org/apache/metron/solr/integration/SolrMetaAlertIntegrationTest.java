@@ -39,6 +39,7 @@ import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.*;
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;

@@ -49,8 +49,7 @@ import java.util.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
@@ -177,7 +176,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   public void bad_facet_query_throws_exception() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(badFacetQuery, SearchRequest.class);
     InvalidSearchException e = assertThrows(InvalidSearchException.class, () -> dao.search(request));
-    assertEquals("Failed to execute search", e.getMessage());
+    assertTrue(e.getMessage().contains("Failed to execute search"));
   }
 
   @Override
@@ -256,7 +255,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       throws Exception {
     GroupRequest request = JSONUtils.INSTANCE.load(badGroupQuery, GroupRequest.class);
     InvalidSearchException e = assertThrows(InvalidSearchException.class, () -> dao.group(request));
-    assertEquals("Failed to execute search", e.getMessage());
+    assertTrue(e.getMessage().contains("Failed to execute search"));
   }
 
   @Test

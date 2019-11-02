@@ -93,12 +93,9 @@ public class SensorIndexingConfigServiceImplTest {
   @Test
   public void deleteShouldReturnTrueWhenClientSuccessfullyCallsDelete() throws Exception {
     DeleteBuilder builder = mock(DeleteBuilder.class);
-
     when(curatorFramework.delete()).thenReturn(builder);
-    when(builder.forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/bro")).thenReturn(null);
 
     assertTrue(sensorIndexingConfigService.delete("bro"));
-
     verify(curatorFramework).delete();
   }
 

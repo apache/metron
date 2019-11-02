@@ -209,6 +209,12 @@
             <artifactId>simple-syslog</artifactId>
             <version>${global_simple_syslog_version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.adrianwalker</groupId>
+            <artifactId>multiline-string</artifactId>
+            <version>0.1.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

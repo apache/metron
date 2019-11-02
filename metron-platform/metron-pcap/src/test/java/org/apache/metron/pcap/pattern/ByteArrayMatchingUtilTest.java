@@ -18,19 +18,20 @@
 package org.apache.metron.pcap.pattern;
 
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(Parameterized.class)
 public class ByteArrayMatchingUtilTest {
   public static byte[] DEADBEEF = new byte[] {(byte) 0xde, (byte) 0xad, (byte) 0xbe, (byte) 0xef};
   public static byte[] DEADBEEF_DONUTHOLE = new byte[] {(byte) 0xde, (byte) 0xad, (byte)0x00, (byte)0x00, (byte) 0xbe, (byte) 0xef};
@@ -72,30 +73,27 @@ public class ByteArrayMatchingUtilTest {
       return evaluator.evaluate(pattern, data);
     }
   }
-  private EvaluationStrategy strategy = null;
-  public ByteArrayMatchingUtilTest(EvaluationStrategy strategy) {
-    this.strategy = strategy;
-  }
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> strategies() {
-    List<Object[]> strategies = new ArrayList<>();
+  private static List<EvaluationStrategy[]> strategies() {
+    List<EvaluationStrategy[]> strategies = new ArrayList<>();
     for(EvaluationStrategy s : EvaluationStrategy.values()) {
-      strategies.add(new Object[] { s });
+      strategies.add(new EvaluationStrategy[] { s });
     }
     return strategies;
   }
 
-  @Test
-  public void testStringMatch() throws ExecutionException {
+  @ParameterizedTest
+  @MethodSource("strategies")
+  public void testStringMatch(EvaluationStrategy strategy) {
     assertTrue(strategy.evaluate("`metron`", "metron".getBytes(StandardCharsets.UTF_8)));
     assertTrue(strategy.evaluate("`metron`", "metron example".getBytes(StandardCharsets.UTF_8)));
     assertTrue(strategy.evaluate("`metron`", "edward metron example".getBytes(StandardCharsets.UTF_8)));
     assertFalse(strategy.evaluate("`metron`", "apache".getBytes(StandardCharsets.UTF_8)));
   }
 
-  @Test
-  public void testBytesMatch() {
+  @ParameterizedTest
+  @MethodSource("strategies")
+  public void testBytesMatch(EvaluationStrategy strategy) {
     assertTrue(strategy.evaluate("2f56abd814bc56420489ca38e7faf8cec3d4", REALPACKET));
     assertTrue(strategy.evaluate("2f56..14bc56420489ca38e7faf8cec3d4", REALPACKET));
     assertTrue(strategy.evaluate("(2f56)(.){2}(14bc56420489ca38e7faf8cec3d4)", REALPACKET));
@@ -118,8 +116,8 @@ public class ByteArrayMatchingUtilTest {
   public byte[] join(byte[]... array) {
     byte[] ret;
     int size = 0;
-    for(int i = 0;i < array.length;++i) {
-      size += array[i].length;
+    for (byte[] bytes : array) {
+      size += bytes.length;
     }
     ret = new byte[size];
     int j = 0;

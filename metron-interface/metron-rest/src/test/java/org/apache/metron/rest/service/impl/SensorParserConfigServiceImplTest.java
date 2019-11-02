@@ -54,7 +54,6 @@ import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_P
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SuppressWarnings("ALL")
 public class SensorParserConfigServiceImplTest {
   Environment environment;
   ObjectMapper objectMapper;
@@ -91,7 +90,7 @@ public class SensorParserConfigServiceImplTest {
   ConfigurationsCache cache;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
     Environment environment = mock(Environment.class);
@@ -128,12 +127,9 @@ public class SensorParserConfigServiceImplTest {
   @Test
   public void deleteShouldReturnTrueWhenClientSuccessfullyCallsDelete() throws Exception {
     DeleteBuilder builder = mock(DeleteBuilder.class);
-
     when(curatorFramework.delete()).thenReturn(builder);
-    when(builder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro")).thenReturn(null);
 
     assertTrue(sensorParserConfigService.delete("bro"));
-
     verify(curatorFramework).delete();
   }
 
@@ -169,7 +165,7 @@ public class SensorParserConfigServiceImplTest {
     when(cache.get( eq(ParserConfigurations.class)))
             .thenReturn(configs);
 
-    assertEquals(new ArrayList() {{
+    assertEquals(new ArrayList<String>() {{
       add("bro");
       add("squid");
     }}, sensorParserConfigService.getAllTypes());
@@ -190,7 +186,7 @@ public class SensorParserConfigServiceImplTest {
     when(cache.get( eq(ParserConfigurations.class)))
             .thenReturn(configs);
 
-    assertEquals(new HashMap() {{
+    assertEquals(new HashMap<String, Object>() {{
       put("bro", getTestBroSensorParserConfig());
       put("squid", getTestSquidSensorParserConfig());
     }}, sensorParserConfigService.getAll());
@@ -223,7 +219,7 @@ public class SensorParserConfigServiceImplTest {
   }
 
   @Test
-  public void reloadAvailableParsersShouldReturnParserClasses() throws Exception {
+  public void reloadAvailableParsersShouldReturnParserClasses() {
     Map<String, String> availableParsers = sensorParserConfigService.reloadAvailableParsers();
     assertTrue(availableParsers.size() > 0);
     assertEquals("org.apache.metron.parsers.GrokParser", availableParsers.get("Grok"));
@@ -247,7 +243,7 @@ public class SensorParserConfigServiceImplTest {
     writer.write(grokStatement);
     writer.close();
 
-    assertEquals(new HashMap() {{
+    assertEquals(new HashMap<String, Object>() {{
       put("elapsed", 161);
       put("code", 200);
       put("ip_dst_addr", "199.27.79.73");
@@ -263,13 +259,13 @@ public class SensorParserConfigServiceImplTest {
   }
 
   @Test
-  public void missingSensorParserConfigShouldThrowRestException() throws Exception {
+  public void missingSensorParserConfigShouldThrowRestException() {
     ParseMessageRequest parseMessageRequest = new ParseMessageRequest();
     assertThrows(RestException.class, () -> sensorParserConfigService.parseMessage(parseMessageRequest));
   }
 
   @Test
-  public void missingParserClassShouldThrowRestException() throws Exception {
+  public void missingParserClassShouldThrowRestException() {
     final SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("squid");
     ParseMessageRequest parseMessageRequest = new ParseMessageRequest();
@@ -278,7 +274,7 @@ public class SensorParserConfigServiceImplTest {
   }
 
   @Test
-  public void invalidParserClassShouldThrowRestException() throws Exception {
+  public void invalidParserClassShouldThrowRestException() {
     final SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("squid");
     sensorParserConfig.setParserClassName("bad.class.package.BadClassName");
@@ -298,7 +294,7 @@ public class SensorParserConfigServiceImplTest {
     SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("squid");
     sensorParserConfig.setParserClassName("org.apache.metron.parsers.GrokParser");
-    sensorParserConfig.setParserConfig(new HashMap() {{
+    sensorParserConfig.setParserConfig(new HashMap<String, Object>() {{
       put("grokPath", "/patterns/squid");
       put("patternLabel", "SQUID_DELIMITED");
       put("timestampField", "timestamp");

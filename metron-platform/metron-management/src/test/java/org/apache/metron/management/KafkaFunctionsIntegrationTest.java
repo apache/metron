@@ -28,9 +28,7 @@ import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.functions.MapFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.junit.Rule;
 import org.junit.jupiter.api.*;
-import org.junit.rules.TestName;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -59,9 +57,6 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   private static Properties global;
   private static FunctionResolver functionResolver;
   private static ExecutorService executor;
-
-  @Rule
-  public TestName testName = new TestName();
 
   @BeforeAll
   public static void setupExecutor() {
@@ -123,7 +118,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   }
 
   @AfterAll
-  public static void tearDownAfterClass() throws Exception {
+  public static void tearDownAfterClass() {
     runner.stop();
   }
 
@@ -137,10 +132,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_GET should be able to read one message from a topic.
    */
   @Test
-  public void testKafkaPut() {
+  public void testKafkaPut(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put a message onto the topic
@@ -154,10 +149,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_PUT should be able to write multiple message to a topic.
    */
   @Test
-  public void testKafkaPutMultipleMessages() {
+  public void testKafkaPutMultipleMessages(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put a message onto the topic
@@ -175,10 +170,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_PUT should be able to write a message passed as a String, rather than a List.
    */
   @Test
-  public void testKafkaPutOneMessagePassedAsString() {
+  public void testKafkaPutOneMessagePassedAsString(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put a message onto the topic - the message is just a string, not a list
@@ -195,13 +190,13 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_PUT should be able to write a message passed as a String, rather than a List.
    */
   @Test
-  public void testKafkaPutWithRichView() {
+  public void testKafkaPutWithRichView(TestInfo testInfo) {
 
     // configure a detailed view of each message
     global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put a message onto the topic - the message is just a string, not a list
@@ -225,13 +220,13 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_GET should allow a user to see a detailed view of each Kafka record.
    */
   @Test
-  public void testKafkaGetWithRichView() {
+  public void testKafkaGetWithRichView(TestInfo testInfo) {
 
     // configure a detailed view of each message
     global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put a message onto the topic - the message is just a string, not a list
@@ -259,10 +254,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_GET should be able to read multiple messages at once.
    */
   @Test
-  public void testKafkaPutThenGetWithMultipleMessages() {
+  public void testKafkaPutThenGetWithMultipleMessages(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put multiple messages onto the topic
@@ -289,10 +284,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * across separate executions of KAKFA_GET
    */
   @Test
-  public void testKafkaGetWithSequentialReads() {
+  public void testKafkaGetWithSequentialReads(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put multiple messages onto the topic
@@ -315,10 +310,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_GET should return nothing if a topic does not exist
    */
   @Test
-  public void testKafkaGetWithNonExistentTopic() {
+  public void testKafkaGetWithNonExistentTopic(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // no more messages left to read
@@ -329,10 +324,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_TAIL should return new messages from the end of a topic.
    */
   @Test
-  public void testKafkaTail() throws Exception {
+  public void testKafkaTail(TestInfo testInfo) throws Exception {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put multiple messages onto the topic; KAFKA tail should NOT retrieve these
@@ -355,13 +350,13 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * then no messages will be returned.
    */
   @Test
-  public void testKafkaTailNone() {
+  public void testKafkaTailNone(TestInfo testInfo) {
 
     // shorten the max wait time so we do not have to wait so long
     global.put(KafkaFunctions.MAX_WAIT_PROPERTY, 2000);
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put multiple messages onto the topic
@@ -375,13 +370,13 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_TAIL should allow a user to see a rich view of each Kafka record.
    */
   @Test
-  public void testKafkaTailWithRichView() throws Exception {
+  public void testKafkaTailWithRichView(TestInfo testInfo) throws Exception {
 
     // configure a detailed view of each message
     global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put multiple messages onto the topic; KAFKA tail should NOT retrieve these
@@ -455,10 +450,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_FIND should only return messages that satisfy a filter expression.
    */
   @Test
-  public void testKafkaFind() throws Exception {
+  public void testKafkaFind(TestInfo testInfo) throws Exception {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // find all messages satisfying the filter expression
@@ -477,10 +472,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_FIND should return no messages, if none match the filter expression.
    */
   @Test
-  public void testKafkaFindNone() throws Exception {
+  public void testKafkaFindNone(TestInfo testInfo) throws Exception {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // find all messages satisfying the filter expression
@@ -499,13 +494,13 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_FIND should allow a user to see a detailed view of each Kafka record.
    */
   @Test
-  public void testKafkaFindWithRichView() throws Exception {
+  public void testKafkaFindWithRichView(TestInfo testInfo) throws Exception {
 
     // configure a detailed view of each message
     global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // find all messages satisfying the filter expression
@@ -533,10 +528,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_FIND should return no more messages than its limit.
    */
   @Test
-  public void testKafkaFindMultiple() throws Exception {
+  public void testKafkaFindMultiple(TestInfo testInfo) throws Exception {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // find all messages satisfying the filter expression
@@ -559,10 +554,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * messages are found.
    */
   @Test
-  public void testKafkaFindExceedsMaxWait() {
+  public void testKafkaFindExceedsMaxWait(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // write all 3 messages to the topic
@@ -585,10 +580,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_SEEK should return the message at a given offset.
    */
   @Test
-  public void testKafkaSeek() throws Exception {
+  public void testKafkaSeek(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put 3 messages into the topic
@@ -614,10 +609,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_SEEK should return null if the offset does not exist
    */
   @Test
-  public void testKafkaSeekToMissingOffset() throws Exception {
+  public void testKafkaSeekToMissingOffset(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put 3 messages into the topic
@@ -632,10 +627,10 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_SEEK should return null if the partition does not exist
    */
   @Test
-  public void testKafkaSeekToMissingPartition() throws Exception {
+  public void testKafkaSeekToMissingPartition(TestInfo testInfo) {
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     // put 3 messages into the topic
@@ -650,13 +645,13 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
    * KAFKA_SEEK should allow a user to see a detailed view of each Kafka record.
    */
   @Test
-  public void testKafkaSeekWithRichView() throws Exception {
+  public void testKafkaSeekWithRichView(TestInfo testInfo) {
 
     // configure a detailed view of each message
     global.put(KafkaFunctions.MESSAGE_VIEW_PROPERTY, KafkaFunctions.MESSAGE_VIEW_RICH);
 
     // use a unique topic name for this test
-    final String topicName = testName.getMethodName();
+    final String topicName = testInfo.getTestMethod().get().getName();
     variables.put("topic", topicName);
 
     run("KAFKA_PUT(topic, [ message1, message2, message3 ])");

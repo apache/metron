@@ -25,9 +25,9 @@ import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.metron.writer.NoopWriter;
 import org.apache.metron.writer.kafka.KafkaWriter;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,21 +37,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-//@RunWith(PowerMockRunner.class)
-//@PrepareForTest(ParserTopologyBuilder.class)
 public class ParserTopologyBuilderTest {
 
-  @Mock
-  private ParserConfigurations configs;
+  private static ParserConfigurations configs;
+  private static KafkaWriter kafkaWriter;
 
-  @Mock
-  private KafkaWriter kafkaWriter;
+  @BeforeAll
+  public static void setupAll() {
+      configs = mock(ParserConfigurations.class);
+      kafkaWriter = mock(KafkaWriter.class);
+  }
 
   @BeforeEach
   public void setup() {
-    spy(ParserTopologyBuilder.class);
-    when(ParserTopologyBuilder.createKafkaWriter(Optional.of("brokerUrl"), "zookeeperUrl", Optional.of("securityProtocol")))
-            .thenReturn(kafkaWriter);
+//    spy(ParserTopologyBuilder.class);
+//    when(ParserTopologyBuilder.createKafkaWriter(Optional.of("brokerUrl"), "zookeeperUrl", Optional.of("securityProtocol")))
+//            .thenReturn(kafkaWriter);
   }
 
   @Test

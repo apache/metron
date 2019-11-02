@@ -46,9 +46,6 @@ import static org.mockito.Mockito.*;
 
 
 @SuppressWarnings("unchecked")
-//@RunWith(PowerMockRunner.class)
-//@PowerMockIgnore("javax.management.*") // resolve classloader conflict
-//@PrepareForTest({AdminUtils$.class})
 public class KafkaServiceImplTest {
   private ZkUtils zkUtils;
   private KafkaConsumer<String, String> kafkaConsumer;
@@ -82,9 +79,7 @@ public class KafkaServiceImplTest {
 
   @Test
   public void listTopicsHappyPathWithListTopicsReturningNull() {
-    final Map<String, List<PartitionInfo>> topics = null;
-
-    when(kafkaConsumer.listTopics()).thenReturn(topics);
+    when(kafkaConsumer.listTopics()).thenReturn(null);
 
     final Set<String> listedTopics = kafkaService.listTopics();
 
@@ -288,7 +283,7 @@ public class KafkaServiceImplTest {
 
     String expectedMessage = "{\"field\":\"value\"}";
     verify(kafkaProducer).send(new ProducerRecord<>(topicName, expectedMessage));
-    verifyNoInteractions(kafkaProducer);
+    verifyNoMoreInteractions(kafkaProducer);
   }
 
   @Test

@@ -37,8 +37,6 @@ public class MultiLineWithErrorsGrokParserTest {
    * Test that if a byte[] with multiple lines of log is passed in
    * it will be parsed into the correct number of messages.
    */
-  // TODO Fix this nonsense
-//  @Test(expected = RuntimeException.class)
   @Test
   @SuppressWarnings("unchecked")
   public void testLegacyInterfaceThrowsOneExceptionWithMultiline() {
@@ -59,7 +57,7 @@ public class MultiLineWithErrorsGrokParserTest {
     Map<String, String> testData = getTestData();
     for (Map.Entry<String, String> e : testData.entrySet()) {
       byte[] rawMessage = e.getKey().getBytes(StandardCharsets.UTF_8);
-      List<JSONObject> parsedList = grokParser.parse(rawMessage);
+      assertThrows(RuntimeException.class, () -> grokParser.parse(rawMessage));
     }
   }
 

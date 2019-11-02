@@ -46,7 +46,7 @@ public class GlobalConfigServiceImplTest {
   ConfigurationsCache cache;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     curatorFramework = mock(CuratorFramework.class);
     cache = mock(ConfigurationsCache.class);
     globalConfigService = new GlobalConfigServiceImpl(curatorFramework, cache);
@@ -76,12 +76,9 @@ public class GlobalConfigServiceImplTest {
   @Test
   public void deleteShouldReturnTrueWhenClientSuccessfullyCallsDelete() throws Exception {
     DeleteBuilder builder = mock(DeleteBuilder.class);
-
     when(curatorFramework.delete()).thenReturn(builder);
-    when(builder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenReturn(null);
 
     assertTrue(globalConfigService.delete());
-
     verify(curatorFramework).delete();
   }
 
