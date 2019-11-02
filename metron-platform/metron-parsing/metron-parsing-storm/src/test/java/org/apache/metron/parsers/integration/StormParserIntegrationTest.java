@@ -16,30 +16,24 @@ package org.apache.metron.parsers.integration;/*
  * limitations under the License.
  */
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.metron.parsers.integration.validation.ParserDriver;
 import org.apache.metron.parsers.integration.validation.SampleDataValidation;
 import org.apache.metron.parsers.integration.validation.StormParserDriver;
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+import java.util.ArrayList;
+import java.util.List;
+
 public class StormParserIntegrationTest extends ParserIntegrationTest {
 
-  @Parameters(name = "{index}: sensorType={0}")
-  public static Iterable<String> data() {
+  private static Iterable<String> data() {
     return sensorTypes;
   }
 
-  @Parameter
-  public String sensorType;
-
-  @Test
-  public void test() throws Exception {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void test(String sensorType) throws Exception {
     ParserDriver driver = new StormParserDriver(sensorType, readSensorConfig(sensorType),
         readGlobalConfig());
     runTest(driver);
