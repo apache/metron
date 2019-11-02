@@ -52,6 +52,7 @@ javax.xml.stream:stax-api:jar:1.0-2:compile,COMMON DEVELOPMENT AND DISTRIBUTION 
 jline:jline:jar:0.9.94:compile,BSD,http://jline.sourceforge.net
 junit:junit:jar:4.12:compile,Eclipse Public License 1.0,http://junit.org
 junit:junit:jar:4.4:compile,Common Public License Version 1.0,http://junit.org
+junit:junit:jar:4.10:compile,Common Public License Version 1.0,http://junit.org
 net.razorvine:pyrolite:jar:4.13:compile,MIT,https://github.com/irmen/Pyrolite
 net.sf.jopt-simple:jopt-simple:jar:3.2:compile,The MIT License,http://jopt-simple.sourceforge.net
 net.sf.jopt-simple:jopt-simple:jar:4.6:compile,The MIT License,http://jopt-simple.sourceforge.net
@@ -504,3 +505,7 @@ org.elasticsearch:securesm:jar:1.2:compile
 com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile,ASLv2,http://stephenc.github.io/jcip-annotations/
 com.nimbusds:nimbus-jose-jwt:jar:4.41.2:compile,ASLv2,https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home
 tomcat:jasper-compiler:jar:5.5.23:compile,ASLv2,https://tomcat.apache.org/
+org.apiguardian:apiguardian-api:jar:1.1.0:compile,ASLv2,https://github.com/apiguardian-team/apiguardian/blob/master/LICENSE
+org.junit.jupiter:junit-jupiter-api:jar:5.5.2:compile,EPL 2.0,https://junit.org
+org.junit.platform:junit-platform-engine:jar:1.5.2:compile,EPL 2.0,https://junit.org
+org.junit.platform:junit-platform-commons:jar:1.5.2:compile,EPL 2.0,https://junit.orge
