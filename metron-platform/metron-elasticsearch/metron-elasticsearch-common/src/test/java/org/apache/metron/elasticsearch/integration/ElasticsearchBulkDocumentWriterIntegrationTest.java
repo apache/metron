@@ -33,16 +33,11 @@ import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.json.simple.JSONObject;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;

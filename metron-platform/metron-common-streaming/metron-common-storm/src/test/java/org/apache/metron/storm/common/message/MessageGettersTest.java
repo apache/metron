@@ -19,9 +19,7 @@ package org.apache.metron.storm.common.message;
 
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;

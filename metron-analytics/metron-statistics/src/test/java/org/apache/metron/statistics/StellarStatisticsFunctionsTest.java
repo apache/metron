@@ -36,7 +36,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.runners.Parameterized;
 
 import java.util.*;
 import java.util.function.Function;
@@ -47,21 +46,13 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests the statistical summary functions of Stellar.
  */
-//@RunWith(Parameterized.class)
-
 public class StellarStatisticsFunctionsTest {
 
   private List<Double> values;
   private Map<String, Object> variables;
   private DescriptiveStatistics stats;
   private SummaryStatistics summaryStats;
-//  private int windowSize;
 
-//  public StellarStatisticsFunctionsTest(int windowSize) {
-//    this.windowSize = windowSize;
-//  }
-
-  @Parameterized.Parameters
   public static Collection<Object[]> data() {
     // each test will be run against these values for windowSize
     return Arrays.asList(new Object[][] {{ 0 }, { 100 }});
