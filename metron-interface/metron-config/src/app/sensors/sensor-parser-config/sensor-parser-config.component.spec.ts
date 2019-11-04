@@ -583,7 +583,7 @@ describe('Component: SensorParserConfig', () => {
     );
     component.createForms();
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(17);
+    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(16);
     expect(
       Object.keys(component.transformsValidationForm.controls).length
     ).toEqual(2);
@@ -821,6 +821,7 @@ describe('Component: SensorParserConfig', () => {
     expect(component.isConfigValid()).toEqual(false);
 
     component.grokStatement = 'grok statement';
+    component.sensorParserConfig.parserConfig.timestampField = 'timestamp';
     expect(component.isConfigValid()).toEqual(true);
   }));
 
@@ -1119,8 +1120,11 @@ describe('Component: SensorParserConfig', () => {
     expect(component.showAdvancedParserConfiguration).toEqual(false);
   }));
 
-  it('should be timestamp by default', () => {
-    expect(component.sensorParserConfig.timestampField).toEqual('timestamp');
+  it('should be timestamp by default when parser is Grok', () => {
+    component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    component.paramsID = 'new';
+    component.onParserTypeChange();
+    expect(component.sensorParserConfig.parserConfig.timestampField).toEqual('timestamp');
   });
 
   it('should be invalid if timestamp field is empty', () => {
@@ -1130,9 +1134,9 @@ describe('Component: SensorParserConfig', () => {
     component.grokStatement = 'grokStatement';
     component.sensorParserConfig = new SensorParserConfig();
     component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser'
-    component.sensorParserConfig.timestampField = '';
+    component.sensorParserConfig.parserConfig.timestampField = '';
     expect(component.isConfigValid()).toEqual(false);
-    component.sensorParserConfig.timestampField = 'timestamp';
+    component.sensorParserConfig.parserConfig.timestampField = 'timestamp';
     expect(component.isConfigValid()).toEqual(true);
   });
 });
