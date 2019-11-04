@@ -77,7 +77,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   private manualQueryFieldChangeSubs: Subscription;
   private manualQueryInputEl: ElementRef;
   @ViewChild('manualQuery') set manualQuery(el: ElementRef) {
-    if (el && !this.manualQueryInputEl) {
+    if (el) {
       this.manualQueryInputEl = el;
       this.manualQueryFieldChangeSubs = this.addManualQueryFieldChangeStream(el.nativeElement);
     }
@@ -525,18 +525,18 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   getStaleDataWarning() {
     if (this.autoPollingSvc.getIsPollingActive()) {
       return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
+        Automatic refresh is turned on. Your filter and/or time-range changes will apply automatically on next refresh.`;
+      } else {
+      return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
         Click <i class="fa fa-search" aria-hidden="true"></i> to update your view based
         on your current filter and time-range configuration!`;
-    } else {
-      return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
-        Automatic refresh is turned on. Your filter and/or time-range changes will apply automatically on next refresh.`;
     }
   }
 
   getPollingCongestionWarning() {
     return `<i class="fa fa-warning" aria-hidden="true"></i> Refresh interval is shorter than the response time.
       Please increase the refresh interval in the <i class="fa fa-sliders" aria-hidden="true"></i> menu above,
-      or try to simplify your query filter.`;
+      or try to optimize your query filter.`;
   }
 
   private updatePollingInterval(refreshInterval: number): void {
