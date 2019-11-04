@@ -23,7 +23,7 @@ export class SensorParserConfig {
   writerClassName: string;
   errorWriterClassName: string;
   invalidWriterClassName: string;
-  parserConfig: { timestampField?: string };
+  parserConfig: { [key: string]: any; }
   fieldTransformations: FieldTransformer[];
   numWorkers: number;
   numAckers: number;
