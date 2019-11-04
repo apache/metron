@@ -442,7 +442,7 @@ describe('AutoPollingService', () => {
 
   });
 
-  fdescribe('polling state persisting and restoring', () => {
+  describe('polling state persisting and restoring', () => {
 
     it('should persist polling state on start', () => {
       spyOn(localStorage, 'setItem');
