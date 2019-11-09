@@ -21,6 +21,8 @@ This directory contains environments useful for Metron developers.  These enviro
 
 * Metron running on CentOS 6
 * Metron running on Ubuntu 14
+* Metron running in AWS EC2 with CentOS 6 using Vagrant
+* Metron running in AWS EC2 with CentOS 6 using an AMI
 * Fastcapa
 
 

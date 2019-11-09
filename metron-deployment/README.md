@@ -18,12 +18,15 @@ limitations under the License.
 
 This project contains tools for building, packaging, and deploying Apache Metron.  Please refer to the following sections for more information on how to get Apache Metron running in your environment.
 
- * [How do I deploy Metron with Ambari?](#how-do-i-deploy-metron-with-ambari)
- * [How do I deploy Metron on a single VM?](#how-do-i-deploy-metron-on-a-single-vm)
- * [How do I build RPM packages?](#how-do-i-build-rpm-packages)
- * [How do I build DEB packages?](#how-do-i-build-deb-packages)
- * [How do I deploy Metron within AWS?](#how-do-i-deploy-metron-within-aws)
- * [How do I build Metron with Docker?](#how-do-i-build-metron-with-docker)
+ - [How do I deploy Metron with Ambari?](#how-do-i-deploy-metron-with-ambari)
+ - [How do I deploy Metron on a single VM?](#how-do-i-deploy-metron-on-a-single-vm)
+ - [How do I build RPM packages?](#how-do-i-build-rpm-packages)
+ - [How do I build DEB packages?](#how-do-i-build-deb-packages)
+ - [How do I deploy Metron within AWS?](#how-do-i-deploy-metron-within-aws)
+   - [AWS Single Node Cluster Deployment Using Vagrant](#aws-single-node-cluster-deployment-using-vagrant)
+   - [AWS Single Node Cluster Deployment Using an AMI](#aws-single-node-cluster-deployment-using-an-ami)
+   - [AWS 10 Node Cluster Deployment](#aws-10-node-cluster-deployment)
+ - [How do I build Metron with Docker?](#how-do-i-build-metron-with-docker)
 
 
 How do I deploy Metron with Ambari?
@@ -151,6 +154,130 @@ To build the DEB packages, follow the instructions at [packaging/docker/deb-dock
 
 How do I deploy Metron within AWS?
 ----------------------------------
+You can deploy Metron into Amazon Web Service(AWS) in three ways:
+i) [As a single node using Vagrant](#aws-single-node-cluster-deployment-using-vagrant)
+ii) [As single node using an AMI from the AWS Community AMI Marketplace](#aws-single-node-cluster-deployment-using-an-ami)
+iii) [As a 10-node cluster](#aws-10-node-cluster-deployment)
+
+Below will provide more information on the three different deployment methods. 
+Warning: Amazon will charge for the use of their resources when running Apache Metron.  The amount will vary based on the number and size of hosts, along with current Amazon pricing structure.  Be sure to stop or terminate all of the hosts instantiated by Apache Metron when not in use to avoid unnecessary charges.
+
+
+### AWS Single Node Cluster Deployment Using Vagrant
+This will deploy Metron and all of its dependencies as a single node in Amazon Web Service's EC2 platform using Vagrant. 
+
+#### What is this good for?
+
+* If you are new to Metron and want to explore the functionality that it offers, this is good place to start.  
+
+* If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.  
+
+* The single node will survive a reboot.
+
+* The single node can use a pre-existing AWS elastic ip, security group id, and subnet id.
+
+#### What is this **not** good for?
+
+* This single node is **not** intended for processing anything beyond the most basic, low volume work loads.
+
+* This single node is **not** intended for processing anything beyond the most basic, low volume work loads.
+
+* Additional services should **not** be installed along side Metron in this VM.
+
+* This single node should **not** be used to run a proof-of-concept for Apache Metron within your organization.
+
+* You might need to run the Vagrant file in Mac OS and have install prerequisites installed properly 
+
+Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits.
+
+#### How?
+
+To deploy Metron in EC2 as a single node using Vagrant, follow the instructions at [development/aws-centos6](development/aws-centos6).
+
+
+### AWS Single Node Cluster Deployment Using an AMI
+This will deploy Metron as a single node in Amazon Web Service's EC2 platform by using existing Amazon Machine Image (AMI) that can be found in the AWS Community AMI Marketplace. 
+
+#### What is this good for?
+
+* This is intended to be the simplest EC2 AWS deployment option
+
+* No need for preinstall requriments on a seperate machine
+
+* If you are new to Metron and want to explore the functionality that it offers, this is good place to start.  
+
+* The single node will survive a reboot.
+
+* The single node can use your pre-existing AWS infrastructure settings (example: security group, keys ext..)
+
+* If you are a developer contributing to the Apache Metron project, you will see your changes if making modifications after deployment
+
+#### What is this **not** good for?
+
+* This single node is **not** intended for processing anything beyond the most basic, low volume work loads.
+
+* Additional services should **not** be installed along side Metron in this VM.
+
+* This single node should **not** be used to run a proof-of-concept for Apache Metron within your organization.
+
+* You might need to run the Vagrant file in Mac OS and have install prerequisites installed properly 
+
+Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits.
+
+#### How?
+1) Navigate to the [web page for this AMI](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) and "Accept Software Terms" for the "Manual Launch" tab.
+2) In the "EC2 Dashboard" click on "Launch Instance" in the "Canada (Central)" region
+3) Search for "GCR-Xetron Demo" or "ami-93cb4ff7" in the "Community AMIs" and click on "Select"
+4) Manually choose the following mandatory/non-default option and then "Launch Instance"
+
+- t2.t2xlarge [32 GB Memory, 8 Cores, 64 bit]
+
+5) Change security group setting to only allow traffic to what is necessary. By default a new security group might block all inbound traffic except SSH. Inbound and outbound ports 8080, 5000, 4200 ext.. will need to be allowed for your web client.
+6) (optional)Associate the newly launched instance to an elastic IP
+7) After the instance is launched you will need to change the hostname to node1. 
+
+SSH into the machine using your \*.pem key
+```
+ssh -i "<file>.pem" centos@<elastic_ip>
+```
+
+Update the /etc/sysconfig/network file to look like the following
+```
+sudo sed -i "s/^HOSTNAME=.*/HOSTNAME=node1/g" /etc/sysconfig/network
+```
+8) Reboot the instance
+9) Go to the Ambari dashboard (http://<elasticip>:8080) and select "Start All" services in the left dropdown menu
+
+### AWS Single Node Cluster Deployment
+This will deploy Metron and all of its dependencies on a single node in Amazon Web Service's EC2 platform. 
+
+#### What is this good for?
+
+* If you are new to Metron and want to explore the functionality that it offers, this is good place to start.  
+
+* If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.  
+
+* The single node will survive a reboot.
+
+* The single node can use a pre-existing AWS elastic ip, security group id, and subnet id.
+
+#### What is this **not** good for?
+
+* This VM is **not** intended for processing anything beyond the most basic, low volume work loads.
+
+* Additional services should **not** be installed along side Metron in this VM.
+
+* This VM should **not** be used to run a proof-of-concept for Apache Metron within your organization.
+
+Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits.
+
+#### How?
+
+To deploy Metron in a VM running on your computer, follow the instructions at [development/aws-centos6](development/aws-centos6).
+
+
+
+### AWS 10 Node Cluster Deployment
 
 This deploys Apache Metron on an automatically provisioned 10-node cluster running in Amazon Web Service's EC2 platform.
 

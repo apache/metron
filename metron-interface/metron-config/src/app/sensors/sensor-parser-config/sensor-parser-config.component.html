@@ -54,7 +54,7 @@
 
                 <div class="form-group">
                     <label attr.for="sensorTopic">KAFKA TOPIC </label>
-                    <input type="text" class="form-control" name="sensorTopic" formControlName="sensorTopic"  [(ngModel)]="sensorParserConfig.sensorTopic" (ngModelChange)="onSetKafkaTopic()">
+                    <input type="text" class="form-control" name="sensorTopic" formControlName="sensorTopic"  [(ngModel)]="sensorParserConfig.sensorTopic" (ngModelChange)="onSetKafkaTopic()" onkeypress="this.value = this.value.toLowerCase();">
                     <div *ngIf="!kafkaTopicValid"><label ><span class="warning-text"> Kafka Topic Name Is Invalid </span></label></div>
                     <div *ngIf="kafkaTopicValid">
                         <label *ngIf="currentKafkaStatus !== null && currentKafkaStatus === kafkaStatus.NO_TOPIC"><span class="warning-text"> No Matching Kafka Topic </span></label>
