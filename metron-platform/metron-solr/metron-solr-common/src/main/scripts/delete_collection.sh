@@ -16,9 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-METRON_VERSION=${project.version}
-METRON_HOME=/usr/metron/$METRON_VERSION
-ZOOKEEPER=${ZOOKEEPER:-localhost:2181}/solr
+ZOOKEEPER=${ZOOKEEPER:-localhost:2181}
 ZOOKEEPER_HOME=${ZOOKEEPER_HOME:-/usr/hdp/current/zookeeper-client}
 SECURITY_ENABLED=${SECURITY_ENABLED:-false}
 NEGOTIATE=''
