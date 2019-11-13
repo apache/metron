@@ -86,49 +86,52 @@
         <twitter>@ApacheMetron</twitter>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- base project versions -->
-        <base_kafka_version>0.10.0</base_kafka_version>
-        <base_hadoop_version>2.7.1</base_hadoop_version>
-        <base_flume_version>1.5.2</base_flume_version>
-        <!-- full dependency versions -->
+
+        <!-- build tooling -->
+        <global_java_version>1.8</global_java_version>
+        <global_shade_version>3.2.0</global_shade_version>
+        <global_jar_version>3.0.2</global_jar_version>
+        <global_surefire_version>2.18</global_surefire_version>
+        <maven_version>[3.3.1,)</maven_version>
+        <maven_checkstyle_version>2.17</maven_checkstyle_version>
+        <maven_jacoco_version>0.8.3</maven_jacoco_version>
+        <maven_errorprone_version>2.0.14</maven_errorprone_version>
+        <maven_assembly_version>2.6</maven_assembly_version>
+        <maven_site_version>3.6</maven_site_version>
+        <maven_compiler_version>3.5.1</maven_compiler_version>
+        <maven_puppy_version>8.0</maven_puppy_version>
+        <maven_cobertura_version>2.7</maven_cobertura_version>
+        <maven_pmd_version>3.7</maven_pmd_version>
+        <maven_enforcer_version>1.4.1</maven_enforcer_version>
+        <maven_javadoc_version>2.10.4</maven_javadoc_version>
+        <maven_project_info_version>2.9</maven_project_info_version>
+        <maven_jxr_version>2.3</maven_jxr_version>
+        <maven_rat_version>0.13</maven_rat_version>
+
+        <!-- compile dependencies -->
+        <global_guava_version>17.0</global_guava_version>
         <global_accumulo_version>1.8.0</global_accumulo_version>
         <global_caffeine_version>2.6.2</global_caffeine_version>
         <global_antlr_version>4.5</global_antlr_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_classindex_version>3.3</global_classindex_version>
-        <global_hbase_version>1.1.1</global_hbase_version>
-        <global_hbase_guava_version>12.0</global_hbase_guava_version>
-        <global_storm_version>1.0.3</global_storm_version>
-        <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
         <global_pcap_version>1.7.1</global_pcap_version>
-        <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
-        <global_flume_version>${base_flume_version}</global_flume_version>
-        <global_elasticsearch_version>5.6.14</global_elasticsearch_version>
         <global_json_simple_version>1.1.1</global_json_simple_version>
         <global_metrics_version>3.0.2</global_metrics_version>
-        <global_junit_version>4.12</global_junit_version>
-        <global_guava_version>17.0</global_guava_version>
-        <global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
-        <global_opencsv_version>3.7</global_opencsv_version>
-        <global_java_version>1.8</global_java_version>
-        <global_mockito_version>1.10.19</global_mockito_version>
-        <global_powermock_version>1.7.0</global_powermock_version>
-        <global_shade_version>3.2.0</global_shade_version>
         <global_jackson_version>2.7.4</global_jackson_version>
-        <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
-        <global_jar_version>3.0.2</global_jar_version>
-        <global_surefire_version>2.18</global_surefire_version>
-        <global_maven_version>[3.3.1,)</global_maven_version>
         <global_kryo_version>3.0.3</global_kryo_version>
         <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
         <global_reflections_version>0.9.10</global_reflections_version>
-        <global_checkstyle_version>8.0</global_checkstyle_version>
-        <global_log4j_core_version>2.1</global_log4j_core_version>
         <global_simple_syslog_version>0.0.3</global_simple_syslog_version>
-        <global_spark_version>2.3.1</global_spark_version>
         <global_httpclient_version>4.3.2</global_httpclient_version>
         <global_aesh_version>0.66.19</global_aesh_version>
-        <global_jacoco_version>0.8.3</global_jacoco_version>
+        <global_log4j_core_version>2.1</global_log4j_core_version>
+        <global_slf4j_version>1.7.25</global_slf4j_version>
+
+        <!-- test dependencies -->
+        <global_junit_version>4.12</global_junit_version>
+        <global_mockito_version>1.10.19</global_mockito_version>
+        <global_powermock_version>1.7.0</global_powermock_version>
         <argLine></argLine>
     </properties>
     <profiles>
@@ -138,38 +141,17 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <hdp_version>3.1.0.0</hdp_version>
+                <!-- core platform -->
                 <global_kafka_version>2.0.0</global_kafka_version>
-                <global_slf4j_version>1.7.25</global_slf4j_version>
+                <global_hadoop_version>3.1.1</global_hadoop_version>
+                <global_hbase_version>2.0.2</global_hbase_version>
+                <global_hbase_guava_version>17.0</global_hbase_guava_version>
                 <global_storm_version>1.2.1</global_storm_version>
                 <global_storm_kafka_version>1.2.3</global_storm_kafka_version>
-                <global_zeppelin_version>0.8.0</global_zeppelin_version>
+                <global_spark_version>2.3.2</global_spark_version>
+                <global_elasticsearch_version>5.6.14</global_elasticsearch_version>
                 <global_solr_version>7.4.0</global_solr_version>
-                <base_hadoop_version>3.1.1</base_hadoop_version>
-                <global_hbase_version>2.0.2</global_hbase_version>
-                <global_hbase_guava_version>17.0</global_hbase_guava_version>
-                <!-- For Zookeeper/Curator version compatibility see
-                      http://curator.apache.org/zk-compatibility.html -->
-                <global_zookeeper_version>3.4.6</global_zookeeper_version>
-                <global_curator_version>2.7.1</global_curator_version>
-                <global_curator_test_version>2.7.1</global_curator_test_version>
-            </properties>
-        </profile>
-        <profile>
-            <id>HDP-2.5.0.0</id>
-            <properties>
-                <hdp_version>2.5.0.0</hdp_version>
-                <build_number>1245</build_number>
-                <global_hbase_version>1.1.1</global_hbase_version>
-                <global_hbase_guava_version>12.0</global_hbase_guava_version>
-                <global_storm_kafka_version>1.2.2</global_storm_kafka_version>
-                <base_storm_version>1.0.1</base_storm_version>
-                <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
-                <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
-                <global_zeppelin_version>0.7.3</global_zeppelin_version>
-                <global_solr_version>6.6.2</global_solr_version>
-                <global_hbase_version>2.0.2</global_hbase_version>
-                <global_hbase_guava_version>17.0</global_hbase_guava_version>
+                <global_zeppelin_version>0.8.0</global_zeppelin_version>
                 <!-- For Zookeeper/Curator version compatibility see
                       http://curator.apache.org/zk-compatibility.html -->
                 <global_zookeeper_version>3.4.6</global_zookeeper_version>
@@ -184,11 +166,6 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${global_mockito_version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.storm</groupId>
-                <artifactId>storm-kafka</artifactId>
-                <version>${global_storm_version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -247,7 +224,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>${maven_assembly_version}</version>
                     <configuration>
                         <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>
@@ -255,12 +232,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>2.17</version>
+                    <version>${maven_checkstyle_version}</version>
                     <dependencies>
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>${global_checkstyle_version}</version>
+                            <version>${maven_puppy_version}</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -270,12 +247,12 @@
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-site-plugin</artifactId>
-              <version>3.6</version>
+              <version>${maven_site_version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>${maven_compiler_version}</version>
                 <configuration>
                     <compilerId>javac-with-errorprone</compilerId>
                     <forceJavacCompilerUse>true</forceJavacCompilerUse>
@@ -298,14 +275,14 @@
                     <dependency>
                         <groupId>com.google.errorprone</groupId>
                         <artifactId>error_prone_core</artifactId>
-                        <version>${global_errorprone_core_version}</version>
+                        <version>${maven_errorprone_version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.7</version>
+                <version>${maven_cobertura_version}</version>
                 <configuration>
                     <check />
                     <formats>
@@ -317,7 +294,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${global_jacoco_version}</version>
+                <version>${maven_jacoco_version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -336,7 +313,7 @@
             <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
-                <version>0.13</version>
+                <version>${maven_rat_version}</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>
@@ -409,7 +386,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.4.1</version>
+                <version>${maven_enforcer_version}</version>
                 <executions>
                     <execution>
                         <id>enforce-versions</id>
@@ -419,7 +396,7 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>${global_maven_version}</version>
+                                    <version>${maven_version}</version>
                                 </requireMavenVersion>
                                 <requireJavaVersion>
                                     <version>${global_java_version}</version>
@@ -432,12 +409,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
+                <version>${maven_checkstyle_version}</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>${global_checkstyle_version}</version>
+                        <version>${maven_puppy_version}</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -470,12 +447,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
-                <version>2.3</version>
+                <version>${maven_jxr_version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.4</version>
+                <version>${maven_javadoc_version}</version>
                 <configuration>
                     <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
@@ -498,7 +475,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.9</version>
+                <version>${maven_project_info_version}</version>
                 <reportSets>
                     <reportSet>
                         <reports>
@@ -520,7 +497,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
+                <version>${maven_checkstyle_version}</version>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
                     <excludes>**/generated/**/*</excludes>
@@ -537,7 +514,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${global_jacoco_version}</version>
+                <version>${maven_jacoco_version}</version>
                 <reportSets>
                     <reportSet>
                         <reports>
@@ -550,7 +527,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.7</version>
+                <version>${maven_pmd_version}</version>
                 <configuration>
                     <targetJdk>${global_java_version}</targetJdk>
                 </configuration>
