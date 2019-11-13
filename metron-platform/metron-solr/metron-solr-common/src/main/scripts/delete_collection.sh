@@ -18,7 +18,7 @@
 #
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
-ZOOKEEPER=${ZOOKEEPER:-localhost:2181}
+ZOOKEEPER=${ZOOKEEPER:-localhost:2181}/solr
 ZOOKEEPER_HOME=${ZOOKEEPER_HOME:-/usr/hdp/current/zookeeper-client}
 SECURITY_ENABLED=${SECURITY_ENABLED:-false}
 NEGOTIATE=''
@@ -28,6 +28,15 @@ fi
 
 # Get the first Solr node from the list of live nodes in Zookeeper
 SOLR_NODE=`$ZOOKEEPER_HOME/bin/zkCli.sh -server $ZOOKEEPER ls /live_nodes | tail -n 1 | sed 's/\[\([^,]*\).*\]/\1/' | sed 's/_solr//'`
+
+# test for errors
+if [[ ${SOLR_NODE} =~ .*:null ]]; then
+  echo "Error occurred while attempting to read SOLR Cloud configuration data from Zookeeper.";
+  if ! [[ ${ZOOKEEPER} =~ .*/solr ]]; then
+    echo "Warning! Environment variable ZOOKEEPER=$ZOOKEEPER does not contain a chrooted zookeeper ensemble address - are you sure you do not mean ZOOKEEPER=$ZOOKEEPER/solr?";
+  fi
+  exit 1;
+fi
 
 # Delete the collection
 curl -X GET $NEGOTIATE "http://$SOLR_NODE/solr/admin/collections?action=DELETE&name=$1"
