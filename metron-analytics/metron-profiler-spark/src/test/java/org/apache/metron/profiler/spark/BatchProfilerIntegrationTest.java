@@ -19,6 +19,30 @@
  */
 package org.apache.metron.profiler.spark;
 
+import static org.apache.metron.common.configuration.profiler.ProfilerConfig.fromJSON;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_COLUMN_FAMILY;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_NAME;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_BEGIN;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_END;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
+import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_READER;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.JSON;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.ORC;
+import static org.apache.metron.profiler.spark.reader.TelemetryReaders.PARQUET;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
+import java.lang.invoke.MethodHandles;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
@@ -41,19 +65,6 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.invoke.MethodHandles;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.apache.metron.common.configuration.profiler.ProfilerConfig.fromJSON;
-import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
-import static org.apache.metron.profiler.spark.BatchProfilerConfig.*;
-import static org.apache.metron.profiler.spark.reader.TelemetryReaders.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * An integration test for the {@link BatchProfiler}.
@@ -137,6 +148,14 @@ public class BatchProfilerIntegrationTest {
    *        "init": { "count": 0 },
    *        "update": { "count": "count + 1" },
    *        "result": "count"
+   *      },
+   *      {
+   *        "profile": "response-body-len",
+   *        "onlyif": "exists(response_body_len)",
+   *        "foreach": "ip_src_addr",
+   *        "init": { "len": 0 },
+   *        "update": { "len": "len + response_body_len" },
+   *        "result": "TO_INTEGER(len)"
    *      }
    *   ]
    * }
@@ -345,7 +364,15 @@ public class BatchProfilerIntegrationTest {
     *        "init": { "count": "STATS_INIT()" },
     *        "update": { "count": "STATS_ADD(count, 1)" },
     *        "result": "TO_INTEGER(STATS_COUNT(count))"
-    *      }
+    *      },
+    *      {
+    *        "profile": "response-body-len",
+    *        "onlyif": "exists(response_body_len)",
+    *        "foreach": "ip_src_addr",
+    *        "init": { "len": "STATS_INIT()" },
+    *        "update": { "len": "STATS_ADD(len, response_body_len)" },
+    *        "result": "TO_INTEGER(STATS_SUM(len))"
+    *       }
     *   ]
     * }
     */
@@ -386,6 +413,9 @@ public class BatchProfilerIntegrationTest {
 
     // there are 100 messages in all
     assertTrue(execute("[100] == PROFILE_GET('total-count', 'total', window)", Boolean.class));
+
+    // check the sum of the `response_body_len` field
+    assertTrue(execute("[1029726] == PROFILE_GET('response-body-len', '192.168.138.158', window)", Boolean.class));
   }
 
   private Properties getGlobals() {
