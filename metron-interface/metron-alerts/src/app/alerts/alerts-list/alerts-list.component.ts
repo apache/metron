@@ -190,6 +190,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
       this.prepareData(response[0], response[1]);
+      this.setSearchRequestSize();
       this.refreshAlertData(resetPaginationForSearch);
     });
   }
