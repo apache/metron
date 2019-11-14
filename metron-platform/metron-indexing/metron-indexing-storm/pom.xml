@@ -62,6 +62,12 @@
             <scope>test</scope>
             <exclusions>
               <exclusion>
+                  <!--
+                      Exclusion needed to prevent `log4j-over-slf4j` from being
+                      pulled in from `storm-core`.  Otherwise, this results in a
+                      delegation loop when the integration tests are run.
+                      See http://www.slf4j.org/codes.html#log4jDelegationLoop.
+                     -->
                   <groupId>org.slf4j</groupId>
                   <artifactId>log4j-over-slf4j</artifactId>
               </exclusion>
