@@ -14,15 +14,24 @@
 <form role="form" [formGroup]="configForm">
     <div *ngFor="let key of configKeys">
         <div class="row mx-0 configkey-row">
-            <div class="col-md-10 advanced-input"><input type="text" class="form-control" name="advanced1" value="{{key}}" readonly></div>
+            <div class="col-md-10 advanced-input">
+                <input type="text" class="form-control" name="advanced1" value="{{key}}" readonly>
+            </div>
             <div class="col-md-2">
             </div>
         </div>
         <div class="row  mx-0">
-            <div class="col-md-10 advanced-input"><input type="text" class="form-control" formControlName="{{key}}" [ngModel]="displayValue(key)" (ngModelChange)="saveValue(key, $event)"></div>
-            <div class="col-md-2" (click)="removeConfig(key)">
+            <div class="col-md-10 advanced-input">
+                <input type="text" class="form-control" formControlName="{{key}}" [ngModel]="displayValue(key)" (ngModelChange)="saveValue(key, $event)">
+            </div>
+            <div class="col-md-2" (click)="removeConfig(key)" *ngIf="key !== 'timestampField'">
                 <i class="fa fa-minus fa-4 icon-button" aria-hidden="true" ></i>
             </div>
+        </div>
+        <div *ngIf="isGrokParser() && key === 'timestampField'">
+            <label *ngIf="!config['timestampField']">
+                <span class="warning-text">Field is required. </span>
+            </label>
         </div>
     </div>
     <div class="row  mx-0 new-configkey-row">

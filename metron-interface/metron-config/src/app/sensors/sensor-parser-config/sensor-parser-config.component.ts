@@ -316,6 +316,8 @@ export class SensorParserConfigComponent implements OnInit {
   onParserTypeChange(): void {
     if (this.paramsID === 'new' && this.isGrokParser(this.sensorParserConfig)) {
       this.sensorParserConfig.parserConfig.timestampField = 'timestamp';
+    } else if (this.paramsID === 'new') {
+      delete this.sensorParserConfig.parserConfig.timestampField;
     }
     this.parserClassValid =
       this.sensorParserConfig.parserClassName !== undefined &&
