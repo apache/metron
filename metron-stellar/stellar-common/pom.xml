@@ -236,11 +236,10 @@
             <version>${global_httpclient_version}</version>
         </dependency>
         <dependency>
-            <!-- junit dependency added with default scope to allow inclusion of StellarProcessorUtils in main jar.
-                 It is excluded from the uber-jar. -->
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${global_junit_version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.mock-server</groupId>
@@ -305,7 +304,10 @@
                     <artifactSet>
                         <excludes>
                             <exclude>*slf4j*</exclude>
+                            <!-- Even though we don't declare JUnit 4 deps, some legacy stuff would be pulled into the shaded jar.
+                                 Be more aggressive than just org.junit.jupiter. -->
                             <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>
@@ -368,7 +370,10 @@
                                 <excludes>
                                     <exclude>org.slf4j.impl*</exclude>
                                     <exclude>org.slf4j:slf4j-log4j*</exclude>
+                                    <!-- Even though we don't declare JUnit 4 deps, some legacy stuff would be pulled into the shaded jar.
+                                         Be more aggressive than just org.junit.jupiter. -->
                                     <exclude>junit</exclude>
+                                    <exclude>org.junit*:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <transformers>

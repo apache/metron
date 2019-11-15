@@ -50,8 +50,6 @@ javax.xml.bind:jaxb-api:jar:2.2.2:compile,CDDL,https://jaxb.dev.java.net/
 javax.xml.bind:jaxb-api:jar:2.3.0:compile,CDDL,https://jaxb.dev.java.net/
 javax.xml.stream:stax-api:jar:1.0-2:compile,COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0,https://docs.oracle.com/javase/7/docs/api/javax/xml/stream/package-summary.html
 jline:jline:jar:0.9.94:compile,BSD,http://jline.sourceforge.net
-junit:junit:jar:4.12:compile,Eclipse Public License 1.0,http://junit.org
-junit:junit:jar:4.4:compile,Common Public License Version 1.0,http://junit.org
 net.razorvine:pyrolite:jar:4.13:compile,MIT,https://github.com/irmen/Pyrolite
 net.sf.jopt-simple:jopt-simple:jar:3.2:compile,The MIT License,http://jopt-simple.sourceforge.net
 net.sf.jopt-simple:jopt-simple:jar:4.6:compile,The MIT License,http://jopt-simple.sourceforge.net

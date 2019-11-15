@@ -105,6 +105,14 @@
                     <shadedArtifactAttached>true</shadedArtifactAttached>
                     <shadedClassifierName>uber</shadedClassifierName>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <artifactSet>
+                        <excludes>
+                            <!-- Even though we don't declare JUnit 4 deps, some legacy stuff would be pulled into the shaded jar.
+                                 Be more aggressive than just org.junit.jupiter. -->
+                            <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
+                        </excludes>
+                    </artifactSet>
                 </configuration>
                 <executions>
                     <execution>

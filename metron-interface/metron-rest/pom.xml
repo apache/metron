@@ -564,6 +564,14 @@
                     <shadedClassifierName>uber</shadedClassifierName>
                     <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <artifactSet>
+                        <excludes>
+                            <!-- Even though we don't declare JUnit 4 deps, some legacy stuff would be pulled into the shaded jar.
+                                 Be more aggressive than just org.junit.jupiter. -->
+                            <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
+                        </excludes>
+                    </artifactSet>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
@@ -571,6 +579,9 @@
                                 <exclude>META-INF/*.SF</exclude>
                                 <exclude>META-INF/*.DSA</exclude>
                                 <exclude>META-INF/*.RSA</exclude>
+                                <!-- Need to exclude by class, because of the shaded hbase jar -->
+                                <exclude>junit/**</exclude>
+                                <exclude>org/junit/**</exclude>
                             </excludes>
                         </filter>
                     </filters>
