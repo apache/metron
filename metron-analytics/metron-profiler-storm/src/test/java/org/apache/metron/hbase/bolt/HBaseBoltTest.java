@@ -65,11 +65,6 @@ public class HBaseBoltTest extends BaseBoltTest {
     when(tuple2.getValueByField(eq("widget"))).thenReturn(widget2);
   }
 
-  @BeforeEach
-  public void setup() {
-
-  }
-
   /**
    * Create a ProfileBuilderBolt to test
    */
