@@ -33,7 +33,7 @@
         <div class="pt-2"><small>Loading...</small></div>
     </div>
 
-    <table data-qe-id="table-visible" class="table" *ngIf="visibleColumns.length">
+    <table data-qe-id="table-visible" class="configure-table table" *ngIf="visibleColumns.length">
       <thead>
         <tr>
           <th class="main-column" colspan=2> Visible </th>
@@ -43,8 +43,8 @@
           <th> </th>
         </tr>
       </thead>
-      <tbody>
-        <tr class="background-tiber">
+      <tbody [dragula]="'configure-table'">
+        <tr class="background-tiber out-of-dragula">
           <td>
             <button class="btn btn-secondary btn-sm" disabled>remove</button>
           </td>
@@ -56,7 +56,7 @@
           <td> - </td>
           <td> - </td>
         </tr>
-        <tr attr.data-qe-id="row-{{ i }}" *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+        <tr attr.data-index="{{ i }}" attr.data-qe-id="row-{{ i }}" *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
           <td>
             <button attr.data-qe-id="remove-btn-{{ i }}" (click)="onColumnRemoved(column)" class="btn btn-secondary btn-sm">remove</button>
           </td>

@@ -72,6 +72,7 @@
   font-size: 14px;
   content: '\f077';
   color: $gothic;
+  cursor: pointer;
 }
 
 .down:before {
@@ -80,6 +81,7 @@
   font-size: 14px;
   content: '\f078';
   color: $gothic;
+  cursor: pointer;
 }
 
 .disabled:before {
@@ -113,4 +115,28 @@
   padding: 0.1rem 0.25rem;
   font-size: 0.75rem;
   line-height: 1.1rem;
+}
+
+.configure-table tbody tr td {
+  cursor: move;
+}
+
+.gu-mirror {
+  opacity: 1;
+  cursor: move;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, .7);
+}
+
+.gu-mirror td {
+  display: none;
+}
+
+.gu-mirror td:nth-child(2) {
+  display: table-cell;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 44px;
+  vertical-align: middle;
 }

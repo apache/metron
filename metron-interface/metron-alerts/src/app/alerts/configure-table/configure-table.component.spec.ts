@@ -18,7 +18,7 @@
 import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 import { ConfigureTableComponent, ColumnMetadataWrapper } from './configure-table.component';
 import { ConfigureTableService } from '../../service/configure-table.service';
@@ -28,6 +28,8 @@ import { ClusterMetaDataService } from 'app/service/cluster-metadata.service';
 import { SearchService } from 'app/service/search.service';
 import { ColumnNamesService } from 'app/service/column-names.service';
 import { By } from '@angular/platform-browser';
+import { DragulaService, DragulaModule } from 'ng2-dragula';
+import { ColumnMetadata } from 'app/model/column-metadata';
 
 class FakeClusterMetaDataService {
   getDefaultColumns() {
@@ -83,7 +85,7 @@ describe('ConfigureTableComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [ FormsModule, RouterTestingModule ],
+      imports: [ FormsModule, RouterTestingModule, DragulaModule ],
       declarations: [
         ConfigureTableComponent,
         SwitchComponent,
@@ -94,6 +96,12 @@ describe('ConfigureTableComponent', () => {
         { provide: SearchService, useClass: FakeSearchService },
         { provide: ConfigureTableService, useClass: FakeConfigureTableService },
         { provide: ColumnNamesService, useClass: FakeColumnNamesService },
+        { provide: DragulaService, useValue: {
+          setOptions: () => {},
+          find: () => {},
+          drop: new Subject(),
+          add: () => {}
+        } }
       ]
     })
     .compileComponents();
@@ -271,6 +279,60 @@ describe('ConfigureTableComponent', () => {
 
       tableOfVisible = fixture.debugElement.queryAll(By.css('table'))[0];
       expect(tableOfVisible.query(By.css(`[data-qe-id="field-label-${newIndex}"]`)).nativeElement.innerText).toBe(rowId);
+    });
+
+    it('should rearrange the visible columns properly', () => {
+      const draguleService = TestBed.get(DragulaService);
+
+      let el = document.createElement('tr');
+      el.dataset.index = '1';
+
+      component.visibleColumns = [
+        new ColumnMetadataWrapper(new ColumnMetadata('lorem', 'ipsum'), false, 'foo'),
+        new ColumnMetadataWrapper(new ColumnMetadata('lorem', 'ipsum'), false, 'bar'),
+        new ColumnMetadataWrapper(new ColumnMetadata('lorem', 'ipsum'), false, 'lorem'),
+        new ColumnMetadataWrapper(new ColumnMetadata('lorem', 'ipsum'), false, 'ipsum'),
+        new ColumnMetadataWrapper(new ColumnMetadata('lorem', 'ipsum'), false, 'amet'),
+      ];
+
+      // el is on index 1 and there's no sibling so bar goes to the end
+      draguleService.drop.next(['group', el, null, null]);
+      expect(component.visibleColumns.map(item => item.displayName)).toEqual([
+        'foo', 'lorem', 'ipsum', 'amet', 'bar'
+      ]);
+
+      // the sibling is the first element so el (amet) goes to the beginning
+      let sibling = document.createElement('tr');
+      sibling.dataset.index = '0';
+      el = document.createElement('tr');
+      el.dataset.index = '3';
+
+      draguleService.drop.next(['group', el, null, null, sibling]);
+      expect(component.visibleColumns.map(item => item.displayName)).toEqual([
+        'amet', 'foo', 'lorem', 'ipsum', 'bar'
+      ]);
+
+      // putting the item on index 1 (foo) before the item on index 3 (ipsum)
+      sibling = document.createElement('tr');
+      sibling.dataset.index = '3';
+      el = document.createElement('tr');
+      el.dataset.index = '1';
+
+      draguleService.drop.next(['foo', el, null, null, sibling]);
+      expect(component.visibleColumns.map(item => item.displayName)).toEqual([
+        'amet', 'lorem', 'foo', 'ipsum', 'bar'
+      ]);
+
+      // putting the item on index 3 (ipsum) before the item on index 1 (lorem)
+      sibling = document.createElement('tr');
+      sibling.dataset.index = '1';
+      el = document.createElement('tr');
+      el.dataset.index = '3';
+
+      draguleService.drop.next(['foo', el, null, null, sibling]);
+      expect(component.visibleColumns.map(item => item.displayName)).toEqual([
+        'amet', 'ipsum', 'lorem', 'foo', 'bar'
+      ]);
     });
   });
 });
