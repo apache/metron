@@ -17,6 +17,18 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import oi.thekraken.grok.api.Grok;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -29,16 +41,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 public class GrokServiceImplTest {
   private Environment environment;
@@ -97,10 +99,11 @@ public class GrokServiceImplTest {
     grokValidation.setStatement("");
 
     RestException e = assertThrows(RestException.class, () -> grokService.validateGrokStatement(grokValidation));
+    assertEquals("Grok statement is required", e.getMessage());
   }
 
   @Test
-  public void validateGrokStatementShouldThrowExceptionWithNullStringAsStatement() throws Exception {
+  public void validateGrokStatementShouldThrowExceptionWithNullStringAsStatement() {
     GrokValidation grokValidation = new GrokValidation();
     grokValidation.setResults(new HashMap<>());
     grokValidation.setSampleData("asdf asdf");

@@ -18,20 +18,26 @@
 
 package org.apache.metron.common.performance;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
 import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.*;
 
 public class PerformanceLoggerTest {
 
@@ -64,7 +70,7 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1");
     perfLogger.log("t1");
     verify(timing).mark("t1");
-    verify(logger, times(1)).debug(any(String.class), any(), eq(111L), eq(""));
+    verify(logger, times(1)).debug(anyString(), any(), eq(111L), eq(""));
   }
 
   @Test
@@ -75,7 +81,7 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my message");
     perfLogger.log("t1", "my message");
     verify(timing).mark("t1");
-    verify(logger, times(1)).debug(any(String.class), any(), eq(111L), eq("my message"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(111L), eq("my message"));
   }
 
   @Test
@@ -94,11 +100,11 @@ public class PerformanceLoggerTest {
     verify(timing).mark("t1");
     verify(timing, never()).mark("t2");
     verify(timing, never()).mark("t3");
-    verify(logger).debug(any(String.class), any(), eq(111L), eq("my message"));
+    verify(logger).debug(anyString(), any(), eq(111L), eq("my message"));
     verify(logger)
-        .debug(any(String.class), eq("WARNING - MARK NOT SET"), eq(222L), eq("my message"));
+        .debug(anyString(), eq("WARNING - MARK NOT SET"), eq(222L), eq("my message"));
     verify(logger)
-        .debug(any(String.class), eq("WARNING - MARK NOT SET"), eq(333L), eq("my message"));
+        .debug(anyString(), eq("WARNING - MARK NOT SET"), eq(333L), eq("my message"));
   }
 
   @Test
@@ -112,8 +118,8 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my message 1");
     verify(timing).mark("t1");
     verify(timing).mark("t2");
-    verify(logger).debug(any(String.class), any(), eq(111L), eq("my message 1"));
-    verify(logger).debug(any(String.class), any(), eq(222L), eq("my message 2"));
+    verify(logger).debug(anyString(), any(), eq(111L), eq("my message 1"));
+    verify(logger).debug(anyString(), any(), eq(222L), eq("my message 2"));
   }
 
   @Test
@@ -127,7 +133,7 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my message");
     perfLogger.log("t1", "my message");
     verify(timing).mark("t1");
-    verify(logger, times(1)).debug(any(String.class), any(), eq(111L), eq("my message"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(111L), eq("my message"));
   }
 
   @Test
@@ -139,7 +145,7 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my message");
     perfLogger.log("t1", "my message");
     verify(timing).mark("t1");
-    verify(logger, times(0)).debug(any(String.class), any(), eq(111L), eq("my message"));
+    verify(logger, times(0)).debug(anyString(), any(), eq(111L), eq("my message"));
   }
 
   @Test
@@ -153,10 +159,10 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my {} message {} {}", "1", "2", "3");
     perfLogger.log("t1", "my {} message {} {} {}", "1", "2", "3", "4");
     verify(timing).mark("t1");
-    verify(logger, times(1)).debug(any(String.class), any(), eq(111L), eq("my 1 message"));
-    verify(logger, times(1)).debug(any(String.class), any(), eq(222L), eq("my 1 message 2"));
-    verify(logger, times(1)).debug(any(String.class), any(), eq(333L), eq("my 1 message 2 3"));
-    verify(logger, times(1)).debug(any(String.class), any(), eq(444L), eq("my 1 message 2 3 4"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(111L), eq("my 1 message"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(222L), eq("my 1 message 2"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(333L), eq("my 1 message 2 3"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(444L), eq("my 1 message 2 3 4"));
   }
 
   @Test
