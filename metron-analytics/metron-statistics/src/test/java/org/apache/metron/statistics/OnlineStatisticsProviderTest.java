@@ -108,12 +108,7 @@ public class OnlineStatisticsProviderTest {
   public void testUnderflow() {
     OnlineStatisticsProvider statsProvider = new OnlineStatisticsProvider();
     double d = 3e-305;
-//    for(int i = 0;i < 5;++i,d/=100000) {
     assertThrows(IllegalStateException.class, () -> statsProvider.addValue(d));
-//    }
-//    for(int i = 0;i < 5;++i,d/=100000) {
-//      statsProvider.addValue(d);
-//    }
   }
 
   @Test
