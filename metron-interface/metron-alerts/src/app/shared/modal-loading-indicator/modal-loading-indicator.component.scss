@@ -15,7 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-"use strict";
-exports.environment = {
-    production: true
-};
+.modal-loader {
+  display: block;
+
+  img {
+    width: 140px;
+  }
+
+  .spinner-border {
+    margin: 0.8rem 0 0.4rem 0;
+  }
+
+  .modal-dialog {
+    width: 200px;
+
+    .modal-content {
+      background-color: #232323;
+    }
+
+    .modal-body {
+      text-align: center;
+    }
+  }
+}

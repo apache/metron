@@ -15,43 +15,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@import "../../../../vendor.scss";
 @import "../../../../variables.scss";
 
-.table-wrapper {
-  min-height: calc(100vh - 320px);
-}
-
-.configure-table-icon {
-  font-size: 16px;
+.pause-play {
+  height: 38px;
+  padding: 0px;
+  border: 1px solid #0F6F9E;
+  width: 38px;
+  line-height: 35px;
+  border-radius: 12px;
+  margin-left: 15px;
+  background: $mine-shaft-2;
   cursor: pointer;
+
+  i {
+    font-size: 17px;
+    color: $piction-blue;
+  }
+
+  .fa-play {
+    padding-left: 3px;
+  }
 }
 
-.fa-chain-broken {
-  color: $piction-blue;
+.auto-polling {
+  font-size: 0.9rem;
+
+  button.btn-sm {
+    font-size: 0.75rem;
+  }
+
+  button.btn-light {
+    font-size: 0.75rem;
+    background-color: #e1e1e1;
+    border-color: #d2d2d2;
+  }
 }
 
-.dropdown-cell {
-  padding-left: 0.6rem;
-}
-
-.icon-cell {
-  padding: 0.3rem 3px;
-}
-
-.below-table-area {
-  display: flex;
-  justify-content: center;
-}
-
-.no-result-box {
+.card {
+  width: 270px;
   position: absolute;
-  top: 50%;
-  transform: translate(-50%,-50%);
-  width: 200px;
-  height: 70px;
-  text-align: center;
+  left: -34px;
+  z-index: 1;
+  top: 50px;
+  border-radius: 3;
+  background: $mine-shaft-2;
 }
 
-.find-btn::before {
-  color: #32ABDF;
+.fa-sort-asc {
+  position: absolute;
+  bottom: -40px;
+  left: 96px;
+  font-size: 42px;
+  color: #333333;
+  z-index: 2;
 }

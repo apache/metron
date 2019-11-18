@@ -15,22 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {FieldTransformer} from './field-transformer';
+export class SensorParserConfig {
+  parserClassName: string;
+  filterClassName: string;
+  sensorTopic: string;
+  writerClassName: string;
+  errorWriterClassName: string;
+  invalidWriterClassName: string;
+  parserConfig: {};
+  fieldTransformations: FieldTransformer[];
+  numWorkers: number;
+  numAckers: number;
+  spoutParallelism: number;
+  spoutNumTasks: number;
+  parserParallelism: number;
+  parserNumTasks: number;
+  errorWriterParallelism: number;
+  errorWriterNumTasks: number;
+  spoutConfig: {};
+  stormConfig: {};
+  timestampField: string;
 
-@Component({
-  selector: 'app-switch',
-  templateUrl: './switch.component.html',
-  styleUrls: ['./switch.component.scss']
-})
-export class SwitchComponent {
-
-  @Output() onChange: EventEmitter<Event> = new EventEmitter();
-  @Input() text: string;
-  @Input() selected = false;
-  @Input() disabled = false;
-
-  onValueChange(event) {
-    this.onChange.emit(event.target.checked);
+  constructor() {
+    this.parserConfig = {};
+    this.fieldTransformations = [];
+    this.spoutConfig = {};
+    this.stormConfig = {};
+    this.timestampField = 'timestamp';
   }
-
 }

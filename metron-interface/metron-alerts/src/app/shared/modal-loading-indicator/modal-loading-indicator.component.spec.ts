@@ -15,22 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-@Component({
-  selector: 'app-switch',
-  templateUrl: './switch.component.html',
-  styleUrls: ['./switch.component.scss']
-})
-export class SwitchComponent {
+import { ModalLoadingIndicatorComponent } from './modal-loading-indicator.component';
 
-  @Output() onChange: EventEmitter<Event> = new EventEmitter();
-  @Input() text: string;
-  @Input() selected = false;
-  @Input() disabled = false;
+describe('ModalLoadingIndicatorComponent', () => {
+  let component: ModalLoadingIndicatorComponent;
+  let fixture: ComponentFixture<ModalLoadingIndicatorComponent>;
 
-  onValueChange(event) {
-    this.onChange.emit(event.target.checked);
-  }
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ ModalLoadingIndicatorComponent ]
+    })
+    .compileComponents();
+  }));
 
-}
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ModalLoadingIndicatorComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

@@ -11,10 +11,15 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div [class.toggle-disabled]="disabled">
-  <label class="switch">
-    <input type="checkbox" [disabled]="disabled" [checked]="selected" (change)="onValueChange($event)" class="inputdemo">
-    <div class="slider round"></div>
-  </label>
-  <label> {{ text }}</label>
+<div *ngIf="show" class="modal-backdrop show"></div>
+<div *ngIf="show" class="modal modal-loader">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <img src="/assets/images/logo.png">
+                <div class="spinner-border text-info" role="status"></div>
+                <div class="pt-2">Fetching alerts...</div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -18,34 +18,42 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { ShowHideService } from './show-hide.service';
 
-export class ShowHideChanged {
-  value: string;
-  isHide: boolean;
-
-  constructor(value: string, isHide: boolean) {
-    this.value = value;
-    this.isHide = isHide;
-  }
+export interface ShowHideStateModel {
+  hideResolved: boolean,
+  hideDismissed: boolean,
 }
 
 @Component({
   selector: 'app-show-hide-alert-entries',
   template: `
+    <div *ngIf="!isAvailable()" class="warning">Hide toggles are not available in manual filtering mode.</div>
     <app-switch [text]="'HIDE Resolved Alerts'" data-qe-id="hideResolvedAlertsToggle" [selected]="showHideService.hideResolved"
-      (onChange)="onVisibilityChanged('RESOLVE', $event)"> </app-switch>
+      (onChange)="onVisibilityChanged('RESOLVE', $event)"
+      [disabled]="!isAvailable()"> </app-switch>
     <app-switch [text]="'HIDE Dismissed Alerts'" data-qe-id="hideDismissedAlertsToggle" [selected]="showHideService.hideDismissed"
-      (onChange)="onVisibilityChanged('DISMISS', $event)"> </app-switch>
-  `
+      (onChange)="onVisibilityChanged('DISMISS', $event)"
+      [disabled]="!isAvailable()"> </app-switch>
+  `,
+  styles: [
+    '.warning { font-size: 0.8rem; padding: 0 0.4rem; color: darkorange; }',
+  ]
 })
 export class ShowHideAlertEntriesComponent {
 
-  @Output() changed = new EventEmitter<ShowHideChanged>();
+  @Output() changed = new EventEmitter<ShowHideStateModel>();
 
   constructor(public showHideService: ShowHideService) {}
 
-  onVisibilityChanged(alertStatus, isHide) {
+  onVisibilityChanged(alertStatus: string, isHide: boolean): void {
     this.showHideService.setFilterFor(alertStatus, isHide);
-    this.changed.emit(new ShowHideChanged(alertStatus, isHide));
+    this.changed.emit({
+      hideResolved: this.showHideService.hideResolved,
+      hideDismissed: this.showHideService.hideDismissed,
+    });
+  }
+
+  isAvailable() {
+    return this.showHideService.isAvailable();
   }
 
 }

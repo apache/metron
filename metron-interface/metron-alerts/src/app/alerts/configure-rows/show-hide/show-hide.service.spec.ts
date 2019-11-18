@@ -18,14 +18,16 @@
 import { TestBed, inject, getTestBed } from '@angular/core/testing';
 
 import { ShowHideService } from './show-hide.service';
-import { QueryBuilder } from 'app/alerts/alerts-list/query-builder';
+import { QueryBuilder, FilteringMode } from 'app/alerts/alerts-list/query-builder';
 
 import { Spy } from 'jasmine-core';
 import { Filter } from 'app/model/filter';
+import { serializePath } from '@angular/router/src/url_tree';
 
 class QueryBuilderMock {
   addOrUpdateFilter = () => {};
   removeFilter = () => {};
+  getFilteringMode = () => {};
 }
 
 describe('ShowHideService', () => {
@@ -121,5 +123,13 @@ describe('ShowHideService', () => {
     service.setFilterFor('DISMISS', false);
     expect(queryBuilderMock.removeFilter).toHaveBeenCalledWith(new Filter('-alert_status', 'DISMISS', false));
     expect(queryBuilderMock.addOrUpdateFilter).not.toHaveBeenCalled();
+  }));
+
+  it('is available should return false if query builder in in manual mode', inject([ShowHideService], (service: ShowHideService) => {
+    queryBuilderMock.getFilteringMode = () => FilteringMode.MANUAL;
+    expect(service.isAvailable()).toBe(false);
+
+    queryBuilderMock.getFilteringMode = () => FilteringMode.BUILDER;
+    expect(service.isAvailable()).toBe(true);
   }));
 });

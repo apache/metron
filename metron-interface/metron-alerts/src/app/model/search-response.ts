@@ -23,7 +23,7 @@ export class SearchResponse {
   total = 0;
   groupedBy: string;
   results: Alert[] = [];
-  facetCounts: Facets;
+  facetCounts: Facets = {};
   groups: SearchResultGroup[];
 }
 
