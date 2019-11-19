@@ -501,3 +501,7 @@ $METRON_HOME/bin/upgrade_helper.sh backup node1:8080 admin admin metron_cluster
 $METRON_HOME/bin/upgrade_helper.sh restore node1:8080 admin admin metron_cluster
 ```
 
+Note: Before issuing a restore, you should verify that the backup completed successfully. If there is an issue connecting to the Ambari server, the following message will appear in the script output.
+```
+Unable to get cluster detail from Ambari. Check your username, password, and cluster name. Skipping.
+```

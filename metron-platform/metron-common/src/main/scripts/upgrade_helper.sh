@@ -57,12 +57,18 @@ if [ "$mode" == "backup" ]; then
     fi
     if [ -f "/var/lib/ambari-server/resources/scripts/configs.py" ]; then
         echo Backing up Ambari config...
-        for config_type in $(curl -u $username:$password -H "X-Requested-By: ambari" -X GET  http://$ambari_address/api/v1/clusters/$cluster_name?fields=Clusters/desired_configs | grep '" : {' | grep -v Clusters | grep -v desired_configs | cut -d'"' -f2 | grep metron); 
-        do 
-            echo Saving $config_type
-            /var/lib/ambari-server/resources/scripts/configs.py -u $username -p $password -a get -l ${ambari_address%:*} -n $cluster_name -c $config_type -f $AMBARI_CONFIG_DIR/${config_type}.json
-        done
-        echo Done backing up Ambari config...
+        echo Checking connection...
+        ret_status=$(curl -i -u $username:$password -H "X-Requested-By: ambari" -X GET  http://$ambari_address/api/v1/clusters/$cluster_name | head -n 1)
+        if [ "HTTP/1.1 200 OK" == "$ret_status" ]; then
+            for config_type in $(curl -u $username:$password -H "X-Requested-By: ambari" -X GET  http://$ambari_address/api/v1/clusters/$cluster_name?fields=Clusters/desired_configs | grep '" : {' | grep -v Clusters | grep -v desired_configs | cut -d'"' -f2 | grep metron); 
+            do 
+                echo Saving $config_type
+                /var/lib/ambari-server/resources/scripts/configs.py -u $username -p $password -a get -l ${ambari_address%:*} -n $cluster_name -c $config_type -f $AMBARI_CONFIG_DIR/${config_type}.json
+            done
+            echo Done backing up Ambari config...
+        else
+            echo Unable to get cluster detail from Ambari. Check your username, password, and cluster name. Skipping.
+        fi
     else
         echo Skipping Ambari config backup - Ambari not found on this host
     fi
