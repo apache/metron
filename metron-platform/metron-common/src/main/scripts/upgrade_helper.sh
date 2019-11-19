@@ -58,12 +58,12 @@ if [ "$mode" == "backup" ]; then
     if [ -f "/var/lib/ambari-server/resources/scripts/configs.py" ]; then
         echo Backing up Ambari config...
         echo Checking connection...
-        ret_status=$(curl -i -u $username:$password -H "X-Requested-By: ambari" -X GET  http://$ambari_address/api/v1/clusters/$cluster_name | head -n 1)
+        ret_status=$(curl -i -u "$username":"$password" -H "X-Requested-By: ambari" -X GET  http://$ambari_address/api/v1/clusters/$cluster_name | head -n 1)
         if [ "HTTP/1.1 200 OK" == "$ret_status" ]; then
-            for config_type in $(curl -u $username:$password -H "X-Requested-By: ambari" -X GET  http://$ambari_address/api/v1/clusters/$cluster_name?fields=Clusters/desired_configs | grep '" : {' | grep -v Clusters | grep -v desired_configs | cut -d'"' -f2 | grep metron); 
+            for config_type in $(curl -u "$username":"$password" -H "X-Requested-By: ambari" -X GET  http://$ambari_address/api/v1/clusters/$cluster_name?fields=Clusters/desired_configs | grep '" : {' | grep -v Clusters | grep -v desired_configs | cut -d'"' -f2 | grep metron); 
             do 
                 echo Saving $config_type
-                /var/lib/ambari-server/resources/scripts/configs.py -u $username -p $password -a get -l ${ambari_address%:*} -n $cluster_name -c $config_type -f $AMBARI_CONFIG_DIR/${config_type}.json
+                /var/lib/ambari-server/resources/scripts/configs.py -u "$username" -p "$password" -a get -l ${ambari_address%:*} -n $cluster_name -c $config_type -f $AMBARI_CONFIG_DIR/${config_type}.json
             done
             echo Done backing up Ambari config...
         else
@@ -97,7 +97,7 @@ elif [ "$mode" == "restore" ]; then
                 echo $i. Found config: $filename
                 config_type=${filename%.json}
                 echo "   Setting config_type to $config_type"
-                /var/lib/ambari-server/resources/scripts/configs.py -u $username -p $password -a set -l ${ambari_address%:*} -n $cluster_name -c $config_type -f $AMBARI_CONFIG_DIR/${config_type}.json
+                /var/lib/ambari-server/resources/scripts/configs.py -u "$username" -p "$password" -a set -l ${ambari_address%:*} -n $cluster_name -c $config_type -f $AMBARI_CONFIG_DIR/${config_type}.json
                 echo "   Done restoring $config_type"
             done
             echo Done restoring $i metron config files from $OUT_DIR
