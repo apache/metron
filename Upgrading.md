@@ -22,6 +22,9 @@ configuration which are non-backwards compatible.
 
 ## 0.7.2 to 0.7.3
 
+### [METRON-2239: Metron Automated backup and restore](https://issues.apache.org/jira/browse/METRON-2239)
+An upgrade helper script has been added to `$METRON_HOME/bin/upgrade_helper.sh`. This script will assist in backing up and restoring Ambari configuration and Metron configuration stored in Zookeeper. You can see more details at [Metron Upgrade Helper](metron-platform/metron-common#metron-upgrade-helper) and [Upgrade Steps](Upgrade_steps.md).
+
 ### [METRON-614: Eliminate use of the default Charset](https://issues.apache.org/jira/browse/METRON-614)
 The use of the system default Charset is being dropped throughout the code in favor or explicit Charsets, by default UTF-8. As part of this change, individual parsers may now set a configuration property `readCharset` to allow each parser to set the Charset used by its data.  This has potential upgrade implications:
 
