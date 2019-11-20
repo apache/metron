@@ -18,13 +18,13 @@
 
 package org.apache.metron.test.utils;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 import java.io.IOException;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class ValidationUtils {
 
@@ -47,9 +47,7 @@ public class ValidationUtils {
       Object v1 = m1.get(k);
       Object v2 = m2.get(k);
 
-      if (v2 == null) {
-        fail("Unable to find key: " + k + " in output");
-      }
+      assertNotNull(v2, "Unable to find key: " + k + " in output");
       if (k.equals("timestamp") || k.equals("guid")) {
         //TODO: Take the ?!?@ timestamps out of the reference file.
         assertEquals(v1.toString().length(), v2.toString().length());

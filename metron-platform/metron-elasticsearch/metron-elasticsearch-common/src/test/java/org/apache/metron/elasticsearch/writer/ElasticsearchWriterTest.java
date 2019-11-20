@@ -240,10 +240,6 @@ public class ElasticsearchWriterTest {
         when(writerConfiguration.isSetDocumentId("bro")).thenReturn(true);
         when(writerConfiguration.getFieldNameConverter("bro")).thenReturn("NOOP");
 
-//        mockStatic(ElasticsearchUtils.class);
-//        when(ElasticsearchUtils.getIndexFormat(globals())).thenReturn(new SimpleDateFormat());
-//        when(ElasticsearchUtils.getIndexName(eq("bro"), any(), eq(writerConfiguration))).thenReturn("bro_index");
-
         // create a few message ids and the messages associated with the ids
         List<BulkMessage<JSONObject>> messages = createMessages(3);
 
@@ -266,13 +262,9 @@ public class ElasticsearchWriterTest {
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
-//        ElasticsearchWriter esWriter = new ElasticsearchWriter();
         ElasticsearchWriter esWriter = spy(ElasticsearchWriter.class);
-//        esWriter = mock(ElasticsearchWriter.class,
-//                withSettings().useConstructor().defaultAnswer(CALLS_REAL_METHODS));
         doReturn(new SimpleDateFormat()).when(esWriter).getIndexFormat(globals());
         doReturn("bro_index").when(esWriter).getIndexName(eq("bro"), any(), eq(writerConfiguration));
-//        when(ElasticsearchUtils.getIndexName(eq("bro"), any(), eq(writerConfiguration))).thenReturn("bro_index");
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);

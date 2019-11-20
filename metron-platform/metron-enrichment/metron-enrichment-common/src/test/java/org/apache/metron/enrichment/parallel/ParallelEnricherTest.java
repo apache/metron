@@ -17,8 +17,16 @@
  */
 package org.apache.metron.enrichment.parallel;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
@@ -31,12 +39,6 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ParallelEnricherTest {
   /**
@@ -263,14 +265,7 @@ public class ParallelEnricherTest {
     JSONObject message = new JSONObject() {{
       put(Constants.SENSOR_TYPE, "test");
     }};
-    try {
-      enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
-      fail("This is an invalid config, we should have failed.");
-    }
-    catch(IllegalStateException ise) {
-      assertEquals(ise.getMessage()
-              , "Unable to find an adapter for hbaseThreatIntel, possible adapters are: " + Joiner.on(",").join(enrichmentsByType.keySet())
-      );
-    }
+    IllegalStateException ise = assertThrows(IllegalStateException.class, () -> enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null));
+    assertEquals(ise.getMessage(), "Unable to find an adapter for hbaseThreatIntel, possible adapters are: " + Joiner.on(",").join(enrichmentsByType.keySet()));
   }
 }

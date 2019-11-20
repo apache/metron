@@ -17,7 +17,23 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.TestConstants;
@@ -41,19 +57,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-
-import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
 
@@ -169,30 +172,22 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     genericEnrichmentBolt.getConfigurations().updateGlobalConfig(globalConfig);
 
-    try {
-      genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      fail("Should fail if a maxCacheSize property is not set");
-    } catch(IllegalStateException e) {}
+    assertThrows(IllegalStateException.class, () -> genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector),
+        "Should fail if a maxCacheSize property is not set");
     genericEnrichmentBolt.withMaxCacheSize(100);
-    try {
-      genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      fail("Should fail if a maxTimeRetain property is not set");
-    } catch(IllegalStateException e) {}
+    assertThrows(IllegalStateException.class, () -> genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector),
+      "Should fail if a maxTimeRetain property is not set");
     genericEnrichmentBolt.withMaxTimeRetain(10000);
-    try {
-      genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      fail("Should fail if an adapter is not set");
-    } catch(IllegalStateException e) {}
+    assertThrows(IllegalStateException.class, () -> genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector),
+      "Should fail if an adapter is not set");
     genericEnrichmentBolt.withEnrichment(testEnrichment);
     when(enrichmentAdapter.initializeAdapter(globalConfig)).thenReturn(true);
     genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(enrichmentAdapter, times(1)).initializeAdapter(globalConfig);
     when(enrichmentAdapter.initializeAdapter(globalConfig)).thenReturn(false);
     UnitTestHelper.setLog4jLevel(GenericEnrichmentBolt.class, Level.FATAL);
-    try {
-      genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      fail("An exception should be thrown if enrichment adapter initialization fails");
-    } catch(IllegalStateException e) {}
+    assertThrows(IllegalStateException.class, () -> genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector),
+      "An exception should be thrown if enrichment adapter initialization fails");
     UnitTestHelper.setLog4jLevel(GenericEnrichmentBolt.class, Level.ERROR);
     genericEnrichmentBolt.declareOutputFields(declarer);
     verify(declarer, times(1)).declareStream(eq(enrichmentType), argThat(new FieldsMatcher("key", "message", "subgroup")));

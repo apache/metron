@@ -17,18 +17,25 @@
  */
 package org.apache.metron.parsers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.jupiter.api.Test;
-
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class GrokParserTest {
 
@@ -64,8 +71,12 @@ public abstract class GrokParserTest {
 
   public boolean compare(JSONObject expected, JSONObject actual) {
     MapDifference mapDifferences = Maps.difference(expected, actual);
-    if (mapDifferences.entriesOnlyOnLeft().size() > 0) fail("Expected JSON has extra parameters: " + mapDifferences.entriesOnlyOnLeft());
-    if (mapDifferences.entriesOnlyOnRight().size() > 0) fail("Actual JSON has extra parameters: " + mapDifferences.entriesOnlyOnRight());
+    if (mapDifferences.entriesOnlyOnLeft().size() > 0) {
+      fail("Expected JSON has extra parameters: " + mapDifferences.entriesOnlyOnLeft());
+    }
+    if (mapDifferences.entriesOnlyOnRight().size() > 0) {
+      fail("Actual JSON has extra parameters: " + mapDifferences.entriesOnlyOnRight());
+    }
     Map actualDifferences = new HashMap();
     if (mapDifferences.entriesDiffering().size() > 0) {
       Map differences = Collections.unmodifiableMap(mapDifferences.entriesDiffering());
@@ -83,7 +94,9 @@ public abstract class GrokParserTest {
         }
       }
     }
-    if (actualDifferences.size() > 0) fail("Expected and Actual JSON values don't match: " + actualDifferences);
+    if (actualDifferences.size() > 0) {
+      fail("Expected and Actual JSON values don't match: " + actualDifferences);
+    }
     return true;
   }
 

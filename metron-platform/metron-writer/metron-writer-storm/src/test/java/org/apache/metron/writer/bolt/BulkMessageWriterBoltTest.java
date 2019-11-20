@@ -17,6 +17,27 @@
  */
 package org.apache.metron.writer.bolt;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
+import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
@@ -41,17 +62,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.*;
 
 public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
 
@@ -155,10 +165,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
             new FileInputStream("../" + BaseEnrichmentBoltTest.sampleSensorIndexingConfigPath));
     {
       doThrow(new Exception()).when(bulkMessageWriter).init(eq(stormConf), any(WriterConfiguration.class));
-      try {
-        bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
-        fail("A runtime exception should be thrown when bulkMessageWriter.init throws an exception");
-      } catch(RuntimeException e) {}
+      assertThrows(RuntimeException.class, () -> bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector));
       reset(bulkMessageWriter);
     }
     {

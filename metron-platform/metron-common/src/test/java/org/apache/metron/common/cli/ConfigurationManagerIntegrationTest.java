@@ -18,9 +18,37 @@
 
 package org.apache.metron.common.cli;
 
+import static org.apache.metron.common.cli.ConfigurationManager.PatchMode.ADD;
+import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
+import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
+import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
+import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
+import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
+import static org.apache.metron.common.utils.StringUtils.stripLines;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ArrayUtils;
@@ -36,23 +64,6 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.apache.metron.common.cli.ConfigurationManager.PatchMode.ADD;
-import static org.apache.metron.common.configuration.ConfigurationType.*;
-import static org.apache.metron.common.utils.StringUtils.stripLines;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ConfigurationManagerIntegrationTest {
   private TestingServer testZkServer;
@@ -153,25 +164,19 @@ public class ConfigurationManagerIntegrationTest {
     cleanDir(new File(outDir));
     pullConfigs(false);
     validateConfigsOnDisk(new File(outDir));
-    try {
-      //second time without force should
-      pullConfigs(false);
-      fail("Should have failed to pull configs in a directory structure that already exists.");
 
-    } catch(IllegalStateException t) {
-      //make sure we didn't bork anything
-      validateConfigsOnDisk(new File(outDir));
-    }
+    //second time without force should error
+    assertThrows(IllegalStateException.class, () -> pullConfigs(false), "Should have failed to pull configs in a directory structure that already exists.");
+
+    //make sure we didn't bork anything
+    validateConfigsOnDisk(new File(outDir));
+
     pullConfigs(true);
     validateConfigsOnDisk(new File(outDir));
   }
 
   private void validateConfig(String name, ConfigurationType type, String data) {
-      try {
-        type.deserialize(data);
-      } catch (Exception e) {
-        fail("Unable to load config " + name + ": " + data);
-      }
+        assertDoesNotThrow(() -> type.deserialize(data), "Unable to load config " + name + ": " + data);
   }
 
   @Test

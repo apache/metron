@@ -18,15 +18,17 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
-import org.apache.metron.stellar.dsl.DefaultVariableResolver;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.jupiter.api.Test;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.junit.jupiter.api.Test;
 
 public class RegExFunctionsTest {
 
@@ -65,15 +67,9 @@ public class RegExFunctionsTest {
     assertTrue(runPredicate("REGEXP_GROUP_VAL(empty,numberPattern,2) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     assertTrue(runPredicate("REGEXP_GROUP_VAL(numbers,numberPatternNoCaptures,2) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
 
-    boolean thrown = false;
-    try{
-      runPredicate("REGEXP_GROUP_VAL(2) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v)));
-    }catch(ParseException | IllegalStateException ise){
-      thrown = true;
-    }
-    if(!thrown){
-      fail("Did not fail on wrong number of parameters");
-    }
+    assertThrows(ParseException.class, () -> runPredicate("REGEXP_GROUP_VAL(2) == null",
+        new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))),
+        "Did not fail on wrong number of parameters");
   }
 
   @Test

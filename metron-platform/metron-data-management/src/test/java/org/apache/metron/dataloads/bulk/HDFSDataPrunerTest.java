@@ -17,13 +17,14 @@
  */
 package org.apache.metron.dataloads.bulk;
 
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Level;
-import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +32,13 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.log4j.Level;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 public class HDFSDataPrunerTest {
@@ -112,13 +117,7 @@ public class HDFSDataPrunerTest {
         pruner.fileSystem = testFS;
         HDFSDataPruner.DateFileFilter filter = new HDFSDataPruner.DateFileFilter(pruner, true);
         UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.FATAL);
-        try {
-            filter.accept(new Path("foo"));
-            fail("Expected Runtime exception, but did not receive one.");
-        }
-        catch(RuntimeException e) {
-
-        }
+        assertThrows(RuntimeException.class, () -> filter.accept(new Path("foo")));
         UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.ERROR);
     }
 
@@ -147,12 +146,7 @@ public class HDFSDataPrunerTest {
         pruner.fileSystem = testFS;
         HDFSDataPruner.DateFileFilter filter = new HDFSDataPruner.DateFileFilter(pruner, true);
         UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.FATAL);
-        try {
-            filter.accept(new Path("foo"));
-            fail("Expected Runtime exception, but did not receive one.");
-        }
-        catch(RuntimeException e) {
-        }
+        assertThrows(RuntimeException.class, () -> filter.accept(new Path("foo")));
         UnitTestHelper.setLog4jLevel(HDFSDataPruner.class, Level.ERROR);
     }
 

@@ -18,26 +18,53 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.search.*;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.Group;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.search.SortField;
+import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.json.simple.parser.ParseException;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.*;
-import static org.apache.metron.integration.utils.TestUtils.assertEventually;
-import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class MetaAlertIntegrationTest {
 
@@ -229,13 +256,9 @@ public abstract class MetaAlertIntegrationTest {
   }
 
   @Test
-  public void getAllMetaAlertsForAlertShouldThrowExceptionForEmptyGuid() throws Exception {
-    try {
-      metaDao.getAllMetaAlertsForAlert("");
-      fail("An exception should be thrown for empty guid");
-    } catch (InvalidSearchException ise) {
-      assertEquals("Guid cannot be empty", ise.getMessage());
-    }
+  public void getAllMetaAlertsForAlertShouldThrowExceptionForEmptyGuid() {
+    InvalidSearchException ise = assertThrows(InvalidSearchException.class, () -> metaDao.getAllMetaAlertsForAlert(""));
+    assertEquals("Guid cannot be empty", ise.getMessage());
   }
 
   @Test
@@ -515,14 +538,10 @@ public abstract class MetaAlertIntegrationTest {
       }
 
       // Verify removing alerts cannot result in an empty meta alert
-      try {
-        metaDao.removeAlertsFromMetaAlert("meta_alert",
-                Collections.singletonList(new GetRequest("message_3", SENSOR_NAME)));
-        fail("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.");
-      } catch (IllegalStateException ise) {
-        assertEquals("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.",
-                ise.getMessage());
-      }
+      IllegalStateException ise = assertThrows(IllegalStateException.class, () -> metaDao.removeAlertsFromMetaAlert("meta_alert",
+          Collections.singletonList(new GetRequest("message_3", SENSOR_NAME))));
+      assertEquals("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.",
+          ise.getMessage());
     }
   }
 
@@ -544,29 +563,15 @@ public abstract class MetaAlertIntegrationTest {
         new GetRequest("message_1", SENSOR_NAME),
         new GetRequest("meta_alert", METAALERT_TYPE)));
 
-    {
-      // Verify alerts cannot be added to an INACTIVE meta alert
-      try {
-        metaDao.addAlertsToMetaAlert("meta_alert",
-            Collections.singletonList(new GetRequest("message_1", SENSOR_NAME)));
-        fail("Adding alerts to an inactive meta alert should throw an exception");
-      } catch (IllegalStateException ise) {
-        assertEquals("Adding alerts to an INACTIVE meta alert is not allowed",
-            ise.getMessage());
-      }
-    }
+    // Verify alerts cannot be added to an INACTIVE meta alert
+    IllegalStateException ise = assertThrows(IllegalStateException.class, () -> metaDao.addAlertsToMetaAlert("meta_alert",
+        Collections.singletonList(new GetRequest("message_1", SENSOR_NAME))));
+    assertEquals("Adding alerts to an INACTIVE meta alert is not allowed", ise.getMessage());
 
-    {
-      // Verify alerts cannot be removed from an INACTIVE meta alert
-      try {
-        metaDao.removeAlertsFromMetaAlert("meta_alert",
-            Collections.singletonList(new GetRequest("message_0", SENSOR_NAME)));
-        fail("Removing alerts from an inactive meta alert should throw an exception");
-      } catch (IllegalStateException ise) {
-        assertEquals("Removing alerts from an INACTIVE meta alert is not allowed",
-            ise.getMessage());
-      }
-    }
+    // Verify alerts cannot be removed from an INACTIVE meta alert
+    ise = assertThrows(IllegalStateException.class, () -> metaDao.removeAlertsFromMetaAlert("meta_alert",
+        Collections.singletonList(new GetRequest("message_0", SENSOR_NAME))));
+    assertEquals("Removing alerts from an INACTIVE meta alert is not allowed", ise.getMessage());
   }
 
   @Test
@@ -907,13 +912,10 @@ public abstract class MetaAlertIntegrationTest {
   @Test
   public void shouldThrowExceptionOnMetaAlertUpdate() throws Exception {
     Document metaAlert = new Document(new HashMap<>(), "meta_alert", METAALERT_TYPE, 0L);
-    try {
-      // Verify a meta alert cannot be updated in the meta alert dao
-      metaDao.update(metaAlert, Optional.empty());
-      fail("Direct meta alert update should throw an exception");
-    } catch (UnsupportedOperationException uoe) {
-      assertEquals("Meta alerts cannot be directly updated", uoe.getMessage());
-    }
+    // Verify a meta alert cannot be updated in the meta alert dao
+    UnsupportedOperationException uoe = assertThrows(UnsupportedOperationException.class,
+        () -> metaDao.update(metaAlert, Optional.empty()));
+    assertEquals("Meta alerts cannot be directly updated", uoe.getMessage());
   }
 
   @Test
@@ -973,17 +975,13 @@ public abstract class MetaAlertIntegrationTest {
             new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // attempt to patch the alert field
-    try {
-      String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
-      PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatch, PatchRequest.class);
-      metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
-      fail("A patch on the alert field should throw an exception");
-
-    } catch (IllegalArgumentException iae) {
-      assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
-                      + "Please use the add/remove alert or update status functions instead.",
-              iae.getMessage());
-    }
+    String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
+    PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatch, PatchRequest.class);
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+        () -> metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis())));
+    assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
+            + "Please use the add/remove alert or update status functions instead.",
+        iae.getMessage());
 
     // ensure the alert field was NOT changed
     assertEventually(() -> {
@@ -1014,17 +1012,14 @@ public abstract class MetaAlertIntegrationTest {
             new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // Verify a patch to a status field should throw an exception
-    try {
-      String statusPatch = statusPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
-      PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
-      metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
-      fail("A patch on the status field should throw an exception");
+    String statusPatch = statusPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
+    PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+        () -> metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis())));
 
-    } catch (IllegalArgumentException iae) {
-      assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
-                      + "Please use the add/remove alert or update status functions instead.",
-              iae.getMessage());
-    }
+    assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
+            + "Please use the add/remove alert or update status functions instead.",
+        iae.getMessage());
 
     // ensure the status field was NOT changed
     assertEventually(() -> {

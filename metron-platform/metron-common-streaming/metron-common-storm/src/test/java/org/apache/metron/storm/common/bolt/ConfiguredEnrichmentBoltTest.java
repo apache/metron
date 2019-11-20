@@ -17,6 +17,15 @@
  */
 package org.apache.metron.storm.common.bolt;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Level;
 import org.apache.metron.TestConstants;
@@ -27,11 +36,8 @@ import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.*;
 
 public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
 
@@ -84,11 +90,9 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
   public void test() throws Exception {
     EnrichmentConfigurations sampleConfigurations = new EnrichmentConfigurations();
     UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.FATAL);
-    try {
-      StandAloneConfiguredEnrichmentBolt configuredBolt = new StandAloneConfiguredEnrichmentBolt(null);
-      configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      Assertions.fail("A valid zookeeper url must be supplied");
-    } catch (RuntimeException e){}
+    StandAloneConfiguredEnrichmentBolt configuredBoltNullZk = new StandAloneConfiguredEnrichmentBolt(null);
+    assertThrows(RuntimeException.class, () -> configuredBoltNullZk.prepare(new HashMap(), topologyContext, outputCollector),
+        "A valid zookeeper url must be supplied");
     UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.ERROR);
 
     configsUpdated = new HashSet<>();
@@ -101,20 +105,20 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     StandAloneConfiguredEnrichmentBolt configuredBolt = new StandAloneConfiguredEnrichmentBolt(zookeeperUrl);
     configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
     waitForConfigUpdate(enrichmentConfigurationTypes);
-    Assertions.assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
+    assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
 
     configsUpdated = new HashSet<>();
     Map<String, Object> sampleGlobalConfig = sampleConfigurations.getGlobalConfig();
     sampleGlobalConfig.put("newGlobalField", "newGlobalValue");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
-    Assertions.assertEquals(sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig(), "Add global config field");
+    assertEquals(sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig(), "Add global config field");
 
     configsUpdated = new HashSet<>();
     sampleGlobalConfig.remove("newGlobalField");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
-    Assertions.assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Remove global config field");
+    assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Remove global config field");
 
     configsUpdated = new HashSet<>();
     String sensorType = "testSensorConfig";
@@ -132,7 +136,7 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     sampleConfigurations.updateSensorEnrichmentConfig(sensorType, testSensorConfig);
     ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, testSensorConfig, zookeeperUrl);
     waitForConfigUpdate(sensorType);
-    Assertions.assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Add new sensor config");
+    assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Add new sensor config");
     configuredBolt.cleanup();
   }
 }

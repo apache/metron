@@ -18,6 +18,17 @@
 
 package org.apache.metron.parsers.csv;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Level;
@@ -27,14 +38,6 @@ import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class CSVParserTest {
   /**
@@ -112,17 +115,13 @@ public class CSVParserTest {
       assertEquals("foo", o.get("col1"));
       assertEquals("bar", o.get("col2"));
       assertEquals("grok", o.get("col3"));
-      assertEquals(null, o.get(" col2"));
-      assertEquals(null, o.get("col3 "));
+      assertNull(o.get(" col2"));
+      assertNull(o.get("col3 "));
     }
     {
       UnitTestHelper.setLog4jLevel(CSVParser.class, Level.FATAL);
       String line = "foo";
-      try {
-        List<JSONObject> results = parser.parse(Bytes.toBytes(line));
-        fail("Expected exception");
-      }
-      catch(IllegalStateException iae) {}
+      assertThrows(IllegalStateException.class, () -> parser.parse(Bytes.toBytes(line)));
       UnitTestHelper.setLog4jLevel(CSVParser.class, Level.ERROR);
     }
   }
