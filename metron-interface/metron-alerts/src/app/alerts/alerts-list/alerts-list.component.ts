@@ -200,13 +200,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  getColumnNamesForQuery() {
-    let fieldNames = this.alertsColumns.map(columnMetadata => columnMetadata.name);
-    fieldNames = fieldNames.filter(name => !(name === 'id' || name === 'alert_status'));
-    fieldNames.push(this.globalConfig['threat.score.field.name']);
-    return fieldNames;
-  }
-
   ngOnDestroy() {
     this.autoPollingSvc.onDestroy();
     this.removeAlertChangedListner();
@@ -441,15 +434,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   saveCurrentSearch(savedSearch: SaveSearch) {
     if (this.queryBuilder.query !== '*') {
-      if (!savedSearch) {
-        savedSearch = new SaveSearch();
-        savedSearch.searchRequest = this.queryBuilder.searchRequest;
-        savedSearch.tableColumns = this.alertsColumns;
-        savedSearch.filters = this.queryBuilder.filters;
-        savedSearch.searchRequest.query = '';
-        savedSearch.name = this.queryBuilder.generateNameForSearchRequest();
-      }
-
       this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {
       });
     }
