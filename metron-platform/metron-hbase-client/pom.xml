@@ -72,6 +72,9 @@
                     <artifactSet>
                         <excludes>
                             <exclude>*slf4j*</exclude>
+                            <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+                            <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>
@@ -89,6 +92,9 @@
                                 <exclude>META-INF/*.SF</exclude>
                                 <exclude>META-INF/*.DSA</exclude>
                                 <exclude>META-INF/*.RSA</exclude>
+                                <!-- Need to exclude by class, because of the shaded hbase jar -->
+                                <exclude>junit/**</exclude>
+                                <exclude>org/junit/**</exclude>
                               </excludes>
                             </filter>
                           </filters>

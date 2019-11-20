@@ -409,7 +409,6 @@
                             <artifactSet>
                                 <excludes>
                                     <exclude>classworlds:classworlds</exclude>
-                                    <exclude>junit:junit</exclude>
                                     <exclude>jmock:*</exclude>
                                     <exclude>*:xml-apis</exclude>
                                     <exclude>*slf4j*</exclude>
@@ -417,6 +416,9 @@
                                     <exclude>log4j:log4j:jar:</exclude>
                                     <exclude>*:hbase:*</exclude>
                                     <exclude>org.apache.hadoop.yarn.util.package-info*</exclude>
+                                    <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+                                    <exclude>junit</exclude>
+                                    <exclude>org.junit*:*</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>
