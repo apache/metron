@@ -363,15 +363,17 @@ This profile captures the vertex degree of a host. If you view network communica
       "profile": "in-degrees",
       "onlyif": "source.type == 'yaf'",
       "foreach": "ip_dst_addr",
-      "update": { "in": "HLLP_ADD(in, ip_src_addr)" },
-      "result": "HLLP_CARDINALITY(in)"
+      "init": { "estimator": "HLLP_INIT()" },
+      "update": { "estimator": "HLLP_ADD(estimator, ip_src_addr)" },
+      "result": "HLLP_CARDINALITY(estimator)"
     },
     {
       "profile": "out-degrees",
       "onlyif": "source.type == 'yaf'",
       "foreach": "ip_src_addr",
-      "update": { "out": "HLLP_ADD(out, ip_dst_addr)" },
-      "result": "HLLP_CARDINALITY(out)"
+      "init": { "estimator": "HLLP_INIT()" },
+      "update": { "estimator": "HLLP_ADD(estimator, ip_dst_addr)" },
+      "result": "HLLP_CARDINALITY(estimator)"
     }
   ]
 }

@@ -19,19 +19,24 @@
  */
 package org.apache.metron.profiler.spark;
 
+import com.google.common.collect.Maps;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
 import org.apache.metron.profiler.client.stellar.GetProfile;
 import org.apache.metron.profiler.client.stellar.WindowLookback;
+import org.apache.metron.profiler.spark.function.MessageRouterFunction;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkException;
+import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
+import org.json.simple.JSONObject;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -41,7 +46,9 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +69,7 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INP
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.JSON;
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.ORC;
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.PARQUET;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -145,6 +153,14 @@ public class BatchProfilerIntegrationTest {
    *        "init": { "count": 0 },
    *        "update": { "count": "count + 1" },
    *        "result": "count"
+   *      },
+   *      {
+   *        "profile": "response-body-len",
+   *        "onlyif": "exists(response_body_len)",
+   *        "foreach": "ip_src_addr",
+   *        "init": { "len": 0 },
+   *        "update": { "len": "len + response_body_len" },
+   *        "result": "TO_INTEGER(len)"
    *      }
    *   ]
    * }
@@ -345,7 +361,15 @@ public class BatchProfilerIntegrationTest {
     *        "init": { "count": "STATS_INIT()" },
     *        "update": { "count": "STATS_ADD(count, 1)" },
     *        "result": "TO_INTEGER(STATS_COUNT(count))"
-    *      }
+    *      },
+    *      {
+    *        "profile": "response-body-len",
+    *        "onlyif": "exists(response_body_len)",
+    *        "foreach": "ip_src_addr",
+    *        "init": { "len": "STATS_INIT()" },
+    *        "update": { "len": "STATS_ADD(len, response_body_len)" },
+    *        "result": "TO_INTEGER(STATS_SUM(len))"
+    *       }
     *   ]
     * }
     */
@@ -386,6 +410,9 @@ public class BatchProfilerIntegrationTest {
 
     // there are 100 messages in all
     assertTrue(execute("[100] == PROFILE_GET('total-count', 'total', window)", Boolean.class));
+
+    // check the sum of the `response_body_len` field
+    assertTrue(execute("[1029726] == PROFILE_GET('response-body-len', '192.168.138.158', window)", Boolean.class));
   }
 
   private Properties getGlobals() {

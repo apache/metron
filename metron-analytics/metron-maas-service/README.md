@@ -135,10 +135,9 @@ Let's augment the `squid` proxy sensor to use a model that will determine if the
 
 ## Install Prerequisites and Mock DGA Service
 Now let's install some prerequisites:
-* Flask via `yum install python-flask`
-* Jinja2 via `yum install python-jinja2`
-* Squid client via `yum install squid`
-* ES Head plugin via `/usr/share/elasticsearch/bin/plugin install mobz/elasticsearch-head`
+* Flask via `yum -y install python-flask`
+* Jinja2 via `yum -y install python-jinja2`
+* Squid client via `yum -y install squid`
 
 Start Squid via `service squid start`
 
@@ -154,13 +153,13 @@ The following presumes that you are a logged in as a user who has a
 home directory in HDFS under `/user/$USER`.  If you do not, please create one
 and ensure the permissions are set appropriate:
 ```
-su - hdfs -c "hadoop fs -mkdir /user/$USER"
-su - hdfs -c "hadoop fs -chown $USER:$USER /user/$USER"
+su - hdfs -c "hdfs dfs -mkdir /user/$USER"
+su - hdfs -c "hdfs dfs -chown $USER:$USER /user/$USER"
 ```
-Or, in the common case for the `metron` user:
+Or, in the common case for the `metron` user (if the user does not already exist):
 ```
-su - hdfs -c "hadoop fs -mkdir /user/metron"
-su - hdfs -c "hadoop fs -chown metron:metron /user/metron"
+su - hdfs -c "hdfs dfs -mkdir /user/metron"
+su - hdfs -c "hdfs dfs -chown metron:metron /user/metron"
 ```
 
 Now let's start MaaS and deploy the Mock DGA Service:
@@ -173,6 +172,10 @@ Now let's start MaaS and deploy the Mock DGA Service:
 ## Adjust Configurations for Squid to Call Model
 Now that we have a deployed model, let's adjust the configurations for the Squid topology to annotate the messages with the output of the model.
 
+* First pull down the latest configuration from Zookeeper
+```
+$METRON_HOME/bin/zk_load_configs.sh -m PULL -o ${METRON_HOME}/config/zookeeper -z $ZOOKEEPER -f
+```
 * Edit the squid parser configuration at `$METRON_HOME/config/zookeeper/parsers/squid.json` in your favorite text editor and add a new FieldTransformation to indicate a threat alert based on the model (note the addition of `is_malicious` and `is_alert`):
 ```
 {
@@ -217,8 +220,185 @@ Now that we have a deployed model, let's adjust the configurations for the Squid
   }
 }
 ```
+* Setup an indexing configuration here `${METRON_HOME}/config/zookeeper/indexing/squid.json` with the following contents:
+```
+{
+    "hdfs" : {
+        "index": "squid",
+        "batchSize": 5,
+        "enabled" : true
+    },
+    "elasticsearch" : {
+        "index": "squid",
+        "batchSize": 5,
+        "enabled" : true
+    },
+    "solr" : {
+        "index": "squid",
+        "batchSize": 5,
+        "enabled" : true
+    }
+}
+```
 * Upload new configs via `$METRON_HOME/bin/zk_load_configs.sh --mode PUSH -i $METRON_HOME/config/zookeeper -z node1:2181`
 * Make the Squid topic in kafka via `/usr/hdp/current/kafka-broker/bin/kafka-topics.sh --zookeeper node1:2181 --create --topic squid --partitions 1 --replication-factor 1`
+* Setup your squid indexing template for Elasticsearch (if using Elasticsearch)
+```
+curl -XPUT 'http://node1:9200/_template/squid_index' -d '
+{
+  "template": "squid_index*",
+  "mappings": {
+    "squid_doc": {
+      "dynamic_templates": [
+      {
+        "geo_location_point": {
+          "match": "enrichments:geo:*:location_point",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "geo_point"
+          }
+        }
+      },
+      {
+        "geo_country": {
+          "match": "enrichments:geo:*:country",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "keyword"
+          }
+        }
+      },
+      {
+        "geo_city": {
+          "match": "enrichments:geo:*:city",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "keyword"
+          }
+        }
+      },
+      {
+        "geo_location_id": {
+          "match": "enrichments:geo:*:locID",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "keyword"
+          }
+        }
+      },
+      {
+        "geo_dma_code": {
+          "match": "enrichments:geo:*:dmaCode",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "keyword"
+          }
+        }
+      },
+      {
+        "geo_postal_code": {
+          "match": "enrichments:geo:*:postalCode",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "keyword"
+          }
+        }
+      },
+      {
+        "geo_latitude": {
+          "match": "enrichments:geo:*:latitude",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "float"
+          }
+        }
+      },
+      {
+        "geo_longitude": {
+          "match": "enrichments:geo:*:longitude",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "float"
+          }
+        }
+      },
+      {
+        "timestamps": {
+          "match": "*:ts",
+          "match_mapping_type": "*",
+          "mapping": {
+            "type": "date",
+            "format": "epoch_millis"
+          }
+        }
+      },
+      {
+        "threat_triage_score": {
+          "mapping": {
+            "type": "float"
+          },
+          "match": "threat:triage:*score",
+          "match_mapping_type": "*"
+        }
+      },
+      {
+        "threat_triage_reason": {
+          "mapping": {
+            "type": "text",
+            "fielddata": "true"
+          },
+          "match": "threat:triage:rules:*:reason",
+          "match_mapping_type": "*"
+        }
+      },
+      {
+        "threat_triage_name": {
+          "mapping": {
+            "type": "text",
+            "fielddata": "true"
+          },
+          "match": "threat:triage:rules:*:name",
+          "match_mapping_type": "*"
+        }
+      }
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "source:type": {
+          "type": "keyword"
+        },
+        "ip_dst_addr": {
+          "type": "ip"
+        },
+        "ip_dst_port": {
+          "type": "integer"
+        },
+        "ip_src_addr": {
+          "type": "ip"
+        },
+        "ip_src_port": {
+          "type": "integer"
+        },
+        "alert": {
+          "type": "nested"
+        },
+        "metron_alert" : {
+          "type" : "nested"
+        },
+        "guid": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
+'
+# Verify the template installs as expected 
+curl -XGET 'http://node1:9200/_template/squid_index?pretty'
+```
 
 ## Start Topologies and Send Data
 Now we need to start the topologies and send some data:
@@ -226,7 +406,16 @@ Now we need to start the topologies and send some data:
 * Generate some data via the squid client:
   * Generate a legit example: `squidclient http://yahoo.com`
   * Generate a malicious example: `squidclient http://cnn.com`
+* (Optional) In another terminal, tail the "enrichments" Kafka topic. You should be able to see the new data output there after the next couple steps.
+```
+${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --bootstrap-server $BROKERLIST --topic enrichments
+```
 * Send the data to kafka via `cat /var/log/squid/access.log | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --topic squid`
-* Browse the data in elasticsearch via the ES Head plugin @ [http://node1:9200/_plugin/head/](http://node1:9200/_plugin/head/) and verify that in the squid index you have two documents
+* If you setup the optional Kafka consumer in another terminal, you should see a couple records output as follows. Notice that one has `"is_malicious":"legit"` while the other has `"is_malicious":"malicious"`:
+```
+{"is_malicious":"legit","full_hostname":"yahoo.com","code":301,"method":"GET","url":"http:\/\/yahoo.com\/","source.type":"squid","elapsed":192,"ip_dst_addr":"72.30.35.10","original_string":"1571163620.277    192 127.0.0.1 TCP_MISS\/301 366 GET http:\/\/yahoo.com\/ - DIRECT\/72.30.35.10 text\/html","bytes":366,"domain_without_subdomains":"yahoo.com","action":"TCP_MISS","guid":"9d19f502-0770-4ca1-9eeb-d0bcbb0942c7","ip_src_addr":"127.0.0.1","timestamp":1571163620277}
+{"is_malicious":"malicious","full_hostname":"cnn.com","code":301,"method":"GET","is_alert":"true","url":"http:\/\/cnn.com\/","source.type":"squid","elapsed":106,"ip_dst_addr":"151.101.1.67","original_string":"1571163632.536    106 127.0.0.1 TCP_MISS\/301 539 GET http:\/\/cnn.com\/ - DIRECT\/151.101.1.67 -","bytes":539,"domain_without_subdomains":"cnn.com","action":"TCP_MISS","guid":"69254e10-bed9-4743-ba8b-d3c01c29430d","ip_src_addr":"127.0.0.1","timestamp":1571163632536}
+```
+* Browse the data in the Alerts UI @ [http://node1:4201/alerts-list](http://node1:4201/alerts-list) and verify that in the squid index you have two documents.
   * One from `yahoo.com` which does not have `is_alert` set and does have `is_malicious` set to `legit`
   * One from `cnn.com` which does have `is_alert` set to `true`, `is_malicious` set to `malicious` and `threat:triage:level` set to 100
