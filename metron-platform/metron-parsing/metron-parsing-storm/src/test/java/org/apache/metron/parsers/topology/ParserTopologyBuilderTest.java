@@ -18,26 +18,25 @@
 
 package org.apache.metron.parsers.topology;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.parsers.bolt.WriterHandler;
 import org.apache.metron.writer.NoopWriter;
 import org.apache.metron.writer.kafka.KafkaWriter;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
 
 public class ParserTopologyBuilderTest {
 
@@ -48,13 +47,6 @@ public class ParserTopologyBuilderTest {
   public static void setupAll() {
       configs = mock(ParserConfigurations.class);
       kafkaWriter = mock(KafkaWriter.class);
-  }
-
-  @BeforeEach
-  public void setup() {
-//    spy(ParserTopologyBuilder.class);
-//    when(ParserTopologyBuilder.createKafkaWriter(Optional.of("brokerUrl"), "zookeeperUrl", Optional.of("securityProtocol")))
-//            .thenReturn(kafkaWriter);
   }
 
   @Test

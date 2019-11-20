@@ -17,15 +17,10 @@
  */
 package org.apache.metron.management;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.metron.stellar.dsl.Context;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -33,8 +28,14 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.metron.stellar.dsl.Context;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class FileSystemFunctionsTest {
   private FileSystemFunctions.FileSystemGetter fsGetter = null;
@@ -75,11 +76,6 @@ public class FileSystemFunctionsTest {
       }
       new File(localPrefix).mkdirs();
     }
-  }
-
-  @BeforeEach
-  public void setup() {
-
   }
 
   @AfterAll
