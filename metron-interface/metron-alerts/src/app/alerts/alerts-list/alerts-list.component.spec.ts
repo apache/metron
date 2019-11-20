@@ -127,7 +127,7 @@ class MockTreeViewComponent {
 }
 
 
-fdescribe('AlertsListComponent', () => {
+describe('AlertsListComponent', () => {
 
   let component: AlertsListComponent;
   let fixture: ComponentFixture<AlertsListComponent>;
