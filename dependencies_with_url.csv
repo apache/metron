@@ -50,6 +50,10 @@ javax.xml.bind:jaxb-api:jar:2.2.2:compile,CDDL,https://jaxb.dev.java.net/
 javax.xml.bind:jaxb-api:jar:2.3.0:compile,CDDL,https://jaxb.dev.java.net/
 javax.xml.stream:stax-api:jar:1.0-2:compile,COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0,https://docs.oracle.com/javase/7/docs/api/javax/xml/stream/package-summary.html
 jline:jline:jar:0.9.94:compile,BSD,http://jline.sourceforge.net
+junit:junit:jar:3.8.1:compile,Common Public License Version 1.0,http://junit.org
+junit:junit:jar:4.10:compile,Common Public License Version 1.0,http://junit.org
+junit:junit:jar:4.11:compile,Common Public License Version 1.0,http://junit.org
+junit:junit:jar:4.12:compile,Eclipse Public License 1.0,http://junit.org
 net.razorvine:pyrolite:jar:4.13:compile,MIT,https://github.com/irmen/Pyrolite
 net.sf.jopt-simple:jopt-simple:jar:3.2:compile,The MIT License,http://jopt-simple.sourceforge.net
 net.sf.jopt-simple:jopt-simple:jar:4.6:compile,The MIT License,http://jopt-simple.sourceforge.net
@@ -76,7 +80,7 @@ org.jruby.joni:joni:jar:2.1.2:compile,MIT License,https://github.com/jruby/joni
 org.lz4:lz4-java:jar:1.4.0:compile,ASLv2,https://github.com/lz4/lz4-java
 org.mitre.taxii:taxii:jar:1.1.0.1:compile,The BSD 3-Clause License,https://github.com/TAXIIProject/java-taxii
 org.mitre:stix:jar:1.2.0.2:compile,The BSD 3-Clause License,https://github.com/STIXProject/java-stix
-org.mockito:mockito-core:jar:1.10.19:compile,The MIT License,http://www.mockito.org
+org.mockito:mockito-core:jar:3.1.0:compile,The MIT License,http://www.mockito.org
 org.roaringbitmap:RoaringBitmap:jar:0.5.11:compile,ASLv2,https://github.com/RoaringBitmap/RoaringBitmap
 org.scala-lang:scala-library:jar:2.10.6:compile,BSD-like,http://www.scala-lang.org/
 org.scala-lang.modules:scala-parser-combinators_2.11:jar:1.0.4:compile,BSD-like,http://www.scala-lang.org/
@@ -503,3 +507,9 @@ com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile,ASLv2,http://stephen
 com.nimbusds:nimbus-jose-jwt:jar:4.41.2:compile,ASLv2,https://bitbucket.org/connect2id/nimbus-jose-jwt/wiki/Home
 tomcat:jasper-compiler:jar:5.5.23:compile,ASLv2,https://tomcat.apache.org/
 org.apiguardian:apiguardian-api:jar:1.1.0:compile,ASLv2,https://github.com/apiguardian-team/apiguardian/blob/master/LICENSE
+org.junit.jupiter:junit-jupiter-api:jar:5.5.2:compile,EPL 2.0,https://junit.org
+org.junit.platform:junit-platform-engine:jar:1.5.2:compile,EPL 2.0,https://junit.org
+org.junit.platform:junit-platform-commons:jar:1.5.2:compile,EPL 2.0,https://junit.org
+net.bytebuddy:byte-buddy-agent:jar:1.9.10:compile,ASLv2,https://bytebuddy.net/
+net.bytebuddy:byte-buddy:jar:1.9.10:compile,ASLv2,https://bytebuddy.net/
+org.objenesis:objenesis:jar:2.6:compile,ASLv2,http://objenesis.org/license.html
