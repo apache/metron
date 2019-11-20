@@ -26,7 +26,7 @@ RUN apt-get update \
         dpkg-dev \
         gettext \
     # install nodejs so that the node dependencies can be packaged into the DEBs \
-    && curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - \
+    && curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash - \
     && apt-get install -y \
         nodejs \
     && apt-get clean
