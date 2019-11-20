@@ -76,13 +76,13 @@
                 <app-auto-polling #autoPolling></app-auto-polling>
 
                 <div id="table-actions" class="dropdown d-inline-block">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-qe-id="dropdown-menu-button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen($event)">Open</span>
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss($event)">Dismiss</span>
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate($event)">Escalate</span>
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve($event)">Resolve</span>
-                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0 || isMetaAlertPresentInSelectedAlerts" (click)="processAddToAlert($event)">Add to Alert</span>
+                        <span class="dropdown-item" data-qe-id="action-open-button" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen($event)">Open</span>
+                        <span class="dropdown-item" data-qe-id="action-dismiss-button" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss($event)">Dismiss</span>
+                        <span class="dropdown-item" data-qe-id="action-escalate-button" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate($event)">Escalate</span>
+                        <span class="dropdown-item" data-qe-id="action-resolve-button" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve($event)">Resolve</span>
+                        <span class="dropdown-item" data-qe-id="action-add-to-alert-button" [class.disabled]="selectedAlerts.length == 0 || isMetaAlertPresentInSelectedAlerts" (click)="processAddToAlert($event)">Add to Alert</span>
                     </div>
                 </div>
             </div>
