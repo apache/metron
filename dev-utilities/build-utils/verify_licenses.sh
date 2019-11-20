@@ -16,4 +16,10 @@
 #  limitations under the License.
 #
 
-dev-utilities/build-utils/list_dependencies.sh | python dev-utilities/build-utils/verify_license.py ./dependencies_with_url.csv
+DEPS=$(dev-utilities/build-utils/list_dependencies.sh)
+rc=$?
+if [[ $rc != 0 ]]; then
+  echo "Failed to determine dependencies"
+  exit $rc
+fi
+echo "$DEPS" | python dev-utilities/build-utils/verify_license.py ./dependencies_with_url.csv

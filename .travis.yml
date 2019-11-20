@@ -60,6 +60,7 @@ matrix:
 
     - name: Verify Licenses
       script:
+        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -Dskip.npm
         - time ./dev-utilities/build-utils/verify_licenses.sh
 
 before_cache:
