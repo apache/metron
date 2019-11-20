@@ -16,7 +16,7 @@
 #
 ---
 - name: Install Node.js repo on CentOS 7
-  shell: curl -sL https://rpm.nodesource.com/setup_7.x | bash -
+  shell: curl -sL https://rpm.nodesource.com/setup_10.x | bash -
   args:
     warn: false
   become: true
