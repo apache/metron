@@ -22,6 +22,9 @@ configuration which are non-backwards compatible.
 
 ## 0.7.2 to 0.7.3
 
+### [METRON-2321: Remove Legacy AWS Deployment Path](https://issues.apache.org/jira/browse/METRON-2321)
+The automated Amazon AWS deployment mechanism (previously located at `metron-deployment/amazon-ec2`) has been removed.  It is not the preferred installation path for deploying to AWS. Using Ambari and the Metron MPack is the preferred installation path. To deploy Metron to AWS, provision EC2 nodes, install Ambari, install the Metron MPack, then use Ambari to deploy Metron.
+
 ### [METRON-614: Eliminate use of the default Charset](https://issues.apache.org/jira/browse/METRON-614)
 The use of the system default Charset is being dropped throughout the code in favor or explicit Charsets, by default UTF-8. As part of this change, individual parsers may now set a configuration property `readCharset` to allow each parser to set the Charset used by its data.  This has potential upgrade implications:
 
