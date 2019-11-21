@@ -37,7 +37,7 @@ To enable the `sensor-test-mode` role apply the role to the `sensors` host group
     - role: sensor-test-mode
 ```
 
-The role has also been added to the default `metron_install.yml` playbook so that it can be turned on/off with a property in both the local Virtualbox and the remote EC2 deployments.
+The role has also been added to the default `metron_install.yml` playbook so that it can be turned on/off with a property in the development environment.
 
 ```
 sensor_test_mode: True
