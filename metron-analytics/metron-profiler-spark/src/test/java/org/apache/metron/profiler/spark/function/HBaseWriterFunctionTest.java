@@ -23,6 +23,7 @@ import org.apache.commons.collections4.IteratorUtils;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.statistics.OnlineStatisticsProvider;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -134,7 +135,8 @@ public class HBaseWriterFunctionTest {
       measurements.add(new ProfileMeasurement()
               .withProfileName(profile.getProfile())
               .withEntity(entity)
-              .withPeriod(timestamp, 15, TimeUnit.MINUTES));
+              .withPeriod(timestamp, 15, TimeUnit.MINUTES)
+              .withProfileValue(new OnlineStatisticsProvider()));
     }
 
     return measurements;
@@ -167,6 +169,5 @@ public class HBaseWriterFunctionTest {
             .withForeach("ip_src_addr")
             .withUpdate("count", "count + 1")
             .withResult("count");
-
   }
 }
