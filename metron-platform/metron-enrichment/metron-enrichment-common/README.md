@@ -217,25 +217,88 @@ The `triageConfig` field is also a complex field and it bears some description:
 | `riskLevelRules` | This is a list of rules (represented as Stellar expressions) associated with scores with optional names and comments                                    |  see below|
 | `aggregator`     | An aggregation function that takes all non-zero scores representing the matching queries from `riskLevelRules` and aggregates them into a single score. | `"MAX"`                                                                  |
 
-A risk level rule is of the following format:
-* `name` : The name of the threat triage rule
-* `comment` : A comment describing the rule
-* `rule` : The rule, represented as a Stellar statement
-* `score` : The score attributed to the rule. Can be either numeric or a Stellar expression.  The expression has access to all fields with the message being triaged.
-* `reason` : Reason the rule tripped. Can be represented as a Stellar statement
 
-An example of a rule is as follows:
+#### Risk Level Rules
+
+A message is triaged by applying a set of risk scoring rules. These rules are used to calculate an overall threat score that can be used to prioritize threats. For each message a rule may either apply and attribute to the overall risk score or the rule may be ignored. A set of rules might look like the following.
+
 ```
-    "riskLevelRules" : [
-        {
-          "name" : "is internal",
-          "comment" : "determines if the destination is internal.",
-          "rule" : "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')",
-          "score" : 10, 
-          "reason" : "FORMAT('%s is internal', ip_dst_addr)"
-        }
-    ]
+"riskLevelRules" : [
+    {
+      "name" : "Destination IP is internal",
+      "comment" : "Determines if the destination IP is on the internal network.",
+      "rule" : "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')",
+      "score" : 10, 
+      "reason" : "FORMAT('%s is an internal IP', ip_dst_addr)"
+    },
+    {
+      "name" : "Originates outside of the United States",
+      "comments": "External to US, but lesser risk applies to North America.", 
+      "rule" : "geo.country != 'US'",
+      "score" : "if geo.country in ['MX','CA'] then 10 else 200", 
+      "reason" : "FORMAT('%s originates from %s', ip_dst_addr, geo.country)"
+    }
+]
 ```
+
+A risk level rule can contain the following fields.
+* [name](#name)
+* [comment](#comment)
+* [rule](#rule)
+* [score](#score)
+* [reason](#reason)
+ 
+##### name
+
+The name of the threat triage rule.  
+
+* This is an optional field.
+* This is expected to be a simple string.
+
+##### comment
+
+A comment describing the threat triage rule.
+
+* This is an optional field.
+* This is expected to be a simple string.
+
+##### rule
+
+A Stellar expression that determines whether this Risk Level Rule applies to a given message. If the [rule](#rule) expression returns true, the [score](#score) will be aggregated into the message's overall threat score.
+
+* This is a required field.
+* This is expected to be a valid Stellar expression.
+* The expression can refer to any field within the message.
+* The expression must return a boolean. 
+* Any non-boolean value returned by the expression is treated as an error.
+* See [Best Practices](#best-practices) when using Stellar expression in Risk Level Rules.
+
+##### score
+
+The [score](#score) that is aggregated into a message's overall threat score.
+
+* This is a required field.
+* This is expected to be a valid Stellar expression.
+* This can be a numeric value, as any numeric value is also a valid Stellar expression.
+* The expression can refer to any field within the message.
+* Any non-numeric value returned by the expression is treated as an error.
+* See [Best Practices](#best-practices) when using Stellar expression in Risk Level Rules.
+
+##### reason
+
+Provides a reason for why the Risk Level Rule was applied. This allows additional context to be retrieved from the message.  This is intended to enable SOC operators to better address the threat.
+
+* This is an optional field.
+* This is expected to be a valid Stellar expression.
+* The expression should return a string or a value that can be converted to a string.
+* The expression can refer to any field within the message.
+* See [Best Practices](#best-practices) when using Stellar expression in Risk Level Rules.
+
+##### Best Practices
+
+For best performance, the Stellar expressions contained within a Risk Level Rule should avoid I/O intensive operations like making queries to external platforms like HBase. Instead, the query should be performed as an Enrichment (see [Stellar Enrichment Configuration](#stellar_enrichment_configuration)) and the value should be stored within the message. This value can then be directly referenced by the field name when defining the [rule](#rule), [score](#score), or [reason](#reason) fields of a Risk Level Rule. 
+
+#### Threat Score Aggregation
 
 The supported aggregation functions are:
 * `MAX` : The max of all of the associated values for matching queries
@@ -302,3 +365,4 @@ An example configuration for the YAF sensor is as follows:
 ```
 
 ThreatIntel alert levels are emitted as a new field "threat.triage.level." So for the example above, an incoming message that trips the `ip_src_addr` rule will have a new field threat.triage.level=10.
+
