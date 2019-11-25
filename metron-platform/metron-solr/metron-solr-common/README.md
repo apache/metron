@@ -184,72 +184,87 @@ See SOLR documentation [\(1\)](https://lucene.apache.org/solr/guide/7_4/time-rou
 
 ### Setting up Time routed alias support
 
-Using SOLR's Time-based routing requires using SOLR's native Datetime types.  At the moment, Metron uses the LongTrie field type
-to store dates, which is not a SOLR native datetime type.  At a later stage the Metron code-base will be changed to use SOLR native datetime types, 
-but for now a workaround procedure has been created to allow for the use of Time-based routing, but still allows Metron to use LongTrie type.
-This procedure only works for new collections, and is as follows:
+Using SOLR's tme-based routing requires using SOLR's native datetime types.  At the moment, Metron uses the LongTrie field type
+to store dates, which is not a SOLR native datetime type.  At a later stage the Metron code-base will be changed to use SOLR native datetime types
+(as the LongTrie type is deprecated), but for now a workaround procedure has been created to allow for the use of time-based routing, while at the
+ same time allowing for Metron to continue to use the LongTrie type. This procedure only works for new collections, and is as follows:
 
 1. Add the following field type definition near the end of the schema.xml document (the entry must be inside the schema tags)
     ```
       <fieldType name="datetime" stored="false" indexed="false" multiValued="false" docValues="true" class="solr.DatePointField"/>
     ```
    
+   
 1. Add the following field definition near the start of the schema.xml document (the entry must be inside the schema tags)
     ```
       <field name="datetime" type="datetime" />
     ```
    
+   
 1. Create the configset for the collection:  Assuming that the relevant collections schema.xml and solrconfig.xml are located in 
-`$METRON_HOME/config/schema/<collection name>` folder, use the following command:
+`$METRON_HOME/config/schema/$COLLECTION_NAME` folder, use the following command:
     ```
-      $METRON_HOME/bin/create_configset collectΩΩion name>
+      $METRON_HOME/bin/create_configset $COLLECTION_NAME
     ```
+   
    
 1. Create the time-based routing alias for the collection:
 Assuming the following values:
     * SOLR_HOST:  Host SOLR is installed on
+    
     * ALIAS_NAME:  Name of the new alias
+    
     * ROUTER_START: Beginning time-period datetime in ISO-8601 standard - milliseconds potion of the date must be 0, some examples are 
 '2018-01-14T21:00:00:00', 'NOW/SECOND', 'NOW/DAY'
+
     * ROUTER_FIELD: The name of the field in the incoming document that contains the datetime to route on - field must be of SOLR type DateTrie or DatePoint. 
     For METRON this is standardised as field `datetime`.
+    
     * ROUTER_INTERVAL: SOLR Date math format. The interval of time that each collection holds. eg "+1DAY", "+6HOUR", "+1WEEK" (`+` must be URL encoded to `%2B` )
+    
     * ROUTER_MAXFUTUREMS: Optional field containing the number of milliseconds into the future that it is considered valid to have an event time for.
-    Documents with event time exceeding this time period in the future are considered invalid and an error is returned.  Used as a sanity check to prevent 
-    the creation of unnecessary collections due to corrupted datetimes in events. Defaults to 10 minutes into the future.
+    Documents with an event time exceeding this time period in the future are considered invalid and an error is returned.  Used as a sanity check to prevent 
+    the creation of unnecessary collections due to corrupted datetime values in events. Defaults is to ignore anything more then 10 minutes into the future.
+    
     * ROUTER_AUTODELETEAGE: Optional field in SOLR Date math format. If this field is present, any time a collection is created, 
     the oldest collections are assessed for deletion. Collections are deleted if the datetime interval they represent is older then
-     NOW - AUTODELETE_INTERVAL.  eg -2WEEK, -3MONTH, -1YEAR 
-    * CONFIGSET: Name of the colleciton configset that was created in the previous step - this is used a template for new collections.
-    * create-collection.*: These allow for Create collection options (e.g. numShards or numReplicas) to be specified directly in the 
+     NOW - AUTODELETE_INTERVAL.  eg -2WEEK, -3MONTH, -1YEAR.  (`-` is a valid URL character that does not need to URL encoded.) 
+    
+    * CONFIGSET: Name of the collection configset that was created in the previous step - this is used a template for new collections.
+    
+    * CREATE-COLLECTION.*: These allow for Create collection options (e.g. numShards or numReplicas) to be specified directly in the 
     create alias command.  
     
-    Then the following command will create a time-routed alias.
+    Then the following command will create a time-routed alias:
     ```
-    curl http://$SOLR_HOST:8983/solr/admin/collections?action=CREATEALIAS\
-   &name=$ALIAS_NAME\
-   &router.start=$ROUTER_START\
-   &router.field=$ROUTER_FIELD\
-   &router.name=time\
-   &router.interval=$ROUTER_INTERVAL\
-   &router.maxFutureMs=$ROUTER_MAXFUTUREMS\
-   &create-collection.collection.configName=$CONFIGSET\
-   &create-collection.numShards=2
+        curl http://$SOLR_HOST:8983/solr/admin/collections?action=CREATEALIAS\
+       &name=$ALIAS_NAME\
+       &router.start=$ROUTER_START\
+       &router.field=$ROUTER_FIELD\
+       &router.name=time\
+       &router.interval=$ROUTER_INTERVAL\
+       &router.maxFutureMs=$ROUTER_MAXFUTUREMS\
+       &create-collection.collection.configName=$CONFIGSET\
+       &create-collection.numShards=2
     ```
-1. Add a Metron Parser Stellar field transformation to the parser config that adds a correctly formatted datetime string to the event as it is being parsed.
+   
+   
+1. Add a Metron Parser Stellar field transformation to the parser config that adds a correctly formatted datetime string to the event as it is being parsed:
     1. Set environment variables for later reference
         ```
         source /etc/defaults/metron
         export HDP_HOME="/usr/hdp/current"
-        export PARSER_NAME= <The name of the relevant parser>
+        export PARSER_NAME=<The name of the relevant parser>
         ```
+       
     1. Pull the most recent sensor parser config from zookeeper
         ```
         ${METRON_HOME}/bin/zk_load_configs.sh -i ${METRON_HOME}/config/zookeeper -m PULL -c PARSER -n $PARSER_NAME -z $ZOOKEEPER
         ```
+       
     1. Open the file to the relevant sensor parser at `$METRON_HOME/config/zookeeper/parsers/$PARSER_NAME.json`
     
-    1. Add to the sensor parser config json field the following transformation
+    1. Add to the sensor parser config json field the following transformation:
         ```
           "fieldTransformations" : [{
         input
@@ -260,27 +275,31 @@ Assuming the following values:
              }
             }]
         ```
+       
     1.  Push the configuration back to zookeeper
         ```
          ${METRON_HOME}/bin/zk_load_configs.sh -i ${METRON_HOME}/config/zookeeper -m PUSH -c PARSER -n $PARSER_NAME -z $ZOOKEEPER  
         ```
+        
     1.  Run kafka console to monitor correct operation of the field transformation
         ```
         ${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --bootstrap-server $BROKERLIST --topic $PARSER_NAME 
         ```    
 
+
 1. Config Metron SOLR indexing to push documents to the newly created Collection Alias.
     1. Pull the most recent index config from zookeeper
-    ```
-      ${METRON_HOME}/bin/zk_load_configs.sh -i ${METRON_HOME}/config/zookeeper -m PULL -c INDEXING -n $PARSER_NAME -z $ZOOKEEPER
-    ```
+        ```
+          ${METRON_HOME}/bin/zk_load_configs.sh -i ${METRON_HOME}/config/zookeeper -m PULL -c INDEXING -n $PARSER_NAME -z $ZOOKEEPER
+        ```
+       
     1. Edit the file ${METRON_HOME}/config/zookeeper/indexing/$PARSER_NAME.json
+    
     1. Update the solr/index field to the `ALIAS_NAME` value you configured for the SOLR time-based routing alias.
+    
     1. Push the configuration back to zookeeper
-    ```
-      ${METRON_HOME}/bin/zk_load_configs.sh -i ${METRON_HOME}/config/zookeeper -m PUSH -c INDEXING -n $PARSER_NAME -z $ZOOKEEPER
-    ```
-
-1. 
+        ```
+          ${METRON_HOME}/bin/zk_load_configs.sh -i ${METRON_HOME}/config/zookeeper -m PUSH -c INDEXING -n $PARSER_NAME -z $ZOOKEEPER
+        ```
 
 
