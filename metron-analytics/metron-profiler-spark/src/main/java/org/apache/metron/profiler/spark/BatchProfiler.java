@@ -22,6 +22,7 @@ package org.apache.metron.profiler.spark;
 import com.google.common.collect.Maps;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.profiler.MessageRoute;
+import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.spark.function.GroupByPeriodFunction;
 import org.apache.metron.profiler.spark.function.HBaseWriterFunction;
 import org.apache.metron.profiler.spark.function.MessageRouterFunction;
@@ -91,9 +92,9 @@ public class BatchProfiler implements Serializable {
     LOG.debug("Generated {} message route(s)", routes.cache().count());
 
     // build the profiles
-    Dataset<ProfileMeasurementAdapter> measurements = routes
+    Dataset<ProfileMeasurement> measurements = routes
             .groupByKey(new GroupByPeriodFunction(profilerProps), Encoders.STRING())
-            .mapGroups(new ProfileBuilderFunction(profilerProps, globals), Encoders.kryo(ProfileMeasurementAdapter.class));
+            .mapGroups(new ProfileBuilderFunction(profilerProps, globals), Encoders.kryo(ProfileMeasurement.class));
     LOG.debug("Produced {} profile measurement(s)", measurements.cache().count());
 
     // write the profile measurements to HBase

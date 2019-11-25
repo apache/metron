@@ -16,7 +16,7 @@
 #
 ---
 - name: Install Node.js repo on Ubuntu 14
-  shell: curl -sL https://deb.nodesource.com/setup_6.x | bash -
+  shell: curl -sL https://deb.nodesource.com/setup_10.x | bash -
   args:
     warn: false
   become: true

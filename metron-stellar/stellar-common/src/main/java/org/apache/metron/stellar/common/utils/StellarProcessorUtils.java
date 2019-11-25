@@ -19,16 +19,6 @@
 package org.apache.metron.stellar.common.utils;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.metron.stellar.common.StellarPredicateProcessor;
-import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.DefaultVariableResolver;
-import org.apache.metron.stellar.dsl.MapVariableResolver;
-import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.junit.Assert;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,10 +35,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.VariableResolver;
 
 /**
  * Utilities for executing and validating Stellar expressions.
@@ -139,7 +133,9 @@ public class StellarProcessorUtils {
 
     byte[] raw = SerDeUtils.toBytes(value);
     Object actual = SerDeUtils.fromBytes(raw, Object.class);
-    Assert.assertEquals(msg, value, actual);
+    if((value == null && actual != null) || (value != null && !value.equals(actual))) {
+      throw new AssertionError(msg);
+    }
   }
 
   /**
@@ -166,21 +162,25 @@ public class StellarProcessorUtils {
 
       // the serialized bits
       byte[] raw = bytes.toByteArray();
-      assertTrue(raw.length > 0);
+      if(!(raw.length > 0)) {
+        throw new AssertionError("Serialized byte length not greater than 0");
+      }
 
       // deserialize using java
       ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
       Object actual = in.readObject();
 
       // ensure that the round-trip was successful
-      assertEquals(msg, value, actual);
+      if((value == null && actual != null) || (value != null && !value.equals(actual))) {
+        throw new AssertionError(msg);
+      }
 
     } catch(IOException | ClassNotFoundException e) {
 
       String error = String.format("Expression result is not Java serializable. It is highly recommended for all " +
               "functions to return a result that is Java serializable to allow for their broadest possible use. " +
               "expr=%s, value=%s, error=%s", expression, value, ExceptionUtils.getRootCauseMessage(e));
-      fail(error);
+      throw new AssertionError(error);
     }
   }
 
@@ -228,8 +228,9 @@ public class StellarProcessorUtils {
 
   public static void validate(String expression, Context context) {
     StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue("Invalid expression; expr=" + expression,
-            processor.validate(expression, context));
+    if(!processor.validate(expression, context)) {
+      throw new AssertionError("Invalid expression; expr=" + expression);
+    }
   }
 
   public static void validate(String rule) {
@@ -250,7 +251,9 @@ public class StellarProcessorUtils {
 
   public static boolean runPredicate(String rule, VariableResolver resolver, Context context) {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule));
+    if(!processor.validate(rule)) {
+      throw new AssertionError(rule + " not valid.");
+    }
     return processor.parse(rule, resolver, StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
@@ -269,9 +272,13 @@ public class StellarProcessorUtils {
     String reason = stellarStatement + " != " + expected + " with variables: " + variables;
 
     if (expected instanceof Double) {
-      Assert.assertEquals(reason, (Double) expected, (Double) run(stellarStatement, variables), 1e-6);
+      if(!(Math.abs((Double) expected - (Double) run(stellarStatement, variables)) < 1e-6)) {
+        throw new AssertionError(reason);
+      }
     } else {
-      Assert.assertEquals(reason, expected, run(stellarStatement, variables));
+      if(!expected.equals(run(stellarStatement, variables))) {
+        throw new AssertionError(reason);
+      }
     }
   }
 

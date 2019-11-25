@@ -23,7 +23,6 @@ import org.apache.metron.profiler.DefaultMessageDistributor;
 import org.apache.metron.profiler.MessageDistributor;
 import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.spark.ProfileMeasurementAdapter;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.spark.api.java.function.MapGroupsFunction;
 import org.slf4j.Logger;
@@ -50,7 +49,7 @@ import static org.apache.metron.profiler.spark.function.GroupByPeriodFunction.pr
 /**
  * The function responsible for building profiles in Spark.
  */
-public class ProfileBuilderFunction implements MapGroupsFunction<String, MessageRoute, ProfileMeasurementAdapter>  {
+public class ProfileBuilderFunction implements MapGroupsFunction<String, MessageRoute, ProfileMeasurement>  {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -74,7 +73,7 @@ public class ProfileBuilderFunction implements MapGroupsFunction<String, Message
    * @return
    */
   @Override
-  public ProfileMeasurementAdapter call(String group, Iterator<MessageRoute> iterator) {
+  public ProfileMeasurement call(String group, Iterator<MessageRoute> iterator) {
     // create the distributor; some settings are unnecessary because it is cleaned-up immediately after processing the batch
     int maxRoutes = Integer.MAX_VALUE;
     long profileTTLMillis = Long.MAX_VALUE;
@@ -93,13 +92,12 @@ public class ProfileBuilderFunction implements MapGroupsFunction<String, Message
     }
 
     // flush the profile
-    ProfileMeasurementAdapter result;
+    ProfileMeasurement result;
     List<ProfileMeasurement> measurements = distributor.flush();
     if(measurements.size() == 1) {
-      ProfileMeasurement m = measurements.get(0);
-      result = new ProfileMeasurementAdapter(m);
+      result = measurements.get(0);
       LOG.debug("Profile measurement created; profile={}, entity={}, period={}, value={}",
-              m.getProfileName(), m.getEntity(), m.getPeriod().getPeriod(), m.getProfileValue());
+              result.getProfileName(), result.getEntity(), result.getPeriod().getPeriod(), result.getProfileValue());
 
     } else if(measurements.size() == 0) {
       String msg = format("No profile measurement can be calculated. Review the profile for bugs. profile=%s, entity=%s, period=%s",

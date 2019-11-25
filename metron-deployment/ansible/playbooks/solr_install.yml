@@ -15,13 +15,6 @@
 #  limitations under the License.
 #
 ---
-- hosts: ec2
-  become: true
-  tasks:
-    - include_vars: ../../amazon-ec2/conf/defaults.yml
-  tags:
-    - ec2
-
 - hosts: packer
   become: true
   tasks:

@@ -85,7 +85,7 @@ RUN yum install -y \
     && touch /root/.bashrc \
     && echo '/opt/rh/devtoolset-4/enable' >> /root/.bashrc \
     # install node so that the node dependencies can be packaged into the RPMs \
-    && curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - \
+    && curl --silent --location https://rpm.nodesource.com/setup_10.x | bash - \
     && yum install -y \
         nodejs \
     # Remove packages just needed for builds \
