@@ -189,24 +189,25 @@ to store dates, which is not a SOLR native datetime type.  At a later stage the 
 but for now a workaround procedure has been created to allow for the use of Time-based routing, but still allows Metron to use LongTrie type.
 This procedure only works for new collections, and is as follows:
 
-1. Add the following field type definition near the end of the schema.xml document (the entry must be inside the <schema></schema> tags)
+1. Add the following field type definition near the end of the schema.xml document (the entry must be inside the schema tags)
     ```
       <fieldType name="datetime" stored="false" indexed="false" multiValued="false" docValues="true" class="solr.DatePointField"/>
     ```
    
-1. Add the following field definition near the start of the schema.xml document (the entry must be inside the <schema>/schema> tags)
+1. Add the following field definition near the start of the schema.xml document (the entry must be inside the schema tags)
     ```
       <field name="datetime" type="datetime" />
     ```
    
 1. Create the configset for the collection:  Assuming that the relevant collections schema.xml and solrconfig.xml are located in 
-$METRON_HOME/config/schema/<collection name> folder, use the following command:
+`$METRON_HOME/config/schema/<collection name>` folder, use the following command:
     ```
-      $METRON_HOME/bin/create_configset <collection name>
+      $METRON_HOME/bin/create_configset collectΩΩion name>
     ```
    
 1. Create the time-based routing alias for the collection:
 Assuming the following values:
+    * SOLR_HOST:  Host SOLR is installed on
     * ALIAS_NAME:  Name of the new alias
     * ROUTER_START: Beginning time-period datetime in ISO-8601 standard - milliseconds potion of the date must be 0, some examples are 
 '2018-01-14T21:00:00:00', 'NOW/SECOND', 'NOW/DAY'
@@ -225,14 +226,14 @@ Assuming the following values:
     
     Then the following command will create a time-routed alias.
     ```
-    curl http://<SOLR_HOST>:8983/solr/admin/collections?action=CREATEALIAS\
-   &name=<ALIAS_NAME>\
-   &router.start=<ROUTER_START>\
-   &router.field=<ROUTER_FIELD>\
+    curl http://$SOLR_HOST:8983/solr/admin/collections?action=CREATEALIAS\
+   &name=$ALIAS_NAME\
+   &router.start=$ROUTER_START\
+   &router.field=$ROUTER_FIELD\
    &router.name=time\
-   &router.interval=<ROUTER_INTERVAL>\
-   &router.maxFutureMs=<ROUTER_MAXFUTUREMS>\
-   &create-collection.collection.configName=<CONFIGSET>\
+   &router.interval=$ROUTER_INTERVAL\
+   &router.maxFutureMs=$ROUTER_MAXFUTUREMS\
+   &create-collection.collection.configName=$CONFIGSET\
    &create-collection.numShards=2
     ```
 1. Add a Metron Parser Stellar field transformation to the parser config that adds a correctly formatted datetime string to the event as it is being parsed.
