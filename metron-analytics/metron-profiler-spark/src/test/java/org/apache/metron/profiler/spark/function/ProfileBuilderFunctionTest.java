@@ -22,8 +22,8 @@ package org.apache.metron.profiler.spark.function;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.profiler.MessageRoute;
+import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.spark.ProfileMeasurementAdapter;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -75,13 +75,13 @@ public class ProfileBuilderFunctionTest {
 
     // build the profile
     ProfileBuilderFunction function = new ProfileBuilderFunction(profilerProperties, getGlobals());
-    ProfileMeasurementAdapter measurement = function.call("profile1-192.168.1.1-0", routes.iterator());
+    ProfileMeasurement measurement = function.call("profile1-192.168.1.1-0", routes.iterator());
 
     // validate the measurement
     Assert.assertEquals(entity, measurement.getEntity());
     Assert.assertEquals(profile.getProfile(), measurement.getProfileName());
-    Assert.assertEquals(routes.size(), measurement.toProfileMeasurement().getProfileValue());
-    Assert.assertEquals(expectedPeriod.getPeriod(), (long) measurement.getPeriodId());
+    Assert.assertEquals(routes.size(), measurement.getProfileValue());
+    Assert.assertEquals(expectedPeriod.getPeriod(), (long) measurement.getPeriod().getPeriod());
   }
 
   /**
@@ -114,7 +114,7 @@ public class ProfileBuilderFunctionTest {
 
     // an exception should be thrown, if there is a bug in the profile definition
     ProfileBuilderFunction function = new ProfileBuilderFunction(profilerProperties, getGlobals());
-    ProfileMeasurementAdapter measurement = function.call("profile1-192.168.1.1-0", routes.iterator());
+    function.call("profile1-192.168.1.1-0", routes.iterator());
   }
 
   private JSONObject getMessage() {
