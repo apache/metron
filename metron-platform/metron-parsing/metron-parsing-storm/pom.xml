@@ -184,6 +184,9 @@
           <artifactSet>
             <excludes>
               <exclude>*slf4j*</exclude>
+              <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+              <exclude>junit</exclude>
+              <exclude>org.junit*:*</exclude>
             </excludes>
           </artifactSet>
         </configuration>
@@ -218,6 +221,9 @@
                   <exclude>storm:storm-lib:*</exclude>
                   <exclude>org.slf4j.impl*</exclude>
                   <exclude>org.slf4j:slf4j-log4j*</exclude>
+                  <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+                  <exclude>junit</exclude>
+                  <exclude>org.junit*:*</exclude>
                 </excludes>
               </artifactSet>
               <transformers>

@@ -197,27 +197,6 @@ $searchbox-height: 42px;
   cursor: pointer;
 }
 
-.pause-play {
-  height: 38px;
-  padding: 0px;
-  border: 1px solid #0F6F9E;
-  width: 38px;
-  line-height: 39px;
-  border-radius: 12px;
-  margin-left: 15px;
-  background: $mine-shaft-2;
-  cursor: pointer;
-
-  i {
-    font-size: 17px;
-    color: $piction-blue;
-  }
-
-  .fa-play {
-    padding-left: 3px;
-  }
-}
-
 .settings, .cog {
   height: 38px;
   padding: 0px;

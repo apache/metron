@@ -39,7 +39,6 @@ import { DialogService } from '../../../service/dialog.service';
 import { DialogType } from 'app/model/dialog-type';
 import { ConfirmationType } from 'app/model/confirmation-type';
 import { AlertSource } from '../../../model/alert-source';
-import { QueryBuilder } from '../query-builder';
 import { GroupRequest } from 'app/model/group-request';
 import { Group } from 'app/model/group';
 import { TimezoneConfigService } from 'app/alerts/configure-rows/timezone-config/timezone-config.service';

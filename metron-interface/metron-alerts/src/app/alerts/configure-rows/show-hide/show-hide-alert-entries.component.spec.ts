@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ShowHideAlertEntriesComponent, ShowHideChanged } from './show-hide-alert-entries.component';
+import { ShowHideAlertEntriesComponent, ShowHideStateModel } from './show-hide-alert-entries.component';
 import { ComponentFixture, async, TestBed } from '@angular/core/testing';
 import { SwitchComponent } from 'app/shared/switch/switch.component';
 import { By } from '@angular/platform-browser';
@@ -38,7 +38,8 @@ describe('ShowHideAlertEntriesComponent', () => {
           return {
             hideDismissed: false,
             hideResolved: false,
-            setFilterFor: jasmine.createSpy('setFilterFor')
+            setFilterFor: jasmine.createSpy('setFilterFor'),
+            isAvailable: () => true,
           }
         } },
       ]
@@ -104,29 +105,51 @@ describe('ShowHideAlertEntriesComponent', () => {
     expect(component.onVisibilityChanged).toHaveBeenCalledWith('DISMISS', false);
   });
 
-  it('should trigger changed event on any toggle changes', () => {
+  it('should trigger changed event on any toggle changes and propagate state', () => {
     spyOn(component.changed, 'emit');
     fixture.detectChanges();
 
-    fixture.debugElement.query(By.css('[data-qe-id="hideDismissedAlertsToggle"] input')).nativeElement.click();
-    fixture.detectChanges();
-
-    expect((component.changed.emit as Spy).calls.argsFor(0)[0]).toEqual(new ShowHideChanged('DISMISS', true));
-
-    fixture.debugElement.query(By.css('[data-qe-id="hideResolvedAlertsToggle"] input')).nativeElement.click();
-    fixture.detectChanges();
-
-    expect((component.changed.emit as Spy).calls.argsFor(1)[0]).toEqual(new ShowHideChanged('RESOLVE', true));
+    component.showHideService.hideResolved = false;
+    component.showHideService.hideDismissed = true;
 
     fixture.debugElement.query(By.css('[data-qe-id="hideDismissedAlertsToggle"] input')).nativeElement.click();
     fixture.detectChanges();
 
-    expect((component.changed.emit as Spy).calls.argsFor(2)[0]).toEqual(new ShowHideChanged('DISMISS', false));
+    expect((component.changed.emit as Spy).calls.argsFor(0)[0]).toEqual({ hideResolved: false, hideDismissed: true });
+
+    component.showHideService.hideResolved = true;
+    component.showHideService.hideDismissed = true;
 
     fixture.debugElement.query(By.css('[data-qe-id="hideResolvedAlertsToggle"] input')).nativeElement.click();
     fixture.detectChanges();
 
-    expect((component.changed.emit as Spy).calls.argsFor(3)[0]).toEqual(new ShowHideChanged('RESOLVE', false));
-  })
+    expect((component.changed.emit as Spy).calls.argsFor(1)[0]).toEqual({ hideResolved: true, hideDismissed: true });
+  });
+
+  it('should disable toggles when isAvailable returns false', () => {
+    component.showHideService.isAvailable = () => false;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.queryAll(By.directive(SwitchComponent))[0].componentInstance.disabled).toBe(true);
+    expect(fixture.debugElement.queryAll(By.directive(SwitchComponent))[1].componentInstance.disabled).toBe(true);
+
+    component.showHideService.isAvailable = () => true;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.queryAll(By.directive(SwitchComponent))[0].componentInstance.disabled).toBe(false);
+    expect(fixture.debugElement.queryAll(By.directive(SwitchComponent))[1].componentInstance.disabled).toBe(false);
+  });
+
+  it('should show warning about the reason of disabled state', () => {
+    component.showHideService.isAvailable = () => false;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.warning'))).toBeTruthy();
+
+    component.showHideService.isAvailable = () => true;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.warning'))).toBeFalsy();
+  });
 
 });

@@ -43,6 +43,8 @@ then
     fi
   done
   export HADOOP_CLASSPATH
+  # need this bc Stellar is no longer in the uber jar deps for metron-data-management
+  LIBJARS="$METRON_HOME/lib/$STELLAR_JAR,$LIBJARS"
   hadoop jar $METRON_HOME/lib/$DM_JAR $CLASSNAME -libjars ${LIBJARS} "$@"
 else
   echo "Warning: Metron cannot find the hadoop client on this node.  This means that loading via Map Reduce will NOT function."

@@ -58,10 +58,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <!-- Must be in the rest uber jar bc certain functions, e.g. MR calls with PCAP will
+            not work with just a classpath reference. Libjars option does not work with "yarn jar" -->
             <groupId>org.apache.metron</groupId>
             <artifactId>stellar-common</artifactId>
             <version>${project.parent.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -244,6 +245,9 @@
                     <artifactSet>
                         <excludes>
                             <exclude>*slf4j*</exclude>
+                            <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+                            <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

@@ -37,6 +37,11 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${global_elasticsearch_version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-storm-kafka</artifactId>
             <version>${project.parent.version}</version>
@@ -128,6 +133,12 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-integration-test</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
     <build>
@@ -172,6 +183,9 @@
                                 <excludes>
                                     <exclude>org.slf4j.impl*</exclude>
                                     <exclude>org.slf4j:slf4j-log4j*</exclude>
+                                    <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+                                    <exclude>junit</exclude>
+                                    <exclude>org.junit*:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <transformers>

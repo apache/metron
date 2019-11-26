@@ -143,6 +143,7 @@ This package installs the Metron common files %{metron_home}
 %{metron_home}/bin/stellar
 %{metron_home}/bin/cluster_info.py
 %{metron_home}/bin/tgt_renew.py
+%{metron_home}/bin/upgrade_helper.sh
 %{metron_home}/config/zookeeper/global.json
 %attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}-uber.jar
 
@@ -576,6 +577,7 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0755,root,root) %{metron_home}/web/expressjs/node_modules/.bin/*
 %attr(0755,root,root) %{metron_home}/web/expressjs/server.js
 %attr(0644,root,root) %{metron_home}/web/expressjs/package.json
+%attr(0644,root,root) %{metron_home}/web/expressjs/package-lock.json
 %attr(0644,root,root) %{metron_home}/web/management-ui/styles.*.css
 %attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
 %attr(0644,root,root) %{metron_home}/web/management-ui/index.html
@@ -744,6 +746,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Tue Nov 19 2019 Shane Ardell <shane.m.ardell@gmail.com> - 0.7.2
+- Update metron spec to include package-lock.json file introduced by npm version update
 * Mon Apr 8 2019 Apache Metron <dev@metron.apache.og> - 0.7.1
 - Updat metron SPEC to include metron-hbase-server for enrichment coprocessor
 * Tue Mar 12 2019 Apache Metron <dev@metron.apache.og> - 0.7.1

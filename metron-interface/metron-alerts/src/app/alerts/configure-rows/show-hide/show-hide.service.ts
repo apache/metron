@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { QueryBuilder } from 'app/alerts/alerts-list/query-builder';
+import { QueryBuilder, FilteringMode } from 'app/alerts/alerts-list/query-builder';
 import { Filter } from 'app/model/filter';
 
 @Injectable({
@@ -66,5 +66,9 @@ export class ShowHideService {
         localStorage.setItem(this.HIDE_RESOLVE_STORAGE_KEY, isHide);
         break;
     }
+  }
+
+  isAvailable() {
+    return this.queryBuilder.getFilteringMode() === FilteringMode.BUILDER;
   }
 }

@@ -87,13 +87,13 @@ public class BatchProfiler implements Serializable {
 
     // find all routes for each message
     Dataset<MessageRoute> routes = telemetry
-            .flatMap(messageRouterFunction(profilerProps, profiles, globals), Encoders.bean(MessageRoute.class));
+            .flatMap(messageRouterFunction(profilerProps, profiles, globals), Encoders.kryo(MessageRoute.class));
     LOG.debug("Generated {} message route(s)", routes.cache().count());
 
     // build the profiles
     Dataset<ProfileMeasurementAdapter> measurements = routes
             .groupByKey(new GroupByPeriodFunction(profilerProps), Encoders.STRING())
-            .mapGroups(new ProfileBuilderFunction(profilerProps, globals), Encoders.bean(ProfileMeasurementAdapter.class));
+            .mapGroups(new ProfileBuilderFunction(profilerProps, globals), Encoders.kryo(ProfileMeasurementAdapter.class));
     LOG.debug("Produced {} profile measurement(s)", measurements.cache().count());
 
     // write the profile measurements to HBase
