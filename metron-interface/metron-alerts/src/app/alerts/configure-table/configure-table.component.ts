@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { forkJoin as observableForkJoin, fromEvent, Observable, Subject } from 'rxjs';
 
@@ -52,6 +52,7 @@ export class ColumnMetadataWrapper {
 
 export class ConfigureTableComponent implements OnInit, AfterViewInit {
   @ViewChild('columnFilterInput') columnFilterInput: ElementRef;
+  @ViewChildren('moveColUpBtn') moveColUpBtn: QueryList<ElementRef>;
 
   columnHeaders: string;
   allColumns$: Subject<ColumnMetadataWrapper[]> = new Subject<ColumnMetadataWrapper[]>();
@@ -67,7 +68,8 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
     private clusterMetaDataService: ClusterMetaDataService,
     private columnNamesService: ColumnNamesService,
     private searchService: SearchService,
-    private dragulaService: DragulaService
+    private dragulaService: DragulaService,
+    private cdRef: ChangeDetectorRef
   ) {
       if (!dragulaService.find('configure-table')) {
         dragulaService.setOptions('configure-table', {
@@ -314,9 +316,20 @@ export class ConfigureTableComponent implements OnInit, AfterViewInit {
     });
   }
 
-  swapUp(index: number) {
+  swapUp(index: number, event: any) {
+    const colUpButtons = this.moveColUpBtn.toArray();
     if (index > 0) {
       [this.visibleColumns[index], this.visibleColumns[index - 1]] = [this.visibleColumns[index - 1], this.visibleColumns[index]];
+    }
+    /**
+    *  The default behavior of the browser causes the up arrow button to lose focus
+    *  on enter or space keypress, which differs in behavior when compared to the down arrow button.
+    *  This condition runs change detection (which removes the focus by applying default browser behavior)
+    *  and then re-applies focus to the up arrow.
+    */
+    if (event.type === 'keyup') {
+      this.cdRef.detectChanges();
+      colUpButtons[index].nativeElement.focus();
     }
   }
 

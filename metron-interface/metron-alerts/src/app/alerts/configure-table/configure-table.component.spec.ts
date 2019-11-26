@@ -261,7 +261,7 @@ describe('ConfigureTableComponent', () => {
       let tableOfVisible = fixture.debugElement.query(By.css('[data-qe-id="table-visible"]'));
       const rowId = tableOfVisible.query(By.css(`[data-qe-id="field-label-${origIndex}"]`)).nativeElement.innerText;
 
-      tableOfVisible.query(By.css(`[data-qe-id="row-${origIndex}"]`)).query(By.css('span[id^="down-"]')).nativeElement.click();
+      tableOfVisible.query(By.css(`[data-qe-id="row-${origIndex}"]`)).query(By.css('button[id^="down-"]')).nativeElement.click();
       fixture.detectChanges();
 
       tableOfVisible = fixture.debugElement.query(By.css('[data-qe-id="table-visible"]'));
@@ -271,10 +271,14 @@ describe('ConfigureTableComponent', () => {
     it('should be able to move visible item UP in order', () => {
       const origIndex = 3;
       const newIndex = 2;
+      const event = new MouseEvent('mouseup', { });
       let tableOfVisible = fixture.debugElement.query(By.css('[data-qe-id="table-visible"]'));
       const rowId = tableOfVisible.query(By.css(`[data-qe-id="field-label-${origIndex}"]`)).nativeElement.innerText;
 
-      tableOfVisible.query(By.css(`[data-qe-id="row-${origIndex}"]`)).query(By.css('span[id^="up-"]')).nativeElement.click();
+      tableOfVisible
+        .query(By.css(`[data-qe-id="row-${origIndex}"]`))
+        .query(By.css('button[id^="up-"]'))
+        .nativeElement.dispatchEvent(event);
       fixture.detectChanges();
 
       tableOfVisible = fixture.debugElement.queryAll(By.css('table'))[0];

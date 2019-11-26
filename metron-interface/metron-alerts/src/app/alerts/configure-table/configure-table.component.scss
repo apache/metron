@@ -66,22 +66,30 @@
   text-overflow: ellipsis;
 }
 
-.up:before {
-  font-family: "FontAwesome";
-  font-style: normal;
-  font-size: 14px;
-  content: '\f077';
-  color: $gothic;
-  cursor: pointer;
+.up {
+  background: transparent;
+
+  &:before {
+    font-family: "FontAwesome";
+    font-style: normal;
+    font-size: 14px;
+    content: '\f077';
+    color: $gothic;
+    cursor: pointer;
+  }
 }
 
-.down:before {
-  font-family: "FontAwesome";
-  font-style: normal;
-  font-size: 14px;
-  content: '\f078';
-  color: $gothic;
-  cursor: pointer;
+.down {
+  background: transparent;
+
+  &:before {
+    font-family: "FontAwesome";
+    font-style: normal;
+    font-size: 14px;
+    content: '\f078';
+    color: $gothic;
+    cursor: pointer;
+  }
 }
 
 .disabled:before {

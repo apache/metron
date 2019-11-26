@@ -70,10 +70,27 @@
             <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
           </td>
           <td>
-            <span id="up-{{ column.columnMetadata.name }}" class="up" (click)="swapUp(i)" [ngClass]="{'disabled': i === 0}"></span>
+            <button id="up-{{ column.columnMetadata.name }}"
+                    class="up border-0 p-0"
+                    name="Move up"
+                    type="button"
+                    #moveColUpBtn
+                    aria-label="Move column up in display order"
+                    (mouseup)="swapUp(i, $event)"
+                    (keyup.enter)="swapUp(i, $event)"
+                    (keyup.space)="swapUp(i, $event)"
+                    [attr.disabled]="i === 0 ? true : null"
+                    [ngClass]="{'disabled': i === 0}"></button>
           </td>
           <td>
-            <span id="down-{{ column.columnMetadata.name }}" class="down" (click)="swapDown(i)" [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></span>
+            <button id="down-{{ column.columnMetadata.name }}"
+                    class="down border-0 p-0"
+                    name="Move down"
+                    type="button"
+                    aria-label="Move column down in display order"
+                    (click)="swapDown(i)"
+                    [attr.disabled]="i + 1 === visibleColumns.length ? true : null"
+                    [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></button>
           </td>
         </tr>
       </tbody>
