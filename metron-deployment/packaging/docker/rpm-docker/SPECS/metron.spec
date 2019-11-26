@@ -311,6 +311,7 @@ This package installs the Metron Solr Common files
 %dir %{metron_home}/config
 %{metron_home}/bin/create_collection.sh
 %{metron_home}/bin/delete_collection.sh
+%{metron_home}/bin/create_configset.sh
 %{metron_home}/bin/install_solr.sh
 %{metron_home}/bin/start_solr.sh
 %{metron_home}/bin/start_solr_topology.sh
