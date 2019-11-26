@@ -33,7 +33,7 @@
         <div class="pt-2"><small>Loading...</small></div>
     </div>
 
-    <table data-qe-id="table-visible" class="table" *ngIf="visibleColumns.length">
+    <table data-qe-id="table-visible" class="configure-table table" *ngIf="visibleColumns.length">
       <thead>
         <tr>
           <th class="main-column" colspan=2> Visible </th>
@@ -43,8 +43,8 @@
           <th> </th>
         </tr>
       </thead>
-      <tbody>
-        <tr class="background-tiber">
+      <tbody [dragula]="'configure-table'">
+        <tr class="background-tiber out-of-dragula">
           <td>
             <button class="btn btn-secondary btn-sm" disabled>remove</button>
           </td>
@@ -56,7 +56,7 @@
           <td> - </td>
           <td> - </td>
         </tr>
-        <tr attr.data-qe-id="row-{{ i }}" *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
+        <tr attr.data-index="{{ i }}" attr.data-qe-id="row-{{ i }}" *ngFor="let column of visibleColumns; let i = index" [ngClass]="{'background-tiber': column.selected}">
           <td>
             <button attr.data-qe-id="remove-btn-{{ i }}" (click)="onColumnRemoved(column)" class="btn btn-secondary btn-sm">remove</button>
           </td>
@@ -70,10 +70,27 @@
             <span class="text-uppercase"> {{ column.columnMetadata.type }} </span>
           </td>
           <td>
-            <span id="up-{{ column.columnMetadata.name }}" class="up" (click)="swapUp(i)" [ngClass]="{'disabled': i === 0}"></span>
+            <button id="up-{{ column.columnMetadata.name }}"
+                    class="up border-0 p-0"
+                    name="Move up"
+                    type="button"
+                    #moveColUpBtn
+                    aria-label="Move column up in display order"
+                    (mouseup)="swapUp(i, $event)"
+                    (keyup.enter)="swapUp(i, $event)"
+                    (keyup.space)="swapUp(i, $event)"
+                    [attr.disabled]="i === 0 ? true : null"
+                    [ngClass]="{'disabled': i === 0}"></button>
           </td>
           <td>
-            <span id="down-{{ column.columnMetadata.name }}" class="down" (click)="swapDown(i)" [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></span>
+            <button id="down-{{ column.columnMetadata.name }}"
+                    class="down border-0 p-0"
+                    name="Move down"
+                    type="button"
+                    aria-label="Move column down in display order"
+                    (click)="swapDown(i)"
+                    [attr.disabled]="i + 1 === visibleColumns.length ? true : null"
+                    [ngClass]="{'disabled': i + 1 === visibleColumns.length}"></button>
           </td>
         </tr>
       </tbody>
