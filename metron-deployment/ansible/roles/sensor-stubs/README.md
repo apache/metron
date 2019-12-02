@@ -31,7 +31,7 @@ The number of telemetry messages sent in each batch, along with the time delay b
 
 Using the default playbooks, this role can be installed by using the Ansible tag `sensor-stubs`.  This service is installed on the same hosts where the sensors would be; defined by the `sensors` host group.
 
-The defaults for the "Full Dev" environment have been changed so that the Sensor Stubs are installed by default, rather than the sensors themselves.  The Amazon EC2 environment continues to install the original sensors by default.
+The defaults for the "Full Dev" environment have been changed so that the Sensor Stubs are installed by default, rather than the sensors themselves.
 
 ### (Q) How do I use the sensor stubs?
 

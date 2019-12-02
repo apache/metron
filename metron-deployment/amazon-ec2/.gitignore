@@ -1,5 +1,0 @@
-*.pem
-*.secret
-*.log
-*.retry
-.metron-env
