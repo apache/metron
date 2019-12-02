@@ -50,7 +50,6 @@ matrix:
       script:
         - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V
         - time mvn package -Pbuild-rpms -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V 
-        - find metron-deployment/packaging/docker/rpm-docker/ -name '*.rpm'
 
     - name: Alerts UI Tests
       script:
