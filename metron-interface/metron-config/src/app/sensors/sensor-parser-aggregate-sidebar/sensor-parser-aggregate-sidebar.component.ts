@@ -141,10 +141,6 @@ export class SensorParserAggregateSidebarComponent implements OnInit, OnDestroy 
     this.close();
   }
 
-  showCreateForm(): boolean {
-    return !this.targetGroup || this.forceCreate;
-  }
-
   onNameChange(e) {
     const value = e.target.value.trim();
     const groupWithSameName = this.groups.items.find(group => group.config.getName() === value);

@@ -20,7 +20,6 @@
       Aggregate Sensors
     </div>
     <div>
-      <div *ngIf="showCreateForm()">
         <div class="form-fields">
           <div class="form-field">
             <label>
@@ -45,29 +44,6 @@
                   (keyup.enter)="close()"
                   class="btn form-enable-disable-button">CANCEL</button>
         </div>
-      </div>
-      <div *ngIf="!showCreateForm()">
-        <div class="form-fields">
-          <span class="label-text">JOIN BY GROUP</span>
-          <div class="switch-buttons">
-            <button
-              (click)="allowMerge = true"
-              [ngClass]="{ 'active': allowMerge }"
-            >
-              MERGE
-            </button><button
-              (click)="allowMerge = false"
-              [ngClass]="{ 'active': !allowMerge }"
-            >
-              CREATE NEW
-            </button>
-          </div>
-        </div>
-        <div>
-          <button (click)="mergeOrCreate()" class="btn save-button">DONE</button>
-          <button (click)="close()" class="btn form-enable-disable-button">CANCEL</button>
-        </div>
-      </div>
     </div>
 
   </div>
