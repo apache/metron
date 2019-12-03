@@ -60,6 +60,7 @@
                                             #metaAlertNameInput
                                             type="text"
                                             class="form-control"
+                                            data-qe-id="meta-alert-name-input"
                                             [value]="alertSource.name"
                                             [(ngModel)]="alertName"
                                             (keyup)="onSaveNameInputKeyPress($event)"
@@ -68,10 +69,11 @@
                                             class="input-group-addon"
                                             [ngClass]="{ disabled: isSaveNameButtonDisabled() }"
                                             (click)="saveName()"
+                                            data-qe-id="save-name-input"
                                         >
                                             <i class="fa fa-check" aria-hidden="true"></i>
                                         </span>
-                                        <span class="input-group-addon" (click)="onSaveNameInputCancel()">
+                                        <span class="input-group-addon" data-qe-id="cancel-name-input" (click)="onSaveNameInputCancel()">
                                             <i class="fa fa-times" aria-hidden="true"></i>
                                         </span>
                                     </div>
@@ -120,7 +122,7 @@
                         <div *ngIf="activeTab === tabs.COMMENTS" class="mx-3 my-3">
                             <div> Comments <span *ngIf="alertCommentsWrapper.length > 0"> ({{alertCommentsWrapper.length}}) </span></div>
                             <textarea class="form-control" [(ngModel)]="alertCommentStr"> </textarea>
-                            <button class="btn btn-mine_shaft_2" [disabled]="alertCommentStr.trim().length === 0" (click)="onAddComment()">ADD COMMENT</button>
+                            <button class="btn btn-mine_shaft_2" data-qe-id="add-comment-button" [disabled]="alertCommentStr.trim().length === 0" (click)="onAddComment()">ADD COMMENT</button>
                             <ng-container *ngFor="let alertCommentWrapper of alertCommentsWrapper; let i = index">
                                 <div class="comment-container" data-qe-id="comment">
                                     <i
