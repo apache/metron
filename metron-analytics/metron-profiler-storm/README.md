@@ -335,31 +335,31 @@ The number of threads dedicated to tuple acking. This should most often be equal
 
 *Default*: 1
 
-The initial number of executor (threads) for the Profiler's Kafka spout. This is also known as the parallelism hint.
+The initial number of executors (threads) for the Profiler's Kafka spout. This is also known as the parallelism hint.
 
 ### `profiler.splitter.parallelism`
 
 *Default*: 1
 
-The initial number of executor (threads) for the Profiler's splitter component. This is also known as the parallelism hint.
+The initial number of executors (threads) for the Profiler's splitter component. This is also known as the parallelism hint.
 
 ### `profiler.builder.parallelism`
 
 *Default*: 1
 
-The initial number of executor (threads) for the Profiler's builder component. This is also known as the parallelism hint.
+The initial number of executors (threads) for the Profiler's builder component. This is also known as the parallelism hint.
 
 ### `profiler.hbase.writer.parallelism`
 
 *Default*: 1
 
-The initial number of executor (threads) for the Profiler's HBase writer component. This is also known as the parallelism hint.
+The initial number of executors (threads) for the Profiler's HBase writer component. This is also known as the parallelism hint.
 
 ### `profiler.kafka.writer.parallelism`
 
 *Default*: 1
 
-The initial number of executor (threads) for the Profiler's Kafka writer component. This is also known as the parallelism hint.
+The initial number of executors (threads) for the Profiler's Kafka writer component. This is also known as the parallelism hint.
 
 ### `profiler.ttl`
 
