@@ -25,7 +25,7 @@
             <label>
               <span class="label-text">NAME *</span>
               <input #groupNameInput type="text" class="form-control" [value]="name" [readOnly]="existingGroup" (keyup)="onNameChange($event)" />
-              <div *ngIf="groupNameInvalid"><label><span class="warning-text"> Group already exists </span></label></div>
+              <div *ngIf="groupNameInvalid && !existingGroup"><label><span class="warning-text"> Group already exists </span></label></div>
             </label>
           </div>
           <div class="form-field">
