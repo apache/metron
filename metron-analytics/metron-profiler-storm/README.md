@@ -325,11 +325,41 @@ The units used to specify the `profiler.window.lag`.  This value should be defin
 
 The number of worker processes to create for the Profiler topology.  This property is useful for performance tuning the Profiler.
 
-### `profiler.executors`
+### `profiler.acker.executors`
 
-*Default*: 0
+*Default*: 1
 
-The number of executors to spawn per component for the Profiler topology.  This property is useful for performance tuning the Profiler.
+The number of threads dedicated to tuple acking. This should most often be equal to the number of partitions in the inbound Kafka topic.
+
+### `profiler.spout.parallelism`
+
+*Default*: 1
+
+The initial number of executor (threads) for the Profiler's Kafka spout. This is also known as the parallelism hint.
+
+### `profiler.splitter.parallelism`
+
+*Default*: 1
+
+The initial number of executor (threads) for the Profiler's splitter component. This is also known as the parallelism hint.
+
+### `profiler.builder.parallelism`
+
+*Default*: 1
+
+The initial number of executor (threads) for the Profiler's builder component. This is also known as the parallelism hint.
+
+### `profiler.hbase.writer.parallelism`
+
+*Default*: 1
+
+The initial number of executor (threads) for the Profiler's HBase writer component. This is also known as the parallelism hint.
+
+### `profiler.kafka.writer.parallelism`
+
+*Default*: 1
+
+The initial number of executor (threads) for the Profiler's Kafka writer component. This is also known as the parallelism hint.
 
 ### `profiler.ttl`
 
