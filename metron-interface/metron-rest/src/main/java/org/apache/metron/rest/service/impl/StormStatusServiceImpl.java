@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.metron.common.configuration.SensorParserGroup;
 import org.apache.metron.parsers.topology.ParserTopologyCLI;
@@ -83,9 +84,14 @@ public class StormStatusServiceImpl implements StormStatusService {
   public List<TopologyStatus> getAllTopologyStatus() {
     List<TopologyStatus> topologyStatus = new ArrayList<>();
     for (TopologyStatus topology : getTopologySummary().getTopologies()) {
-      topologyStatus.add(restTemplate
-          .getForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + topology.getId(),
-              TopologyStatus.class));
+      TopologyStatus status = restTemplate
+              .getForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + topology.getId(),
+                      TopologyStatus.class);
+      if (status != null) {
+        Optional<String> groupName = topologyNameToGroupName(status.getName());
+        groupName.ifPresent(status::setName);
+        topologyStatus.add(status);
+      }
     }
     return topologyStatus;
   }
@@ -149,15 +155,10 @@ public class StormStatusServiceImpl implements StormStatusService {
       String topologyName = topology.getName();
 
       // check sensor group
-      if (topologyName.contains(ParserTopologyCLI.STORM_JOB_SEPARATOR)) {
-        Set<String> sensors = new HashSet<>(Arrays.asList(topologyName.split(ParserTopologyCLI.STORM_JOB_SEPARATOR)));
-        SensorParserGroup group = sensorParserGroupService.findOne(name);
-        if (group == null) {
-          break;
-        } else if (sensors.equals(group.getSensors())){
-          id = topology.getId();
-          break;
-        }
+      Optional<String> groupName = topologyNameToGroupName(topologyName);
+      if (groupName.isPresent() && groupName.get().equals(name)) {
+        id = topology.getId();
+        break;
       }
 
       if (topologyName.equals(name)) {
@@ -166,5 +167,19 @@ public class StormStatusServiceImpl implements StormStatusService {
       }
     }
     return id;
+  }
+
+  public Optional<String> topologyNameToGroupName(String topologyName) {
+    Optional<String> groupName = Optional.empty();
+    if (topologyName.contains(ParserTopologyCLI.STORM_JOB_SEPARATOR)) {
+      Set<String> sensors = new HashSet<>(Arrays.asList(topologyName.split(ParserTopologyCLI.STORM_JOB_SEPARATOR)));
+      for (SensorParserGroup group: sensorParserGroupService.getAll().values()) {
+        if (sensors.equals(group.getSensors())) {
+          groupName = Optional.of(group.getName());
+          break;
+        }
+      }
+    }
+    return groupName;
   }
 }

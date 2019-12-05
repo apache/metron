@@ -6,5 +6,16 @@
   "update.hbase.table": "metron_update",
   "update.hbase.cf": "t",
   "es.client.settings": {
-  }
+  },
+  "parser.groups": [
+    {
+      "name": "group",
+      "description": "group",
+      "sensors": [
+        "bro",
+        "snort",
+        "yaf"
+      ]
+    }
+  ]
 }
