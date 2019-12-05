@@ -212,13 +212,43 @@
   <property>
     <name>profiler_topology_workers</name>
     <value>1</value>
-    <description>The profiler storm topology workers</description>
-    <display-name>Number of Workers</display-name>
+    <description>Number of worker processes to create across all machines in the cluster.</description>
+    <display-name>Number of Worker Processes</display-name>
+  </property>
+  <property>
+    <name>profiler_spout_parallelism</name>
+    <value>1</value>
+    <description>The spout parallelism hint; initial number of executors (threads).</description>
+    <display-name>Spout Parallelism Hint</display-name>
+  </property>
+  <property>
+    <name>profiler_splitter_parallelism</name>
+    <value>1</value>
+    <description>The profile splitter parallelism hint; initial number of executors (threads).</description>
+    <display-name>Splitter Parallelism Hint</display-name>
+  </property>
+  <property>
+    <name>profiler_builder_parallelism</name>
+    <value>1</value>
+    <description>The profile builder parallelism hint; initial number of executors (threads).</description>
+    <display-name>Builder Parallelism Hint</display-name>
+  </property>
+  <property>
+    <name>profiler_hbase_writer_parallelism</name>
+    <value>1</value>
+    <description>The HBase writer parallelism hint; initial number of executors (threads).</description>
+    <display-name>HBase Writer Parallelism Hint</display-name>
+  </property>
+  <property>
+    <name>profiler_kafka_writer_parallelism</name>
+    <value>1</value>
+    <description>The Kafka writer parallelism hint; initial number of executors (threads).</description>
+    <display-name>Kafka Writer Parallelism Hint</display-name>
   </property>
   <property>
     <name>profiler_acker_executors</name>
     <value>1</value>
-    <description>The profiler storm topology acker executors</description>
+    <description>Number of threads dedicated to tuple acking. Should be equal to the number of partitions in the inbound Kafka topic.</description>
     <display-name>Number of Acker Executors</display-name>
   </property>
   <property>

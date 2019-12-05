@@ -406,7 +406,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
       // storm settings
       setProperty("profiler.workers", "1");
-      setProperty("profiler.executors", "0");
+      setProperty("profiler.acker.executors", "0");
+      setProperty("profiler.spout.parallelism", "1");
+      setProperty("profiler.splitter.parallelism", "1");
+      setProperty("profiler.builder.parallelism", "1");
+      setProperty("profiler.hbase.writer.parallelism", "1");
+      setProperty("profiler.kafka.writer.parallelism", "1");
 
       setProperty(Config.TOPOLOGY_AUTO_CREDENTIALS, "[]");
       setProperty(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, "60");
