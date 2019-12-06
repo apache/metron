@@ -36,12 +36,12 @@ matrix:
   include:
     - name: Unit Tests
       script:
-        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl '!:metron-config,!:metron-alerts'
+        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -Dskip.npm -B -V
         - time mvn surefire:test@unit-tests -T 2C
 
     - name: Integration Tests
       script:
-        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl '!:metron-config,!:metron-alerts'
+        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -Dskip.npm -B -V
         - time mvn surefire:test@integration-tests
 
     - name: Alerts UI Tests
@@ -60,7 +60,6 @@ matrix:
 
     - name: Verify Licenses
       script:
-        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V -Dskip.npm
         - time ./dev-utilities/build-utils/verify_licenses.sh
 
 before_cache:

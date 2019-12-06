@@ -16,6 +16,14 @@
 #  limitations under the License.
 #
 
+# Need to build before we can properly list dependencies
+echo "Building Metron"
+mvn install -T 2C -q -DskipTests=true \
+  -Dmaven.javadoc.skip=true \
+  -Dskip.npm \
+  -B -V
+
+echo "Determining dependencies"
 DEPS=$(dev-utilities/build-utils/list_dependencies.sh)
 rc=$?
 if [[ $rc != 0 ]]; then
@@ -23,3 +31,4 @@ if [[ $rc != 0 ]]; then
   exit $rc
 fi
 echo "$DEPS" | python dev-utilities/build-utils/verify_license.py ./dependencies_with_url.csv
+echo "Finished validating dependencies."
