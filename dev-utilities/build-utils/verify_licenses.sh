@@ -33,7 +33,7 @@ fi
 echo "$DEPS" | python dev-utilities/build-utils/verify_license.py ./dependencies_with_url.csv
 rc=$?
 if [[ $rc != 0 ]]; then
-  echo "Failed to determine dependencies"
+  echo "Finished with dependency issues. Please ensure all dependencies are in dependencies_with_url.csv"
   exit $rc
 else
   echo "Finished dependencies."
