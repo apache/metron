@@ -31,4 +31,10 @@ if [[ $rc != 0 ]]; then
   exit $rc
 fi
 echo "$DEPS" | python dev-utilities/build-utils/verify_license.py ./dependencies_with_url.csv
-echo "Finished validating dependencies."
+rc=$?
+if [[ $rc != 0 ]]; then
+  echo "Failed to determine dependencies"
+  exit $rc
+else
+  echo "Finished dependencies."
+fi
