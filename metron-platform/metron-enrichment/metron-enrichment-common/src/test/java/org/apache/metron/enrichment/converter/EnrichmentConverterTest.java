@@ -19,11 +19,12 @@ package org.apache.metron.enrichment.converter;
 
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EnrichmentConverterTest {
   @Test
@@ -32,7 +33,7 @@ public class EnrichmentConverterTest {
     byte[] serialized = k1.toBytes();
     EnrichmentKey k2 = new EnrichmentKey();
     k2.fromBytes(serialized);
-    Assert.assertEquals(k1, k2);
+    assertEquals(k1, k2);
   }
 
   @Test
@@ -45,7 +46,7 @@ public class EnrichmentConverterTest {
     }});
     Put serialized = converter.toPut("cf", k1, v1);
     LookupKV<EnrichmentKey, EnrichmentValue> kv = converter.fromPut(serialized,"cf");
-    Assert.assertEquals(k1, kv.getKey());
-    Assert.assertEquals(v1, kv.getValue());
+    assertEquals(k1, kv.getKey());
+    assertEquals(v1, kv.getValue());
   }
 }

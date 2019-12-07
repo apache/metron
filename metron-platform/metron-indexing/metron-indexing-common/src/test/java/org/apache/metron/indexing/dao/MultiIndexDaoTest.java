@@ -18,36 +18,19 @@
 
 package org.apache.metron.indexing.dao;
 
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.GroupRequest;
-import org.apache.metron.indexing.dao.search.GroupResponse;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class MultiIndexDaoTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   private MultiIndexDao multiIndexDao;
   private IndexDao dao1;
   private IndexDao dao2;
@@ -55,7 +38,7 @@ public class MultiIndexDaoTest {
   private Document document1;
   private Document document2;
 
-  @Before
+  @BeforeEach
   public void setup() {
     dao1 = mock(IndexDao.class);
     dao2 = mock(IndexDao.class);
@@ -68,19 +51,19 @@ public class MultiIndexDaoTest {
   @Test
   public void shouldUpdateAll() throws IOException {
     Document actual = multiIndexDao.update(document1, Optional.of("bro"));
-    Assert.assertEquals(document1, actual);
+    assertEquals(document1, actual);
 
     // both 'backing' daos should have received the update
     verify(dao1).update(eq(document1), eq(Optional.of("bro")));
     verify(dao2).update(eq(document1), eq(Optional.of("bro")));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void shouldThrowExceptionWithPartialFailureOnUpdate() throws IOException {
     // dao2 will throw an exception causing the 'partial failure'
     when(dao2.update(any(), any())).thenThrow(new IllegalStateException());
 
-    multiIndexDao.update(document1, Optional.of("bro"));
+    assertThrows(IOException.class, () -> multiIndexDao.update(document1, Optional.of("bro")));
   }
 
   @Test
@@ -91,14 +74,14 @@ public class MultiIndexDaoTest {
     }};
 
     Map<Document, Optional<String>> actual = multiIndexDao.batchUpdate(updates);
-    Assert.assertEquals(updates, actual);
+    assertEquals(updates, actual);
 
     // both 'backing' daos should have received the updates
     verify(dao1).batchUpdate(eq(updates));
     verify(dao2).batchUpdate(eq(updates));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void shouldThrowExceptionWithPartialFailureOnBatchUpdate() throws IOException {
     // dao2 will throw an exception causing the 'partial failure'
     when(dao2.batchUpdate(any())).thenThrow(new IllegalStateException());
@@ -108,7 +91,7 @@ public class MultiIndexDaoTest {
       put(document2, Optional.of("bro"));
     }};
 
-    multiIndexDao.batchUpdate(updates);
+    assertThrows(IOException.class, () -> multiIndexDao.batchUpdate(updates));
   }
 
   @Test
@@ -119,7 +102,7 @@ public class MultiIndexDaoTest {
     when(dao2.getLatest("guid", "bro")).thenReturn(document2);
 
     Document expected = new Document(new HashMap<>(), "guid", "bro", 2L);
-    Assert.assertEquals(expected, multiIndexDao.getLatest("guid", "bro"));
+    assertEquals(expected, multiIndexDao.getLatest("guid", "bro"));
   }
 
   @Test
@@ -132,10 +115,10 @@ public class MultiIndexDaoTest {
     when(dao2.addCommentToAlert(request, latest)).thenReturn(document2);
 
     Document expected = new Document(new HashMap<>(), "guid", "bro", 2L);
-    Assert.assertEquals(expected, multiIndexDao.addCommentToAlert(request, latest));
+    assertEquals(expected, multiIndexDao.addCommentToAlert(request, latest));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void shouldThrowExceptionWithPartialFailureOnAddComment() throws Exception {
     Document latest = mock(Document.class);
     CommentAddRemoveRequest request = new CommentAddRemoveRequest();
@@ -145,7 +128,7 @@ public class MultiIndexDaoTest {
     when(dao1.addCommentToAlert(request, latest)).thenReturn(document1);
     when(dao2.addCommentToAlert(request, latest)).thenThrow(new IllegalStateException());
 
-    multiIndexDao.addCommentToAlert(request, latest);
+    assertThrows(IOException.class, () -> multiIndexDao.addCommentToAlert(request, latest));
   }
 
   @Test
@@ -158,10 +141,10 @@ public class MultiIndexDaoTest {
     when(dao2.removeCommentFromAlert(request, latest)).thenReturn(document2);
 
     Document expected = new Document(new HashMap<>(), "guid", "bro", 2L);
-    Assert.assertEquals(expected, multiIndexDao.removeCommentFromAlert(request, latest));
+    assertEquals(expected, multiIndexDao.removeCommentFromAlert(request, latest));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void shouldThrowExceptionWithPartialFailureOnRemoveComment() throws Exception {
     Document latest = mock(Document.class);
     CommentAddRemoveRequest request = new CommentAddRemoveRequest();
@@ -171,12 +154,12 @@ public class MultiIndexDaoTest {
     when(dao1.removeCommentFromAlert(request, latest)).thenReturn(document1);
     when(dao2.removeCommentFromAlert(request, latest)).thenThrow(new IllegalStateException());
 
-    multiIndexDao.removeCommentFromAlert(request, latest);
+    assertThrows(IOException.class, () -> multiIndexDao.removeCommentFromAlert(request, latest));
   }
 
   @Test
   public void shouldGetColumnMetadata() throws Exception {
-    List<String> indices = Arrays.asList("bro");
+    List<String> indices = Collections.singletonList("bro");
 
     Map<String, FieldType> expected = new HashMap<String, FieldType>() {{
       put("bro", FieldType.TEXT);
@@ -186,19 +169,19 @@ public class MultiIndexDaoTest {
     when(dao2.getColumnMetadata(eq(indices))).thenReturn(expected);
 
     Map<String, FieldType> actual = multiIndexDao.getColumnMetadata(indices);
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
   public void shouldGetColumnMetadataWithNulls() throws Exception {
-    List<String> indices = Arrays.asList("bro");
+    List<String> indices = Collections.singletonList("bro");
 
     // both 'backing' DAOs respond with null
     when(dao1.getColumnMetadata(eq(indices))).thenReturn(null);
     when(dao2.getColumnMetadata(eq(indices))).thenReturn(null);
 
     Map<String, FieldType> actual = multiIndexDao.getColumnMetadata(indices);
-    Assert.assertNull(actual);
+    assertNull(actual);
   }
 
   @Test
@@ -210,7 +193,7 @@ public class MultiIndexDaoTest {
     when(dao2.search(eq(request))).thenReturn(expected);
 
     SearchResponse actual = multiIndexDao.search(request);
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -221,7 +204,7 @@ public class MultiIndexDaoTest {
     when(dao2.search(eq(request))).thenReturn(null);
 
     SearchResponse actual = multiIndexDao.search(request);
-    Assert.assertNull(actual);
+    assertNull(actual);
   }
 
   @Test
@@ -233,7 +216,7 @@ public class MultiIndexDaoTest {
     when(dao2.group(eq(request))).thenReturn(expected);
 
     GroupResponse actual = multiIndexDao.group(request);
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -244,6 +227,6 @@ public class MultiIndexDaoTest {
     when(dao2.group(eq(request))).thenReturn(null);
 
     GroupResponse actual = multiIndexDao.group(request);
-    Assert.assertNull(actual);
+    assertNull(actual);
   }
 }

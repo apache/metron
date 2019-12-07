@@ -18,33 +18,24 @@
 
 package org.apache.metron.stellar.common;
 
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.Token;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.common.evaluators.ArithmeticEvaluator;
 import org.apache.metron.stellar.common.evaluators.ComparisonExpressionWithOperatorEvaluator;
 import org.apache.metron.stellar.common.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.Token;
+import org.apache.metron.stellar.dsl.VariableResolver;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({Deque.class, ArithmeticEvaluator.class, NumberLiteralEvaluator.class, ComparisonExpressionWithOperatorEvaluator.class})
-public class StellarCompilerTest {
+public class StellarCompilerTest  {
   VariableResolver variableResolver;
   FunctionResolver functionResolver;
   Context context;
@@ -55,8 +46,7 @@ public class StellarCompilerTest {
   StellarCompiler compiler;
   StellarCompiler.Expression expression;
 
-  @SuppressWarnings("unchecked")
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     variableResolver = mock(VariableResolver.class);
     functionResolver = mock(FunctionResolver.class);
@@ -71,25 +61,25 @@ public class StellarCompilerTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void exitIntLiteralShouldProperlyParseStringsAsIntegers() throws Exception {
+  public void exitIntLiteralShouldProperlyParseStringsAsIntegers() {
     StellarParser.IntLiteralContext ctx = mock(StellarParser.IntLiteralContext.class);
     Token result = mock(Token.class);
     when(ctx.getText()).thenReturn("1000");
     when(numberLiteralEvaluator.evaluate(ctx, null)).thenReturn(result);
     compiler.exitIntLiteral(ctx);
     verify(numberLiteralEvaluator).evaluate(ctx, null);
-    Assert.assertEquals(1, tokenStack.size());
-    Assert.assertEquals(tokenStack.getFirst(), result);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
-    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+    assertEquals(1, tokenStack.size());
+    assertEquals(tokenStack.getFirst(), result);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
+    verifyNoInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void exitDoubleLiteralShouldProperlyParseStringsAsDoubles() throws Exception {
+  public void exitDoubleLiteralShouldProperlyParseStringsAsDoubles() {
     StellarParser.DoubleLiteralContext ctx = mock(StellarParser.DoubleLiteralContext.class);
     Token result = mock(Token.class);
     when(numberLiteralEvaluator.evaluate(ctx, null)).thenReturn(result);
@@ -98,18 +88,18 @@ public class StellarCompilerTest {
     compiler.exitDoubleLiteral(ctx);
 
     verify(numberLiteralEvaluator).evaluate(ctx, null);
-    Assert.assertEquals(1, tokenStack.size());
-    Assert.assertEquals(tokenStack.getFirst(), result);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
-    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+    assertEquals(1, tokenStack.size());
+    assertEquals(tokenStack.getFirst(), result);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
+    verifyNoInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void exitFloatLiteralShouldProperlyParseStringsAsFloats() throws Exception {
+  public void exitFloatLiteralShouldProperlyParseStringsAsFloats() {
     StellarParser.FloatLiteralContext ctx = mock(StellarParser.FloatLiteralContext.class);
     when(ctx.getText()).thenReturn("1000f");
     Token result = mock(Token.class);
@@ -118,18 +108,18 @@ public class StellarCompilerTest {
     compiler.exitFloatLiteral(ctx);
 
     verify(numberLiteralEvaluator).evaluate(ctx, null);
-    Assert.assertEquals(1, tokenStack.size());
-    Assert.assertEquals(tokenStack.getFirst(), result);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
-    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+    assertEquals(1, tokenStack.size());
+    assertEquals(tokenStack.getFirst(), result);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
+    verifyNoInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void exitLongLiteralShouldProperlyParseStringsAsLongs() throws Exception {
+  public void exitLongLiteralShouldProperlyParseStringsAsLongs() {
     StellarParser.LongLiteralContext ctx = mock(StellarParser.LongLiteralContext.class);
     when(ctx.getText()).thenReturn("1000l");
     Token result = mock(Token.class);
@@ -138,18 +128,18 @@ public class StellarCompilerTest {
     compiler.exitLongLiteral(ctx);
 
     verify(numberLiteralEvaluator).evaluate(ctx, null);
-    Assert.assertEquals(1, tokenStack.size());
-    Assert.assertEquals(tokenStack.getFirst(), result);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
-    verifyZeroInteractions(comparisonExpressionWithOperatorEvaluator);
+    assertEquals(1, tokenStack.size());
+    assertEquals(tokenStack.getFirst(), result);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
+    verifyNoInteractions(comparisonExpressionWithOperatorEvaluator);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void properlyCompareTwoNumbers() throws Exception {
+  public void properlyCompareTwoNumbers() {
     StellarParser.ComparisonExpressionWithOperatorContext ctx = mock(StellarParser.ComparisonExpressionWithOperatorContext.class);
     StellarParser.ComparisonOpContext mockOp = mock(StellarParser.ComparisonOpContext.class);
     when(ctx.comp_operator()).thenReturn(mockOp);
@@ -157,18 +147,18 @@ public class StellarCompilerTest {
     when(comparisonExpressionWithOperatorEvaluator.evaluate(any(Token.class), any(Token.class), any(StellarParser.ComparisonOpContext.class), any())).thenReturn(result);
 
     compiler.exitComparisonExpressionWithOperator(ctx);
-    Assert.assertEquals(1, tokenStack.size());
+    assertEquals(1, tokenStack.size());
     StellarCompiler.DeferredFunction func = (StellarCompiler.DeferredFunction) tokenStack.pop().getValue();
     tokenStack.push(new Token<>(1000, Integer.class, null));
     tokenStack.push(new Token<>(1500f, Float.class, null));
     func.apply(tokenStack, new StellarCompiler.ExpressionState(context, functionResolver, variableResolver));
-    Assert.assertEquals(1, tokenStack.size());
-    Assert.assertEquals(tokenStack.getFirst(), result);
+    assertEquals(1, tokenStack.size());
+    assertEquals(tokenStack.getFirst(), result);
     verify(comparisonExpressionWithOperatorEvaluator).evaluate(any(Token.class), any(Token.class), eq(mockOp), any());
-    verifyZeroInteractions(numberLiteralEvaluator);
-    verifyZeroInteractions(variableResolver);
-    verifyZeroInteractions(functionResolver);
-    verifyZeroInteractions(context);
-    verifyZeroInteractions(arithmeticEvaluator);
+    verifyNoInteractions(numberLiteralEvaluator);
+    verifyNoInteractions(variableResolver);
+    verifyNoInteractions(functionResolver);
+    verifyNoInteractions(context);
+    verifyNoInteractions(arithmeticEvaluator);
   }
 }

@@ -21,13 +21,14 @@ package org.apache.metron.common.field.validation.network;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.field.validation.BaseValidationTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class URLValidationTest  extends BaseValidationTest {
   /**
@@ -60,36 +61,36 @@ public class URLValidationTest  extends BaseValidationTest {
 
   @Test
   public void positiveTest_single() throws IOException {
-    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "http://caseystella.com/foo")));
-    Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "http://caseystella.com/foo")));
-    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "https://www.hotmail.co.uk")));
-    Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "https://www.hotmail.co.uk")));
+    assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "http://caseystella.com/foo")));
+    assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "http://caseystella.com/foo")));
+    assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "https://www.hotmail.co.uk")));
+    assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "https://www.hotmail.co.uk")));
   }
   @Test
   public void negativeTest_empty() throws IOException {
-    Assert.assertFalse(runPredicate("IS_URL()", Collections.emptyMap()));
-    Assert.assertFalse(runPredicate("IS_URL('')", Collections.emptyMap()));
+    assertFalse(runPredicate("IS_URL()", Collections.emptyMap()));
+    assertFalse(runPredicate("IS_URL('')", Collections.emptyMap()));
   }
   @Test
   public void negativeTest_single() throws IOException {
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "foo")));
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "foo")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "http://caseystella.turtle")));
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "http://caseystella.turtle")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.7f)));
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.7f)));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "foo")));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "foo")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "http://caseystella.turtle")));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "http://caseystella.turtle")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.7f)));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.7f)));
   }
   @Test
   public void positiveTest_multiple() throws IOException {
-    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", "ftp://www.gmail.com", "field2", "http://www.hotmail.com")));
-    Assert.assertTrue(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "ftp://www.gmail.com", "field2", "http://www.hotmail.com")));
+    assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", "ftp://www.gmail.com", "field2", "http://www.hotmail.com")));
+    assertTrue(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "ftp://www.gmail.com", "field2", "http://www.hotmail.com")));
   }
 
   @Test
   public void negativeTest_multiple() throws IOException {
-    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field2", "http://hotmail.edu")));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field2", "http://hotmail.edu")));
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", "", "field2", "http://gmail.com")));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "", "field2", "http://gmail.com")));
+    assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field2", "http://hotmail.edu")));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field2", "http://hotmail.edu")));
+    assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", "", "field2", "http://gmail.com")));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "", "field2", "http://gmail.com")));
   }
 }

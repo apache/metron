@@ -18,27 +18,20 @@
 
 package org.apache.metron.common.configuration.writer;
 
-import static org.apache.metron.common.configuration.writer.ConfigurationsStrategies.ENRICHMENT;
-import static org.apache.metron.common.configuration.writer.ConfigurationsStrategies.INDEXING;
-import static org.apache.metron.common.configuration.writer.ConfigurationsStrategies.PARSERS;
-import static org.apache.metron.common.configuration.writer.ConfigurationsStrategies.PROFILER;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
-
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.zookeeper.configurations.EnrichmentUpdater;
-import org.apache.metron.common.zookeeper.configurations.IndexingUpdater;
-import org.apache.metron.common.zookeeper.configurations.ParserUpdater;
-import org.apache.metron.common.zookeeper.configurations.ProfilerUpdater;
-import org.apache.metron.common.zookeeper.configurations.Reloadable;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.metron.common.zookeeper.configurations.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import static org.apache.metron.common.configuration.writer.ConfigurationsStrategies.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ConfigurationsStrategiesTest {
 
@@ -47,7 +40,7 @@ public class ConfigurationsStrategiesTest {
   @Mock
   private Reloadable reloadable;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
   }

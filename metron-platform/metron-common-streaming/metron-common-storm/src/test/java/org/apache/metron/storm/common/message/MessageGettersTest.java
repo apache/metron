@@ -19,20 +19,15 @@ package org.apache.metron.storm.common.message;
 
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class MessageGettersTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Test
   public void bytesFromPositionShouldReturnBytes() {
     Tuple tuple = mock(Tuple.class);
@@ -55,13 +50,11 @@ public class MessageGettersTest {
 
   @Test
   public void jsonFromPositionShouldThrowException() {
-    exception.expect(IllegalStateException.class);
-
     Tuple tuple = mock(Tuple.class);
     when(tuple.getBinary(1)).thenReturn("{\"field\":".getBytes(UTF_8));
 
     MessageGetStrategy messageGetStrategy = MessageGetters.JSON_FROM_POSITION.get("1");
-    messageGetStrategy.get(tuple);
+    assertThrows(IllegalStateException.class, () -> messageGetStrategy.get(tuple));
   }
 
   @Test

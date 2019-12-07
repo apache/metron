@@ -20,39 +20,23 @@
 
 package org.apache.metron.hbase.client;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.ColumnList;
+import org.apache.metron.hbase.HBaseProjectionCriteria;
+import org.apache.metron.hbase.TableProvider;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.Durability;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.hbase.ColumnList;
-import org.apache.metron.hbase.HBaseProjectionCriteria;
-import org.apache.metron.hbase.TableProvider;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the HBaseClient
@@ -74,7 +58,7 @@ public class HBaseClientTest {
   ColumnList cols1;
   ColumnList cols2;
 
-  @BeforeClass
+  @BeforeAll
   public static void startHBase() throws Exception {
     Configuration config = HBaseConfiguration.create();
     config.set("hbase.master.hostname", "localhost");
@@ -89,14 +73,14 @@ public class HBaseClientTest {
     client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
   }
 
-  @AfterClass
+  @AfterAll
   public static void stopHBase() throws Exception {
     util.deleteTable(tableName);
     util.shutdownMiniCluster();
     util.cleanupTestDir();
   }
 
-  @After
+  @AfterEach
   public void clearTable() throws Exception {
     List<Delete> deletions = new ArrayList<>();
     for(Result r : table.getScanner(new Scan())) {
@@ -105,8 +89,8 @@ public class HBaseClientTest {
     table.delete(deletions);
   }
 
-  @Before
-  public void setupTuples() throws Exception {
+  @BeforeEach
+  public void setupTuples() {
     rowKey1 = Bytes.toBytes("rowKey1");
     cols1 = new ColumnList();
     cols1.addColumn(cf, column, value1);
@@ -132,7 +116,7 @@ public class HBaseClientTest {
     // read back the tuple
     client.addGet(rowKey1, criteria);
     Result[] results = client.getAll();
-    Assert.assertEquals(1, results.length);
+    assertEquals(1, results.length);
 
     // validate
     assertEquals(1, results.length);
@@ -144,7 +128,7 @@ public class HBaseClientTest {
    * Should be able to read/write multiple rows in a batch.
    */
   @Test
-  public void testBatchWrite() throws Exception {
+  public void testBatchWrite() {
 
     // add two mutations to the queue
     client.addMutation(rowKey1, cols1, Durability.SYNC_WAL);
@@ -152,7 +136,7 @@ public class HBaseClientTest {
     int count = client.mutate();
 
     // there were two mutations
-    Assert.assertEquals(2, count);
+    assertEquals(2, count);
 
     HBaseProjectionCriteria criteria = new HBaseProjectionCriteria();
     criteria.addColumnFamily(Bytes.toString(cf));
@@ -174,11 +158,11 @@ public class HBaseClientTest {
    * What happens when there is nothing in the batch to write?
    */
   @Test
-  public void testEmptyBatch() throws Exception {
+  public void testEmptyBatch() {
 
     // do not add any mutations before attempting to write
     int count = client.mutate();
-    Assert.assertEquals(0, count);
+    assertEquals(0, count);
 
     HBaseProjectionCriteria criteria = new HBaseProjectionCriteria();
     criteria.addColumnFamily(Bytes.toString(cf));
@@ -191,7 +175,7 @@ public class HBaseClientTest {
     // validate - there should be nothing to find
     assertEquals(2, results.length);
     for(Result result : results) {
-      Assert.assertTrue(result.isEmpty());
+      assertTrue(result.isEmpty());
     }
   }
 
@@ -199,7 +183,7 @@ public class HBaseClientTest {
    * Should be able to read back rows that were written with a TTL 30 days out.
    */
   @Test
-  public void testWriteWithTimeToLive() throws Exception {
+  public void testWriteWithTimeToLive() {
     long timeToLive = TimeUnit.DAYS.toMillis(30);
 
     // add two mutations to the queue
@@ -252,16 +236,18 @@ public class HBaseClientTest {
     assertTrue(results[1].isEmpty());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testUnableToOpenConnection() throws IOException {
     // used to trigger a failure condition
     TableProvider tableProvider = mock(TableProvider.class);
     when(tableProvider.getTable(any(), any())).thenThrow(new IllegalArgumentException("test exception"));
 
-    client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
+    assertThrows(
+        RuntimeException.class,
+        () -> client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName));
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testFailureToMutate() throws IOException, InterruptedException {
     // used to trigger a failure condition in `HbaseClient.mutate`
     Table table = mock(Table.class);
@@ -272,14 +258,14 @@ public class HBaseClientTest {
 
     client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
     client.addMutation(rowKey1, cols1, Durability.SYNC_WAL);
-    client.mutate();
+    assertThrows(RuntimeException.class, () -> client.mutate());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testFailureToGetAll() throws IOException {
     // used to trigger a failure condition in `HbaseClient.getAll`
     Table table = mock(Table.class);
-    when(table.get(anyListOf(Get.class))).thenThrow(new IOException("exception!"));
+    when(table.get(anyList())).thenThrow(new IOException("exception!"));
 
     TableProvider tableProvider = mock(TableProvider.class);
     when(tableProvider.getTable(any(), any())).thenReturn(table);
@@ -290,6 +276,6 @@ public class HBaseClientTest {
     client = new HBaseClient(tableProvider, HBaseConfiguration.create(), tableName);
     client.addGet(rowKey1, criteria);
     client.addGet(rowKey2, criteria);
-    client.getAll();
+    assertThrows(RuntimeException.class, () -> client.getAll());
   }
 }

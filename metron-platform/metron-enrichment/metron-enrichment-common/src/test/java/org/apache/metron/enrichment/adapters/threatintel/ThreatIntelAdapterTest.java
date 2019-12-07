@@ -22,28 +22,29 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.log4j.Level;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.cache.CacheKey;
-import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
-import org.apache.metron.enrichment.converter.EnrichmentHelper;
-import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
-import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ThreatIntelAdapterTest {
@@ -96,7 +97,7 @@ public class ThreatIntelAdapterTest {
 
   private JSONObject expectedMessage;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(atTableName, cf);
@@ -119,8 +120,8 @@ public class ThreatIntelAdapterTest {
     tia.lookup = lookup;
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = tia.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(expectedMessage, actualMessage);
+    assertNotNull(actualMessage);
+    assertEquals(expectedMessage, actualMessage);
   }
 
   @Test
@@ -129,11 +130,11 @@ public class ThreatIntelAdapterTest {
     tia.lookup = lookup;
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = tia.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(expectedMessage, actualMessage);
+    assertNotNull(actualMessage);
+    assertEquals(expectedMessage, actualMessage);
 
     actualMessage = tia.enrich(new CacheKey("ip_dst_addr", 10L, broSc));
-    Assert.assertEquals(actualMessage,new JSONObject());
+    assertEquals(actualMessage,new JSONObject());
   }
 
   @Test
@@ -160,7 +161,7 @@ public class ThreatIntelAdapterTest {
     UnitTestHelper.setLog4jLevel(ThreatIntelAdapter.class, Level.FATAL);
     tia.initializeAdapter(null);
     UnitTestHelper.setLog4jLevel(ThreatIntelAdapter.class, Level.ERROR);
-    Assert.assertFalse(tia.isInitialized());
+    assertFalse(tia.isInitialized());
   }
 
 

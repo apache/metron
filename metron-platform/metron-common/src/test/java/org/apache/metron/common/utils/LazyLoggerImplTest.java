@@ -18,11 +18,8 @@
 
 package org.apache.metron.common.utils;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
@@ -92,9 +89,6 @@ public class LazyLoggerImplTest {
 
   // Stub Exception
   private static final Exception exception = new Exception();
-
-  @Rule
-  public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   private List<UUID> getGuids(int numGuids) {
     return IntStream.range(0,numGuids)

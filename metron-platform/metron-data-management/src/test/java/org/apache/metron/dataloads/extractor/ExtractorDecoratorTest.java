@@ -17,9 +17,8 @@
  */
 package org.apache.metron.dataloads.extractor;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -27,8 +26,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.Matchers.isA;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
 
 public class ExtractorDecoratorTest {
@@ -36,7 +36,7 @@ public class ExtractorDecoratorTest {
   @Mock
   Extractor extractor;
 
-  @Before
+  @BeforeEach
   public void before() {
     MockitoAnnotations.initMocks(this);
   }
@@ -44,7 +44,7 @@ public class ExtractorDecoratorTest {
   @Test
   public void sets_member_variables() {
     ExtractorDecorator decorator = new ExtractorDecorator(extractor);
-    Assert.assertThat(decorator.decoratedExtractor, notNullValue());
+    assertThat(decorator.decoratedExtractor, notNullValue());
   }
 
   @Test

@@ -19,9 +19,9 @@
 package org.apache.metron.solr.integration;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Iterables;
 import java.io.IOException;
@@ -38,11 +38,11 @@ import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class SolrRetrieveLatestIntegrationTest {
 
@@ -54,13 +54,13 @@ public class SolrRetrieveLatestIntegrationTest {
   protected final long expectedTimestamp = 123456789L;
   private static IndexDao dao;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBeforeClass() throws Exception {
     solrComponent = new SolrComponent.Builder().build();
     solrComponent.start();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     solrComponent.addCollection(TEST_COLLECTION, "./src/test/resources/config/test/conf");
     solrComponent.addCollection(BRO_SENSOR, "./src/main/config/schema/bro");
@@ -78,12 +78,12 @@ public class SolrRetrieveLatestIntegrationTest {
     addData(TEST_COLLECTION, TEST_SENSOR, expectedTimestamp);
   }
 
-  @After
+  @AfterEach
   public void reset() {
     solrComponent.reset();
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     SolrClientFactory.close();
     solrComponent.stop();

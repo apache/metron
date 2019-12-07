@@ -18,17 +18,6 @@
 
 package org.apache.metron.hbase.coprocessor;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
@@ -51,9 +40,16 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
 
@@ -84,7 +80,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
   @Multiline
   private static String globalConfig;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupAll() throws Exception {
     silenceLogging();
     // don't need the properties for anything else now, but could extract var if desired.
@@ -167,7 +163,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
     hbaseAdmin.enableTable(tableName);
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() throws Exception {
     HBaseUtil.INSTANCE.teardown(testUtil);
     componentRunner.stop();
@@ -203,7 +199,7 @@ public class EnrichmentCoprocessorIntegrationTest extends BaseIntegrationTest {
           "{ \"apache\" : \"metron\" }");
     }
     List<String> enrichmentsList = HelperDao.readRecords(enrichmentListTable);
-    assertThat(new HashSet<String>(enrichmentsList), equalTo(expectedEnrichmentTypes));
+    assertThat(new HashSet<>(enrichmentsList), equalTo(expectedEnrichmentTypes));
   }
 
 }

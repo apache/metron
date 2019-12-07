@@ -40,11 +40,21 @@ public class HadoopConfig {
     public org.apache.hadoop.conf.Configuration configuration() throws IOException {
         org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
         if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
-            UserGroupInformation.setConfiguration(configuration);
+            setUGIConfiguration(configuration);
             String keyTabLocation = environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY);
             String userPrincipal = environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY);
-            UserGroupInformation.loginUserFromKeytab(userPrincipal, keyTabLocation);
+            loginUserFromKeytab(keyTabLocation, userPrincipal);
         }
         return configuration;
+    }
+
+    // Exposed for testing
+    protected void setUGIConfiguration(org.apache.hadoop.conf.Configuration configuration) {
+        UserGroupInformation.setConfiguration(configuration);
+    }
+
+    // Exposed for testing
+    protected void loginUserFromKeytab(String keyTabLocation, String userPrincipal) throws IOException {
+        UserGroupInformation.loginUserFromKeytab(userPrincipal, keyTabLocation);
     }
 }

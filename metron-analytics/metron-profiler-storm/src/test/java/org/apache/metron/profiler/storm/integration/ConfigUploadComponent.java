@@ -19,7 +19,6 @@
  */
 package org.apache.metron.profiler.storm.integration;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
@@ -28,14 +27,10 @@ import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.ZKServerComponent;
 
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import static org.apache.metron.common.configuration.ConfigurationsUtils.getClient;
-import static org.apache.metron.common.configuration.ConfigurationsUtils.readGlobalConfigFromFile;
-import static org.apache.metron.common.configuration.ConfigurationsUtils.writeGlobalConfigToZookeeper;
-import static org.apache.metron.common.configuration.ConfigurationsUtils.readProfilerConfigFromFile;
-import static org.apache.metron.common.configuration.ConfigurationsUtils.writeProfilerConfigToZookeeper;
+import static org.apache.metron.common.configuration.ConfigurationsUtils.*;
 
 
 /**

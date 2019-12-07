@@ -17,22 +17,11 @@
  */
 package org.apache.metron.solr.dao;
 
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.search.GroupRequest;
-import org.apache.metron.indexing.dao.search.GroupResponse;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
@@ -43,6 +32,12 @@ import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class SolrDao implements IndexDao {
 
@@ -174,5 +169,10 @@ public class SolrDao implements IndexDao {
 
   public SolrUpdateDao getSolrUpdateDao() {
     return solrUpdateDao;
+  }
+
+  // Used for testing to ensure that we're actually setting up all the proper delegated DAOs
+  protected boolean daosSetup() {
+    return solrSearchDao != null && solrUpdateDao != null && solrColumnMetadataDao != null && solrRetrieveLatestDao != null;
   }
 }

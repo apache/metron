@@ -18,38 +18,22 @@
 package org.apache.metron.solr.dao;
 
 import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class SolrColumnMetadataTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   private SolrColumnMetadataDao solrColumnMetadataDao;
 
-  @SuppressWarnings("unchecked")
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     solrColumnMetadataDao = new SolrColumnMetadataDao(null);
   }
 
@@ -125,13 +109,11 @@ public class SolrColumnMetadataTest {
 
   @Test
   public void getColumnMetadataShouldThrowSolrException() throws Exception {
-    exception.expect(IOException.class);
-    exception.expectMessage("solr exception");
-
     solrColumnMetadataDao = spy(new SolrColumnMetadataDao(null));
     doThrow(new SolrServerException("solr exception")).when(solrColumnMetadataDao).getIndexFields("bro");
 
-    solrColumnMetadataDao.getColumnMetadata(Arrays.asList("bro", "snort"));
+    IOException e = assertThrows(IOException.class, () -> solrColumnMetadataDao.getColumnMetadata(Arrays.asList("bro", "snort")));
+    assertTrue(e.getMessage().contains("solr exception"));
   }
 
   @Test

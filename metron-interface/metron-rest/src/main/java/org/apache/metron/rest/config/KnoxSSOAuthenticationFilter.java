@@ -32,6 +32,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -49,6 +50,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -116,12 +118,12 @@ public class KnoxSSOAuthenticationFilter implements Filter {
       if (serializedJWT != null) {
         SignedJWT jwtToken;
         try {
-          jwtToken = SignedJWT.parse(serializedJWT);
+          jwtToken = parseJWT(serializedJWT);
           String userName = jwtToken.getJWTClaimsSet().getSubject();
           LOG.info("SSO login user : {} ", userName);
           if (isValid(jwtToken, userName)) {
             Authentication authentication = getAuthentication(userName, httpRequest);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            getSecurityContext().setAuthentication(authentication);
           }
         } catch (ParseException e) {
           LOG.warn("Unable to parse the JWT token", e);
@@ -129,6 +131,16 @@ public class KnoxSSOAuthenticationFilter implements Filter {
       }
     }
     chain.doFilter(request, response);
+  }
+
+  // exposed for testing
+  protected SecurityContext getSecurityContext() {
+    return SecurityContextHolder.getContext();
+  }
+
+  // exposed for testing
+  protected SignedJWT parseJWT(String serializedJWT) throws ParseException {
+    return SignedJWT.parse(serializedJWT);
   }
 
   /**
@@ -187,7 +199,7 @@ public class KnoxSSOAuthenticationFilter implements Filter {
       if (jwtToken.getSignature() != null) {
         LOG.debug("SSO token signature is not null");
         try {
-          JWSVerifier verifier = new RSASSAVerifier(SecurityUtils.parseRSAPublicKey(getKnoxKey()));
+          JWSVerifier verifier = getRSASSAVerifier();
           if (jwtToken.verify(verifier)) {
             LOG.debug("SSO token has been successfully verified");
             return true;
@@ -200,6 +212,11 @@ public class KnoxSSOAuthenticationFilter implements Filter {
       }
     }
     return false;
+  }
+
+  // exposed for testing
+  protected RSASSAVerifier getRSASSAVerifier() throws CertificateException, IOException {
+    return new RSASSAVerifier(SecurityUtils.parseRSAPublicKey(getKnoxKey()));
   }
 
   /**

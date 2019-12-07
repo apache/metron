@@ -24,30 +24,31 @@ import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.metron.common.utils.SerDeUtils;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.common.utils.SerDeUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class MedianAbsoluteDeviationTest {
   public static Object run(String rule, Map<String, Object> variables) {
     Context context = Context.EMPTY_CONTEXT();
     StellarProcessor processor = new StellarProcessor();
-    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
+    assertTrue(processor.validate(rule, context), rule + " not valid.");
     return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   private void assertScoreEquals(MedianAbsoluteDeviationFunctions.State currentState, MedianAbsoluteDeviationFunctions.State clonedState, double value) {
      Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", value));
       Double clonedScore = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", clonedState, "value", value));
-      Assert.assertEquals(score, clonedScore, 1e-6);
+      assertEquals(score, clonedScore, 1e-6);
   }
 
   @Test
@@ -93,23 +94,23 @@ public class MedianAbsoluteDeviationTest {
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMin()));
-      Assert.assertTrue("Score: " + score + " is not an outlier despite being a minimum.", score > 3.5);
+      assertTrue(score > 3.5, "Score: " + score + " is not an outlier despite being a minimum.");
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMax()));
-      Assert.assertTrue("Score: " + score + " is not an outlier despite being a maximum", score > 3.5);
+      assertTrue(score > 3.5, "Score: " + score + " is not an outlier despite being a maximum");
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean() + 4*stats.getStandardDeviation()));
-      Assert.assertTrue("Score: " + score + " is not an outlier despite being 4 std deviations away from the mean", score > 3.5);
+      assertTrue(score > 3.5, "Score: " + score + " is not an outlier despite being 4 std deviations away from the mean");
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean() - 4*stats.getStandardDeviation()));
-      Assert.assertTrue("Score: " + score + " is not an outlier despite being 4 std deviations away from the mean", score > 3.5);
+      assertTrue(score > 3.5, "Score: " + score + " is not an outlier despite being 4 std deviations away from the mean");
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean()));
-      Assert.assertFalse("Score: " + score + " is an outlier despite being the mean", score > 3.5);
+      assertFalse(score > 3.5, "Score: " + score + " is an outlier despite being the mean");
     }
   }
 
@@ -138,23 +139,23 @@ public class MedianAbsoluteDeviationTest {
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMin()));
-      Assert.assertTrue("Score: " + score + " is not an outlier despite being a minimum.", score > 3.5);
+      assertTrue(score > 3.5, "Score: " + score + " is not an outlier despite being a minimum.");
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMax()));
-      Assert.assertTrue("Score: " + score + " is not an outlier despite being a maximum", score > 3.5);
+      assertTrue(score > 3.5, "Score: " + score + " is not an outlier despite being a maximum");
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean() + 4*stats.getStandardDeviation()));
-      Assert.assertTrue("Score: " + score + " is not an outlier despite being 4 std deviations away from the mean", score > 3.5);
+      assertTrue(score > 3.5, "Score: " + score + " is not an outlier despite being 4 std deviations away from the mean");
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean() - 4*stats.getStandardDeviation()));
-      Assert.assertTrue("Score: " + score + " is not an outlier despite being 4 std deviations away from the mean", score > 3.5);
+      assertTrue(score > 3.5, "Score: " + score + " is not an outlier despite being 4 std deviations away from the mean");
     }
     {
       Double score = (Double) run("OUTLIER_MAD_SCORE(currentState, value)", ImmutableMap.of("currentState", currentState, "value", stats.getMean()));
-      Assert.assertFalse("Score: " + score + " is an outlier despite being the mean", score > 3.5);
+      assertFalse(score > 3.5, "Score: " + score + " is an outlier despite being the mean");
     }
   }
 }

@@ -21,13 +21,14 @@ package org.apache.metron.common.field.validation.primitive;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.field.validation.BaseValidationTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class IntegerValidationTest extends BaseValidationTest{
   /**
@@ -60,37 +61,37 @@ public class IntegerValidationTest extends BaseValidationTest{
 
   @Test
   public void positiveTest_single() throws IOException {
-    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", 1)));
-    Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 1)));
-    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "1")));
-    Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "1")));
+    assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", 1)));
+    assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 1)));
+    assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "1")));
+    assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "1")));
   }
   @Test
   public void negativeTest_empty() throws IOException {
-    Assert.assertFalse(runPredicate("IS_INTEGER()", Collections.emptyMap()));
-    Assert.assertFalse(runPredicate("IS_INTEGER('')", Collections.emptyMap()));
+    assertFalse(runPredicate("IS_INTEGER()", Collections.emptyMap()));
+    assertFalse(runPredicate("IS_INTEGER('')", Collections.emptyMap()));
   }
   @Test
   public void negativeTest_single() throws IOException {
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "foo")));
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "foo")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.3f)));
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.3f)));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "foo")));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "foo")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.3f)));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.3f)));
   }
   @Test
   public void positiveTest_multiple() throws IOException {
-    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "2")));
-    Assert.assertTrue(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "2")));
+    assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "2")));
+    assertTrue(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "2")));
   }
 
   @Test
   public void negativeTest_multiple() throws IOException {
 
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field2", "foo")));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field2", "foo")));
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", "", "field2", 1)));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "", "field2", 1)));
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", " ", "field2", 2)));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", " ", "field2", 2)));
+    assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field2", "foo")));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field2", "foo")));
+    assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", "", "field2", 1)));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "", "field2", 1)));
+    assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", " ", "field2", 2)));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", " ", "field2", 2)));
   }
 }

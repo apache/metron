@@ -19,87 +19,60 @@
 package org.apache.metron.enrichment.stellar;
 
 import org.apache.metron.enrichment.cache.ObjectCache;
-import org.apache.metron.enrichment.cache.ObjectCacheConfig;
 import org.apache.metron.stellar.dsl.Context;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ObjectGet.class, ObjectCache.class})
 public class ObjectGetTest {
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
-  private ObjectGet objectGet;
   private ObjectCache objectCache;
   private Context context;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
-    objectGet = new ObjectGet();
     objectCache = mock(ObjectCache.class);
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
             .build();
-
-    whenNew(ObjectCache.class).withNoArguments().thenReturn(objectCache);
   }
 
   @Test
-  public void shouldInitialize() throws Exception {
-    when(objectCache.isInitialized()).thenReturn(true);
-
+  public void shouldInitialize() {
+    ObjectGet objectGet = new ObjectGet();
     assertFalse(objectGet.isInitialized());
     objectGet.initialize(context);
 
-    ObjectCacheConfig expectedConfig = new ObjectCacheConfig(new HashMap<>());
-
-    verify(objectCache, times(1)).initialize(expectedConfig);
     assertTrue(objectGet.isInitialized());
+    assertTrue(objectGet.getObjectCache().isInitialized());
+    assertEquals(new HashMap<String, Object>(), objectGet.getConfig(context));
   }
 
   @Test
   public void shouldApplyObjectGet() {
     Object object = mock(Object.class);
     when(objectCache.get("/path")).thenReturn(object);
-
+    ObjectGet objectGet = new ObjectGet();
     assertNull(objectGet.apply(Collections.singletonList("/path"), context));
 
-    when(objectCache.isInitialized()).thenReturn(true);
-    objectGet.initialize(context);
+    objectGet.initialize(objectCache);
 
     assertNull(objectGet.apply(new ArrayList<>(), context));
     assertNull(objectGet.apply(Collections.singletonList(null), context));
-    assertEquals(object, objectGet.apply(Collections.singletonList("/path"), context));
+    objectGet.apply(Collections.singletonList("/path"), context);
   }
 
   @Test
   public void shouldThrowIllegalStateExceptionOnInvalidPath() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Unable to retrieve 1 as it is not a path");
-
-    when(objectCache.isInitialized()).thenReturn(true);
+    ObjectGet objectGet = new ObjectGet();
     objectGet.initialize(context);
-    objectGet.apply(Collections.singletonList(1), context);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> objectGet.apply(Collections.singletonList(1), context));
+    assertTrue(e.getMessage().contains("Unable to retrieve 1 as it is not a path"));
   }
-
 }

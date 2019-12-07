@@ -18,7 +18,7 @@
 
 package org.apache.metron.solr.client;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SolrClientFactoryTest {
 

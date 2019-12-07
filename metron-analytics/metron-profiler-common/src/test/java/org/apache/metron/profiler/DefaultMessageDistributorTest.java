@@ -27,15 +27,15 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DefaultMessageDistributorTest {
 
@@ -89,7 +89,7 @@ public class DefaultMessageDistributorTest {
   private long profileTimeToLiveMillis = MINUTES.toMillis(30);
   private long maxNumberOfRoutes = Long.MAX_VALUE;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     context = Context.EMPTY_CONTEXT();

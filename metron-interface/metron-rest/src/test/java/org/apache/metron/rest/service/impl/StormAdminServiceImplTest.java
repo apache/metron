@@ -22,31 +22,20 @@ import org.apache.metron.common.configuration.SensorParserGroup;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologyStatusCode;
-import org.apache.metron.rest.service.GlobalConfigService;
-import org.apache.metron.rest.service.SensorParserConfigService;
-import org.apache.metron.rest.service.SensorParserGroupService;
-import org.apache.metron.rest.service.StormAdminService;
-import org.apache.metron.rest.service.StormStatusService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.apache.metron.rest.service.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ALL")
 public class StormAdminServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   StormCLIWrapper stormCLIClientWrapper;
   StormAdminService stormAdminService;
   GlobalConfigService globalConfigService;
@@ -54,7 +43,7 @@ public class StormAdminServiceImplTest {
   SensorParserGroupService sensorParserGroupService;
   StormStatusService stormStatusService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     stormCLIClientWrapper = mock(StormCLIWrapper.class);
     globalConfigService = mock(GlobalConfigService.class);

@@ -17,26 +17,28 @@
  */
 package org.apache.metron.parsers.ise;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import org.apache.metron.parsers.AbstractParserConfigTest;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.metron.parsers.AbstractParserConfigTest;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BasicIseParserTest extends AbstractParserConfigTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     inputStrings = super.readTestDataFromFile("src/test/resources/logData/IseParserTest.txt");
     parser = new BasicIseParser();
@@ -51,12 +53,12 @@ public class BasicIseParserTest extends AbstractParserConfigTest {
       throws org.json.simple.parser.ParseException, IOException, ProcessingException {
     for (String inputString : inputStrings) {
       JSONObject parsed = parser.parse(inputString.getBytes(StandardCharsets.UTF_8)).get(0);
-      Assert.assertNotNull(parsed);
+      assertNotNull(parsed);
 
       JSONParser parser = new JSONParser();
 
       Map<?, ?> json = (Map<?, ?>) parser.parse(parsed.toJSONString());
-      Assert.assertTrue(validateJsonData(getSchemaJsonString(), json.toString()));
+      assertTrue(validateJsonData(getSchemaJsonString(), json.toString()));
     }
   }
   

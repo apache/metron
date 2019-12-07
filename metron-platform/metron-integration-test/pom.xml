@@ -32,10 +32,18 @@
       <artifactId>log4j</artifactId>
       <version>1.2.17</version>
     </dependency>
+
+    <!-- We use JUnit in src, so we can't scope these -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${global_junit_version}</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${global_junit_jupiter_version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${global_junit_jupiter_version}</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>

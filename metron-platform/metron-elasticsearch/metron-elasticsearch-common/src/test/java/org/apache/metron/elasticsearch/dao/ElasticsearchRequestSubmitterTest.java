@@ -29,12 +29,13 @@ import org.elasticsearch.index.Index;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.SearchShardTarget;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -76,8 +77,8 @@ public class ElasticsearchRequestSubmitterTest {
     assertNotNull(actual);
   }
 
-  @Test(expected = InvalidSearchException.class)
-  public void searchShouldFailWhenNotOK() throws InvalidSearchException, IOException {
+  @Test
+  public void searchShouldFailWhenNotOK() throws IOException {
 
     // mocks
     SearchResponse response = mock(SearchResponse.class);
@@ -90,7 +91,7 @@ public class ElasticsearchRequestSubmitterTest {
 
     // search should succeed
     ElasticsearchRequestSubmitter submitter = setup(response);
-    submitter.submitSearch(request);
+    assertThrows(InvalidSearchException.class, () -> submitter.submitSearch(request));
   }
 
   @Test

@@ -17,8 +17,9 @@
  */
 package org.apache.metron.pcap.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PcapUtilsTest {
 
@@ -26,6 +27,6 @@ public class PcapUtilsTest {
   public void testConvertHexToIpv4Ip() {
     String hex = "c0a88a9e";
     String ipAddress = PcapUtils.convertHexToIpv4Ip(hex);
-    Assert.assertEquals("192.168.138.158", ipAddress);
+    assertEquals("192.168.138.158", ipAddress);
   }
 }

@@ -17,13 +17,13 @@
  */
 package org.apache.metron.stellar.zeppelin;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Map;
 
 import static org.apache.metron.stellar.zeppelin.StellarInterpreterProperty.ZOOKEEPER_URL;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests the StellarInterpreterProperty class.

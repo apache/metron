@@ -19,9 +19,7 @@
 package org.apache.metron.common.configuration.writer;
 
 import org.apache.metron.common.configuration.IndexingConfigurations;
-import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,6 +27,7 @@ import java.io.IOException;
 
 import static org.apache.metron.test.bolt.BaseEnrichmentBoltTest.sampleSensorIndexingConfigPath;
 import static org.apache.metron.test.bolt.BaseEnrichmentBoltTest.sensorType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class IndexingWriterConfigurationTest {
   @Test
@@ -36,14 +35,14 @@ public class IndexingWriterConfigurationTest {
     IndexingWriterConfiguration config = new IndexingWriterConfiguration("hdfs",
            new IndexingConfigurations()
     );
-    Assert.assertEquals(1, config.getBatchSize("foo"));
+    assertEquals(1, config.getBatchSize("foo"));
   }
   @Test
   public void testDefaultBatchTimeout() {
     IndexingWriterConfiguration config = new IndexingWriterConfiguration("hdfs",
            new IndexingConfigurations()
     );
-    Assert.assertEquals(0, config.getBatchTimeout("foo"));
+    assertEquals(0, config.getBatchTimeout("foo"));
   }
   @Test
   public void testGetAllConfiguredTimeouts() throws FileNotFoundException, IOException {
@@ -51,20 +50,20 @@ public class IndexingWriterConfigurationTest {
     IndexingWriterConfiguration config = new IndexingWriterConfiguration("hdfs",
             new IndexingConfigurations()
     );
-    Assert.assertEquals(0, config.getAllConfiguredTimeouts().size());
+    assertEquals(0, config.getAllConfiguredTimeouts().size());
     //non-default
     IndexingConfigurations iconfigs = new IndexingConfigurations();
     iconfigs.updateSensorIndexingConfig(
             sensorType, new FileInputStream(sampleSensorIndexingConfigPath));
     config = new IndexingWriterConfiguration("elasticsearch", iconfigs);
-    Assert.assertEquals(1, config.getAllConfiguredTimeouts().size());
-    Assert.assertEquals(7, (long)config.getAllConfiguredTimeouts().get(0));
+    assertEquals(1, config.getAllConfiguredTimeouts().size());
+    assertEquals(7, (long)config.getAllConfiguredTimeouts().get(0));
   }
   @Test
   public void testDefaultIndex() {
     IndexingWriterConfiguration config = new IndexingWriterConfiguration("hdfs",
            new IndexingConfigurations()
     );
-    Assert.assertEquals("foo", config.getIndex("foo"));
+    assertEquals("foo", config.getIndex("foo"));
   }
 }

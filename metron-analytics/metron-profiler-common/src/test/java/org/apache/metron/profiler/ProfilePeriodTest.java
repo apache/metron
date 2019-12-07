@@ -23,8 +23,7 @@ package org.apache.metron.profiler;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.apache.metron.common.utils.SerDeUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,9 +32,7 @@ import java.io.ObjectOutputStream;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the ProfilePeriod class.
@@ -128,11 +125,11 @@ public class ProfilePeriodTest {
     });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testPeriodDurationOfZero() {
     long duration = 0;
     TimeUnit units = TimeUnit.HOURS;
-    ProfilePeriod.fromTimestamp(0, duration, units);
+    assertThrows(IllegalArgumentException.class, () -> ProfilePeriod.fromTimestamp(0, duration, units));
   }
 
   /**
@@ -140,7 +137,7 @@ public class ProfilePeriodTest {
    * occurs when the Profiler is running in Storm.
    */
   @Test
-  public void testKryoSerialization() throws Exception {
+  public void testKryoSerialization() {
     ProfilePeriod expected = ProfilePeriod.fromTimestamp(AUG2016, 1, TimeUnit.HOURS);
     Kryo kryo = new Kryo();
 
@@ -203,9 +200,11 @@ public class ProfilePeriodTest {
     assertEquals(expected, actual);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testWithNegativePeriodId() {
-    ProfilePeriod.fromPeriodId(-1, 1, TimeUnit.HOURS);
+    assertThrows(
+        IllegalArgumentException.class, () -> ProfilePeriod.fromPeriodId(-1, 1, TimeUnit.HOURS)
+    );
   }
 
   /**

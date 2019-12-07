@@ -18,21 +18,6 @@
 
 package org.apache.metron.pcap.mr;
 
-import static java.lang.Long.toUnsignedString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -51,11 +36,18 @@ import org.apache.metron.pcap.config.FixedPcapConfig;
 import org.apache.metron.pcap.config.PcapOptions;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.io.IOException;
+import java.util.*;
+
+import static java.lang.Long.toUnsignedString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.*;
 
 public class PcapJobTest {
 
@@ -83,7 +75,7 @@ public class PcapJobTest {
   private Map<String, String> fixedFields;
   private PcapJob<Map<String, String>> testJob;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     MockitoAnnotations.initMocks(this);
     basePath = new Path("basepath");
@@ -139,7 +131,7 @@ public class PcapJobTest {
         T fields,
         Configuration conf,
         FileSystem fs,
-        PcapFilterConfigurator<T> filterImpl) throws IOException {
+        PcapFilterConfigurator<T> filterImpl) {
       return mrJob;
     }
   }
@@ -160,7 +152,7 @@ public class PcapJobTest {
   }
 
   @Test
-  public void partition_gives_value_in_range() throws Exception {
+  public void partition_gives_value_in_range() {
     long start = 1473897600000000000L;
     long end = TimestampConverters.MILLISECONDS.toNanoseconds(1473995927455L);
     Configuration conf = new Configuration();
@@ -169,7 +161,7 @@ public class PcapJobTest {
     conf.set(PcapJob.WIDTH_CONF, "" + PcapJob.findWidth(start, end, 10));
     PcapJob.PcapPartitioner partitioner = new PcapJob.PcapPartitioner();
     partitioner.setConf(conf);
-    Assert.assertThat("Partition not in range",
+    assertThat("Partition not in range",
         partitioner.getPartition(new LongWritable(1473978789181189000L), new BytesWritable(), 10),
         equalTo(8));
   }
@@ -185,11 +177,11 @@ public class PcapJobTest {
     Statusable<Path> statusable = testJob.submit(finalizer, config);
     timer.updateJobStatus();
     Pageable<Path> results = statusable.get();
-    Assert.assertThat(results.getSize(), equalTo(3));
+    assertThat(results.getSize(), equalTo(3));
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
-    Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
-    Assert.assertThat(status.getJobId(), equalTo(jobIdVal));
+    assertThat(status.getState(), equalTo(State.SUCCEEDED));
+    assertThat(status.getPercentComplete(), equalTo(100.0));
+    assertThat(status.getJobId(), equalTo(jobIdVal));
   }
 
   @Test
@@ -201,9 +193,9 @@ public class PcapJobTest {
     timer.updateJobStatus();
     Pageable<Path> results = statusable.get();
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(State.FAILED));
-    Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
-    Assert.assertThat(results.getSize(), equalTo(0));
+    assertThat(status.getState(), equalTo(State.FAILED));
+    assertThat(status.getPercentComplete(), equalTo(100.0));
+    assertThat(results.getSize(), equalTo(0));
   }
 
   @Test
@@ -215,9 +207,9 @@ public class PcapJobTest {
     timer.updateJobStatus();
     Pageable<Path> results = statusable.get();
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(State.KILLED));
-    Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
-    Assert.assertThat(results.getSize(), equalTo(0));
+    assertThat(status.getState(), equalTo(State.KILLED));
+    assertThat(status.getPercentComplete(), equalTo(100.0));
+    assertThat(results.getSize(), equalTo(0));
   }
 
   @Test
@@ -228,8 +220,8 @@ public class PcapJobTest {
     Statusable<Path> statusable = testJob.submit(finalizer, config);
     timer.updateJobStatus();
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
-    Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
+    assertThat(status.getState(), equalTo(State.SUCCEEDED));
+    assertThat(status.getPercentComplete(), equalTo(100.0));
   }
 
   @Test
@@ -242,29 +234,29 @@ public class PcapJobTest {
     Statusable<Path> statusable = testJob.submit(finalizer, config);
     timer.updateJobStatus();
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(State.RUNNING));
-    Assert.assertThat(status.getDescription(), equalTo("map: 50.0%, reduce: 0.0%"));
-    Assert.assertThat(status.getPercentComplete(), equalTo(25.0 * 0.75));
+    assertThat(status.getState(), equalTo(State.RUNNING));
+    assertThat(status.getDescription(), equalTo("map: 50.0%, reduce: 0.0%"));
+    assertThat(status.getPercentComplete(), equalTo(25.0 * 0.75));
     when(mrJob.mapProgress()).thenReturn(1.0f);
     when(mrJob.reduceProgress()).thenReturn(0.5f);
     timer.updateJobStatus();
     status = statusable.getStatus();
-    Assert.assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 50.0%"));
-    Assert.assertThat(status.getPercentComplete(), equalTo(75.0 * 0.75));
+    assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 50.0%"));
+    assertThat(status.getPercentComplete(), equalTo(75.0 * 0.75));
     when(mrJob.mapProgress()).thenReturn(1.0f);
     when(mrJob.reduceProgress()).thenReturn(1.0f);
     timer.updateJobStatus();
     status = statusable.getStatus();
-    Assert.assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 100.0%"));
-    Assert.assertThat(status.getPercentComplete(), equalTo(75.0));
+    assertThat(status.getDescription(), equalTo("map: 100.0%, reduce: 100.0%"));
+    assertThat(status.getPercentComplete(), equalTo(75.0));
     when(mrJob.isComplete()).thenReturn(true);
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED);
     when(mrJob.mapProgress()).thenReturn(1.0f);
     when(mrJob.reduceProgress()).thenReturn(1.0f);
     timer.updateJobStatus();
     status = statusable.getStatus();
-    Assert.assertThat(status.getDescription(), equalTo("Job completed."));
-    Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
+    assertThat(status.getDescription(), equalTo("Job completed."));
+    assertThat(status.getPercentComplete(), equalTo(100.0));
   }
 
   @Test
@@ -278,7 +270,7 @@ public class PcapJobTest {
     when(mrStatus.getState()).thenReturn(org.apache.hadoop.mapreduce.JobStatus.State.KILLED);
     timer.updateJobStatus();
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(State.KILLED));
+    assertThat(status.getState(), equalTo(State.KILLED));
   }
 
   @Test
@@ -297,11 +289,11 @@ public class PcapJobTest {
     Statusable<Path> statusable = testJob.submit(finalizer, config);
     timer.updateJobStatus();
     Pageable<Path> results = statusable.get();
-    Assert.assertThat(results.getSize(), equalTo(3));
+    assertThat(results.getSize(), equalTo(3));
     JobStatus status = statusable.getStatus();
-    Assert.assertThat(status.getState(), equalTo(State.SUCCEEDED));
-    Assert.assertThat(status.getPercentComplete(), equalTo(100.0));
-    Assert.assertThat(status.getJobId(), equalTo(jobIdVal));
+    assertThat(status.getState(), equalTo(State.SUCCEEDED));
+    assertThat(status.getPercentComplete(), equalTo(100.0));
+    assertThat(status.getJobId(), equalTo(jobIdVal));
   }
 
   @Test

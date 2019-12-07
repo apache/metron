@@ -17,25 +17,23 @@
  */
 package org.apache.metron.solr.writer;
 
-import org.apache.metron.solr.writer.MetronSolrClient;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.params.CollectionParams;
 import org.apache.solr.common.util.NamedList;
-import org.hamcrest.Description;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
 
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class MetronSolrClientTest {
 
-  static class CollectionRequestMatcher extends ArgumentMatcher<QueryRequest> {
+  static class CollectionRequestMatcher implements ArgumentMatcher<QueryRequest> {
 
     private String name;
 
@@ -44,14 +42,13 @@ public class MetronSolrClientTest {
     }
 
     @Override
-    public boolean matches(Object o) {
-      QueryRequest queryRequest = (QueryRequest) o;
+    public boolean matches(QueryRequest queryRequest) {
       return name.equals(queryRequest.getParams().get("action"));
     }
 
     @Override
-    public void describeTo(Description description) {
-      description.appendText(name);
+    public String toString() {
+        return name;
     }
   }
 
@@ -66,18 +63,18 @@ public class MetronSolrClientTest {
       add("collections", new ArrayList<String>() {{
         add(collection);
       }});
-    }}).when(metronSolrClient).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.LIST.name())), (String) isNull());
+    }}).when(metronSolrClient).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.LIST.name())), isNull());
     metronSolrClient.createCollection(collection, 1, 1);
-    verify(metronSolrClient, times(1)).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.LIST.name())), (String) isNull());
-    verify(metronSolrClient, times(0)).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.CREATE.name())), (String) isNull());
+    verify(metronSolrClient, times(1)).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.LIST.name())), isNull());
+    verify(metronSolrClient, times(0)).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.CREATE.name())), isNull());
 
     metronSolrClient = Mockito.spy(new MetronSolrClient(zookeeperUrl));
     Mockito.doReturn(new NamedList<Object>() {{
       add("collections", new ArrayList<String>());
-    }}).when(metronSolrClient).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.LIST.name())), (String) isNull());
-    Mockito.doReturn(new NamedList<>()).when(metronSolrClient).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.CREATE.name())), (String) isNull());
+    }}).when(metronSolrClient).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.LIST.name())), isNull());
+    Mockito.doReturn(new NamedList<>()).when(metronSolrClient).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.CREATE.name())), isNull());
     metronSolrClient.createCollection(collection, 1, 1);
-    verify(metronSolrClient, times(1)).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.LIST.name())), (String) isNull());
-    verify(metronSolrClient, times(1)).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.CREATE.name())), (String) isNull());
+    verify(metronSolrClient, times(1)).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.LIST.name())), isNull());
+    verify(metronSolrClient, times(1)).request(argThat(new CollectionRequestMatcher(CollectionParams.CollectionAction.CREATE.name())), isNull());
   }
 }

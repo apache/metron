@@ -19,14 +19,14 @@
 package org.apache.metron.common.configuration;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class IndexingConfigurationsTest {
 
@@ -50,7 +50,7 @@ public class IndexingConfigurationsTest {
 
   private IndexingConfigurations configurations;
 
-  @Before
+  @BeforeEach
   public void setup() {
     configurations = new IndexingConfigurations();
   }

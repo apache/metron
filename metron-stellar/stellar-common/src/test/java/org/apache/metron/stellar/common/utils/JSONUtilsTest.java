@@ -18,15 +18,15 @@
 package org.apache.metron.stellar.common.utils;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JSONUtilsTest {
   private static File tmpDir;
@@ -41,7 +41,7 @@ public class JSONUtilsTest {
   private static String config;
   private static File configFile;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     tmpDir = UnitTestHelper.createTempDir(new File("target/jsonutilstest"));
     configFile = UnitTestHelper.write(new File(tmpDir, "config.json"), config);
@@ -54,7 +54,7 @@ public class JSONUtilsTest {
       put("b", "world");
     }};
     Map<String, Object> actual = JSONUtils.INSTANCE.load(configFile, JSONUtils.MAP_SUPPLIER);
-    Assert.assertThat("config not equal", actual, equalTo(expected));
+    assertThat("config not equal", actual, equalTo(expected));
   }
 
   @Test
@@ -65,15 +65,15 @@ public class JSONUtilsTest {
       put("b", "world");
     }};
     Map<String, Object> actual = JSONUtils.INSTANCE.load(configFile, Map.class);
-    Assert.assertThat("config not equal", actual, equalTo(expected));
+    assertThat("config not equal", actual, equalTo(expected));
   }
 
   @Test
   public void loads_file_with_custom_class() throws Exception {
     TestConfig expected = new TestConfig().setA("hello").setB("world");
     TestConfig actual = JSONUtils.INSTANCE.load(configFile, TestConfig.class);
-    Assert.assertThat("a not equal", actual.getA(), equalTo(expected.getA()));
-    Assert.assertThat("b not equal", actual.getB(), equalTo(expected.getB()));
+    assertThat("a not equal", actual.getA(), equalTo(expected.getA()));
+    assertThat("b not equal", actual.getB(), equalTo(expected.getB()));
   }
 
   public static class TestConfig {

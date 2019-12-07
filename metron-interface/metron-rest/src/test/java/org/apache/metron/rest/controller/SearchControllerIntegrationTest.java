@@ -17,6 +17,30 @@
  */
 package org.apache.metron.rest.controller;
 
+import com.google.common.collect.ImmutableMap;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.indexing.dao.InMemoryDao;
+import org.apache.metron.indexing.dao.SearchIntegrationTest;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.rest.service.AlertsUIService;
+import org.apache.metron.rest.service.SensorIndexingConfigService;
+import org.json.simple.parser.ParseException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
@@ -24,36 +48,9 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.google.common.collect.ImmutableMap;
-
-import java.util.HashMap;
-import java.util.Map;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.indexing.dao.InMemoryDao;
-import org.apache.metron.indexing.dao.SearchIntegrationTest;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.rest.service.AlertsUIService;
-import org.apache.metron.rest.service.GlobalConfigService;
-import org.apache.metron.rest.service.SensorIndexingConfigService;
-import org.json.simple.parser.ParseException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(TEST_PROFILE)
 public class SearchControllerIntegrationTest extends DaoControllerTest {
@@ -99,7 +96,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   private String user = "user";
   private String password = "password";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     ImmutableMap<String, String> testData = ImmutableMap.of(
@@ -111,7 +108,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
     loadFacetCounts();
   }
 
-  @After
+  @AfterEach
   public void cleanup() throws Exception {
     InMemoryDao.clear();
   }

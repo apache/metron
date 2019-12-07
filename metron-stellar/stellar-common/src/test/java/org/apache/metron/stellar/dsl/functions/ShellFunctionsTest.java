@@ -20,20 +20,14 @@ package org.apache.metron.stellar.dsl.functions;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.stellar.common.shell.VariableResult;
-import org.apache.metron.stellar.common.shell.cli.PausableInput;
 import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.Context.Capabilities;
-import org.jboss.aesh.console.Console;
-import org.jboss.aesh.console.settings.Settings;
-import org.jboss.aesh.console.settings.SettingsBuilder;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ShellFunctionsTest {
 
@@ -66,7 +60,7 @@ public class ShellFunctionsTest {
             .with(Context.Capabilities.SHELL_VARIABLES , () -> variables)
             .build();
     Object out = run("SHELL_LIST_VARS()", new HashMap<>(), context);
-    Assert.assertEquals(expectedListWithFoo, out);
+    assertEquals(expectedListWithFoo, out);
   }
 
 /**
@@ -85,7 +79,7 @@ public class ShellFunctionsTest {
             .with(Context.Capabilities.SHELL_VARIABLES, () -> new HashMap<>())
             .build();
     Object out = run("SHELL_LIST_VARS()", new HashMap<>(), context);
-    Assert.assertEquals(expectedEmptyList, out);
+    assertEquals(expectedEmptyList, out);
   }
 /**
 ╔════════╤═══════╗
@@ -104,7 +98,7 @@ public class ShellFunctionsTest {
     Map<String, Object> variables = ImmutableMap.of("map_field", ImmutableMap.of("field1", "val1", "field2", "val2"));
     Context context = Context.EMPTY_CONTEXT();
     Object out = run("SHELL_MAP2TABLE(map_field)", variables, context);
-    Assert.assertEquals(expectedMap2Table, out);
+    assertEquals(expectedMap2Table, out);
   }
  /**
 ╔═════╤═══════╗
@@ -123,7 +117,7 @@ public class ShellFunctionsTest {
     }};
     Context context = Context.EMPTY_CONTEXT();
     Object out = run("SHELL_MAP2TABLE(map_field)", variables, context);
-    Assert.assertEquals(expectedMap2TableNullInput, out);
+    assertEquals(expectedMap2TableNullInput, out);
   }
 
   @Test
@@ -131,18 +125,18 @@ public class ShellFunctionsTest {
     Map<String, Object> variables = new HashMap<>();
     Context context = Context.EMPTY_CONTEXT();
     Object out = run("SHELL_MAP2TABLE()", variables, context);
-    Assert.assertNull(out);
+    assertNull(out);
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testVars2Map() {
     Object out = run("SHELL_VARS2MAP('var1', 'var2')", new HashMap<>(), context);
-    Assert.assertTrue(out instanceof Map);
+    assertTrue(out instanceof Map);
     Map<String, String> mapOut = (Map<String, String>)out;
     //second one is null, so we don't want it there.
-    Assert.assertEquals(1, mapOut.size());
-    Assert.assertEquals("TO_UPPER('casey')", mapOut.get("var1"));
+    assertEquals(1, mapOut.size());
+    assertEquals("TO_UPPER('casey')", mapOut.get("var1"));
   }
 
   @Test
@@ -150,29 +144,29 @@ public class ShellFunctionsTest {
   public void testVars2MapEmpty() {
     Object out = run("SHELL_VARS2MAP()", new HashMap<>(), context);
     Map<String, String> mapOut = (Map<String, String>)out;
-    Assert.assertEquals(0, mapOut.size());
+    assertEquals(0, mapOut.size());
   }
 
   @Test
   public void testGetExpression() {
     Object out = run("SHELL_GET_EXPRESSION('var1')", new HashMap<>(), context);
-    Assert.assertTrue(out instanceof String);
+    assertTrue(out instanceof String);
     String expression = (String)out;
     //second one is null, so we don't want it there.
-    Assert.assertEquals("TO_UPPER('casey')", expression);
+    assertEquals("TO_UPPER('casey')", expression);
   }
 
   @Test
   public void testGetExpressionEmpty() {
     Object out = run("SHELL_GET_EXPRESSION()", new HashMap<>(), context);
-    Assert.assertNull(out );
+    assertNull(out );
   }
 
   @Test
-  public void testEdit() throws Exception {
+  public void testEdit() {
     System.getProperties().put("EDITOR", "/bin/cat");
     Object out = run("TO_UPPER(SHELL_EDIT(foo))", ImmutableMap.of("foo", "foo"), context);
-    Assert.assertEquals("FOO", out);
+    assertEquals("FOO", out);
   }
 
 }

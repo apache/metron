@@ -18,13 +18,13 @@
 package org.apache.metron.common.utils;
 
 import org.json.simple.JSONObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings({"unchecked"})
 public class HashUtilsTest {

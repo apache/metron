@@ -17,20 +17,20 @@
  */
 package org.apache.metron.writer.bolt;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
 
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
@@ -43,12 +43,12 @@ import org.apache.log4j.Level;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.common.system.FakeClock;
-import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
+import org.apache.metron.storm.common.message.MessageGetters;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.writer.BulkWriterComponent;
@@ -57,8 +57,8 @@ import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -84,7 +84,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
   private List<JSONObject> fullMessageList;
   private List<Tuple> tupleList;
 
-  @Before
+  @BeforeEach
   public void parseMessages() throws ParseException {
     JSONParser parser = new JSONParser();
     fullMessageList = new ArrayList<>();
@@ -165,10 +165,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
             new FileInputStream("../" + BaseEnrichmentBoltTest.sampleSensorIndexingConfigPath));
     {
       doThrow(new Exception()).when(bulkMessageWriter).init(eq(stormConf), any(WriterConfiguration.class));
-      try {
-        bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
-        fail("A runtime exception should be thrown when bulkMessageWriter.init throws an exception");
-      } catch(RuntimeException e) {}
+      assertThrows(RuntimeException.class, () -> bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector));
       reset(bulkMessageWriter);
     }
     {

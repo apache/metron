@@ -159,6 +159,12 @@
       <version>${global_log4j_core_version}</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-params</artifactId>
+          <version>${global_junit_jupiter_version}</version>
+          <scope>test</scope>
+      </dependency>
 
   </dependencies>
   <build>

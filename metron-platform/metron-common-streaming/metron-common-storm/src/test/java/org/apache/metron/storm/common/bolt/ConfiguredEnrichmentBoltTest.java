@@ -17,23 +17,27 @@
  */
 package org.apache.metron.storm.common.bolt;
 
-import org.apache.log4j.Level;
-import org.apache.metron.test.utils.UnitTestHelper;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.tuple.Tuple;
-import org.apache.curator.test.TestingServer;
-import org.apache.metron.TestConstants;
-import org.apache.metron.common.configuration.*;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.apache.curator.test.TestingServer;
+import org.apache.log4j.Level;
+import org.apache.metron.TestConstants;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.tuple.Tuple;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
 
@@ -64,7 +68,7 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setupConfiguration() throws Exception {
     TestingServer testZkServer = new TestingServer(true);
     this.zookeeperUrl = testZkServer.getConnectString();
@@ -86,11 +90,9 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
   public void test() throws Exception {
     EnrichmentConfigurations sampleConfigurations = new EnrichmentConfigurations();
     UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.FATAL);
-    try {
-      StandAloneConfiguredEnrichmentBolt configuredBolt = new StandAloneConfiguredEnrichmentBolt(null);
-      configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      Assert.fail("A valid zookeeper url must be supplied");
-    } catch (RuntimeException e){}
+    StandAloneConfiguredEnrichmentBolt configuredBoltNullZk = new StandAloneConfiguredEnrichmentBolt(null);
+    assertThrows(RuntimeException.class, () -> configuredBoltNullZk.prepare(new HashMap(), topologyContext, outputCollector),
+        "A valid zookeeper url must be supplied");
     UnitTestHelper.setLog4jLevel(ConfiguredBolt.class, Level.ERROR);
 
     configsUpdated = new HashSet<>();
@@ -103,20 +105,20 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     StandAloneConfiguredEnrichmentBolt configuredBolt = new StandAloneConfiguredEnrichmentBolt(zookeeperUrl);
     configuredBolt.prepare(new HashMap(), topologyContext, outputCollector);
     waitForConfigUpdate(enrichmentConfigurationTypes);
-    Assert.assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
+    assertEquals(sampleConfigurations, configuredBolt.getConfigurations());
 
     configsUpdated = new HashSet<>();
     Map<String, Object> sampleGlobalConfig = sampleConfigurations.getGlobalConfig();
     sampleGlobalConfig.put("newGlobalField", "newGlobalValue");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
-    Assert.assertEquals("Add global config field", sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig());
+    assertEquals(sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig(), "Add global config field");
 
     configsUpdated = new HashSet<>();
     sampleGlobalConfig.remove("newGlobalField");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
     waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
-    Assert.assertEquals("Remove global config field", sampleConfigurations, configuredBolt.getConfigurations());
+    assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Remove global config field");
 
     configsUpdated = new HashSet<>();
     String sensorType = "testSensorConfig";
@@ -134,7 +136,7 @@ public class ConfiguredEnrichmentBoltTest extends BaseConfiguredBoltTest {
     sampleConfigurations.updateSensorEnrichmentConfig(sensorType, testSensorConfig);
     ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, testSensorConfig, zookeeperUrl);
     waitForConfigUpdate(sensorType);
-    Assert.assertEquals("Add new sensor config", sampleConfigurations, configuredBolt.getConfigurations());
+    assertEquals(sampleConfigurations, configuredBolt.getConfigurations(), "Add new sensor config");
     configuredBolt.cleanup();
   }
 }

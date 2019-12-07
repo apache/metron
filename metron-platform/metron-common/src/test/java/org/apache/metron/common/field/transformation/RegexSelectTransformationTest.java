@@ -25,10 +25,12 @@ import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class RegexSelectTransformationTest {
   /**
@@ -62,18 +64,18 @@ public class RegexSelectTransformationTest {
 
   @Test
   public void smoketest() throws Exception{
-    Assert.assertEquals("option_1", transform("foo", routeSingleInSingleOut));
-    Assert.assertNull(transform("bar", routeSingleInSingleOut));
+    assertEquals("option_1", transform("foo", routeSingleInSingleOut));
+    assertNull(transform("bar", routeSingleInSingleOut));
   }
 
   @Test
   public void testListOfRegexes() throws Exception {
-    Assert.assertEquals("option_2", transform("I am mortron", routeSingleInSingleOut));
-    Assert.assertEquals("option_2", transform("metron is for smelling", routeSingleInSingleOut));
+    assertEquals("option_2", transform("I am mortron", routeSingleInSingleOut));
+    assertEquals("option_2", transform("metron is for smelling", routeSingleInSingleOut));
   }
   @Test
   public void testPrecedence() throws Exception {
-    Assert.assertEquals("option_1", transform("metron is for foorensic cybersecurity", routeSingleInSingleOut));
+    assertEquals("option_1", transform("metron is for foorensic cybersecurity", routeSingleInSingleOut));
   }
 
   /**
@@ -95,7 +97,7 @@ public class RegexSelectTransformationTest {
 
   @Test
   public void testMissingInput() throws Exception {
-    Assert.assertNull(transform("metron", routeMissingInput));
+    assertNull(transform("metron", routeMissingInput));
   }
 
   /**
@@ -117,7 +119,7 @@ public class RegexSelectTransformationTest {
 
   @Test
   public void testMissingOutput() throws Exception {
-    Assert.assertNull(transform("metron", routeMissingOutput));
+    assertNull(transform("metron", routeMissingOutput));
   }
 
   /**
@@ -140,8 +142,8 @@ public class RegexSelectTransformationTest {
 
   @Test
   public void testMultiOutput() throws Exception{
-    Assert.assertEquals("option_1", transform("foo", routeMultiOutput));
-    Assert.assertNull(transform("bar", routeMultiOutput));
+    assertEquals("option_1", transform("foo", routeMultiOutput));
+    assertNull(transform("bar", routeMultiOutput));
   }
 
   /**
@@ -164,6 +166,6 @@ public class RegexSelectTransformationTest {
 
   @Test
   public void testBadRegex() throws Exception{
-    Assert.assertEquals("option_2", transform("metron", routeBadRegex));
+    assertEquals("option_2", transform("metron", routeBadRegex));
   }
 }

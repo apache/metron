@@ -18,32 +18,6 @@
 
 package org.apache.metron.indexing.dao.metaalert.lucene;
 
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.GROUPS_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertStatus.ACTIVE;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertStatus.INACTIVE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.UUID;
-
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math.util.MathUtils;
@@ -51,12 +25,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.RetrieveLatestDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertConstants;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertRetrieveLatestDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.metaalert.MetaScores;
+import org.apache.metron.indexing.dao.metaalert.*;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
@@ -65,22 +34,28 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.*;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertStatus.ACTIVE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertStatus.INACTIVE;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 public class AbstractLuceneMetaAlertUpdateDaoTest {
-
-  @Mock
   IndexDao indexDao;
 
-  @Before
+  @BeforeEach
   public void setup() {
+    indexDao = mock(IndexDao.class);
     dao = new TestLuceneMetaAlertUpdateDao();
   }
 
@@ -133,7 +108,7 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
 
   TestMetaAlertRetrieveLatestDao retrieveLatestDao = new TestMetaAlertRetrieveLatestDao();
 
-  private class TestMetaAlertRetrieveLatestDao implements MetaAlertRetrieveLatestDao {
+  private static class TestMetaAlertRetrieveLatestDao implements MetaAlertRetrieveLatestDao {
 
     @Override
     public Document getLatest(String guid, String sensorType) {
@@ -242,12 +217,9 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
   @Multiline
   public static String namePatchRequest;
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testBatchUpdateThrowsException() {
-    dao.batchUpdate(null);
+    assertThrows(UnsupportedOperationException.class, () -> dao.batchUpdate(null));
   }
 
   @Test
@@ -406,14 +378,12 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
   }
 
   @Test
-  public void testBuildRemoveAlertsFromMetaAlertThrowsException() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.");
-
+  public void testBuildRemoveAlertsFromMetaAlertThrowsException() {
     List<Document> alerts = buildChildAlerts(1, METAALERT_GUID, null);
     Document metaDoc = buildMetaAlert(alerts);
 
-    dao.buildRemoveAlertsFromMetaAlert(metaDoc, alerts);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> dao.buildRemoveAlertsFromMetaAlert(metaDoc, alerts));
+    assertEquals("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.", e.getMessage());
   }
 
   @Test
@@ -593,9 +563,9 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
     assertTrue(actual);
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testRemoveAlertsFromMetaAlertInactive() throws IOException {
-    dao.removeAlertsFromMetaAlert(INACTIVE.getStatusString(), null);
+  @Test
+  public void testRemoveAlertsFromMetaAlertInactive() {
+    assertThrows(IllegalStateException.class, () -> dao.removeAlertsFromMetaAlert(INACTIVE.getStatusString(), null));
   }
 
   @Test
@@ -757,27 +727,22 @@ public class AbstractLuceneMetaAlertUpdateDaoTest {
   }
 
   @Test
-  public void addAlertsToMetaAlertShouldThrowExceptionOnMissingMetaAlert() throws Exception {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Unable to add alerts to meta alert.  Meta alert with guid some_guid cannot be found.");
-
-    dao.addAlertsToMetaAlert("some_guid", new ArrayList<>());
+  public void addAlertsToMetaAlertShouldThrowExceptionOnMissingMetaAlert() {
+    IOException e = assertThrows(IOException.class, () -> dao.addAlertsToMetaAlert("some_guid", new ArrayList<>()));
+    assertEquals("Unable to add alerts to meta alert.  Meta alert with guid some_guid cannot be found.", e.getMessage());
   }
 
   @Test
-  public void removeAlertsFromMetaAlertShouldThrowExceptionOnMissingMetaAlert() throws Exception {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Unable to remove alerts from meta alert.  Meta alert with guid some_guid cannot be found.");
-
-    dao.removeAlertsFromMetaAlert("some_guid", new ArrayList<>());
+  public void removeAlertsFromMetaAlertShouldThrowExceptionOnMissingMetaAlert() {
+    IOException e = assertThrows(IOException.class, () -> dao.removeAlertsFromMetaAlert("some_guid", new ArrayList<>()));
+    assertEquals("Unable to remove alerts from meta alert.  Meta alert with guid some_guid cannot be found.", e.getMessage());
   }
 
   @Test
-  public void updateMetaAlertStatusShouldThrowExceptionOnMissingMetaAlert() throws Exception {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Unable to update meta alert status.  Meta alert with guid some_guid cannot be found.");
+  public void updateMetaAlertStatusShouldThrowExceptionOnMissingMetaAlert() {
+    IOException e = assertThrows(IOException.class, () -> dao.updateMetaAlertStatus("some_guid", MetaAlertStatus.INACTIVE));
+    assertEquals("Unable to update meta alert status.  Meta alert with guid some_guid cannot be found.", e.getMessage());
 
-    dao.updateMetaAlertStatus("some_guid", MetaAlertStatus.INACTIVE);
   }
 
   // Utility method to manage comparing update maps

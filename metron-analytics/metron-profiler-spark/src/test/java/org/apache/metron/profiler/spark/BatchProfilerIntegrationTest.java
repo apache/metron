@@ -19,38 +19,6 @@
  */
 package org.apache.metron.profiler.spark;
 
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.profiler.client.stellar.FixedLookback;
-import org.apache.metron.profiler.client.stellar.GetProfile;
-import org.apache.metron.profiler.client.stellar.WindowLookback;
-import org.apache.metron.statistics.StellarStatisticsFunctions;
-import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
-import org.apache.metron.stellar.common.StellarStatefulExecutor;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.functions.ConversionFunctions;
-import org.apache.metron.stellar.dsl.functions.DataStructureFunctions;
-import org.apache.metron.stellar.dsl.functions.StringFunctions;
-import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.apache.spark.SparkConf;
-import org.apache.spark.SparkException;
-import org.apache.spark.sql.Encoders;
-import org.apache.spark.sql.SparkSession;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.invoke.MethodHandles;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import static org.apache.metron.common.configuration.profiler.ProfilerConfig.fromJSON;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
@@ -66,11 +34,45 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INP
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.JSON;
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.ORC;
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.PARQUET;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
+import java.lang.invoke.MethodHandles;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.profiler.client.stellar.FixedLookback;
+import org.apache.metron.profiler.client.stellar.GetProfile;
+import org.apache.metron.profiler.client.stellar.WindowLookback;
+import org.apache.metron.statistics.StellarStatisticsFunctions;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.functions.DataStructureFunctions;
+import org.apache.metron.stellar.dsl.functions.StringFunctions;
+import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.spark.SparkConf;
+import org.apache.spark.SparkException;
+import org.apache.spark.sql.Encoders;
+import org.apache.spark.sql.SparkSession;
+import org.junit.Rule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An integration test for the {@link BatchProfiler}.
  */
+@EnableRuleMigrationSupport
 public class BatchProfilerIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -82,7 +84,7 @@ public class BatchProfilerIntegrationTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
-  @BeforeClass
+  @BeforeAll
   public static void setupSpark() {
     SparkConf conf = new SparkConf()
             .setMaster("local")
@@ -94,14 +96,14 @@ public class BatchProfilerIntegrationTest {
             .getOrCreate();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownSpark() {
     if(spark != null) {
       spark.close();
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     readerProperties = new Properties();
     profilerProperties = new Properties();
@@ -334,14 +336,22 @@ public class BatchProfilerIntegrationTest {
   @Multiline
   private static String invalidProfileJson;
 
-  @Test(expected = SparkException.class)
-  public void testBatchProfilerWithInvalidProfile() throws Exception {
+  @Test
+  public void testBatchProfilerWithInvalidProfile() {
     profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), JSON.toString());
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
 
     // the batch profiler should error out, if there is a bug in *any* of the profiles
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(invalidProfileJson));
+    assertThrows(
+        SparkException.class,
+        () ->
+            profiler.run(
+                spark,
+                profilerProperties,
+                getGlobals(),
+                readerProperties,
+                fromJSON(invalidProfileJson)));
   }
 
   /**
@@ -390,7 +400,7 @@ public class BatchProfilerIntegrationTest {
      * the data sketch is then retrieved and used to calculate the expected counts as part of the test
      * case validation.
      */
-    
+
     // the 'window' looks up to 5 hours before the max timestamp, which in the test data is around July 7, 2018
     assign("maxTimestamp", "1530978728982L");
     assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");

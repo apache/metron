@@ -17,19 +17,6 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.common.collect.ImmutableMap;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
@@ -42,22 +29,24 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("ALL")
 public class GlobalConfigServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   CuratorFramework curatorFramework;
   GlobalConfigService globalConfigService;
   ConfigurationsCache cache;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     curatorFramework = mock(CuratorFramework.class);
     cache = mock(ConfigurationsCache.class);
     globalConfigService = new GlobalConfigServiceImpl(curatorFramework, cache);
@@ -76,25 +65,20 @@ public class GlobalConfigServiceImplTest {
 
   @Test
   public void deleteShouldProperlyCatchNonNoNodeExceptionAndThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-
     DeleteBuilder builder = mock(DeleteBuilder.class);
 
     when(curatorFramework.delete()).thenReturn(builder);
     when(builder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenThrow(Exception.class);
 
-    assertFalse(globalConfigService.delete());
+    assertThrows(RestException.class, () -> assertFalse(globalConfigService.delete()));
   }
 
   @Test
   public void deleteShouldReturnTrueWhenClientSuccessfullyCallsDelete() throws Exception {
     DeleteBuilder builder = mock(DeleteBuilder.class);
-
     when(curatorFramework.delete()).thenReturn(builder);
-    when(builder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenReturn(null);
 
     assertTrue(globalConfigService.delete());
-
     verify(curatorFramework).delete();
   }
 
@@ -119,27 +103,23 @@ public class GlobalConfigServiceImplTest {
 
   @Test
   public void getShouldWrapNonNoNodeExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
     GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
     when(getDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenThrow(Exception.class);
 
     when(curatorFramework.getData()).thenReturn(getDataBuilder);
 
-    globalConfigService.get();
+    assertThrows(RestException.class, () -> globalConfigService.get());
   }
 
   @Test
   public void saveShouldWrapExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
     when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes(
         StandardCharsets.UTF_8))).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
-    globalConfigService.save(new HashMap<>());
+    assertThrows(RestException.class, () -> globalConfigService.save(new HashMap<>()));
   }
 
   @Test

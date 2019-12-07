@@ -19,15 +19,6 @@
 package org.apache.metron.writers.integration;
 
 import com.google.common.collect.ImmutableList;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -37,21 +28,20 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.ReadinessState;
-import org.apache.metron.integration.UnableToStartException;
+import org.apache.metron.integration.*;
+import org.apache.metron.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationTest {
 
@@ -170,15 +160,15 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
         }});
       }};
       for (LookupKV<EnrichmentKey, EnrichmentValue> kv : result.getResult()) {
-        Assert.assertTrue(validIndicators.contains(kv.getKey().indicator));
-        Assert.assertEquals(kv.getValue().getMetadata().get("source.type"), "dummy");
-        Assert.assertNotNull(kv.getValue().getMetadata().get("timestamp"));
-        Assert.assertNotNull(kv.getValue().getMetadata().get("original_string"));
+        assertTrue(validIndicators.contains(kv.getKey().indicator));
+        assertEquals(kv.getValue().getMetadata().get("source.type"), "dummy");
+        assertNotNull(kv.getValue().getMetadata().get("timestamp"));
+        assertNotNull(kv.getValue().getMetadata().get("original_string"));
         Map<String, String> metadata = validMetadata.get(kv.getKey().indicator);
         for (Map.Entry<String, String> x : metadata.entrySet()) {
-          Assert.assertEquals(kv.getValue().getMetadata().get(x.getKey()), x.getValue());
+          assertEquals(kv.getValue().getMetadata().get(x.getKey()), x.getValue());
         }
-        Assert.assertEquals(metadata.size() + 4, kv.getValue().getMetadata().size());
+        assertEquals(metadata.size() + 4, kv.getValue().getMetadata().size());
       }
     }
     finally {

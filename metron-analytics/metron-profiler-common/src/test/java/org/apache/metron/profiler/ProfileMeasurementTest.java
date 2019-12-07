@@ -25,9 +25,8 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.common.utils.SerDeUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,9 +35,7 @@ import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ProfileMeasurementTest {
 
@@ -61,7 +58,7 @@ public class ProfileMeasurementTest {
   private ProfileConfig definition;
   private ProfileMeasurement measurement;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     definition = ProfileConfig.fromJSON(profile);
     measurement = new ProfileMeasurement()
@@ -78,7 +75,7 @@ public class ProfileMeasurementTest {
    * occurs when the Profiler is running in Storm.
    */
   @Test
-  public void testKryoSerialization() throws Exception {
+  public void testKryoSerialization() {
     assertNotNull(measurement);
     Kryo kryo = new Kryo();
 

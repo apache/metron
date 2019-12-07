@@ -19,19 +19,12 @@ package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import oi.thekraken.grok.api.Grok;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
-import org.apache.curator.framework.api.GetChildrenBuilder;
-import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -42,35 +35,26 @@ import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SuppressWarnings("ALL")
 public class SensorParserConfigServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   Environment environment;
   ObjectMapper objectMapper;
   CuratorFramework curatorFramework;
@@ -105,8 +89,8 @@ public class SensorParserConfigServiceImplTest {
 
   ConfigurationsCache cache;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
     Environment environment = mock(Environment.class);
@@ -132,25 +116,20 @@ public class SensorParserConfigServiceImplTest {
 
   @Test
   public void deleteShouldProperlyCatchNonNoNodeExceptionAndThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-
     DeleteBuilder builder = mock(DeleteBuilder.class);
 
     when(curatorFramework.delete()).thenReturn(builder);
     when(builder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro")).thenThrow(Exception.class);
 
-    assertFalse(sensorParserConfigService.delete("bro"));
+    assertThrows(RestException.class, () -> sensorParserConfigService.delete("bro"));
   }
 
   @Test
   public void deleteShouldReturnTrueWhenClientSuccessfullyCallsDelete() throws Exception {
     DeleteBuilder builder = mock(DeleteBuilder.class);
-
     when(curatorFramework.delete()).thenReturn(builder);
-    when(builder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro")).thenReturn(null);
 
     assertTrue(sensorParserConfigService.delete("bro"));
-
     verify(curatorFramework).delete();
   }
 
@@ -186,7 +165,7 @@ public class SensorParserConfigServiceImplTest {
     when(cache.get( eq(ParserConfigurations.class)))
             .thenReturn(configs);
 
-    assertEquals(new ArrayList() {{
+    assertEquals(new ArrayList<String>() {{
       add("bro");
       add("squid");
     }}, sensorParserConfigService.getAllTypes());
@@ -207,7 +186,7 @@ public class SensorParserConfigServiceImplTest {
     when(cache.get( eq(ParserConfigurations.class)))
             .thenReturn(configs);
 
-    assertEquals(new HashMap() {{
+    assertEquals(new HashMap<String, Object>() {{
       put("bro", getTestBroSensorParserConfig());
       put("squid", getTestSquidSensorParserConfig());
     }}, sensorParserConfigService.getAll());
@@ -215,8 +194,6 @@ public class SensorParserConfigServiceImplTest {
 
   @Test
   public void saveShouldWrapExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
     when(setDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro", broJson.getBytes(StandardCharsets.UTF_8))).thenThrow(Exception.class);
 
@@ -224,7 +201,7 @@ public class SensorParserConfigServiceImplTest {
 
     final SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("bro");
-    sensorParserConfigService.save("bro", sensorParserConfig);
+    assertThrows(RestException.class, () -> sensorParserConfigService.save("bro", sensorParserConfig));
   }
 
   @Test
@@ -242,7 +219,7 @@ public class SensorParserConfigServiceImplTest {
   }
 
   @Test
-  public void reloadAvailableParsersShouldReturnParserClasses() throws Exception {
+  public void reloadAvailableParsersShouldReturnParserClasses() {
     Map<String, String> availableParsers = sensorParserConfigService.reloadAvailableParsers();
     assertTrue(availableParsers.size() > 0);
     assertEquals("org.apache.metron.parsers.GrokParser", availableParsers.get("Grok"));
@@ -266,7 +243,7 @@ public class SensorParserConfigServiceImplTest {
     writer.write(grokStatement);
     writer.close();
 
-    assertEquals(new HashMap() {{
+    assertEquals(new HashMap<String, Object>() {{
       put("elapsed", 161);
       put("code", 200);
       put("ip_dst_addr", "199.27.79.73");
@@ -282,34 +259,28 @@ public class SensorParserConfigServiceImplTest {
   }
 
   @Test
-  public void missingSensorParserConfigShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-
+  public void missingSensorParserConfigShouldThrowRestException() {
     ParseMessageRequest parseMessageRequest = new ParseMessageRequest();
-    sensorParserConfigService.parseMessage(parseMessageRequest);
+    assertThrows(RestException.class, () -> sensorParserConfigService.parseMessage(parseMessageRequest));
   }
 
   @Test
-  public void missingParserClassShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-
+  public void missingParserClassShouldThrowRestException() {
     final SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("squid");
     ParseMessageRequest parseMessageRequest = new ParseMessageRequest();
     parseMessageRequest.setSensorParserConfig(sensorParserConfig);
-    sensorParserConfigService.parseMessage(parseMessageRequest);
+    assertThrows(RestException.class, () -> sensorParserConfigService.parseMessage(parseMessageRequest));
   }
 
   @Test
-  public void invalidParserClassShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-
+  public void invalidParserClassShouldThrowRestException() {
     final SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("squid");
     sensorParserConfig.setParserClassName("bad.class.package.BadClassName");
     ParseMessageRequest parseMessageRequest = new ParseMessageRequest();
     parseMessageRequest.setSensorParserConfig(sensorParserConfig);
-    sensorParserConfigService.parseMessage(parseMessageRequest);
+    assertThrows(RestException.class, () -> sensorParserConfigService.parseMessage(parseMessageRequest));
   }
 
   private SensorParserConfig getTestBroSensorParserConfig() {
@@ -323,7 +294,7 @@ public class SensorParserConfigServiceImplTest {
     SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("squid");
     sensorParserConfig.setParserClassName("org.apache.metron.parsers.GrokParser");
-    sensorParserConfig.setParserConfig(new HashMap() {{
+    sensorParserConfig.setParserConfig(new HashMap<String, Object>() {{
       put("grokPath", "/patterns/squid");
       put("patternLabel", "SQUID_DELIMITED");
       put("timestampField", "timestamp");

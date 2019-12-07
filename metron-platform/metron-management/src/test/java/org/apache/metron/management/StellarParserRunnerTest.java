@@ -21,21 +21,15 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.metron.common.Constants.ErrorFields.ERROR_HASH;
-import static org.apache.metron.common.Constants.ErrorFields.ERROR_TYPE;
-import static org.apache.metron.common.Constants.ErrorFields.EXCEPTION;
-import static org.apache.metron.common.Constants.ErrorFields.MESSAGE;
-import static org.apache.metron.common.Constants.ErrorFields.STACK;
-import static org.apache.metron.common.Constants.Fields.DST_ADDR;
-import static org.apache.metron.common.Constants.Fields.DST_PORT;
-import static org.apache.metron.common.Constants.Fields.SRC_ADDR;
-import static org.apache.metron.common.Constants.Fields.SRC_PORT;
+import static org.apache.metron.common.Constants.ErrorFields.*;
+import static org.apache.metron.common.Constants.Fields.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StellarParserRunnerTest {
 
@@ -95,15 +89,15 @@ public class StellarParserRunnerTest {
         List<JSONObject> messages = runner.parse(toParse);
 
         // expect 3 successfully parsed message
-        Assert.assertEquals(3, messages.size());
+        assertEquals(3, messages.size());
         for(JSONObject message: messages) {
-            Assert.assertEquals("bro", message.get(Constants.SENSOR_TYPE));
-            Assert.assertTrue(message.containsKey(Constants.GUID));
-            Assert.assertEquals("10.122.196.204", message.get(SRC_ADDR.getName()));
-            Assert.assertEquals(33976L, message.get(SRC_PORT.getName()));
-            Assert.assertEquals("144.254.71.184", message.get(DST_ADDR.getName()));
-            Assert.assertEquals(53L, message.get(DST_PORT.getName()));
-            Assert.assertEquals("dns", message.get("protocol"));
+            assertEquals("bro", message.get(Constants.SENSOR_TYPE));
+            assertTrue(message.containsKey(Constants.GUID));
+            assertEquals("10.122.196.204", message.get(SRC_ADDR.getName()));
+            assertEquals(33976L, message.get(SRC_PORT.getName()));
+            assertEquals("144.254.71.184", message.get(DST_ADDR.getName()));
+            assertEquals(53L, message.get(DST_PORT.getName()));
+            assertEquals("dns", message.get("protocol"));
         }
     }
 
@@ -120,14 +114,14 @@ public class StellarParserRunnerTest {
 
         // expect an error message to be returned
         JSONObject error = messages.get(0);
-        Assert.assertEquals(toParse.get(0), error.get("raw_message"));
-        Assert.assertEquals(Constants.ERROR_TYPE, error.get(Constants.SENSOR_TYPE));
-        Assert.assertEquals("parser_error", error.get(ERROR_TYPE.getName()));
-        Assert.assertTrue(error.containsKey(MESSAGE.getName()));
-        Assert.assertTrue(error.containsKey(EXCEPTION.getName()));
-        Assert.assertTrue(error.containsKey(STACK.getName()));
-        Assert.assertTrue(error.containsKey(ERROR_HASH.getName()));
-        Assert.assertTrue(error.containsKey(Constants.GUID));
+        assertEquals(toParse.get(0), error.get("raw_message"));
+        assertEquals(Constants.ERROR_TYPE, error.get(Constants.SENSOR_TYPE));
+        assertEquals("parser_error", error.get(ERROR_TYPE.getName()));
+        assertTrue(error.containsKey(MESSAGE.getName()));
+        assertTrue(error.containsKey(EXCEPTION.getName()));
+        assertTrue(error.containsKey(STACK.getName()));
+        assertTrue(error.containsKey(ERROR_HASH.getName()));
+        assertTrue(error.containsKey(Constants.GUID));
     }
 
     @Test
@@ -143,6 +137,6 @@ public class StellarParserRunnerTest {
         List<JSONObject> messages = runner.parse(toParse);
 
         // toString() should tally the number of successes and failures
-        Assert.assertEquals("Parser{1 successful, 1 error(s)}", runner.toString());
+        assertEquals("Parser{1 successful, 1 error(s)}", runner.toString());
     }
 }

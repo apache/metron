@@ -21,7 +21,7 @@ import java.io.IOException;
 import org.apache.metron.parsers.integration.EnvelopedParserIntegrationTest;
 import org.apache.metron.parsers.integration.validation.ParserDriver;
 import org.apache.metron.parsers.integration.validation.StormParserDriver;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class StormEnvelopedParserIntegrationTest extends EnvelopedParserIntegrationTest {
 

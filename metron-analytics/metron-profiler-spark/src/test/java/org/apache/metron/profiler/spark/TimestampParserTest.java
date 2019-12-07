@@ -19,22 +19,19 @@
 
 package org.apache.metron.profiler.spark;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TimestampParserTest {
 
   private TimestampParser parser;
 
-  @Before
+  @BeforeEach
   public void setup() {
     parser = new TimestampParser();
   }
@@ -59,9 +56,8 @@ public class TimestampParserTest {
     assertEquals(1322907330000L, millis.get().longValue());
   }
 
-  @Test(expected = DateTimeParseException.class)
+  @Test
   public void testInvalidFormat() {
-    parser.parse("1537502400000");
-    fail("Expected exception");
+    assertThrows(DateTimeParseException.class, () -> parser.parse("1537502400000"));
   }
 }

@@ -17,35 +17,29 @@
  */
 package org.apache.metron.parsers;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.metron.parsers.interfaces.MessageParserResult;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MultiLineWithErrorsGrokParserTest {
 
   /**
    * Test that if a byte[] with multiple lines of log is passed in
    * it will be parsed into the correct number of messages.
-   * @throws IOException if we can't read from disk
-   * @throws ParseException if we can't parse
    */
-  @Test(expected = RuntimeException.class)
+  @Test
   @SuppressWarnings("unchecked")
-  public void testLegacyInterfaceThrowsOneExceptionWithMultiline() throws IOException, ParseException {
+  public void testLegacyInterfaceThrowsOneExceptionWithMultiline() {
 
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("grokPath", getGrokPath());
@@ -63,7 +57,7 @@ public class MultiLineWithErrorsGrokParserTest {
     Map<String, String> testData = getTestData();
     for (Map.Entry<String, String> e : testData.entrySet()) {
       byte[] rawMessage = e.getKey().getBytes(StandardCharsets.UTF_8);
-      List<JSONObject> parsedList = grokParser.parse(rawMessage);
+      assertThrows(RuntimeException.class, () -> grokParser.parse(rawMessage));
     }
   }
 
@@ -71,12 +65,10 @@ public class MultiLineWithErrorsGrokParserTest {
    * Test that if a byte[] with multiple lines of log is passed in
    * it will be parsed into the correct number of messages using the
    * parseOptionalResult call.
-   * @throws IOException if we can't read from disk
-   * @throws ParseException if we can't parse
    */
   @Test
   @SuppressWarnings("unchecked")
-  public void testResultInterfaceReturnsErrorsAndMessagesWithMultiline() throws IOException, ParseException {
+  public void testResultInterfaceReturnsErrorsAndMessagesWithMultiline() {
 
     Map<String, Object> parserConfig = new HashMap<>();
     parserConfig.put("grokPath", getGrokPath());
@@ -95,13 +87,13 @@ public class MultiLineWithErrorsGrokParserTest {
     for (Map.Entry<String, String> e : testData.entrySet()) {
       byte[] rawMessage = e.getKey().getBytes(StandardCharsets.UTF_8);
       Optional<MessageParserResult<JSONObject>> resultOptional = grokParser.parseOptionalResult(rawMessage);
-      Assert.assertTrue(resultOptional.isPresent());
+      assertTrue(resultOptional.isPresent());
       Optional<Throwable> throwableOptional = resultOptional.get().getMasterThrowable();
       List<JSONObject>  resultList = resultOptional.get().getMessages();
       Map<Object,Throwable> errorMap = resultOptional.get().getMessageThrowables();
-      Assert.assertFalse(throwableOptional.isPresent());
-      Assert.assertEquals(3, errorMap.size());
-      Assert.assertEquals(10, resultList.size());
+      assertFalse(throwableOptional.isPresent());
+      assertEquals(3, errorMap.size());
+      assertEquals(10, resultList.size());
     }
   }
 

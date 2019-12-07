@@ -17,15 +17,16 @@
  */
 package org.apache.metron.parsers.integration.validation;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.ParserValidation;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
 import org.apache.metron.test.utils.ValidationUtils;
-import org.junit.Assert;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SampleDataValidation implements ParserValidation {
 
@@ -37,7 +38,7 @@ public class SampleDataValidation implements ParserValidation {
   @Override
   public void validate(String sensorType, List<byte[]> actualMessages) throws Exception {
     List<byte[]> expectedMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath("..", sensorType, TestDataType.PARSED));
-    Assert.assertEquals(expectedMessages.size(), actualMessages.size());
+    assertEquals(expectedMessages.size(), actualMessages.size());
     for (int i = 0; i < actualMessages.size(); i++) {
       String expectedMessage = new String(expectedMessages.get(i), StandardCharsets.UTF_8);
       String actualMessage = new String(actualMessages.get(i), StandardCharsets.UTF_8);

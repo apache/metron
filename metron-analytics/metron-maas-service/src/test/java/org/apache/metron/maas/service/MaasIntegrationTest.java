@@ -16,18 +16,9 @@
  * limitations under the License.
  */
 package org.apache.metron.maas.service;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.RetryPolicy;
@@ -35,6 +26,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.util.Shell;
@@ -45,20 +37,30 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.YarnComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.maas.discovery.ServiceDiscoverer;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.Model;
 import org.apache.metron.maas.config.ModelEndpoint;
+import org.apache.metron.maas.discovery.ServiceDiscoverer;
 import org.apache.metron.maas.queue.ZKQueue;
 import org.apache.metron.maas.submit.ModelSubmission;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.*;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MaasIntegrationTest {
   private static final Log LOG =
@@ -68,7 +70,7 @@ public class MaasIntegrationTest {
   private static YarnComponent yarnComponent;
   private static ZKServerComponent zkServerComponent;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBeforeClass() throws Exception {
     UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
     LOG.info("Starting up YARN cluster");
@@ -90,7 +92,7 @@ public class MaasIntegrationTest {
     client.start();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownAfterClass(){
     if(client != null){
       client.close();
@@ -98,17 +100,19 @@ public class MaasIntegrationTest {
     runner.stop();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     runner.reset();
   }
 
-  @Test(timeout=900000)
+  @Test
+  @Timeout(900000)
   public void testMaaSWithDomain() throws Exception {
     testDSShell(true);
   }
 
-  @Test(timeout=900000)
+  @Test
+  @Timeout(900000)
   public void testMaaSWithoutDomain() throws Exception {
     testDSShell(false);
   }
@@ -154,7 +158,7 @@ public class MaasIntegrationTest {
     LOG.info("Initializing DS Client");
     final Client client = new Client(new Configuration(conf));
     boolean initSuccess = client.init(args);
-    Assert.assertTrue(initSuccess);
+    assertTrue(initSuccess);
     LOG.info("Running DS Client");
     final AtomicBoolean result = new AtomicBoolean(false);
     Thread t = new Thread() {
@@ -198,7 +202,7 @@ public class MaasIntegrationTest {
         break;
       }
     }
-    Assert.assertTrue(errorMessage, verified);
+    assertTrue(verified, errorMessage);
     FileSystem fs = FileSystem.get(conf);
     try {
       new ModelSubmission().execute(FileSystem.get(conf)
@@ -234,13 +238,13 @@ public class MaasIntegrationTest {
           }
           Thread.sleep(2000);
         }
-        Assert.assertTrue(passed);
+        assertTrue(passed);
       }
 
       {
         List<ModelEndpoint> endpoints = discoverer.getEndpoints(new Model("dummy", "1.0"));
-        Assert.assertNotNull(endpoints);
-        Assert.assertEquals(1, endpoints.size());
+        assertNotNull(endpoints);
+        assertEquals(1, endpoints.size());
       }
       new ModelSubmission().execute(FileSystem.get(conf)
               , new String[]{
@@ -266,7 +270,7 @@ public class MaasIntegrationTest {
           }
           Thread.sleep(2000);
         }
-        Assert.assertTrue(passed);
+        assertTrue(passed);
       }
     }
     finally {
@@ -336,10 +340,8 @@ public class MaasIntegrationTest {
       return true;
     }
 
-    Assert.assertTrue("Unknown format for hostname " + appHostname,
-            appHostname.contains("/"));
-    Assert.assertTrue("Unknown format for hostname " + hostname,
-            hostname.contains("/"));
+    assertTrue(appHostname.contains("/"), "Unknown format for hostname " + appHostname);
+    assertTrue(hostname.contains("/"), "Unknown format for hostname " + hostname);
 
     String[] appHostnameParts = appHostname.split("/");
     String[] hostnameParts = hostname.split("/");
@@ -395,7 +397,7 @@ public class MaasIntegrationTest {
         break;
       }
     }
-    Assert.assertTrue(currentContainerLogFileIndex != -1);
+    assertTrue(currentContainerLogFileIndex != -1);
     File[] containerFiles =
             listOfFiles[currentContainerLogFileIndex].listFiles();
 
@@ -417,7 +419,7 @@ public class MaasIntegrationTest {
                 }
               } else if (output.getName().trim().equals("stdout")){
                 if (! Shell.WINDOWS) {
-                  Assert.assertEquals("The current is" + sCurrentLine,
+                  assertEquals("The current is" + sCurrentLine,
                           expectedContent.get(numOfline), sCurrentLine.trim());
                   numOfline++;
                 } else {
@@ -433,7 +435,7 @@ public class MaasIntegrationTest {
              */
             if (Shell.WINDOWS && !count
                     && output.getName().trim().equals("stdout")) {
-              Assert.assertTrue(stdOutContent.containsAll(expectedContent));
+              assertTrue(stdOutContent.containsAll(expectedContent));
             }
           } catch (IOException e) {
             e.printStackTrace();

@@ -17,25 +17,26 @@
  */
 package org.apache.metron.parsers.sourcefire;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class BasicSourcefireParserTest extends AbstractParserConfigTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     inputStrings = super
         .readTestDataFromFile("src/test/resources/logData/SourcefireParserTest.txt");
@@ -48,7 +49,7 @@ public class BasicSourcefireParserTest extends AbstractParserConfigTest {
     for (String inputString : inputStrings) {
       byte[] srcBytes = inputString.getBytes(StandardCharsets.UTF_8);
       JSONObject parsed = parser.parse(inputString.getBytes(StandardCharsets.UTF_8)).get(0);
-      Assert.assertNotNull(parsed);
+      assertNotNull(parsed);
 
       JSONParser parser = new JSONParser();
       Map json = (Map) parser.parse(parsed.toJSONString());
@@ -57,7 +58,7 @@ public class BasicSourcefireParserTest extends AbstractParserConfigTest {
         Entry entry = (Entry) o;
         String key = (String) entry.getKey();
         String value = json.get("original_string").toString();
-        Assert.assertNotNull(value);
+        assertNotNull(value);
       }
     }
   }

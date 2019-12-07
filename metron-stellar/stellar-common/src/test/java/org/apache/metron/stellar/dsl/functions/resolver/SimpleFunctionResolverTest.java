@@ -19,16 +19,14 @@
 package org.apache.metron.stellar.dsl.functions.resolver;
 
 import com.google.common.collect.Lists;
-import org.apache.metron.stellar.dsl.BaseStellarFunction;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.metron.stellar.dsl.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the SimpleFunctionResolver class.
@@ -37,7 +35,7 @@ public class SimpleFunctionResolverTest {
 
   private SimpleFunctionResolver resolver;
 
-  @Before
+  @BeforeEach
   public void setup() {
     resolver = new SimpleFunctionResolver();
   }
@@ -46,8 +44,8 @@ public class SimpleFunctionResolverTest {
   public void testFunctionResolution() {
     resolver.withClass(IAmAFunction.class);
     List<String> functions = Lists.newArrayList(resolver.getFunctions());
-    Assert.assertEquals(1, functions.size());
-    Assert.assertTrue(functions.contains("namespace_function"));
+    assertEquals(1, functions.size());
+    assertTrue(functions.contains("namespace_function"));
   }
 
   /**
@@ -58,7 +56,7 @@ public class SimpleFunctionResolverTest {
     resolver.withClass(IAmAFunction.class);
     final String functionName = "namespace_function";
     StellarFunction fn = resolver.apply(functionName);
-    Assert.assertTrue(fn instanceof IAmAFunction);
+    assertTrue(fn instanceof IAmAFunction);
   }
 
   /**
@@ -68,7 +66,7 @@ public class SimpleFunctionResolverTest {
   public void testFunctionResolutionWithMissingAnnotation() {
     resolver.withClass(MissingAnnotation.class);
     List<String> functions = Lists.newArrayList(resolver.getFunctions());
-    Assert.assertEquals(0, functions.size());
+    assertEquals(0, functions.size());
   }
 
   /**
@@ -79,7 +77,7 @@ public class SimpleFunctionResolverTest {
     resolver.withClass(IAmAFunction.class);
     resolver.withClass(IAmAFunction.class);
     List<String> functions = Lists.newArrayList(resolver.getFunctions());
-    Assert.assertEquals(1, functions.size());
+    assertEquals(1, functions.size());
   }
 
   /**

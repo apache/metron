@@ -17,8 +17,7 @@
  */
 package org.apache.metron.rest.config;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -26,9 +25,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_ADMIN;
-import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_PREFIX;
-import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_USER;
+import static org.apache.metron.rest.MetronRestConstants.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MetronAuthoritiesMapperTest {
 
@@ -47,8 +45,8 @@ public class MetronAuthoritiesMapperTest {
 
     // should map "ACME_METRON_USER" to "ROLE_USER"
     Collection<? extends GrantedAuthority> actuals = mapper.mapAuthorities(input);
-    Assert.assertEquals(1, actuals.size());
-    Assert.assertEquals(SECURITY_ROLE_PREFIX + SECURITY_ROLE_USER, actuals.iterator().next().getAuthority());
+    assertEquals(1, actuals.size());
+    assertEquals(SECURITY_ROLE_PREFIX + SECURITY_ROLE_USER, actuals.iterator().next().getAuthority());
   }
 
   @Test
@@ -63,8 +61,8 @@ public class MetronAuthoritiesMapperTest {
 
     // should map "ACME_ADMIN" to "ROLE_ADMIN"
     Collection<? extends GrantedAuthority> actuals = mapper.mapAuthorities(input);
-    Assert.assertEquals(1, actuals.size());
-    Assert.assertEquals(SECURITY_ROLE_PREFIX + SECURITY_ROLE_ADMIN, actuals.iterator().next().getAuthority());
+    assertEquals(1, actuals.size());
+    assertEquals(SECURITY_ROLE_PREFIX + SECURITY_ROLE_ADMIN, actuals.iterator().next().getAuthority());
   }
 
   @Test
@@ -79,7 +77,7 @@ public class MetronAuthoritiesMapperTest {
     input.add(new SimpleGrantedAuthority("ROLE_" + "YET_ANOTHER_ROLE"));
 
     Collection<? extends GrantedAuthority> actuals = mapper.mapAuthorities(input);
-    Assert.assertEquals(0, actuals.size());
+    assertEquals(0, actuals.size());
   }
 
   @Test
@@ -95,7 +93,7 @@ public class MetronAuthoritiesMapperTest {
 
     // should map "ACME_ADMIN" to "ROLE_ADMIN"
     Collection<? extends GrantedAuthority> actuals = mapper.mapAuthorities(input);
-    Assert.assertEquals(1, actuals.size());
-    Assert.assertEquals(SECURITY_ROLE_PREFIX + SECURITY_ROLE_ADMIN, actuals.iterator().next().getAuthority());
+    assertEquals(1, actuals.size());
+    assertEquals(SECURITY_ROLE_PREFIX + SECURITY_ROLE_ADMIN, actuals.iterator().next().getAuthority());
   }
 }

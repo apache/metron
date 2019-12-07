@@ -26,7 +26,7 @@ import org.apache.metron.indexing.dao.UpdateDaoTest;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * This class returns the ElasticsearchUpdateDao implementation to be used in UpdateDaoTest.  UpdateDaoTest contains a
@@ -38,7 +38,7 @@ public class ElasticsearchUpdateDaoTest extends UpdateDaoTest {
   private ElasticsearchRetrieveLatestDao retrieveLatestDao;
   private ElasticsearchUpdateDao updateDao;
 
-  @Before
+  @BeforeEach
   public void setup() {
     accessConfig = new AccessConfig();
     retrieveLatestDao = mock(ElasticsearchRetrieveLatestDao.class);

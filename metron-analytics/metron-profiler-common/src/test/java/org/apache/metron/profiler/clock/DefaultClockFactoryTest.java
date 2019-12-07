@@ -19,13 +19,13 @@
  */
 package org.apache.metron.profiler.clock;
 
-import static org.junit.Assert.assertTrue;
-
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the DefaultClockFactory.
@@ -37,7 +37,7 @@ public class DefaultClockFactoryTest {
    */
   private DefaultClockFactory clockFactory;
 
-  @Before
+  @BeforeEach
   public void setup() {
     clockFactory = new DefaultClockFactory();
   }

@@ -35,8 +35,8 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.windowing.TupleWindow;
 import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
@@ -47,14 +47,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the ProfileBuilderBolt.
@@ -69,7 +65,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   private ManualFlushSignal flushSignal;
   private ProfileMeasurement measurement;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     message1 = new MessageBuilder()

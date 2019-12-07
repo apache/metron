@@ -20,14 +20,16 @@
 package org.apache.metron.profiler.client.window;
 
 import org.apache.commons.lang3.Range;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * On any test case where we explicitly include or exclude days of the week, in 24hr periods,
@@ -48,9 +50,9 @@ public class WindowProcessorTest {
       Window w = WindowProcessor.process(text);
       Date now = new Date();
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(1, intervals.size());
-      Assert.assertEquals(now.getTime(), (long)intervals.get(0).getMaximum());
-      Assert.assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(1), (long)intervals.get(0).getMinimum());
+      assertEquals(1, intervals.size());
+      assertEquals(now.getTime(), (long)intervals.get(0).getMaximum());
+      assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(1), (long)intervals.get(0).getMinimum());
     }
   }
 
@@ -69,9 +71,9 @@ public class WindowProcessorTest {
      */
       Date now = new Date();
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(1, intervals.size());
-      assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(2), intervals.get(0).getMinimum());
-      assertEquals(now.getTime() - TimeUnit.MINUTES.toMillis(30), intervals.get(0).getMaximum());
+      assertEquals(1, intervals.size());
+      assertTimeEquals(now.getTime() - TimeUnit.HOURS.toMillis(2), intervals.get(0).getMinimum());
+      assertTimeEquals(now.getTime() - TimeUnit.MINUTES.toMillis(30), intervals.get(0).getMaximum());
     }
   }
 
@@ -93,7 +95,7 @@ public class WindowProcessorTest {
      */
       Date now = new Date();
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(2, intervals.size());
+      assertEquals(2, intervals.size());
       assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(2), intervals.get(0).getMinimum());
       assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(2) + TimeUnit.MINUTES.toMillis(30), intervals.get(0).getMaximum());
       assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(1), intervals.get(1).getMinimum());
@@ -114,16 +116,16 @@ public class WindowProcessorTest {
      */
     Date now = new Date();
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
-    Assert.assertEquals(3, intervals.size());
+    assertEquals(3, intervals.size());
 
-    assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(3), intervals.get(0).getMinimum());
-    assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(3) + TimeUnit.MINUTES.toMillis(30), intervals.get(0).getMaximum());
+    assertTimeEquals(now.getTime() - TimeUnit.HOURS.toMillis(3), intervals.get(0).getMinimum());
+    assertTimeEquals(now.getTime() - TimeUnit.HOURS.toMillis(3) + TimeUnit.MINUTES.toMillis(30), intervals.get(0).getMaximum());
 
-    assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(2), intervals.get(1).getMinimum());
-    assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(2) + TimeUnit.MINUTES.toMillis(30), intervals.get(1).getMaximum());
+    assertTimeEquals(now.getTime() - TimeUnit.HOURS.toMillis(2), intervals.get(1).getMinimum());
+    assertTimeEquals(now.getTime() - TimeUnit.HOURS.toMillis(2) + TimeUnit.MINUTES.toMillis(30), intervals.get(1).getMaximum());
 
-    assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(1), intervals.get(2).getMinimum());
-    assertEquals(now.getTime() - TimeUnit.HOURS.toMillis(1) + TimeUnit.MINUTES.toMillis(30), intervals.get(2).getMaximum());
+    assertTimeEquals(now.getTime() - TimeUnit.HOURS.toMillis(1), intervals.get(2).getMinimum());
+    assertTimeEquals(now.getTime() - TimeUnit.HOURS.toMillis(1) + TimeUnit.MINUTES.toMillis(30), intervals.get(2).getMaximum());
   }
 
   @Test
@@ -138,7 +140,7 @@ public class WindowProcessorTest {
       Date now = new Date();
       now.setHours(6); //avoid DST impacts if near Midnight
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(2, intervals.size());
+      assertEquals(2, intervals.size());
     }
     {
       Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago including this day of the week");
@@ -150,7 +152,7 @@ public class WindowProcessorTest {
       Date now = new Date();
       now.setHours(6); //avoid DST impacts if near Midnight
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(2, intervals.size());
+      assertEquals(2, intervals.size());
     }
     {
       Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago");
@@ -161,29 +163,29 @@ public class WindowProcessorTest {
      */
       Date now = new Date();
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(14, intervals.size());
+      assertEquals(14, intervals.size());
     }
   }
 
 
   @Test
-  public void testRepeatWithConflictingExclusionInclusion() throws ParseException {
+  public void testRepeatWithConflictingExclusionInclusion() {
     Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago including saturdays excluding weekends");
 
     Date now = new Date();
     now.setHours(6); //avoid DST impacts if near Midnight
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
-    Assert.assertEquals(0, intervals.size());
+    assertEquals(0, intervals.size());
   }
 
   @Test
-  public void testRepeatWithWeekendExclusion() throws ParseException {
+  public void testRepeatWithWeekendExclusion() {
     Window w = WindowProcessor.process("30 minute window every 24 hours from 7 days ago excluding weekends");
 
     Date now = new Date();
     now.setHours(6); //avoid DST impacts if near Midnight
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
-    Assert.assertEquals(5, intervals.size());
+    assertEquals(5, intervals.size());
   }
 
   @Test
@@ -193,7 +195,7 @@ public class WindowProcessorTest {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
     Date now = sdf.parse("2017/12/26 12:00");
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
-    Assert.assertEquals(1, intervals.size());
+    assertEquals(1, intervals.size());
   }
 
   @Test
@@ -203,7 +205,7 @@ public class WindowProcessorTest {
 
       Date now = new Date();
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(56, intervals.size());
+      assertEquals(56, intervals.size());
     }
     {
       Window w = WindowProcessor.process("1 hour window every 24 hours starting from 56 days ago including this day of the week");
@@ -211,7 +213,7 @@ public class WindowProcessorTest {
       Date now = new Date();
       now.setHours(6); //avoid DST impacts if near Midnight
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(8, intervals.size());
+      assertEquals(8, intervals.size());
     }
   }
 
@@ -222,7 +224,7 @@ public class WindowProcessorTest {
     Date now = new Date();
     now.setHours(6); //avoid DST impacts if near Midnight
     List<Range<Long>> intervals = w.toIntervals(now.getTime());
-    Assert.assertEquals(2, intervals.size());
+    assertEquals(2, intervals.size());
   }
 
   @Test
@@ -232,21 +234,21 @@ public class WindowProcessorTest {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(13, intervals.size());
+      assertEquals(13, intervals.size());
     }
     {
       Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding holidays:us:nyc");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(13, intervals.size());
+      assertEquals(13, intervals.size());
     }
     {
       Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding holidays:us");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/08/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(14, intervals.size());
+      assertEquals(14, intervals.size());
     }
   }
 
@@ -262,66 +264,80 @@ public class WindowProcessorTest {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(1, intervals.size());
+      assertEquals(1, intervals.size());
       Date includedDate = new Date(intervals.get(0).getMinimum());
       SimpleDateFormat equalityFormat = new SimpleDateFormat("yyyyMMdd");
-      Assert.assertEquals("20171225", equalityFormat.format(includedDate));
+      assertEquals("20171225", equalityFormat.format(includedDate));
     }
     {
       Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding date:2017/12/25");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(13, intervals.size());
+      assertEquals(13, intervals.size());
     }
     {
       Window w = WindowProcessor.process("30 minute window every 24 hours from 14 days ago including date:2017/12/25, date:2017/12/24");
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
       Date now = sdf.parse("2017/12/26 12:00");
       List<Range<Long>> intervals = w.toIntervals(now.getTime());
-      Assert.assertEquals(2, intervals.size());
+      assertEquals(2, intervals.size());
       {
         Date includedDate = new Date(intervals.get(0).getMinimum());
         SimpleDateFormat equalityFormat = new SimpleDateFormat("yyyyMMdd");
-        Assert.assertEquals("20171224", equalityFormat.format(includedDate));
+        assertEquals("20171224", equalityFormat.format(includedDate));
       }
       {
         Date includedDate = new Date(intervals.get(1).getMinimum());
         SimpleDateFormat equalityFormat = new SimpleDateFormat("yyyyMMdd");
-        Assert.assertEquals("20171225", equalityFormat.format(includedDate));
+        assertEquals("20171225", equalityFormat.format(includedDate));
       }
     }
   }
 
-  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
-  public void testWithInvalidDaySpecifier() throws ParseException {
-    WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding hoolidays:us");
+  @Test
+  public void testWithInvalidDaySpecifier() {
+    assertThrows(
+        org.apache.metron.stellar.dsl.ParseException.class,
+        () ->
+            WindowProcessor.process(
+                "30 minute window every 24 hours from 14 days ago excluding hoolidays:us"));
   }
 
-  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
-  public void testWithInvalidTimeUnit() throws ParseException {
-    WindowProcessor.process("30 minute window every 24 months from 14 days ago");
+  @Test
+  public void testWithInvalidTimeUnit() {
+    assertThrows(
+        org.apache.metron.stellar.dsl.ParseException.class,
+        () -> WindowProcessor.process("30 minute window every 24 months from 14 days ago"));
   }
 
-  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
-  public void testWithInvalidWindowUnit() throws ParseException {
-    WindowProcessor.process("30 minuete window every 24 hours from 14 days ago");
+  @Test
+  public void testWithInvalidWindowUnit() {
+    assertThrows(
+        org.apache.metron.stellar.dsl.ParseException.class,
+        () -> WindowProcessor.process("30 minuete window every 24 hours from 14 days ago"));
   }
 
-  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
-  public void testWithInvalidTimeNumber() throws ParseException {
-    WindowProcessor.process("30p minute window every 24 hours from 14 days ago");
+  @Test
+  public void testWithInvalidTimeNumber() {
+    assertThrows(
+        org.apache.metron.stellar.dsl.ParseException.class,
+        () -> WindowProcessor.process("30p minute window every 24 hours from 14 days ago"));
   }
 
-  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
-  public void testInvalidDaySpecifier() throws ParseException {
-    WindowProcessor.process("30 minute window every 14 hours from 14 days ago including date");
+  @Test
+  public void testInvalidDaySpecifier() {
+    assertThrows(
+        org.apache.metron.stellar.dsl.ParseException.class,
+        () ->
+            WindowProcessor.process(
+                "30 minute window every 14 hours from 14 days ago including date"));
   }
 
-  private static void assertEquals(long expected, long actual) {
+  private static void assertTimeEquals(long expected, long actual) {
     long diff = expected - actual;
     long diffInMinutes = TimeUnit.MILLISECONDS.toMinutes(diff);
     String message =  expected + " - " + actual + " = " + diffInMinutes + " minutes off.";
-    Assert.assertEquals(message, expected, actual);
+    assertEquals(expected, actual, message);
   }
 }

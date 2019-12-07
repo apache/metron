@@ -19,22 +19,14 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PatchUtilsTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Test
   public void addOperationShouldAddValue() {
     List<Map<String, Object>> patches = new ArrayList<>();
@@ -48,7 +40,7 @@ public class PatchUtilsTest {
       put("path", "value");
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<>()));
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<>()));
   }
 
   @Test
@@ -64,7 +56,7 @@ public class PatchUtilsTest {
       put("remove", new HashMap<>());
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", "value");
       put("remove", new HashMap<String, Object>() {{
         put("path", "removeValue");
@@ -86,7 +78,7 @@ public class PatchUtilsTest {
       put("path", "value");
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("from", "value");
     }}));
   }
@@ -107,7 +99,7 @@ public class PatchUtilsTest {
       }});
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("nested", new HashMap<String, Object>() {{
         put("from", "value");
       }});
@@ -127,7 +119,7 @@ public class PatchUtilsTest {
       put("path", "value");
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("from", "value");
     }}));
   }
@@ -145,7 +137,7 @@ public class PatchUtilsTest {
       put("path", "value");
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", "value");
     }}));
   }
@@ -163,7 +155,7 @@ public class PatchUtilsTest {
       put("path", 100);
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", 100);
     }}));
   }
@@ -181,7 +173,7 @@ public class PatchUtilsTest {
       put("path", Arrays.asList(1, 2, 3));
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", Arrays.asList(1, 2, 3));
     }}));
   }
@@ -203,7 +195,7 @@ public class PatchUtilsTest {
       }});
     }};
 
-    Assert.assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+    assertEquals(expected, PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
       put("path", new HashMap<String, Object>() {{
         put("key", "value");
       }});
@@ -212,9 +204,6 @@ public class PatchUtilsTest {
 
   @Test
   public void testOperationShouldThrowExceptionOnFailedCompare() {
-    exception.expect(PatchException.class);
-    exception.expectMessage("TEST operation failed: supplied value [value1] != target value [value2]");
-
     List<Map<String, Object>> patches = new ArrayList<>();
     patches.add(new HashMap<String, Object>() {{
       put(PatchUtils.OP, PatchOperation.TEST.name());
@@ -222,42 +211,41 @@ public class PatchUtilsTest {
       put(PatchUtils.VALUE, "value1");
     }});
 
-    PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
-      put("path", "value2");
-    }});
+    PatchException e = assertThrows(PatchException.class,
+            () -> PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+              put("path", "value2"); }})
+    );
+    assertEquals("TEST operation failed: supplied value [value1] != target value [value2]", e.getMessage());
   }
 
   @Test
   public void shouldThrowExceptionOnInvalidPath() {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Invalid path: /missing/path");
-
     List<Map<String, Object>> patches = new ArrayList<>();
     patches.add(new HashMap<String, Object>() {{
       put(PatchUtils.OP, PatchOperation.REMOVE.name());
       put(PatchUtils.PATH, "/missing/path");
     }});
 
-    PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
-      put("path", "value");
-    }});
-
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+            () -> PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+              put("path", "value"); }})
+    );
+    assertEquals("Invalid path: /missing/path", e.getMessage());
   }
 
   @Test
   public void shouldThrowExceptionOnInvalidOperation() {
-    exception.expect(UnsupportedOperationException.class);
-    exception.expectMessage("The invalid operation is not supported");
-
     List<Map<String, Object>> patches = new ArrayList<>();
     patches.add(new HashMap<String, Object>() {{
       put(PatchUtils.OP, "invalid");
       put(PatchUtils.PATH, "/path");
     }});
 
-    PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
-      put("path", "value");
-    }});
+    UnsupportedOperationException e = assertThrows(UnsupportedOperationException.class,
+            () -> PatchUtils.INSTANCE.applyPatch(patches, new HashMap<String, Object>() {{
+              put("path", "value"); }})
+    );
+    assertEquals("The invalid operation is not supported", e.getMessage());
 
   }
 }
