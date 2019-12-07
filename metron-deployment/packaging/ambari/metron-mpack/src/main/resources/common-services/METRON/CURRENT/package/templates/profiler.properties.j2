@@ -23,7 +23,12 @@
 topology.worker.childopts={{profiler_topology_worker_childopts}}
 topology.auto-credentials={{topology_auto_credentials}}
 profiler.workers={{profiler_topology_workers}}
-profiler.executors={{profiler_acker_executors}}
+profiler.acker.executors={{profiler_acker_executors}}
+profiler.spout.parallelism={{profiler_spout_parallelism}}
+profiler.splitter.parallelism={{profiler_splitter_parallelism}}
+profiler.builder.parallelism={{profiler_builder_parallelism}}
+profiler.hbase.writer.parallelism={{profiler_hbase_writer_parallelism}}
+profiler.kafka.writer.parallelism={{profiler_kafka_writer_parallelism}}
 topology.message.timeout.secs={{profiler_topology_message_timeout_secs}}
 topology.max.spout.pending={{profiler_topology_max_spout_pending}}
 topology.fall.back.on.java.serialization=true

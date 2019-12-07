@@ -22,6 +22,9 @@ configuration which are non-backwards compatible.
 
 ## 0.7.2 to 0.7.3
 
+### [METRON-2239: Metron Automated backup and restore](https://issues.apache.org/jira/browse/METRON-2239)
+An upgrade helper script has been added to `$METRON_HOME/bin/upgrade_helper.sh`. This script will assist in backing up and restoring Ambari configuration and Metron configuration stored in Zookeeper. You can see more details at [Metron Upgrade Helper](metron-platform/metron-common#metron-upgrade-helper) and [Upgrade Steps](Upgrade_steps.md).
+
 ### [METRON-2321: Remove Legacy AWS Deployment Path](https://issues.apache.org/jira/browse/METRON-2321)
 The automated Amazon AWS deployment mechanism (previously located at `metron-deployment/amazon-ec2`) has been removed.  It is not the preferred installation path for deploying to AWS. Using Ambari and the Metron MPack is the preferred installation path. To deploy Metron to AWS, provision EC2 nodes, install Ambari, install the Metron MPack, then use Ambari to deploy Metron.
 

@@ -227,16 +227,6 @@ export class AlertDetailsComponent implements OnInit {
     });
   }
 
-  patchAlert(patch: Patch, onPatchError) {
-    let patchRequest = new PatchRequest();
-    patchRequest.guid = this.alertSource.guid;
-    patchRequest.index = this.alertIndex;
-    patchRequest.patch = [patch];
-    patchRequest.sensorType = this.alertSourceType;
-
-    this.updateService.patch(patchRequest).subscribe(() => {}, onPatchError);
-  }
-
   onDeleteComment(index: number) {
     let commentText =  'Do you wish to delete the comment ';
     if (this.alertCommentsWrapper[index].alertComment.comment.length > 25 ) {
