@@ -33,9 +33,11 @@ LICENSE_HEADER="/**
  * limitations under the License.
  */
  "
+
+shopt -s nullglob
 for file in ./dist/*.{js,css}
 do
-    if !(grep -Fxq "$LICENSE_HEADER" $file)
+    if ! (grep -Fxq "$LICENSE_HEADER" $file)
     then
         echo "$LICENSE_HEADER$(cat $file)" > $file
     fi
