@@ -21,6 +21,8 @@
 
   <!-- Metron specific fields -->
   <field name="timestamp" type="timestamp" indexed="true" stored="true" />
+  <!-- used for routing to correct collection when Time Based Routing is used -->
+  <field name="datetime" type="datetime" indexed="false" docValues="true" />
   <field name="source.type" type="string" indexed="true" stored="true" />
   <field name="alert_status" type="string" indexed="true" stored="true" />
   <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
@@ -96,5 +98,6 @@
   <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
   <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
   <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="datetime" stored="false" indexed="false" multiValued="false" docValues="true" class="solr.DatePointField"/>
   <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
 </schema>

@@ -26,6 +26,8 @@
 
   <field name="source.type" type="string" indexed="true" stored="true"/>
   <field name="timestamp" type="plong" indexed="true" stored="true"/>
+  <!-- Used for routing to correct collection when Time Based Routing is used -->
+  <field name="datetime" type="datetime" indexed="false" docValues="true" />
   <field name="score" type="pdouble" indexed="true" stored="true"/>
   <field name="status" type="string" indexed="true" stored="true"/>
   <field name="average" type="pdouble" indexed="true" stored="true"/>
@@ -58,5 +60,6 @@
   <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
   <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
   <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="datetime" stored="false" indexed="false" multiValued="false" docValues="true" class="solr.DatePointField"/>
   <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
 </schema>
