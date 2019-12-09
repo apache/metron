@@ -237,7 +237,7 @@ Assuming the following values:
     
     Then the following command will create a time-routed alias:
     ```
-        curl http://$SOLR_HOST:8983/solr/admin/collections?action=CREATEALIAS\
+       curl "http://$SOLR_HOST:8983/solr/admin/collections?action=CREATEALIAS\
        &name=$ALIAS_NAME\
        &router.start=$ROUTER_START\
        &router.field=$ROUTER_FIELD\
@@ -245,21 +245,21 @@ Assuming the following values:
        &router.interval=$ROUTER_INTERVAL\
        &router.maxFutureMs=$ROUTER_MAXFUTUREMS\
        &create-collection.collection.configName=$CONFIGSET\
-       &create-collection.numShards=2
+       &create-collection.numShards=2"
     ```
    
    
 1. Add a Metron Parser Stellar field transformation to the parser config that adds a correctly formatted datetime string to the event as it is being parsed:
     1. Set environment variables for later reference
         ```
-        source /etc/defaults/metron
+        source /etc/default/metron
         export HDP_HOME="/usr/hdp/current"
         export PARSER_NAME=<The name of the relevant parser>
         ```
        
     1. Pull the most recent sensor parser config from zookeeper
         ```
-        ${METRON_HOME}/bin/zk_load_configs.sh -i ${METRON_HOME}/config/zookeeper -m PULL -c PARSER -n $PARSER_NAME -z $ZOOKEEPER
+        ${METRON_HOME}/bin/zk_load_configs.sh -o ${METRON_HOME}/config/zookeeper -m PULL -c PARSER -n $PARSER_NAME -z $ZOOKEEPER
         ```
        
     1. Open the file to the relevant sensor parser at `$METRON_HOME/config/zookeeper/parsers/$PARSER_NAME.json`
@@ -290,7 +290,7 @@ Assuming the following values:
 1. Config Metron SOLR indexing to push documents to the newly created Collection Alias.
     1. Pull the most recent index config from zookeeper
         ```
-          ${METRON_HOME}/bin/zk_load_configs.sh -i ${METRON_HOME}/config/zookeeper -m PULL -c INDEXING -n $PARSER_NAME -z $ZOOKEEPER
+          ${METRON_HOME}/bin/zk_load_configs.sh -o ${METRON_HOME}/config/zookeeper -m PULL -c INDEXING -n $PARSER_NAME -z $ZOOKEEPER
         ```
        
     1. Edit the file ${METRON_HOME}/config/zookeeper/indexing/$PARSER_NAME.json

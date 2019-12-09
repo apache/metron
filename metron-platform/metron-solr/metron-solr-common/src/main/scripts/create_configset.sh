@@ -26,6 +26,9 @@ if [ ${SECURITY_ENABLED,,} == 'true' ]; then
     NEGOTIATE=' --negotiate -u : '
 fi
 
+# Get the first Solr node from the list of live nodes in Zookeeper
+SOLR_NODE=`$ZOOKEEPER_HOME/bin/zkCli.sh -server $ZOOKEEPER ls /live_nodes | tail -n 1 | sed 's/\[\([^,]*\).*\]/\1/' | sed 's/_solr//'`
+
 # test for errors in SOLR URL
 if [[ ${SOLR_NODE} =~ .*:null ]]; then
  echo "Error occurred while attempting to read SOLR Cloud configuration data from Zookeeper.";
@@ -35,7 +38,6 @@ if [[ ${SOLR_NODE} =~ .*:null ]]; then
  exit 1;
 fi
 
-
 # test for presence of datetime field in schema collection
 DQT='"'
 DATETIME_SCHEMA="<field name=${DQT}datetime${DQT} type=${DQT}datetime${DQT}"
@@ -44,9 +46,6 @@ if [ $rc -eq 1 ]; then
   echo "could not find $DATETIME_SCHEMA in schema file - please read Metron SOLR Time based alias instructions before using this script"
   exit 1;
 fi
-
-# Get the first Solr node from the list of live nodes in Zookeeper
-SOLR_NODE=`$ZOOKEEPER_HOME/bin/zkCli.sh -server $ZOOKEEPER ls /live_nodes | tail -n 1 | sed 's/\[\([^,]*\).*\]/\1/' | sed 's/_solr//'`
 
 # Upload the collection config set
 zip -rj - $METRON_HOME/config/schema/$1 | curl -X POST $NEGOTIATE --header "Content-Type:text/xml" --data-binary @- "http://$SOLR_NODE/solr/admin/configs?action=UPLOAD&name=$1"
