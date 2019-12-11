@@ -29,6 +29,18 @@ describe('Automatic data polling on Alerts View', () => {
 
     cy.route('GET', '/api/v1/global/config', 'fixture:config.json');
     cy.route('GET', appConfigJSON.contextMenuConfigURL, 'fixture:context-menu.conf.json');
+
+    cy.route({
+      url: '/api/v1/hdfs?path=user-settings',
+      method: 'GET',
+      response: {},
+    });
+
+    cy.route({
+      url: '/api/v1/hdfs?path=user-settings',
+      method: 'POST',
+      response: {},
+    });
   };
 
   beforeEach(() => {
