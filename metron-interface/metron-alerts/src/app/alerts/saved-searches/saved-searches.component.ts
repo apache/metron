@@ -43,38 +43,13 @@ export class SavedSearchesComponent implements OnInit {
               private dialogService: DialogService) {
   }
 
-  doDeleteRecentSearch(selectedSearch: SaveSearch) {
-    this.saveSearchService.deleteRecentSearch(selectedSearch).subscribe(() => {
-        this.ngOnInit();
-      },
-      error => {
-        this.ngOnInit();
-      });
-  }
   doDeleteSearch(selectedSearch: SaveSearch) {
     this.saveSearchService.deleteSavedSearch(selectedSearch).subscribe(() => {
-      this.doDeleteRecentSearch(selectedSearch);
       this.ngOnInit();
     },
     error => {
       this.ngOnInit();
     });
-  }
-
-  deleteRecentSearch($event) {
-    let selectedSearch = this.recentSearcheObj.find(
-      savedSearch => savedSearch.name === $event.key
-    );
-    const confirmedSubscription = this.dialogService
-      .launchDialog(
-        'Do you wish to delete recent search ' + selectedSearch.name
-      )
-      .subscribe(action => {
-        if (action === ConfirmationType.Confirmed) {
-          this.doDeleteRecentSearch(selectedSearch);
-        }
-        confirmedSubscription.unsubscribe();
-      });
   }
 
   deleteSearch($event) {

@@ -34,6 +34,7 @@ import { DialogService } from 'app/service/dialog.service';
 import { AppConfigService } from '../../../service/app-config.service';
 import { ContextMenuComponent } from 'app/shared/context-menu/context-menu.component';
 import { of } from 'rxjs';
+import { UserSettingsService } from 'app/service/user-settings.service';
 
 @Component({selector: 'metron-table-pagination', template: ''})
 class MetronTablePaginationComponent {
@@ -63,7 +64,8 @@ describe('TableViewComponent', () => {
         { provide: AppConfigService, useClass: FakeAppConfigService },
         { provide: GlobalConfigService, useValue: {
           get: () => { return of({})}
-        }}
+        }},
+        UserSettingsService
       ],
       declarations: [
         MetronTableDirective,

@@ -18,6 +18,7 @@
 import { Injectable } from '@angular/core';
 import { QueryBuilder, FilteringMode } from 'app/alerts/alerts-list/query-builder';
 import { Filter } from 'app/model/filter';
+import { UserSettingsService } from 'app/service/user-settings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -37,12 +38,18 @@ export class ShowHideService {
   hideResolved = false;
   hideDismissed = false;
 
-  constructor(public queryBuilder: QueryBuilder) {
-    this.hideResolved = localStorage.getItem(this.HIDE_RESOLVE_STORAGE_KEY) === 'true';
-    this.setFilterFor(this.RESOLVE, this.hideResolved);
+  constructor(public queryBuilder: QueryBuilder, private userSettingsService: UserSettingsService) {
+    this.userSettingsService.get(this.HIDE_RESOLVE_STORAGE_KEY)
+      .subscribe((hideResolved) => {
+        this.hideResolved = !!hideResolved;
+        this.setFilterFor(this.RESOLVE, this.hideResolved);
+      });
 
-    this.hideDismissed = localStorage.getItem(this.HIDE_DISMISS_STORAGE_KEY) === 'true';
-    this.setFilterFor(this.DISMISS, this.hideDismissed);
+    this.userSettingsService.get(this.HIDE_DISMISS_STORAGE_KEY)
+      .subscribe((hideDismissed) => {
+        this.hideDismissed = !!hideDismissed;
+        this.setFilterFor(this.DISMISS, this.hideDismissed);
+      });
   }
 
   setFilterFor(alertStatus, isHide) {
@@ -58,12 +65,16 @@ export class ShowHideService {
       case this.DISMISS:
         filterOperation(this.dismissFilter);
         this.hideDismissed = isHide;
-        localStorage.setItem(this.HIDE_DISMISS_STORAGE_KEY, isHide);
+        this.userSettingsService.save({
+          [this.HIDE_DISMISS_STORAGE_KEY]: isHide
+        }).subscribe();
         break;
       case this.RESOLVE:
         filterOperation(this.resolveFilter);
         this.hideResolved = isHide;
-        localStorage.setItem(this.HIDE_RESOLVE_STORAGE_KEY, isHide);
+        this.userSettingsService.save({
+          [this.HIDE_RESOLVE_STORAGE_KEY]: isHide
+        }).subscribe();
         break;
     }
   }

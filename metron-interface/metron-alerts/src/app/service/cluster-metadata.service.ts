@@ -15,18 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
 
-import {ColumnMetadata} from '../model/column-metadata';
-import {DataSource} from './data-source';
+import { ColumnMetadata } from '../model/column-metadata';
+import { UserSettingsService } from './user-settings.service';
 
 @Injectable()
 export class ClusterMetaDataService {
 
-  constructor(private dataSource: DataSource) {}
+  private defaultColumnMetadata = [
+    new ColumnMetadata('guid', 'string'),
+    new ColumnMetadata('timestamp', 'date'),
+    new ColumnMetadata('source:type', 'string'),
+    new ColumnMetadata('ip_src_addr', 'ip'),
+    new ColumnMetadata('enrichments:geo:ip_dst_addr:country', 'string'),
+    new ColumnMetadata('ip_dst_addr', 'ip'),
+    new ColumnMetadata('host', 'string'),
+    new ColumnMetadata('alert_status', 'string')
+  ];
+
+  constructor(
+    private userSettingsService: UserSettingsService
+  ) {}
 
   getDefaultColumns(): Observable<ColumnMetadata[]> {
-    return this.dataSource.getDefaultAlertTableColumnNames();
+    return of(JSON.parse(JSON.stringify(this.defaultColumnMetadata)));
   }
 }

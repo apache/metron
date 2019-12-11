@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Subscription, Subject, Observable, interval, onErrorResumeNext, timer } from 'rxjs';
+import { Subscription, Subject, Observable, interval, timer } from 'rxjs';
 import { SearchService } from 'app/service/search.service';
 import { QueryBuilder } from '../query-builder';
 import { SearchResponse } from 'app/model/search-response';
@@ -26,6 +26,7 @@ import { RestError } from 'app/model/rest-error';
 import { DialogType } from 'app/shared/metron-dialog/metron-dialog.component';
 import { DialogService } from 'app/service/dialog.service';
 import { RefreshInterval } from '../../configure-rows/configure-rows-enums';
+import { UserSettingsService } from 'app/service/user-settings.service';
 
 interface AutoPollingStateModel {
   isActive: boolean,
@@ -49,6 +50,7 @@ export class AutoPollingService {
   constructor(private searchService: SearchService,
               private queryBuilder: QueryBuilder,
               private dialogService: DialogService,
+              private userSettingsService: UserSettingsService
               ) {
                 this.restoreState();
               }
@@ -108,19 +110,24 @@ export class AutoPollingService {
   }
 
   private persistState(key = this.AUTO_POLLING_STORAGE_KEY): void {
-    localStorage.setItem(key, JSON.stringify(this.getStateModel()));
+    this.userSettingsService.save({
+      [key]: JSON.stringify(this.getStateModel())
+    }).subscribe();
   }
 
   private restoreState(key = this.AUTO_POLLING_STORAGE_KEY): void {
-    const persistedState = JSON.parse(localStorage.getItem(key)) as AutoPollingStateModel;
+    this.userSettingsService.get(key)
+      .subscribe((autoPollingState) => {
+        const persistedState = autoPollingState ? JSON.parse(autoPollingState) as AutoPollingStateModel : null;
 
-    if (persistedState) {
-      this.refreshInterval = persistedState.refreshInterval;
+        if (persistedState) {
+          this.refreshInterval = persistedState.refreshInterval;
 
-      if (persistedState.isActive) {
-        timer(this.AUTO_START_DELAY).subscribe(this.start.bind(this));
-      }
-    }
+          if (persistedState.isActive) {
+            timer(this.AUTO_START_DELAY).subscribe(this.start.bind(this));
+          }
+        }
+      });
   }
 
   private getStateModel(): AutoPollingStateModel {

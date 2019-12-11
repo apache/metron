@@ -28,8 +28,6 @@ import { SearchService } from 'app/service/search.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { AppConfigService } from 'app/service/app-config.service';
 import { GlobalConfigService } from 'app/service/global-config.service';
-import { DataSource } from 'app/service/data-source';
-import { ElasticSearchLocalstorageImpl } from 'app/service/elasticsearch-localstorage-impl';
 import { DialogService } from 'app/service/dialog.service';
 import { By } from '@angular/platform-browser';
 import { AlertComment } from './alert-comment';
@@ -39,6 +37,7 @@ import { CommentAddRemoveRequest } from '../../model/comment-add-remove-request'
 import { AlertSource } from '../../model/alert-source';
 import { of } from 'rxjs/index';
 import { Router } from '@angular/router';
+import { UserSettingsService } from 'app/service/user-settings.service';
 
 const alertDetail = {
   'enrichments:geo:ip_dst_addr:locID': '5308655',
@@ -126,10 +125,7 @@ describe('AlertDetailsComponent', () => {
           appConfigStatic: {},
           getApiRoot: () => {},
         } },
-        {
-          provide: DataSource,
-          useClass: ElasticSearchLocalstorageImpl
-        },
+        UserSettingsService,
         { provide: AlertsService,
           useValue: {
             escalate: () => {}

@@ -22,7 +22,9 @@ import { QueryBuilder, FilteringMode } from 'app/alerts/alerts-list/query-builde
 
 import { Spy } from 'jasmine-core';
 import { Filter } from 'app/model/filter';
-import { serializePath } from '@angular/router/src/url_tree';
+import { UserSettingsService } from 'app/service/user-settings.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { AppConfigService } from 'app/service/app-config.service';
 
 class QueryBuilderMock {
   addOrUpdateFilter = () => {};
@@ -32,21 +34,31 @@ class QueryBuilderMock {
 
 describe('ShowHideService', () => {
   let queryBuilderMock: QueryBuilderMock;
+  let userSettingsService: UserSettingsService;
 
   beforeEach(() => {
-    spyOn(localStorage, 'getItem').and.returnValues('true', 'false');
-    spyOn(localStorage, 'setItem');
 
     spyOn(ShowHideService.prototype, 'setFilterFor').and.callThrough();
+    spyOn(UserSettingsService.prototype, 'get').and.callThrough();
+    spyOn(UserSettingsService.prototype, 'save').and.callThrough();
 
     TestBed.configureTestingModule({
+      imports: [ HttpClientTestingModule ],
       providers: [
+        {
+          provide: AppConfigService,
+          useValue: {
+            getApiRoot() { return ''; }
+          }
+        },
+        UserSettingsService,
         ShowHideService,
         { provide: QueryBuilder, useClass: QueryBuilderMock },
       ]
     });
 
     queryBuilderMock = getTestBed().get(QueryBuilder);
+    userSettingsService = getTestBed().get(UserSettingsService);
   });
 
   it('should be created', inject([ShowHideService], (service: ShowHideService) => {
@@ -57,36 +69,38 @@ describe('ShowHideService', () => {
     expect(service.queryBuilder).toBeTruthy();
   }));
 
-  it('should get persisted state from localStorage', inject([ShowHideService], (service: ShowHideService) => {
-    expect(localStorage.getItem).toHaveBeenCalledWith(service.HIDE_RESOLVE_STORAGE_KEY);
-    expect(localStorage.getItem).toHaveBeenCalledWith(service.HIDE_DISMISS_STORAGE_KEY);
+  it('should get persisted state', inject([ShowHideService], (service: ShowHideService) => {
+    expect(userSettingsService.get).toHaveBeenCalledWith(service.HIDE_RESOLVE_STORAGE_KEY);
+    expect(userSettingsService.get).toHaveBeenCalledWith(service.HIDE_DISMISS_STORAGE_KEY);
   }));
 
   it('should set initial filter state', inject([ShowHideService], (service: ShowHideService) => {
-    expect((service.setFilterFor as Spy).calls.argsFor(0)[1]).toBe(true);
-    expect((service.setFilterFor as Spy).calls.argsFor(0)[0]).toBe('RESOLVE');
-    expect((service.setFilterFor as Spy).calls.argsFor(1)[0]).toBe('DISMISS');
-    expect((service.setFilterFor as Spy).calls.argsFor(1)[1]).toBe(false);
+    expect((service.setFilterFor as Spy).calls.argsFor(0)).toEqual(['RESOLVE', false]);
+    expect((service.setFilterFor as Spy).calls.argsFor(1)).toEqual(['DISMISS', false]);
   }));
 
-  it('should set value loaded from localStorage to hideDismissed ', inject([ShowHideService], (service: ShowHideService) => {
+  it('should set value to hideDismissed ', inject([ShowHideService], (service: ShowHideService) => {
     expect(service.hideDismissed).toBe(false);
   }));
 
-  it('should set value loaded from localStorage to hideResolved', inject([ShowHideService], (service: ShowHideService) => {
-    expect(service.hideResolved).toBe(true);
+  it('should set value to hideResolved', inject([ShowHideService], (service: ShowHideService) => {
+    expect(service.hideResolved).toBe(false);
   }));
 
-  it('should save state to localStorage on change for RESOLVE', inject([ShowHideService], (service: ShowHideService) => {
+  it('should save state on change for RESOLVE', inject([ShowHideService], (service: ShowHideService) => {
     service.setFilterFor('RESOLVE', true);
 
-    expect(localStorage.setItem).toHaveBeenCalledWith(service.HIDE_RESOLVE_STORAGE_KEY, true);
+    expect(userSettingsService.save).toHaveBeenCalledWith({
+      [service.HIDE_RESOLVE_STORAGE_KEY]: true
+    });
   }));
 
-  it('should save state to localStorage on change for DISMISS', inject([ShowHideService], (service: ShowHideService) => {
+  it('should save state for DISMISS', inject([ShowHideService], (service: ShowHideService) => {
     service.setFilterFor('DISMISS', true);
 
-    expect(localStorage.setItem).toHaveBeenCalledWith(service.HIDE_DISMISS_STORAGE_KEY, true);
+    expect(userSettingsService.save).toHaveBeenCalledWith({
+      [service.HIDE_DISMISS_STORAGE_KEY]: true
+    });
   }));
 
   it('should be able to add RESOLVE filter to QueryBuilder', inject([ShowHideService], (service: ShowHideService) => {

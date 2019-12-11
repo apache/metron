@@ -15,12 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
-import {ColumnMetadata} from '../model/column-metadata';
-import {TableMetadata} from '../model/table-metadata';
-import {DataSource} from './data-source';
+import { ColumnMetadata } from '../model/column-metadata';
+import { TableMetadata } from '../model/table-metadata';
+import { UserSettingsService } from './user-settings.service';
+import { ALERTS_TABLE_METADATA } from '../utils/constants';
+
 
 @Injectable()
 export class ConfigureTableService {
@@ -28,21 +30,49 @@ export class ConfigureTableService {
   private tableChangedSource = new Subject<string>();
   tableChanged$ = this.tableChangedSource.asObservable();
 
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private userSettingsService: UserSettingsService
+  ) {}
 
   fireTableChanged() {
     this.tableChangedSource.next('table changed');
   }
 
-  getTableMetadata(): Observable<TableMetadata> {
-    return this.dataSource.getAlertTableSettings();
+  getTableMetadata(): Observable<{}> {
+    return new Observable((observer) => {
+      this.userSettingsService.get(ALERTS_TABLE_METADATA)
+        .subscribe((tableMetadata) => {
+          tableMetadata = TableMetadata.fromJSON(tableMetadata);
+          observer.next(tableMetadata);
+          observer.complete();
+        });
+    });
   }
 
   saveColumnMetaData(columns: ColumnMetadata[]): Observable<{}> {
-    return this.dataSource.saveColumnMetaDataInAlertTableSettings(columns);
+    return new Observable((observer) => {
+      this.userSettingsService.get(ALERTS_TABLE_METADATA)
+        .subscribe((tableMetadata) => {
+          tableMetadata = TableMetadata.fromJSON(tableMetadata);
+          tableMetadata.tableColumns = columns;
+          this.userSettingsService.save({
+            [ALERTS_TABLE_METADATA]: tableMetadata
+          }).subscribe(() => {
+            observer.next({});
+            observer.complete();
+          });
+        });
+    });
   }
 
-  saveTableMetaData(tableMetadata: TableMetadata): Observable<TableMetadata> {
-    return this.dataSource.saveAlertTableSettings(tableMetadata);
+  saveTableMetaData(tableMetadata): Observable<{}> {
+    return new Observable((observer) => {
+      this.userSettingsService.save({
+        [ALERTS_TABLE_METADATA]: tableMetadata
+      }).subscribe(() => {
+        observer.next({});
+        observer.complete();
+      });
+    });
   }
 }
