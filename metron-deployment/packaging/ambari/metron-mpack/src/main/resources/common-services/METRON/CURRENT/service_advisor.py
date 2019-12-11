@@ -218,9 +218,10 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         ]
 
         # find any metron components that have not been assigned to a host
+        components = set(component['name'] for componentList in hostsComponentsMap.values() for component in componentList)
         unassignedMetronComponents = []
         for component in metronComponents:
-          if (component not in hostsComponentsMap.values()):
+          if component['name'] not in components:
             unassignedMetronComponents.append(component)
 
         if len(unassignedMetronComponents) > 0:
