@@ -23,7 +23,6 @@ import { ReplaySubject } from 'rxjs';
 import { GlobalConfigService } from './global-config.service';
 import { AppConfigService } from './app-config.service';
 import { HttpUtil } from '../utils/httpUtil';
-import { UserSettingsService } from './user-settings.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -38,8 +37,7 @@ export class AuthenticationService {
   constructor(private http: HttpClient,
               private router: Router,
               private globalConfigService: GlobalConfigService,
-              private appConfigService: AppConfigService,
-              private userSettingsService: UserSettingsService) {
+              private appConfigService: AppConfigService) {
     this.init();
   }
 
@@ -48,7 +46,6 @@ export class AuthenticationService {
         this.currentUser = response.toString();
         if (this.currentUser) {
           this.onLoginEvent.next(true);
-          this.userSettingsService.load();
         }
       }, () => {
         this.onLoginEvent.next(false);
@@ -66,7 +63,6 @@ export class AuthenticationService {
           this.router.navigateByUrl('/alerts-list');
           this.onLoginEvent.next(true);
           this.globalConfigService.get();
-          this.userSettingsService.load();
       },
       error => {
         onError(error);

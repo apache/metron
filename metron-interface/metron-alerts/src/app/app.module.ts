@@ -24,7 +24,7 @@ import { APP_INITIALIZER } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
-import { MetronAlertsRoutingModule } from './app-routing.module';
+import { MetronAlertsRoutingModule, UserSettingsResolver } from './app-routing.module';
 import { AlertsListModule } from './alerts/alerts-list/alerts-list.module';
 import { AlertDetailsModule } from './alerts/alert-details/alerts-details.module';
 import { ConfigureTableModule } from './alerts/configure-table/configure-table.module';
@@ -106,6 +106,7 @@ const icons: IconDefinition[] = [ ToolOutline, WarningOutline, FileOutline ];
               MetaAlertService,
               GlobalConfigService,
               DialogService,
+              UserSettingsResolver
             ],
   bootstrap: [AppComponent]
 })
