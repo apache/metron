@@ -545,14 +545,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.queryBuilder.setFilteringMode(FilteringMode.MANUAL);
     } else {
       this.queryBuilder.setFilteringMode(FilteringMode.BUILDER);
-      // FIXME: this could lead to a large blocking load depending on the response time
-      this.queryBuilder.clearSearch();
-      this.search();
     }
   }
 
   queryForTreeView() {
     return this.queryBuilder.query;
+  }
+
+  onBuilderQueryChanged(query: string) {
+    this.staleDataState = true;
   }
 
 }
