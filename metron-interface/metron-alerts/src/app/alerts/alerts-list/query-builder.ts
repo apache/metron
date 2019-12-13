@@ -43,6 +43,10 @@ export class QueryBuilder {
     return this.searchRequest.query;
   }
 
+  set query(value: string) {
+    this.searchRequest.query = value;
+  }
+
   get displayQuery(): string {
     return this.generateSelectForDisplay();
   }

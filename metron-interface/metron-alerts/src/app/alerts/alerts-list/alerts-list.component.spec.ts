@@ -42,7 +42,6 @@ import { SearchRequest } from 'app/model/search-request';
 import { query } from '@angular/core/src/render3';
 import { RestError } from 'app/model/rest-error';
 import { DialogType } from 'app/shared/metron-dialog/metron-dialog.component';
-import { DateFilterValue } from 'app/model/date-filter-value';
 import { SaveSearch } from 'app/model/save-search';
 
 @Component({
@@ -179,7 +178,7 @@ describe('AlertsListComponent', () => {
           fireLoadSavedSearch: (savedSearch: any) => {
             this.loadSavedSearch$.next(savedSearch);
           },
-          saveAsRecentSearches: (savedSearch: any) => of(),
+          saveAsRecentSearches: () => of(null),
         } } },
         { provide: MetaAlertService, useClass: () => { return {
           alertChanged$: new Observable(),
@@ -202,6 +201,7 @@ describe('AlertsListComponent', () => {
           setManualQuery: () => {},
           getFilteringMode: () => {},
           setFilteringMode: () => {},
+          generateNameForSearchRequest: () => '',
           setSearch: () => {},
         } } },
         { provide: AutoPollingService, useClass: () => { return {
@@ -779,6 +779,82 @@ describe('AlertsListComponent', () => {
       expect(component.tableMetaData.size).toEqual(10);
       expect(configureTableService.saveTableMetaData).toHaveBeenCalledWith(component.tableMetaData);
       expect(component.search).toHaveBeenCalled();
+    });
+  });
+
+  describe('save/load manual query search', () => {
+
+    it('should switch to manual mode if the saved search is manual', () => {
+
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+      const savedSearch = new SaveSearch();
+      savedSearch.isManual = true;
+      savedSearch.searchRequest = new SearchRequest();
+      savedSearch.searchRequest.query = 'foo:bar';
+      savedSearch.filters = [];
+
+      saveSearchSvc.loadSavedSearch$ = of(savedSearch);
+
+      const spySetFilteringMode = spyOn(component.queryBuilder, 'setFilteringMode');
+      const spySetManualQuery = spyOn(component.queryBuilder, 'setManualQuery');
+
+      component.addLoadSavedSearchListener();
+
+      expect(spySetFilteringMode).toHaveBeenCalledTimes(1);
+      expect(spySetFilteringMode).toHaveBeenCalledWith(FilteringMode.MANUAL);
+
+      expect(spySetManualQuery).toHaveBeenCalledWith('foo:bar');
+    });
+
+    it('should switch to builder mode if the saved search is not manual', () => {
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+      const savedSearch = new SaveSearch();
+      savedSearch.isManual = false;
+      savedSearch.searchRequest = new SearchRequest();
+      savedSearch.searchRequest.query = 'foo:bar';
+      savedSearch.filters = [];
+
+      saveSearchSvc.loadSavedSearch$ = of(savedSearch);
+
+      const spySetFilteringMode = spyOn(component.queryBuilder, 'setFilteringMode');
+      const spySetManualQuery = spyOn(component.queryBuilder, 'setManualQuery');
+
+      component.addLoadSavedSearchListener();
+
+      expect(spySetFilteringMode).toHaveBeenCalledTimes(1);
+      expect(spySetFilteringMode).toHaveBeenCalledWith(FilteringMode.BUILDER);
+
+      expect(spySetManualQuery).not.toHaveBeenCalledWith('foo:bar');
+    });
+
+    it('should save the search filter mode (manual)', (done) => {
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+
+      saveSearchSvc.saveAsRecentSearches = (saveSearch) => {
+        expect(saveSearch.isManual).toBe(true);
+        expect(saveSearch.searchRequest.query).toBe('foo:bar');
+        done();
+        return of(null);
+      };
+
+      component.queryBuilder.getFilteringMode = () => FilteringMode.MANUAL;
+      component.queryBuilder.query = 'foo:bar';
+      component.saveCurrentSearch();
+    });
+
+    it('should save the search filter mode (builder)', (done) => {
+      const saveSearchSvc = TestBed.get(SaveSearchService);
+
+      saveSearchSvc.saveAsRecentSearches = (saveSearch) => {
+        expect(saveSearch.isManual).toBe(false);
+        expect(saveSearch.searchRequest.query).toBe('');
+        done();
+        return of(null);
+      };
+
+      component.queryBuilder.getFilteringMode = () => FilteringMode.BUILDER;
+      component.queryBuilder.query = 'foo:bar';
+      component.saveCurrentSearch();
     });
   });
 });

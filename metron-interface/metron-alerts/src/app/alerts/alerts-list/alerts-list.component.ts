@@ -147,6 +147,13 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   addLoadSavedSearchListener() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
+      if (savedSearch.isManual === true) {
+        this.queryBuilder.setFilteringMode(FilteringMode.MANUAL);
+        this.queryBuilder.setManualQuery(savedSearch.searchRequest.query);
+      } else {
+        this.queryBuilder.setFilteringMode(FilteringMode.BUILDER);
+      }
+
       this.queryBuilder.searchRequest = savedSearch.searchRequest;
       this.queryBuilder.filters = savedSearch.filters;
       this.setSelectedTimeRange(savedSearch.filters);
@@ -433,10 +440,19 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  saveCurrentSearch(savedSearch: SaveSearch) {
+  saveCurrentSearch(savedSearch?: SaveSearch) {
+    const isManual = () => this.queryBuilder.getFilteringMode() === FilteringMode.MANUAL;
     if (this.queryBuilder.query !== '*') {
-      this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {
-      });
+      if (!savedSearch) {
+        savedSearch = new SaveSearch();
+        savedSearch.searchRequest = this.queryBuilder.searchRequest;
+        savedSearch.tableColumns = this.alertsColumns;
+        savedSearch.filters = this.queryBuilder.filters;
+        savedSearch.searchRequest.query = isManual() ? this.queryBuilder.query : '';
+        savedSearch.name = this.queryBuilder.generateNameForSearchRequest();
+        savedSearch.isManual = isManual();
+      }
+      this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe();
     }
   }
 
