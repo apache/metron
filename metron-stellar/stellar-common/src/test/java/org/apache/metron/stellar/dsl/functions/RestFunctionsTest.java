@@ -31,11 +31,10 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.metron.stellar.dsl.Context;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
@@ -50,18 +49,14 @@ import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.apache.metron.stellar.dsl.functions.RestConfig.*;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Tests the RestFunctions class.
  */
+@EnableRuleMigrationSupport
 public class RestFunctionsTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -72,7 +67,7 @@ public class RestFunctionsTest {
   private File proxyBasicAuthPasswordFile;
   private String proxyAuthPassword = "proxyPassword";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
@@ -125,10 +120,9 @@ public class RestFunctionsTest {
 
   /**
    * RestConfig should be built with settings in the correct order of precedence.
-   * @throws Exception
    */
   @Test
-  public void restShouldBuildRestConfig() throws Exception {
+  public void restShouldBuildRestConfig() {
     Map<String, Object> config = new HashMap<String, Object>() {{
       put(BASIC_AUTH_USER, "user");
       put(PROXY_BASIC_AUTH_USER, "proxyUser");
@@ -268,11 +262,10 @@ public class RestFunctionsTest {
 
   /**
    * The REST_GET function should handle IOExceptions and return null.
-   * @throws IllegalArgumentException
    * @throws IOException
    */
   @Test
-  public void restGetShouldHandleIOException() throws IllegalArgumentException, IOException {
+  public void restGetShouldHandleIOException() throws IOException {
     RestFunctions.RestGet restGet = new RestFunctions.RestGet();
     CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
     ScheduledExecutorService executorService = mock(ScheduledExecutorService.class);
@@ -283,7 +276,7 @@ public class RestFunctionsTest {
     when(httpClient.execute(any(HttpRequestBase.class), any(HttpClientContext.class))).thenThrow(new IOException("io exception"));
 
     Object result = restGet.apply(Collections.singletonList("http://www.host.com:8080/some/uri"), context);
-    Assert.assertNull(result);
+    assertNull(result);
   }
 
   @Test
@@ -376,9 +369,6 @@ public class RestFunctionsTest {
 
   @Test
   public void restGetShouldThrowExceptionOnContentLengthMismatch() throws Exception {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Stellar REST request to uri returned incorrect or missing content length. Content length in the response was -1 but the actual body content length was 17.");
-
     RestFunctions.RestGet restGet = new RestFunctions.RestGet();
     RestConfig restConfig = new RestConfig();
     HttpGet httpGet = mock(HttpGet.class);
@@ -389,6 +379,9 @@ public class RestFunctionsTest {
     when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream("{\"get\":\"success\"}".getBytes(
         StandardCharsets.UTF_8)));
     when(httpEntity.getContentLength()).thenReturn(-1L);
-    RestFunctions.parseResponse(restConfig, httpGet, httpEntity);
+    IOException e = assertThrows(IOException.class, () -> RestFunctions.parseResponse(restConfig, httpGet, httpEntity));
+    assertEquals(
+        "Stellar REST request to uri returned incorrect or missing content length. Content length in the response was -1 but the actual body content length was 17.",
+        e.getMessage());
   }
 }

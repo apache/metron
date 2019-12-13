@@ -17,23 +17,6 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
-import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
-import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -42,17 +25,21 @@ import org.apache.metron.rest.model.AlertsUIUserSettings;
 import org.apache.metron.rest.service.AlertsUIService;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
+
+import java.util.*;
+
+import static org.apache.metron.common.Constants.SENSOR_TYPE_FIELD_PROPERTY;
+import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
+import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("ALL")
 public class SearchServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   IndexDao dao;
   Environment environment;
   SensorIndexingConfigService sensorIndexingConfigService;
@@ -60,7 +47,7 @@ public class SearchServiceImplTest {
   AlertsUIService alertsUIService;
   SearchServiceImpl searchService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     dao = mock(IndexDao.class);
     environment = mock(Environment.class);
@@ -157,14 +144,12 @@ public class SearchServiceImplTest {
 
   @Test
   public void saveShouldWrapExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
     when(dao.search(any(SearchRequest.class))).thenThrow(InvalidSearchException.class);
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro"));
     searchRequest.setFacetFields(Arrays.asList("ip_src_addr"));
-    searchService.search(searchRequest);
+    assertThrows(RestException.class, () -> searchService.search(searchRequest));
   }
 
   @Test

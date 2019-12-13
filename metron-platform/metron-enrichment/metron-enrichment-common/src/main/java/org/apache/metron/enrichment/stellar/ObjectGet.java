@@ -77,6 +77,11 @@ public class ObjectGet implements StellarFunction {
     objectCache.initialize(new ObjectCacheConfig(config));
   }
 
+  // Exposed for testing
+  protected void initialize(ObjectCache objectCache) {
+    this.objectCache = objectCache;
+  }
+
   @Override
   public boolean isInitialized() {
     return objectCache != null && objectCache.isInitialized();
@@ -85,4 +90,9 @@ public class ObjectGet implements StellarFunction {
   protected Map<String, Object> getConfig(Context context) {
       return (Map<String, Object>) context.getCapability(Context.Capabilities.GLOBAL_CONFIG, false).orElse(new HashMap<>());
     }
+
+  // exposed for testing
+  protected ObjectCache getObjectCache() {
+    return objectCache;
+  }
 }

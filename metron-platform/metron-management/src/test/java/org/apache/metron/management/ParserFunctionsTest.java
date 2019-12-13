@@ -19,7 +19,6 @@
 
 package org.apache.metron.management;
 
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.GetDataBuilder;
@@ -34,27 +33,21 @@ import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.metron.common.Constants.ErrorFields.ERROR_HASH;
-import static org.apache.metron.common.Constants.ErrorFields.ERROR_TYPE;
-import static org.apache.metron.common.Constants.ErrorFields.EXCEPTION;
-import static org.apache.metron.common.Constants.ErrorFields.MESSAGE;
-import static org.apache.metron.common.Constants.ErrorFields.STACK;
-import static org.apache.metron.common.Constants.Fields.DST_ADDR;
-import static org.apache.metron.common.Constants.Fields.DST_PORT;
-import static org.apache.metron.common.Constants.Fields.SRC_ADDR;
-import static org.apache.metron.common.Constants.Fields.SRC_PORT;
+import static org.apache.metron.common.Constants.ErrorFields.*;
+import static org.apache.metron.common.Constants.Fields.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -70,7 +63,7 @@ public class ParserFunctionsTest {
   Context context = null;
   StellarStatefulExecutor executor;
 
-  @Before
+  @BeforeEach
   public void setup() {
     variables = new HashMap<>();
     functionResolver = new SimpleFunctionResolver()
@@ -134,14 +127,14 @@ public class ParserFunctionsTest {
     List<JSONObject> messages = execute("PARSER_PARSE(parser, message)", List.class);
 
     // validate the parsed message
-    Assert.assertEquals(1, messages.size());
+    assertEquals(1, messages.size());
     JSONObject message = messages.get(0);
-    Assert.assertEquals("bro", message.get(Constants.SENSOR_TYPE));
-    Assert.assertEquals("10.122.196.204", message.get(SRC_ADDR.getName()));
-    Assert.assertEquals(33976L, message.get(SRC_PORT.getName()));
-    Assert.assertEquals("144.254.71.184", message.get(DST_ADDR.getName()));
-    Assert.assertEquals(53L, message.get(DST_PORT.getName()));
-    Assert.assertEquals("dns", message.get("protocol"));
+    assertEquals("bro", message.get(Constants.SENSOR_TYPE));
+    assertEquals("10.122.196.204", message.get(SRC_ADDR.getName()));
+    assertEquals(33976L, message.get(SRC_PORT.getName()));
+    assertEquals("144.254.71.184", message.get(DST_ADDR.getName()));
+    assertEquals(53L, message.get(DST_PORT.getName()));
+    assertEquals("dns", message.get("protocol"));
   }
 
   @Test
@@ -157,15 +150,15 @@ public class ParserFunctionsTest {
     List<JSONObject> messages = execute("PARSER_PARSE(parser, [msg1, msg2, msg3])", List.class);
 
     // expect a parsed message
-    Assert.assertEquals(3, messages.size());
+    assertEquals(3, messages.size());
     for(JSONObject message: messages) {
-      Assert.assertEquals("bro", message.get(Constants.SENSOR_TYPE));
-      Assert.assertTrue(message.containsKey(Constants.GUID));
-      Assert.assertEquals("10.122.196.204", message.get(SRC_ADDR.getName()));
-      Assert.assertEquals(33976L, message.get(SRC_PORT.getName()));
-      Assert.assertEquals("144.254.71.184", message.get(DST_ADDR.getName()));
-      Assert.assertEquals(53L, message.get(DST_PORT.getName()));
-      Assert.assertEquals("dns", message.get("protocol"));
+      assertEquals("bro", message.get(Constants.SENSOR_TYPE));
+      assertTrue(message.containsKey(Constants.GUID));
+      assertEquals("10.122.196.204", message.get(SRC_ADDR.getName()));
+      assertEquals(33976L, message.get(SRC_PORT.getName()));
+      assertEquals("144.254.71.184", message.get(DST_ADDR.getName()));
+      assertEquals(53L, message.get(DST_PORT.getName()));
+      assertEquals("dns", message.get("protocol"));
     }
   }
 
@@ -181,18 +174,18 @@ public class ParserFunctionsTest {
     List<JSONObject> messages = execute("PARSER_PARSE(parser, message)", List.class);
 
     // validate the parsed message
-    Assert.assertEquals(1, messages.size());
+    assertEquals(1, messages.size());
 
     // expect an error message to be returned
     JSONObject error = messages.get(0);
-    Assert.assertEquals(invalidMessage, error.get("raw_message"));
-    Assert.assertEquals(Constants.ERROR_TYPE, error.get(Constants.SENSOR_TYPE));
-    Assert.assertEquals("parser_error", error.get(ERROR_TYPE.getName()));
-    Assert.assertTrue(error.containsKey(MESSAGE.getName()));
-    Assert.assertTrue(error.containsKey(EXCEPTION.getName()));
-    Assert.assertTrue(error.containsKey(STACK.getName()));
-    Assert.assertTrue(error.containsKey(ERROR_HASH.getName()));
-    Assert.assertTrue(error.containsKey(Constants.GUID));
+    assertEquals(invalidMessage, error.get("raw_message"));
+    assertEquals(Constants.ERROR_TYPE, error.get(Constants.SENSOR_TYPE));
+    assertEquals("parser_error", error.get(ERROR_TYPE.getName()));
+    assertTrue(error.containsKey(MESSAGE.getName()));
+    assertTrue(error.containsKey(EXCEPTION.getName()));
+    assertTrue(error.containsKey(STACK.getName()));
+    assertTrue(error.containsKey(ERROR_HASH.getName()));
+    assertTrue(error.containsKey(Constants.GUID));
   }
 
   @Test
@@ -208,9 +201,9 @@ public class ParserFunctionsTest {
     List<JSONObject> messages = execute("PARSER_PARSE(parser, [msg1, msg2])", List.class);
 
     // expect 2 messages to be returned - 1 success and 1 error
-    Assert.assertEquals(2, messages.size());
-    Assert.assertEquals(1, messages.stream().filter(msg -> isBro(msg)).count());
-    Assert.assertEquals(1, messages.stream().filter(msg -> isError(msg)).count());
+    assertEquals(2, messages.size());
+    assertEquals(1, messages.stream().filter(msg -> isBro(msg)).count());
+    assertEquals(1, messages.stream().filter(msg -> isError(msg)).count());
   }
 
   @Test
@@ -220,8 +213,8 @@ public class ParserFunctionsTest {
     assign("parser", "PARSER_INIT('bro', config)");
 
     String config = execute("PARSER_CONFIG(parser)", String.class);
-    Assert.assertNotNull(config);
-    Assert.assertNotNull(SensorParserConfig.fromBytes(config.getBytes(StandardCharsets.UTF_8)));
+    assertNotNull(config);
+    assertNotNull(SensorParserConfig.fromBytes(config.getBytes(StandardCharsets.UTF_8)));
   }
 
   @Test
@@ -229,11 +222,11 @@ public class ParserFunctionsTest {
     set("configAsString", broParserConfig);
     StellarParserRunner runner = execute("PARSER_INIT('bro', configAsString)", StellarParserRunner.class);
 
-    Assert.assertNotNull(runner);
+    assertNotNull(runner);
     SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
     SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes(
         StandardCharsets.UTF_8));
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -242,17 +235,16 @@ public class ParserFunctionsTest {
     set("configAsMap", configAsMap);
     StellarParserRunner runner = execute("PARSER_INIT('bro', configAsMap)", StellarParserRunner.class);
 
-    Assert.assertNotNull(runner);
+    assertNotNull(runner);
     SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
     SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes(
         StandardCharsets.UTF_8));
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
-  @Test(expected = ParseException.class)
-  public void testInitFromInvalidValue() throws Exception {
-    execute("PARSER_INIT('bro', 22)", StellarParserRunner.class);
-    Assert.fail("expected exception");
+  @Test
+  public void testInitFromInvalidValue() {
+    assertThrows(ParseException.class, () -> execute("PARSER_INIT('bro', 22)", StellarParserRunner.class));
   }
 
   @Test
@@ -263,21 +255,20 @@ public class ParserFunctionsTest {
 
     StellarParserRunner runner = execute("PARSER_INIT('bro')", StellarParserRunner.class);
 
-    Assert.assertNotNull(runner);
+    assertNotNull(runner);
     SensorParserConfig actual = runner.getParserConfigurations().getSensorParserConfig("bro");
     SensorParserConfig expected = SensorParserConfig.fromBytes(broParserConfig.getBytes(
         StandardCharsets.UTF_8));
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void testInitMissingFromZookeeper() throws Exception {
     // there is no config for 'bro' in zookeeper
     CuratorFramework zkClient = zkClientMissingPath("/metron/topology/parsers/bro");
     context.addCapability(Context.Capabilities.ZOOKEEPER_CLIENT, () -> zkClient);
 
-    execute("PARSER_INIT('bro')", StellarParserRunner.class);
-    Assert.fail("expected exception");
+    assertThrows(ParseException.class, () -> execute("PARSER_INIT('bro')", StellarParserRunner.class));
   }
 
   /**

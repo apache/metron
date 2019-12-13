@@ -18,40 +18,25 @@
 package org.apache.metron.rest.config;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.metron.rest.MetronRestConstants;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({HadoopConfig.class, UserGroupInformation.class})
 public class HadoopConfigTest {
 
   private Environment environment;
   private HadoopConfig hadoopConfig;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     environment = mock(Environment.class);
-    hadoopConfig = new HadoopConfig(environment);
-    mockStatic(UserGroupInformation.class);
+    hadoopConfig = spy(new HadoopConfig(environment));
   }
 
   @Test
@@ -61,11 +46,13 @@ public class HadoopConfigTest {
 
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
 
-    Configuration configuration = hadoopConfig.configuration();
+    doNothing().when(hadoopConfig).setUGIConfiguration(any());
+    doNothing().when(hadoopConfig).loginUserFromKeytab(any(), any());
 
-    verifyStatic();
-    UserGroupInformation.setConfiguration(any(Configuration.class));
-    UserGroupInformation.loginUserFromKeytab("metron keytabLocation", "metron principal");
+    hadoopConfig.configuration();
+
+    verify(hadoopConfig).setUGIConfiguration(any());
+    verify(hadoopConfig).loginUserFromKeytab("metron keytabLocation", "metron principal");
   }
 
   @Test
@@ -74,9 +61,13 @@ public class HadoopConfigTest {
 
     Configuration configuration = hadoopConfig.configuration();
 
-    verifyStatic(never());
-    UserGroupInformation.setConfiguration(any(Configuration.class));
-    UserGroupInformation.loginUserFromKeytab(anyString(), anyString());
+    doNothing().when(hadoopConfig).setUGIConfiguration(any());
+    doNothing().when(hadoopConfig).loginUserFromKeytab(any(), any());
+
+    hadoopConfig.configuration();
+
+    verify(hadoopConfig, times(0)).setUGIConfiguration(any());
+    verify(hadoopConfig, times(0)).loginUserFromKeytab(any(), any());
 
     assertEquals("simple", configuration.get("hadoop.security.authentication"));
   }

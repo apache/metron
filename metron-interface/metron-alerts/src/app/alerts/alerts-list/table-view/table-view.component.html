@@ -23,6 +23,7 @@
       <th width="25"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
     </tr>
     </thead>
+
     <tbody>
     <ng-container *ngFor="let alert of alerts; let alertIndex = index;">
 
@@ -166,6 +167,12 @@
     </ng-container>
     </tbody>
   </table>
+  <div class="below-table-area">
+    <div class="no-result-box" *ngIf="alerts.length===0">
+      <h3>No Result</h3>
+      <span>Press <span class = "text-secondary fa fa-search find-btn"></span> button to fetch Alerts. Also check your filters.</span>
+    </div>
+  </div>
 </div>
 
 <div class="col-md-3 offset-md-5">

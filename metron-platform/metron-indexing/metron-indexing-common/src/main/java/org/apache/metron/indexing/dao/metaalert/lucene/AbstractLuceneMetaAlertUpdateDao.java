@@ -384,7 +384,7 @@ public abstract class AbstractLuceneMetaAlertUpdateDao implements MetaAlertUpdat
     } // else we have no updates, so don't do anything
   }
 
-  protected Set<String> getMissingAlerts(List<GetRequest> alertRequests, Iterable<Document> results) throws IOException {
+  protected Set<String> getMissingAlerts(List<GetRequest> alertRequests, Iterable<Document> results) {
     Set<String> requestGuids = alertRequests.stream().map(GetRequest::getGuid).collect(Collectors.toSet());
     Set<String> resultGuids = StreamSupport.stream(results.spliterator(), false)
             .map(Document::getGuid).collect(Collectors.toSet());

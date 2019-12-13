@@ -19,19 +19,15 @@ package org.apache.metron.performance.sampler;
 
 import com.google.common.collect.ImmutableList;
 import org.adrianwalker.multilinestring.Multiline;
-import org.junit.Assert;
-import org.junit.Test;
-import sun.java2d.pipe.SpanShapeRenderer;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SamplerTest {
   private static final int SIMULATION_SIZE = 10000;
@@ -46,7 +42,7 @@ public class SamplerTest {
     for(Map.Entry<Integer, Double> kv : empiricalProbs.entrySet()) {
       double empiricalProb = kv.getValue()/SIMULATION_SIZE;
       String msg = expectedProbs.get(kv.getKey()) + " != " + empiricalProb;
-      Assert.assertEquals(msg, expectedProbs.get(kv.getKey()), empiricalProb, 1e-2);
+      assertEquals(expectedProbs.get(kv.getKey()), empiricalProb, 1e-2, msg);
     }
   }
 
@@ -97,9 +93,9 @@ public class SamplerTest {
   public void testDistributionRead() throws IOException {
     for(String config : ImmutableList.of(paretoConfig, paretoConfigImplicit)) {
       List<Map.Entry<Integer, Integer>> endpoints = BiasedSampler.readDistribution(new BufferedReader(new StringReader(config)), true);
-      Assert.assertEquals(2, endpoints.size());
-      Assert.assertEquals(new AbstractMap.SimpleEntry<>(80,20), endpoints.get(0));
-      Assert.assertEquals(new AbstractMap.SimpleEntry<>(20,80), endpoints.get(1));
+      assertEquals(2, endpoints.size());
+      assertEquals(new AbstractMap.SimpleEntry<>(80,20), endpoints.get(0));
+      assertEquals(new AbstractMap.SimpleEntry<>(20,80), endpoints.get(1));
     }
   }
 
@@ -121,25 +117,25 @@ public class SamplerTest {
   public void testDistributionReadLonger() throws IOException {
     for(String config : ImmutableList.of(longerConfig, longerConfigImplicit)) {
       List<Map.Entry<Integer, Integer>> endpoints = BiasedSampler.readDistribution(new BufferedReader(new StringReader(config)), true);
-      Assert.assertEquals(3, endpoints.size());
-      Assert.assertEquals(new AbstractMap.SimpleEntry<>(80,20), endpoints.get(0));
-      Assert.assertEquals(new AbstractMap.SimpleEntry<>(10,70), endpoints.get(1));
-      Assert.assertEquals(new AbstractMap.SimpleEntry<>(10,10), endpoints.get(2));
+      assertEquals(3, endpoints.size());
+      assertEquals(new AbstractMap.SimpleEntry<>(80,20), endpoints.get(0));
+      assertEquals(new AbstractMap.SimpleEntry<>(10,70), endpoints.get(1));
+      assertEquals(new AbstractMap.SimpleEntry<>(10,10), endpoints.get(2));
     }
   }
 
-  @Test(expected=IllegalArgumentException.class)
-  public void testDistributionRead_garbage() throws IOException {
-    BiasedSampler.readDistribution(new BufferedReader(new StringReader("blah foo")), true);
+  @Test
+  public void testDistributionRead_garbage() {
+    assertThrows(IllegalArgumentException.class, () -> BiasedSampler.readDistribution(new BufferedReader(new StringReader("blah foo")), true));
   }
 
-  @Test(expected=IllegalArgumentException.class)
-  public void testDistributionRead_negative() throws IOException {
-    BiasedSampler.readDistribution(new BufferedReader(new StringReader("80,-20")), true);
+  @Test
+  public void testDistributionRead_negative() {
+    assertThrows(IllegalArgumentException.class, () -> BiasedSampler.readDistribution(new BufferedReader(new StringReader("80,-20")), true));
   }
 
-  @Test(expected=IllegalArgumentException.class)
-  public void testDistributionRead_over100() throws IOException {
-    BiasedSampler.readDistribution(new BufferedReader(new StringReader("200,20")), true);
+  @Test
+  public void testDistributionRead_over100() {
+    assertThrows(IllegalArgumentException.class, () -> BiasedSampler.readDistribution(new BufferedReader(new StringReader("200,20")), true));
   }
 }

@@ -18,24 +18,25 @@
 
 package org.apache.metron.common.configuration;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.test.TestingServer;
+import org.apache.metron.TestConstants;
+import org.apache.metron.common.utils.JSONUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.test.TestingServer;
-import org.apache.metron.TestConstants;
-import org.apache.metron.common.utils.JSONUtils;
-import org.junit.After;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConfigurationsUtilsTest {
 
@@ -46,7 +47,7 @@ public class ConfigurationsUtilsTest {
   private Map<String, byte[]> expectedSensorParserConfigMap;
   private Map<String, byte[]> expectedSensorEnrichmentConfigMap;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
@@ -59,23 +60,23 @@ public class ConfigurationsUtilsTest {
 
   @Test
   public void test() throws Exception {
-    Assert.assertTrue(expectedGlobalConfig.length > 0);
+    assertTrue(expectedGlobalConfig.length > 0);
     ConfigurationsUtils.writeGlobalConfigToZookeeper(expectedGlobalConfig, zookeeperUrl);
     byte[] actualGlobalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
-    Assert.assertTrue(Arrays.equals(expectedGlobalConfig, actualGlobalConfigBytes));
+    assertArrayEquals(expectedGlobalConfig, actualGlobalConfigBytes);
 
-    Assert.assertTrue(expectedSensorParserConfigMap.size() > 0);
+    assertTrue(expectedSensorParserConfigMap.size() > 0);
     String testSensorType = "yaf";
     byte[] expectedSensorParserConfigBytes = expectedSensorParserConfigMap.get(testSensorType);
     ConfigurationsUtils.writeSensorParserConfigToZookeeper(testSensorType, expectedSensorParserConfigBytes, zookeeperUrl);
     byte[] actualSensorParserConfigBytes = ConfigurationsUtils.readSensorParserConfigBytesFromZookeeper(testSensorType, client);
-    Assert.assertTrue(Arrays.equals(expectedSensorParserConfigBytes, actualSensorParserConfigBytes));
+    assertArrayEquals(expectedSensorParserConfigBytes, actualSensorParserConfigBytes);
 
-    Assert.assertTrue(expectedSensorEnrichmentConfigMap.size() > 0);
+    assertTrue(expectedSensorEnrichmentConfigMap.size() > 0);
     byte[] expectedSensorEnrichmentConfigBytes = expectedSensorEnrichmentConfigMap.get(testSensorType);
     ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(testSensorType, expectedSensorEnrichmentConfigBytes, zookeeperUrl);
     byte[] actualSensorEnrichmentConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(testSensorType, client);
-    Assert.assertTrue(Arrays.equals(expectedSensorEnrichmentConfigBytes, actualSensorEnrichmentConfigBytes));
+    assertArrayEquals(expectedSensorEnrichmentConfigBytes, actualSensorEnrichmentConfigBytes);
 
     String name = "testConfig";
     Map<String, Object> testConfig = new HashMap<>();
@@ -84,7 +85,7 @@ public class ConfigurationsUtilsTest {
     testConfig.put("doubleField", 1.1);
     ConfigurationsUtils.writeConfigToZookeeper(name, testConfig, zookeeperUrl);
     byte[] readConfigBytes = ConfigurationsUtils.readConfigBytesFromZookeeper(name, client);
-    Assert.assertTrue(Arrays.equals(JSONUtils.INSTANCE.toJSONPretty(testConfig), readConfigBytes));
+    assertArrayEquals(JSONUtils.INSTANCE.toJSONPretty(testConfig), readConfigBytes);
 
   }
 
@@ -213,7 +214,7 @@ public class ConfigurationsUtilsTest {
     assertThat(actual, equalTo(expected));
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     client.close();
     testZkServer.close();

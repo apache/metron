@@ -244,6 +244,9 @@
                         <excludes>
                             <!-- Exclude our SLF4J dependency that's included via the main project pom.xml -->
                             <exclude>*slf4j*</exclude>
+                            <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+                            <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

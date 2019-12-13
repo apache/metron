@@ -52,7 +52,7 @@ public class HdfsServiceImpl implements HdfsService {
     @Override
     public List<String> list(Path path) throws RestException {
       try {
-          return Arrays.asList(FileSystem.get(configuration).listStatus(path)).stream().map(fileStatus -> fileStatus.getPath().getName()).collect(Collectors.toList());
+          return Arrays.asList(getFileSystem().listStatus(path)).stream().map(fileStatus -> fileStatus.getPath().getName()).collect(Collectors.toList());
       } catch (IOException e) {
           throw new RestException(e);
       }
@@ -62,7 +62,7 @@ public class HdfsServiceImpl implements HdfsService {
     public String read(Path path) throws RestException {
       ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
       try {
-        IOUtils.copyBytes(FileSystem.get(configuration).open(path), byteArrayOutputStream, configuration);
+        IOUtils.copyBytes(getFileSystem().open(path), byteArrayOutputStream, configuration);
       } catch (FileNotFoundException e) {
         return null;
       } catch (IOException e) {
@@ -90,11 +90,11 @@ public class HdfsServiceImpl implements HdfsService {
         permission = new FsPermission(userAction, groupAction, otherAction);
         setPermissions = true;
       }
-      fsDataOutputStream = FileSystem.get(configuration).create(path, true);
+      fsDataOutputStream = getFileSystem().create(path, true);
       fsDataOutputStream.write(contents);
       fsDataOutputStream.close();
       if(setPermissions) {
-        FileSystem.get(configuration).setPermission(path, permission);
+        getFileSystem().setPermission(path, permission);
       }
     } catch (IOException e) {
       throw new RestException(e);
@@ -104,7 +104,7 @@ public class HdfsServiceImpl implements HdfsService {
     @Override
     public boolean delete(Path path, boolean recursive) throws RestException {
       try {
-        return FileSystem.get(configuration).delete(path, recursive);
+        return getFileSystem().delete(path, recursive);
       } catch (IOException e) {
         throw new RestException(e);
       }
@@ -113,9 +113,14 @@ public class HdfsServiceImpl implements HdfsService {
     @Override
     public boolean mkdirs(Path path) throws RestException {
       try {
-        return FileSystem.get(configuration).mkdirs(path);
+        return getFileSystem().mkdirs(path);
       } catch (IOException e) {
         throw new RestException(e);
       }
     }
- }
+
+    // Exposed for testing
+    protected FileSystem getFileSystem() throws IOException {
+        return FileSystem.get(configuration);
+    }
+}

@@ -32,7 +32,6 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.spark.ProfileMeasurementAdapter;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +55,7 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.PERIOD_DURATI
 /**
  * Writes the profile measurements to HBase in Spark.
  */
-public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasurementAdapter, Integer> {
+public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasurement, Integer> {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -108,20 +107,19 @@ public class HBaseWriterFunction implements MapPartitionsFunction<ProfileMeasure
    * @return The number of measurements written to HBase.
    */
   @Override
-  public Iterator<Integer> call(Iterator<ProfileMeasurementAdapter> iterator) throws Exception {
+  public Iterator<Integer> call(Iterator<ProfileMeasurement> iterator) throws Exception {
     int count = 0;
     LOG.debug("About to write profile measurement(s) to HBase");
 
     // do not open hbase connection, if nothing to write
-    List<ProfileMeasurementAdapter> measurements = IteratorUtils.toList(iterator);
+    List<ProfileMeasurement> measurements = IteratorUtils.toList(iterator);
     if(measurements.size() > 0) {
 
       // open an HBase connection
       Configuration config = HBaseConfiguration.create();
       try (HBaseClient client = new HBaseClient(tableProvider, config, tableName)) {
 
-        for (ProfileMeasurementAdapter adapter : measurements) {
-          ProfileMeasurement m = adapter.toProfileMeasurement();
+        for (ProfileMeasurement m : measurements) {
           client.addMutation(rowKeyBuilder.rowKey(m), columnBuilder.columns(m), durability);
         }
         count = client.mutate();

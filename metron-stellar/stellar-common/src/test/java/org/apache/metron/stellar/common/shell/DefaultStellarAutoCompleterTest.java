@@ -20,19 +20,14 @@
 package org.apache.metron.stellar.common.shell;
 
 import com.google.common.collect.Lists;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.core.IsIterableContaining.hasItem;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests the DefaultStellarAutoCompleter class.
@@ -41,7 +36,7 @@ public class DefaultStellarAutoCompleterTest {
 
   DefaultStellarAutoCompleter completer;
 
-  @Before
+  @BeforeEach
   public void setup() {
     completer = new DefaultStellarAutoCompleter();
   }

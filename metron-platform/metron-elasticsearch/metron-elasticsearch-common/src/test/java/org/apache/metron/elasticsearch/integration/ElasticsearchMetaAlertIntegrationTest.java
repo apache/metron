@@ -36,37 +36,24 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.json.simple.parser.ParseException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao.METAALERTS_INDEX;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_DOC;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_FIELD;
-import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
+import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(Parameterized.class)
 public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
 
   private static IndexDao esDao;
@@ -77,10 +64,8 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   private static String POSTFIX= new SimpleDateFormat(DATE_FORMAT).format(new Date());
   private static final String INDEX_RAW = SENSOR_NAME + POSTFIX;
   protected static final String INDEX = INDEX_RAW + "_index";
-  protected List<String> queryIndices = null;
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
+  public static List<Object[]> data() {
     Function<List<String>, List<String>> asteriskTransform = x -> ImmutableList.of("*");
     Function<List<String>, List<String>> explicitTransform =
             allIndices -> allIndices.stream().map(x -> x.replace("_index", ""))
@@ -91,11 +76,6 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
             }
     );
   }
-
-  public ElasticsearchMetaAlertIntegrationTest(Function<List<String>, List<String>> queryIndices) {
-    this.queryIndices = queryIndices.apply(allIndices);
-  }
-
 
   /**
    {
@@ -124,7 +104,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
   @Multiline
   public static String template;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBefore() throws Exception {
     // Ensure ES can retry as needed.
     MAX_RETRIES = 10;
@@ -152,7 +132,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     es.start();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     es.createIndexWithMapping(METAALERTS_INDEX, METAALERT_DOC, template.replace("%MAPPING_NAME%", METAALERT_TYPE));
     es.createIndexWithMapping(INDEX, "test_doc", template.replace("%MAPPING_NAME%", "test"));
@@ -165,21 +145,25 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     metaDao = elasticsearchMetaDao;
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     if (es != null) {
       es.stop();
     }
   }
 
-  @After
+  @AfterEach
   public void reset() {
     es.reset();
   }
 
-  @Test
-  @Override
-  public void shouldSearchByNestedAlert() throws Exception {
+  public void shouldSearchByNestedAlert() {
+     // Do nothing. ES has multiple index patterns, so this will be ignored in favor of a parameterized test.
+  };
+
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldSearchByNestedAlert(Function<List<String>, List<String>> indexTransform) throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(4);
     alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
@@ -231,7 +215,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
       }
     });
     // Should not have results because nested alerts shouldn't be flattened
-    Assert.assertEquals(0, searchResponse.getTotal());
+    assertEquals(0, searchResponse.getTotal());
 
     // Query against all indices. Only the single active meta alert should be returned.
     // The child alerts should be hidden.
@@ -240,7 +224,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
         setQuery(
                 "(ip_src_addr:192.168.1.1 AND ip_src_port:8010)"
                         + " OR (metron_alert.ip_src_addr:192.168.1.1 AND metron_alert.ip_src_port:8010)");
-        setIndices(queryIndices);
+        setIndices(indexTransform.apply(allIndices));
         setFrom(0);
         setSize(5);
         setSort(Collections.singletonList(new SortField() {
@@ -252,9 +236,8 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     });
 
     // Nested query should match a nested alert
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("meta_active",
-            searchResponse.getResults().get(0).getSource().get("guid"));
+    assertEquals(1, searchResponse.getTotal());
+    assertEquals("meta_active", searchResponse.getResults().get(0).getSource().get("guid"));
 
     // Query against all indices. The child alert has no actual attached meta alerts, and should
     // be returned on its own.
@@ -275,9 +258,8 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     });
 
     // Nested query should match a plain alert
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("message_2",
-            searchResponse.getResults().get(0).getSource().get("guid"));
+    assertEquals(1, searchResponse.getTotal());
+    assertEquals("message_2", searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
   @Override

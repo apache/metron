@@ -20,27 +20,28 @@
 package org.apache.metron.profiler.client.stellar;
 
 import org.apache.commons.lang3.Range;
+import org.apache.metron.profiler.ProfilePeriod;
+import org.apache.metron.profiler.client.window.WindowProcessor;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.client.window.WindowProcessor;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class WindowLookbackTest {
 
   static FunctionResolver resolver;
   static Context context;
-  @BeforeClass
+  @BeforeAll
   public static void setup() {
     resolver = new SimpleFunctionResolver()
                     .withClass(GetProfile.class)
@@ -52,7 +53,7 @@ public class WindowLookbackTest {
   }
 
   @Test
-  public void testSpecifyingConfig() throws Exception {
+  public void testSpecifyingConfig() {
     //we should be able to specify the config and have it take hold.  If we change the
     //profile duration to 1 minute instead of 15 minutes (the default), then we should see
     //the correct number of profiles.
@@ -62,7 +63,7 @@ public class WindowLookbackTest {
     config.put(ProfilerClientConfig.PROFILER_PERIOD.getKey(), 1);
 
     State state = test("1 hour", new Date(), Optional.of(config), Assertions.NOT_EMPTY, Assertions.CONTIGUOUS);
-    Assert.assertEquals(TimeUnit.HOURS.toMillis(1) / durationMs, state.periods.size());
+    assertEquals(TimeUnit.HOURS.toMillis(1) / durationMs, state.periods.size());
   }
 
   @Test
@@ -75,41 +76,46 @@ public class WindowLookbackTest {
                                                                     , resolver
                                                                     , context
                                                                     );
-    Assert.assertEquals(TimeUnit.HOURS.toMillis(1) / getDurationMs(), periods.size());
+    assertEquals(TimeUnit.HOURS.toMillis(1) / getDurationMs(), periods.size());
   }
 
   @Test
-  public void testDenseLookback() throws Exception {
+  public void testDenseLookback() {
     State state = test("1 hour", Assertions.NOT_EMPTY, Assertions.CONTIGUOUS);
-    Assert.assertEquals(TimeUnit.HOURS.toMillis(1) / getDurationMs(), state.periods.size());
+    assertEquals(TimeUnit.HOURS.toMillis(1) / getDurationMs(), state.periods.size());
   }
 
   @Test
-  public void testShiftedDenseLookback() throws Exception {
+  public void testShiftedDenseLookback() {
     State state = test("from 2 hours ago to 30 minutes ago", Assertions.NOT_EMPTY
                                                            , Assertions.CONTIGUOUS
                                                            , Assertions.INTERVALS_CONTAIN_ALL_PERIODS
                                                            );
-    Assert.assertEquals(TimeUnit.MINUTES.toMillis(90) / getDurationMs(), state.periods.size());
+    assertEquals(TimeUnit.MINUTES.toMillis(90) / getDurationMs(), state.periods.size());
   }
 
   @Test
-  public void testShiftedSparseLookback() throws Exception {
+  public void testShiftedSparseLookback() {
     State state = test("30 minute window every 1 hour from 2 hours ago to 30 minutes ago", Assertions.NOT_EMPTY
                                                                                          , Assertions.DISCONTIGUOUS
                                                                                          , Assertions.INTERVALS_CONTAIN_ALL_PERIODS
                                                                                          );
-    Assert.assertEquals(TimeUnit.MINUTES.toMillis(60) / getDurationMs(), state.periods.size());
+    assertEquals(TimeUnit.MINUTES.toMillis(60) / getDurationMs(), state.periods.size());
   }
 
   @Test
-  public void testEmptyDueToExclusions() throws Exception {
+  public void testEmptyDueToExclusions() {
     test("30 minute window every 24 hours from 7 days ago including saturdays excluding weekends", Assertions.EMPTY);
   }
 
-  @Test(expected= ParseException.class)
-  public void testErrorInSelector() throws Exception {
-    test("30 minute idow every 24 hours from 7 days ago including saturdays excluding weekends", Assertions.EMPTY);
+  @Test
+  public void testErrorInSelector() {
+    assertThrows(
+        ParseException.class,
+        () ->
+            test(
+                "30 minute idow every 24 hours from 7 days ago including saturdays excluding weekends",
+                Assertions.EMPTY));
   }
 
   long getDurationMs() {
@@ -141,7 +147,7 @@ public class WindowLookbackTest {
                                                                     );
     State state = new State(windowIntervals, periods);
     for(Assertions assertion : assertions) {
-      Assert.assertTrue(assertion.name(), assertion.test(state));
+      assertTrue(assertion.test(state), assertion.name());
     }
     return state;
   }

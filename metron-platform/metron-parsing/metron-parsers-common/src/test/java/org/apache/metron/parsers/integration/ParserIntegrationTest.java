@@ -17,12 +17,6 @@
  */
 package org.apache.metron.parsers.integration;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
 import org.apache.metron.TestConstants;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ProcessorResult;
@@ -30,7 +24,15 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.validation.ParserDriver;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
-import org.junit.Assert;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {
   // Contains the list of sensor types to be tested.
@@ -84,13 +86,13 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
       result.getBadResults(buffer);
       buffer.append(String.format("%d Valid Messages Processed", outputMessages.size())).append("\n");
       dumpParsedMessages(outputMessages,buffer);
-      Assert.fail(buffer.toString());
+      fail(buffer.toString());
     } else {
       List<ParserValidation> validations = getValidations();
       if (validations == null || validations.isEmpty()) {
         buffer.append("No validations configured for sensorType ").append(sensorType).append(".  Dumping parsed messages").append("\n");
         dumpParsedMessages(outputMessages,buffer);
-        Assert.fail(buffer.toString());
+        fail(buffer.toString());
       } else {
         for (ParserValidation validation : validations) {
           System.out.println("Running " + validation.getName() + " on sensorType " + sensorType);

@@ -34,26 +34,19 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SuppressWarnings("ALL")
 public class SensorEnrichmentConfigServiceImplTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   ObjectMapper objectMapper;
   CuratorFramework curatorFramework;
   SensorEnrichmentConfigService sensorEnrichmentConfigService;
@@ -81,8 +74,8 @@ public class SensorEnrichmentConfigServiceImplTest {
   ConfigurationsCache cache;
   private HBaseClient hBaseClient;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
     cache = mock(ConfigurationsCache.class);
@@ -103,14 +96,12 @@ public class SensorEnrichmentConfigServiceImplTest {
 
   @Test
   public void deleteShouldProperlyCatchNonNoNodeExceptionAndThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-
     DeleteBuilder builder = mock(DeleteBuilder.class);
 
     when(curatorFramework.delete()).thenReturn(builder);
     when(builder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro")).thenThrow(Exception.class);
 
-    assertFalse(sensorEnrichmentConfigService.delete("bro"));
+    assertThrows(RestException.class, () -> sensorEnrichmentConfigService.delete("bro"));
   }
 
   @Test
@@ -118,7 +109,7 @@ public class SensorEnrichmentConfigServiceImplTest {
     DeleteBuilder builder = mock(DeleteBuilder.class);
 
     when(curatorFramework.delete()).thenReturn(builder);
-    when(builder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro")).thenReturn(null);
+    doNothing().when(builder).forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro");
 
     assertTrue(sensorEnrichmentConfigService.delete("bro"));
 
@@ -158,7 +149,7 @@ public class SensorEnrichmentConfigServiceImplTest {
     when(cache.get(eq(EnrichmentConfigurations.class)))
             .thenReturn(configs);
 
-    assertEquals(new ArrayList() {{
+    assertEquals(new ArrayList<String>() {{
       add("bro");
       add("squid");
     }}, sensorEnrichmentConfigService.getAllTypes());
@@ -178,20 +169,18 @@ public class SensorEnrichmentConfigServiceImplTest {
     when(cache.get( eq(EnrichmentConfigurations.class)))
             .thenReturn(configs);
 
-    assertEquals(new HashMap() {{ put("bro", sensorEnrichmentConfig);}}, sensorEnrichmentConfigService.getAll());
+    assertEquals(Collections.singletonMap("bro", sensorEnrichmentConfig), sensorEnrichmentConfigService.getAll());
   }
 
   @Test
   public void saveShouldWrapExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
     when(setDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro", broJson.getBytes(
         StandardCharsets.UTF_8))).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
-    sensorEnrichmentConfigService.save("bro", new SensorEnrichmentConfig());
+    assertThrows(RestException.class, () -> sensorEnrichmentConfigService.save("bro", new SensorEnrichmentConfig()));
   }
 
   @Test
@@ -225,7 +214,7 @@ public class SensorEnrichmentConfigServiceImplTest {
   }
 
   @Test
-  public void getAvailableThreatTriageAggregatorsShouldReturnAggregators() throws Exception {
+  public void getAvailableThreatTriageAggregatorsShouldReturnAggregators() {
     assertEquals(new ArrayList<String>() {{
       add("MAX");
       add("MIN");
@@ -238,11 +227,11 @@ public class SensorEnrichmentConfigServiceImplTest {
   private SensorEnrichmentConfig getTestSensorEnrichmentConfig() {
     SensorEnrichmentConfig sensorEnrichmentConfig = new SensorEnrichmentConfig();
     EnrichmentConfig enrichmentConfig = new EnrichmentConfig();
-    enrichmentConfig.setFieldMap(new HashMap() {{ put("geo", Arrays.asList("ip_dst_addr")); }});
+    enrichmentConfig.setFieldMap(Collections.singletonMap("geo", Collections.singletonList("ip_dst_addr")));
     sensorEnrichmentConfig.setEnrichment(enrichmentConfig);
     ThreatIntelConfig threatIntelConfig = new ThreatIntelConfig();
-    threatIntelConfig.setFieldMap(new HashMap() {{ put("hbaseThreatIntel", Arrays.asList("ip_src_addr")); }});
-    threatIntelConfig.setFieldToTypeMap(new HashMap() {{ put("ip_src_addr", Arrays.asList("malicious_ip")); }});
+    threatIntelConfig.setFieldMap(Collections.singletonMap("hbaseThreatIntel", Collections.singletonList("ip_src_addr")));
+    threatIntelConfig.setFieldToTypeMap(Collections.singletonMap("ip_src_addr", Collections.singletonList("malicious_ip")));
     sensorEnrichmentConfig.setThreatIntel(threatIntelConfig);
     return sensorEnrichmentConfig;
   }

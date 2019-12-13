@@ -18,13 +18,14 @@
 package org.apache.metron.performance.load;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SendToKafkaTest {
 
@@ -36,14 +37,14 @@ public class SendToKafkaTest {
     SendToKafka sender = new SendToKafka(null, expectedSent, 10, () -> "msg", executor, numSent, ThreadLocal.withInitial(() -> null) ) {
       @Override
       protected Future<?> sendToKafka(KafkaProducer producer, String kafkaTopic, String message) {
-        Assert.assertEquals(message, "msg");
+        assertEquals(message, "msg");
         return ForkJoinPool.commonPool().submit(() -> {
           numSent.incrementAndGet();
         });
       }
     };
     sender.run();
-    Assert.assertEquals(numSent.get(), expectedSent);
+    assertEquals(numSent.get(), expectedSent);
   }
 
 }

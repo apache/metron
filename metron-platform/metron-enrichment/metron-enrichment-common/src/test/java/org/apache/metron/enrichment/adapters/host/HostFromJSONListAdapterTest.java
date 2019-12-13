@@ -22,9 +22,10 @@ import org.apache.metron.enrichment.cache.CacheKey;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HostFromJSONListAdapterTest {
 
@@ -55,37 +56,37 @@ public class HostFromJSONListAdapterTest {
   private String ip1 = "10.0.22.22";
 
 
-  @Before
+  @BeforeEach
   public void parseJSON() throws ParseException {
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
   }
 
   @Test
-  public void testEnrich() throws Exception {
+  public void testEnrich() {
     HostFromJSONListAdapter hja = new HostFromJSONListAdapter(expectedKnownHostsString);
     JSONObject actualMessage = hja.enrich(new CacheKey("dummy", ip, null));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(expectedMessage, actualMessage);
+    assertNotNull(actualMessage);
+    assertEquals(expectedMessage, actualMessage);
     actualMessage = hja.enrich(new CacheKey("dummy", ip1, null));
     JSONObject emptyJson = new JSONObject();
-    Assert.assertEquals(emptyJson, actualMessage);
+    assertEquals(emptyJson, actualMessage);
   }
 
   @Test
-  public void testEnrichNonString() throws Exception {
+  public void testEnrichNonString() {
     HostFromJSONListAdapter hja = new HostFromJSONListAdapter(expectedKnownHostsString);
     JSONObject actualMessage = hja.enrich(new CacheKey("dummy", ip, null));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(expectedMessage, actualMessage);
+    assertNotNull(actualMessage);
+    assertEquals(expectedMessage, actualMessage);
     actualMessage = hja.enrich(new CacheKey("dummy", 10L, null));
     JSONObject emptyJson = new JSONObject();
-    Assert.assertEquals(emptyJson, actualMessage);
+    assertEquals(emptyJson, actualMessage);
   }
   @Test
-  public void testInitializeAdapter() throws Exception {
+  public void testInitializeAdapter() {
     HostFromJSONListAdapter hja = new HostFromJSONListAdapter(expectedKnownHostsString);
-    Assert.assertTrue(hja.initializeAdapter(null));
+    assertTrue(hja.initializeAdapter(null));
   }
 
 }

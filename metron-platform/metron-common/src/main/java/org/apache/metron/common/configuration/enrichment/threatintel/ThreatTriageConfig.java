@@ -20,8 +20,6 @@ package org.apache.metron.common.configuration.enrichment.threatintel;
 
 import com.google.common.base.Joiner;
 import org.apache.metron.common.aggregator.Aggregators;
-import org.apache.metron.stellar.common.StellarPredicateProcessor;
-import org.apache.metron.stellar.common.StellarProcessor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,8 +47,6 @@ public class ThreatTriageConfig {
   public void setRiskLevelRules(List<RiskLevelRule> riskLevelRules) {
     List<RiskLevelRule> rules = new ArrayList<>();
     Set<String> ruleIndex = new HashSet<>();
-    StellarPredicateProcessor predicateProcessor = new StellarPredicateProcessor();
-    StellarProcessor processor = new StellarProcessor();
 
     for(RiskLevelRule rule : riskLevelRules) {
       if(rule.getRule() == null || rule.getScoreExpression() == null) {
@@ -58,17 +54,9 @@ public class ThreatTriageConfig {
       }
       if(ruleIndex.contains(rule.getRule())) {
         continue;
-      }
-      else {
+      } else {
         ruleIndex.add(rule.getRule());
       }
-
-      // validate the fields which are expected to be valid Stellar expressions
-      predicateProcessor.validate(rule.getRule());
-      if(rule.getReason() != null) {
-        processor.validate(rule.getReason());
-      }
-
       rules.add(rule);
     }
     this.riskLevelRules = rules;

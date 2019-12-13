@@ -18,9 +18,9 @@
 package org.apache.metron.stellar.common;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.stellar.common.StellarAssignment;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StellarAssignmentTest {
 
@@ -33,10 +33,10 @@ public class StellarAssignmentTest {
        )
     {
       StellarAssignment assignment = StellarAssignment.from(statement);
-      Assert.assertEquals("foo", assignment.getKey());
-      Assert.assertEquals("foo", assignment.getVariable());
-      Assert.assertEquals("bar + grok", assignment.getStatement());
-      Assert.assertEquals("bar + grok", assignment.getValue());
+      assertEquals("foo", assignment.getKey());
+      assertEquals("foo", assignment.getVariable());
+      assertEquals("bar + grok", assignment.getStatement());
+      assertEquals("bar + grok", assignment.getValue());
     }
   }
 
@@ -49,16 +49,16 @@ public class StellarAssignmentTest {
             )
     {
       StellarAssignment assignment = StellarAssignment.from(statement);
-      Assert.assertNull( assignment.getKey());
-      Assert.assertNull( assignment.getVariable());
-      Assert.assertEquals("bar + grok", assignment.getStatement());
-      Assert.assertEquals("bar + grok", assignment.getValue());
+      assertNull( assignment.getKey());
+      assertNull( assignment.getVariable());
+      assertEquals("bar + grok", assignment.getStatement());
+      assertEquals("bar + grok", assignment.getValue());
     }
   }
 
-  @Test(expected=UnsupportedOperationException.class)
+  @Test
   public void testImmutability() {
     StellarAssignment assignment = StellarAssignment.from("foo := bar");
-    assignment.setValue("myval");
+    assertThrows(UnsupportedOperationException.class, () -> assignment.setValue("myval"));
   }
 }

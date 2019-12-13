@@ -17,6 +17,22 @@
  */
 package org.apache.metron.rest.config;
 
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -25,25 +41,6 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.apache.commons.io.FileUtils;
-import org.apache.metron.rest.security.SecurityUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.ldap.core.AttributesMapper;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.query.LdapQuery;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -52,40 +49,28 @@ import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.Test;
+import org.springframework.ldap.core.AttributesMapper;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.query.LdapQuery;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({KnoxSSOAuthenticationFilter.class, SignedJWT.class, SecurityContextHolder.class, SecurityUtils.class, RSASSAVerifier.class})
 public class KnoxSSOAuthenticationFilterTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Test
   public void shouldThrowExceptionOnMissingLdapTemplate() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("KnoxSSO requires LDAP. You must add 'ldap' to the active profiles.");
-
-    new KnoxSSOAuthenticationFilter("userSearchBase",
-            mock(Path.class),
-            "knoxKeyString",
-            "knoxCookie",
-            null
-            );
+    IllegalStateException e =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                new KnoxSSOAuthenticationFilter(
+                    "userSearchBase", mock(Path.class), "knoxKeyString", "knoxCookie", null));
+    assertEquals("KnoxSSO requires LDAP. You must add 'ldap' to the active profiles.", e.getMessage());
   }
 
   @Test
@@ -100,19 +85,17 @@ public class KnoxSSOAuthenticationFilterTest {
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
     SignedJWT signedJWT = mock(SignedJWT.class);
-    mockStatic(SignedJWT.class);
     JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder().subject("userName").build();
     Authentication authentication = mock(Authentication.class);
     SecurityContext securityContext = mock(SecurityContext.class);
-    mockStatic(SecurityContextHolder.class);
 
     when(request.getHeader("Authorization")).thenReturn(null);
     doReturn("serializedJWT").when(knoxSSOAuthenticationFilter).getJWTFromCookie(request);
-    when(SignedJWT.parse("serializedJWT")).thenReturn(signedJWT);
+    doReturn(signedJWT).when(knoxSSOAuthenticationFilter).parseJWT(any());
     when(signedJWT.getJWTClaimsSet()).thenReturn(jwtClaimsSet);
     doReturn(true).when(knoxSSOAuthenticationFilter).isValid(signedJWT, "userName");
     doReturn(authentication).when(knoxSSOAuthenticationFilter).getAuthentication("userName", request);
-    when(SecurityContextHolder.getContext()).thenReturn(securityContext);
+    doReturn(securityContext).when(knoxSSOAuthenticationFilter).getSecurityContext();
 
     knoxSSOAuthenticationFilter.doFilter(request, response, chain);
 
@@ -153,12 +136,10 @@ public class KnoxSSOAuthenticationFilterTest {
     HttpServletRequest request = mock(HttpServletRequest.class);
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
-    SignedJWT signedJWT = mock(SignedJWT.class);
-    mockStatic(SignedJWT.class);
 
     when(request.getHeader("Authorization")).thenReturn(null);
     doReturn("serializedJWT").when(knoxSSOAuthenticationFilter).getJWTFromCookie(request);
-    when(SignedJWT.parse("serializedJWT")).thenThrow(new ParseException("parse exception", 0));
+    doThrow(new ParseException("parse exception", 0)).when(knoxSSOAuthenticationFilter).parseJWT(any());
 
     knoxSSOAuthenticationFilter.doFilter(request, response, chain);
 
@@ -179,12 +160,11 @@ public class KnoxSSOAuthenticationFilterTest {
     ServletResponse response = mock(ServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
     SignedJWT signedJWT = mock(SignedJWT.class);
-    mockStatic(SignedJWT.class);
     JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder().subject("userName").build();
 
     when(request.getHeader("Authorization")).thenReturn(null);
     doReturn("serializedJWT").when(knoxSSOAuthenticationFilter).getJWTFromCookie(request);
-    when(SignedJWT.parse("serializedJWT")).thenReturn(signedJWT);
+    doReturn(signedJWT).when(knoxSSOAuthenticationFilter).parseJWT(any());
     when(signedJWT.getJWTClaimsSet()).thenReturn(jwtClaimsSet);
     doReturn(false).when(knoxSSOAuthenticationFilter).isValid(signedJWT, "userName");
 
@@ -281,9 +261,7 @@ public class KnoxSSOAuthenticationFilterTest {
       when(jwtToken.getSignature()).thenReturn(signature);
       RSAPublicKey rsaPublicKey = mock(RSAPublicKey.class);
       RSASSAVerifier rsaSSAVerifier = mock(RSASSAVerifier.class);
-      mockStatic(SecurityUtils.class);
-      when(SecurityUtils.parseRSAPublicKey("knoxKeyString")).thenReturn(rsaPublicKey);
-      whenNew(RSASSAVerifier.class).withArguments(rsaPublicKey).thenReturn(rsaSSAVerifier);
+      doReturn(rsaSSAVerifier).when(knoxSSOAuthenticationFilter).getRSASSAVerifier();
       {
         // Should be invalid if token verify throws an exception
         when(jwtToken.verify(rsaSSAVerifier)).thenThrow(new JOSEException("verify exception"));
@@ -365,7 +343,7 @@ public class KnoxSSOAuthenticationFilterTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void getAuthenticationShouldProperlyPopulateAuthentication() throws Exception {
+  public void getAuthenticationShouldProperlyPopulateAuthentication() {
     LdapTemplate ldapTemplate = mock(LdapTemplate.class);
     KnoxSSOAuthenticationFilter knoxSSOAuthenticationFilter = spy(new KnoxSSOAuthenticationFilter("ou=people,dc=hadoop,dc=apache,dc=org",
             mock(Path.class),

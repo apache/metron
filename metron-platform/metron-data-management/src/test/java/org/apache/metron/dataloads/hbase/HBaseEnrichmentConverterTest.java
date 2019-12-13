@@ -21,16 +21,18 @@ package org.apache.metron.dataloads.hbase;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.enrichment.converter.HbaseConverter;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class HBaseEnrichmentConverterTest {
@@ -60,7 +62,7 @@ public class HBaseEnrichmentConverterTest {
     @Test
     public void testKeySerializationRemainsConstant() {
         byte[] raw = key.toBytes();
-        Assert.assertArrayEquals(raw, keyBytes);
+        assertArrayEquals(raw, keyBytes);
     }
     @Test
     public void testKeySerialization() {
@@ -68,7 +70,7 @@ public class HBaseEnrichmentConverterTest {
 
         EnrichmentKey deserialized = new EnrichmentKey();
         deserialized.fromBytes(serialized);
-        Assert.assertEquals(key, deserialized);
+        assertEquals(key, deserialized);
     }
 
     @Test
@@ -76,20 +78,20 @@ public class HBaseEnrichmentConverterTest {
         HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Put put = converter.toPut("cf", key, value);
         LookupKV<EnrichmentKey, EnrichmentValue> converted= converter.fromPut(put, "cf");
-        Assert.assertEquals(results, converted);
+        assertEquals(results, converted);
     }
     @Test
     public void testResult() throws IOException {
         HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Result r = converter.toResult("cf", key, value);
         LookupKV<EnrichmentKey, EnrichmentValue> converted= converter.fromResult(r, "cf");
-        Assert.assertEquals(results, converted);
+        assertEquals(results, converted);
     }
 
     @Test
-    public void testGet() throws Exception {
+    public void testGet() {
         HbaseConverter<EnrichmentKey, EnrichmentValue> converter = new EnrichmentConverter();
         Get get = converter.toGet("cf", key);
-        Assert.assertArrayEquals(key.toBytes(), get.getRow());
+        assertArrayEquals(key.toBytes(), get.getRow());
     }
 }

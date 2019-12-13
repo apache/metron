@@ -69,7 +69,8 @@ public class DockerStormCLIWrapper extends StormCLIWrapper {
     }
   }
 
-  private ProcessBuilder getDockerEnvironmentProcessBuilder() {
+  // Exposed for testing
+  protected ProcessBuilder getDockerEnvironmentProcessBuilder() {
     String[] command = {"docker-machine", "env", "metron-machine"};
     return new ProcessBuilder(command);
   }

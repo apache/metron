@@ -19,21 +19,16 @@
 package org.apache.metron.spout.pcap.deserializer;
 
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FromKeyDeserializerTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Test
   public void empty_or_null_key_throws_illegal_argument_exception() {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("Expected a key but none provided");
-
     FromKeyDeserializer deserializer = new FromKeyDeserializer(TimestampConverters.NANOSECONDS);
-    deserializer.deserializeKeyValue(null, null);
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> deserializer.deserializeKeyValue(null, null));
+    assertEquals("Expected a key but none provided", e.getMessage());
   }
 }

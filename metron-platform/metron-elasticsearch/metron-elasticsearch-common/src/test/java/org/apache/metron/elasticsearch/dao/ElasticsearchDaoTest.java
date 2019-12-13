@@ -17,28 +17,10 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.metron.elasticsearch.client.ElasticsearchClient;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.SortField;
-import org.apache.metron.indexing.dao.search.SortOrder;
+import org.apache.metron.indexing.dao.search.*;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.rest.RestStatus;
@@ -47,8 +29,16 @@ import org.elasticsearch.search.SearchHits;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class ElasticsearchDaoTest {
 
@@ -234,7 +224,7 @@ public class ElasticsearchDaoTest {
   }
 
 
-  @Test(expected = InvalidSearchException.class)
+  @Test
   public void searchShouldThrowExceptionWhenMaxResultsAreExceeded() throws Exception {
 
     int maxSearchResults = 20;
@@ -243,7 +233,7 @@ public class ElasticsearchDaoTest {
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setSize(maxSearchResults + 1);
     searchRequest.setQuery("");
-    dao.search(searchRequest);
+    assertThrows(InvalidSearchException.class, () -> dao.search(searchRequest));
     // exception expected - size > max
   }
 

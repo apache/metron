@@ -17,7 +17,10 @@
  */
 package org.apache.metron.test.utils;
 
-import static java.lang.String.format;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,11 +32,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
 import java.util.Stack;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.junit.Assert;
+
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class UnitTestHelper {
   public static String findDir(String name) {
@@ -73,7 +74,7 @@ public class UnitTestHelper {
         System.out.println("Expected " + type + " that I did not index: " + expectedId);
       }
     }
-    Assert.assertFalse(mismatch);
+    assertFalse(mismatch);
   }
 
   public static void verboseLogging() {
@@ -106,7 +107,6 @@ public class UnitTestHelper {
 
   /**
    * Root logger.
-   * @param level level for root logger
    */
   public static Level getLog4jLevel() {
     Logger rootLogger = Logger.getRootLogger();

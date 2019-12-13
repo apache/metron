@@ -19,35 +19,30 @@
 package org.apache.metron.stellar.common.evaluators;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.metron.stellar.common.generated.StellarParser;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Token;
-import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ALL")
 public class ComparisonOperatorsEvaluatorTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   ComparisonExpressionEvaluator evaluator;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     evaluator = new ComparisonOperatorsEvaluator();
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void nonSupportedOperatorThrowsExceptionNonNumbericComparable() throws Exception {
+  public void nonSupportedOperatorThrowsExceptionNonNumbericComparable() {
     Token<String> left = mock(Token.class);
     when(left.getValue()).thenReturn("b");
 
@@ -56,15 +51,13 @@ public class ComparisonOperatorsEvaluatorTest {
 
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
 
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operator: " + op);
-
-    evaluator.evaluate(left, right, op);
+    ParseException e = assertThrows(ParseException.class, () -> evaluator.evaluate(left, right, op));
+    assertTrue(e.getMessage().contains("Unsupported operator: "));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void nonSupportedOperatorThrowsExceptionNumbericComparison() throws Exception {
+  public void nonSupportedOperatorThrowsExceptionNumbericComparison() {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
 
@@ -73,15 +66,13 @@ public class ComparisonOperatorsEvaluatorTest {
 
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
 
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operator: " + op);
-
-    evaluator.evaluate(left, right, op);
+    ParseException e = assertThrows(ParseException.class, () -> evaluator.evaluate(left, right, op));
+    assertTrue(e.getMessage().contains("Unsupported operator: "));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void leftIsNullThenThrowException() throws Exception {
+  public void leftIsNullThenThrowException() {
     Token<Long> left = mock(Token.class);
     Token<Long> right = mock(Token.class);
     when(right.getValue()).thenReturn(1L);
@@ -94,7 +85,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rightIsNullThenReturnFalse() throws Exception {
+  public void rightIsNullThenReturnFalse() {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
     Token<Long> right = mock(Token.class);
@@ -107,7 +98,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void rightAndLeftIsNullThenReturnFalse() throws Exception {
+  public void rightAndLeftIsNullThenReturnFalse() {
     Token<Long> left = mock(Token.class);
     Token<Long> right = mock(Token.class);
 
@@ -119,10 +110,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void throwParseExceptionWhenTryingToCompareNonComparable() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operations. The following expression is invalid: ");
-
+  public void throwParseExceptionWhenTryingToCompareNonComparable() {
     Token<Serializable> left = mock(Token.class);
     when(left.getValue()).thenReturn(mock(Serializable.class));
 
@@ -132,12 +120,13 @@ public class ComparisonOperatorsEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.LT()).thenReturn(mock(TerminalNode.class));
 
-    evaluator.evaluate(left, right, op);
+    ParseException e = assertThrows(ParseException.class, () -> evaluator.evaluate(left, right, op));
+    assertTrue(e.getMessage().contains("Unsupported operations. The following expression is invalid: "));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsProperlyWorkForLongs() throws Exception {
+  public void makeSureAllOperatorsProperlyWorkForLongs() {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(0L);
 
@@ -168,7 +157,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsProperlyWorkForDoubles() throws Exception {
+  public void makeSureAllOperatorsProperlyWorkForDoubles() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(0D);
 
@@ -199,7 +188,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsProperlyWorkForFloats() throws Exception {
+  public void makeSureAllOperatorsProperlyWorkForFloats() {
     Token<Float> left = mock(Token.class);
     when(left.getValue()).thenReturn(0F);
 
@@ -230,7 +219,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsProperlyWorkForInts() throws Exception {
+  public void makeSureAllOperatorsProperlyWorkForInts() {
     Token<Integer> left = mock(Token.class);
     when(left.getValue()).thenReturn(0);
 
@@ -261,7 +250,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsWorkForMixedTypesDoublesLong() throws Exception {
+  public void makeSureAllOperatorsWorkForMixedTypesDoublesLong() {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
 
@@ -292,7 +281,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsWorkForMixedTypesDoublesFloat() throws Exception {
+  public void makeSureAllOperatorsWorkForMixedTypesDoublesFloat() {
     final double leftValue = 1.0000001D;
     final float rightValue = 1.0000001F;
 
@@ -326,7 +315,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsWorkForMixedTypesFloatIntegers() throws Exception {
+  public void makeSureAllOperatorsWorkForMixedTypesFloatIntegers() {
     final int leftValue = 1;
     final float rightValue = 1.0000001F;
 
@@ -360,7 +349,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsWorkForMixedTypesFloatIntegers2() throws Exception {
+  public void makeSureAllOperatorsWorkForMixedTypesFloatIntegers2() {
     final int leftValue = 1;
     final float rightValue = 1.00000001F;
 
@@ -394,7 +383,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsWorkForMixedTypesLongIntegers() throws Exception {
+  public void makeSureAllOperatorsWorkForMixedTypesLongIntegers() {
     final int leftValue = 1;
     final long rightValue = 3L;
 
@@ -428,7 +417,7 @@ public class ComparisonOperatorsEvaluatorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void makeSureAllOperatorsWorkForNonIntegerComparableTypes() throws Exception {
+  public void makeSureAllOperatorsWorkForNonIntegerComparableTypes() {
     final String leftValue = "a";
     final String rightValue = "b";
 

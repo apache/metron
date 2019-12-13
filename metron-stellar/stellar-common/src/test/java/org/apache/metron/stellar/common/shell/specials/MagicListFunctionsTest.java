@@ -24,24 +24,22 @@ import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.functions.StringFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MagicListFunctionsTest {
 
   MagicListFunctions magic;
   DefaultStellarShellExecutor executor;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     // setup the %magic
@@ -73,7 +71,7 @@ public class MagicListFunctionsTest {
             "    %functions    FOO "
     );
     for(String in : inputs) {
-      assertTrue("failed: " + in, magic.getMatcher().apply(in));
+      assertTrue(magic.getMatcher().apply(in), "failed: " + in);
     }
   }
 
@@ -86,7 +84,7 @@ public class MagicListFunctionsTest {
             "%define"
     );
     for(String in : inputs) {
-      assertFalse("failed: " + in, magic.getMatcher().apply(in));
+      assertFalse(magic.getMatcher().apply(in), "failed: " + in);
     }
   }
 

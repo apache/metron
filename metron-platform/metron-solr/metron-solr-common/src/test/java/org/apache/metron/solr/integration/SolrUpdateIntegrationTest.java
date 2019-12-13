@@ -30,39 +30,29 @@ import org.apache.metron.solr.client.SolrClientFactory;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.common.SolrException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.*;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.apache.metron.solr.SolrConstants.SOLR_ZOOKEEPER;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   private static SolrComponent solrComponent;
 
   private static final String TABLE_NAME = "modifications";
   private static final String CF = "p";
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBeforeClass() throws Exception {
     solrComponent = new SolrComponent.Builder().build();
     solrComponent.start();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     solrComponent.addCollection(SENSOR_NAME, "./src/test/resources/config/test/conf");
     solrComponent.addCollection("error", "./src/main/config/schema/error");
@@ -86,12 +76,12 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     setDao(dao);
   }
 
-  @After
+  @AfterEach
   public void reset() {
     solrComponent.reset();
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     SolrClientFactory.close();
     solrComponent.stop();
@@ -155,7 +145,6 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
     // Ensure that the huge string is returned when not a string field
     Document latest = getDao().getLatest("error_guid", "error");
-    @SuppressWarnings("unchecked")
     String actual = (String) latest.getDocument().get("raw_message");
     assertEquals(actual, hugeString);
     String actualTwo = (String) latest.getDocument().get("raw_message_1");
@@ -163,11 +152,9 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
     // Validate that error occurs for string fields.
     documentMap.put("error_hash", hugeString);
-    errorDoc = new Document(documentMap, "error", "error", 0L);
+    Document errorDoc2= new Document(documentMap, "error", "error", 0L);
 
-    exception.expect(SolrException.class);
-    exception.expectMessage("Document contains at least one immense term in field=\"error_hash\"");
-
-    getDao().update(errorDoc, Optional.of("error"));
+    SolrException e = assertThrows(SolrException.class, () -> getDao().update(errorDoc2, Optional.of("error")));
+    assertTrue(e.getMessage().contains("Document contains at least one immense term in field=\"error_hash\""));
   }
 }

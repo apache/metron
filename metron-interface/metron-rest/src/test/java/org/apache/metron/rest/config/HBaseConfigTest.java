@@ -17,41 +17,31 @@
  */
 package org.apache.metron.rest.config;
 
-import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_CF;
-import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_TABLE;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-
-import java.util.HashMap;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.rest.service.GlobalConfigService;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({HTableProvider.class, HBaseConfiguration.class, HBaseConfig.class})
+import java.util.HashMap;
+
+import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_CF;
+import static org.apache.metron.rest.user.UserSettingsClient.USER_SETTINGS_HBASE_TABLE;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
+
 public class HBaseConfigTest {
 
   private GlobalConfigService globalConfigService;
   private HBaseConfig hBaseConfig;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     globalConfigService = mock(GlobalConfigService.class);
-    hBaseConfig = new HBaseConfig(globalConfigService);
-    mockStatic(HBaseConfiguration.class);
+    hBaseConfig = mock(HBaseConfig.class,
+            withSettings().useConstructor(globalConfigService).defaultAnswer(CALLS_REAL_METHODS));
   }
 
   @Test
@@ -61,13 +51,11 @@ public class HBaseConfigTest {
       put(USER_SETTINGS_HBASE_CF, "global_config_user_settings_cf");
     }});
     HTableProvider htableProvider = mock(HTableProvider.class);
-    whenNew(HTableProvider.class).withNoArguments().thenReturn(htableProvider);
-    Configuration configuration = mock(Configuration.class);
-    when(HBaseConfiguration.create()).thenReturn(configuration);
 
+    doReturn(htableProvider).when(hBaseConfig).getTableProvider();
     hBaseConfig.userSettingsClient();
-    verify(htableProvider).getTable(configuration, "global_config_user_settings_table");
-    verifyZeroInteractions(htableProvider);
+    verify(htableProvider).getTable(any(Configuration.class), eq("global_config_user_settings_table"));
+    verifyNoMoreInteractions(htableProvider);
   }
 
   @Test
@@ -76,7 +64,7 @@ public class HBaseConfigTest {
       put(EnrichmentConfigurations.TABLE_PROVIDER, MockHBaseTableProvider.class.getName());
       put(EnrichmentConfigurations.TABLE_NAME, "enrichment_list_hbase_table_name");
     }});
-    Assert.assertNotNull(hBaseConfig.hBaseClient());
+    assertNotNull(hBaseConfig.hBaseClient());
   }
 
 }

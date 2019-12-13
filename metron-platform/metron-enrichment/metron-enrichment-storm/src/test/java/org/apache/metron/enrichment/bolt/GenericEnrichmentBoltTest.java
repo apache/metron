@@ -18,14 +18,15 @@
 package org.apache.metron.enrichment.bolt;
 
 import static org.apache.metron.common.Constants.STELLAR_CONTEXT_CONF;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
@@ -48,12 +49,11 @@ import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.tuple.Values;
-import org.hamcrest.Description;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -63,7 +63,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
   private static final String sampleConfigPath = "../" + TestConstants.SAMPLE_CONFIG_PATH;
   private static final String enrichmentConfigPath = "../" + sampleSensorEnrichmentConfigPath;
 
-  protected class EnrichedMessageMatcher extends ArgumentMatcher<Values> {
+  protected class EnrichedMessageMatcher implements ArgumentMatcher<Values> {
 
     private String expectedKey;
     private JSONObject expectedMessage;
@@ -74,8 +74,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     }
 
     @Override
-    public boolean matches(Object o) {
-      Values values = (Values) o;
+    public boolean matches(Values values) {
       String actualKey = (String) values.get(0);
       JSONObject actualMessage = (JSONObject) values.get(1);
       removeTimingFields(actualMessage);
@@ -83,8 +82,8 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     }
 
     @Override
-    public void describeTo(Description description) {
-      description.appendText(String.format("[%s]", expectedMessage));
+    public String toString() {
+      return String.format("[%s]", expectedMessage);
     }
 
   }
@@ -130,7 +129,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
   private JSONObject enrichedField2;
   private JSONObject enrichedMessage;
 
-  @Before
+  @BeforeEach
   public void parseMessages() throws ParseException {
     JSONParser parser = new JSONParser();
     originalMessage = (JSONObject) parser.parse(originalMessageString);
@@ -143,7 +142,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
   public EnrichmentAdapter<CacheKey> enrichmentAdapter;
 
   @Override
-  @Before
+  @BeforeEach
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
   }
@@ -173,30 +172,22 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
     globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     genericEnrichmentBolt.getConfigurations().updateGlobalConfig(globalConfig);
 
-    try {
-      genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      fail("Should fail if a maxCacheSize property is not set");
-    } catch(IllegalStateException e) {}
+    assertThrows(IllegalStateException.class, () -> genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector),
+        "Should fail if a maxCacheSize property is not set");
     genericEnrichmentBolt.withMaxCacheSize(100);
-    try {
-      genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      fail("Should fail if a maxTimeRetain property is not set");
-    } catch(IllegalStateException e) {}
+    assertThrows(IllegalStateException.class, () -> genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector),
+      "Should fail if a maxTimeRetain property is not set");
     genericEnrichmentBolt.withMaxTimeRetain(10000);
-    try {
-      genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      fail("Should fail if an adapter is not set");
-    } catch(IllegalStateException e) {}
+    assertThrows(IllegalStateException.class, () -> genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector),
+      "Should fail if an adapter is not set");
     genericEnrichmentBolt.withEnrichment(testEnrichment);
     when(enrichmentAdapter.initializeAdapter(globalConfig)).thenReturn(true);
     genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(enrichmentAdapter, times(1)).initializeAdapter(globalConfig);
     when(enrichmentAdapter.initializeAdapter(globalConfig)).thenReturn(false);
     UnitTestHelper.setLog4jLevel(GenericEnrichmentBolt.class, Level.FATAL);
-    try {
-      genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector);
-      fail("An exception should be thrown if enrichment adapter initialization fails");
-    } catch(IllegalStateException e) {}
+    assertThrows(IllegalStateException.class, () -> genericEnrichmentBolt.prepare(new HashMap(), topologyContext, outputCollector),
+      "An exception should be thrown if enrichment adapter initialization fails");
     UnitTestHelper.setLog4jLevel(GenericEnrichmentBolt.class, Level.ERROR);
     genericEnrichmentBolt.declareOutputFields(declarer);
     verify(declarer, times(1)).declareStream(eq(enrichmentType), argThat(new FieldsMatcher("key", "message", "subgroup")));

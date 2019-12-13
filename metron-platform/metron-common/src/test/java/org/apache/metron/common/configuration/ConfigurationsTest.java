@@ -19,10 +19,12 @@ package org.apache.metron.common.configuration;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
-import org.junit.Test;
-import org.junit.Assert;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConfigurationsTest {
 
@@ -30,10 +32,7 @@ public class ConfigurationsTest {
   public void test() throws IOException {
     EqualsVerifier.forClass(Configurations.class).suppress(Warning.NONFINAL_FIELDS, Warning.NULL_FIELDS).usingGetClass().verify();
     Configurations configurations = new Configurations();
-    try {
-      configurations.updateGlobalConfig((byte[]) null);
-      Assert.fail("Updating a config with null should throw an IllegalStateException");
-    } catch(IllegalStateException e) {}
-    Assert.assertTrue(configurations.toString() != null && configurations.toString().length() > 0);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> configurations.updateGlobalConfig((byte[]) null), "Updating a config with null should throw an IllegalStateException");
+    assertTrue(configurations.toString() != null && configurations.toString().length() > 0);
   }
 }

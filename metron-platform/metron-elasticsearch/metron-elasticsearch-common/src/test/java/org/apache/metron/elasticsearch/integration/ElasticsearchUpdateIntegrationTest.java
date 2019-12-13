@@ -40,20 +40,17 @@ import org.apache.metron.integration.UnableToStartException;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   private static final String SENSOR_NAME= "test";
@@ -91,7 +88,7 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     return SENSOR_NAME + "_index_" + new SimpleDateFormat(dateFormat).format(new Date());
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupBeforeClass() throws UnableToStartException, IOException {
     Configuration config = HBaseConfiguration.create();
     MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
@@ -120,7 +117,7 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     installIndexTemplate();
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     elasticsearchDao = new ElasticsearchDao()
             .withRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
@@ -128,13 +125,13 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     setDao(elasticsearchDao);
   }
 
-  @After
+  @AfterEach
   public void reset() {
     es.reset();
     table.clear();
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     es.stop();
   }
@@ -173,6 +170,6 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     Response response = client
             .getLowLevelClient()
             .performRequest("PUT", "/_template/test_template", Collections.emptyMap(), broEntity);
-    Assert.assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.equalTo(200));
+    assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.equalTo(200));
   }
 }

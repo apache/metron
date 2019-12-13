@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 package org.apache.metron.management;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
@@ -27,11 +28,9 @@ import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,19 +38,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(Parameterized.class)
 public class EnrichmentConfigFunctionsTest {
 
   String configStr = emptyTransformationsConfig();
   Map<String, VariableResult> variables;
   Context context = null;
-  String enrichmentType = null;
-  String group = null;
-  public EnrichmentConfigFunctionsTest(String enrichmentType, String group) {
-    this.enrichmentType = enrichmentType;
-    this.group = group;
-  }
 
   public static String emptyTransformationsConfig() {
     SensorEnrichmentConfig config = new SensorEnrichmentConfig();
@@ -62,7 +55,6 @@ public class EnrichmentConfigFunctionsTest {
     }
   }
 
-  @Parameterized.Parameters
   public static Collection<Object[]> types() {
     // each test will be run against these values for windowSize
     return Arrays.asList(new Object[][]{
@@ -73,7 +65,7 @@ public class EnrichmentConfigFunctionsTest {
     });
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     variables = ImmutableMap.of(
             "upper", VariableResult.withExpression("FOO", "TO_UPPER('foo')"),
@@ -92,7 +84,7 @@ public class EnrichmentConfigFunctionsTest {
     }
     return ret;
   }
-  private int size(Map<String, Object> stellarFunctions) {
+  private int size(Map<String, Object> stellarFunctions, String group) {
     if(group == null) {
       return stellarFunctions.size();
     }
@@ -100,7 +92,7 @@ public class EnrichmentConfigFunctionsTest {
       return ((Map<String, Object>)stellarFunctions.getOrDefault(group, new HashMap<>())).size();
     }
   }
-  private Object get(Map<String, Object> stellarFunctions, String key) {
+  private Object get(Map<String, Object> stellarFunctions, String key, String group) {
     if(group == null) {
       return stellarFunctions.get(key);
     }
@@ -109,7 +101,7 @@ public class EnrichmentConfigFunctionsTest {
     }
   }
 
-  private EnrichmentConfig getEnrichmentConfig(String configStr) {
+  private EnrichmentConfig getEnrichmentConfig(String configStr, String enrichmentType) {
     SensorEnrichmentConfig sensorConfig = (SensorEnrichmentConfig) ENRICHMENT.deserialize(configStr);
     switch (enrichmentType) {
       case "ENRICHMENT":
@@ -137,8 +129,9 @@ public class EnrichmentConfigFunctionsTest {
     return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
-  @Test
-  public void testAddEmpty() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testAddEmpty(String enrichmentType, String group) {
 
     String newConfig = (String) run(
             "ENRICHMENT_STELLAR_TRANSFORM_ADD(config, type, SHELL_VARS2MAP('upper'), group)"
@@ -147,13 +140,14 @@ public class EnrichmentConfigFunctionsTest {
                     , "group", group
             )
     );
-    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
-    Assert.assertEquals(1, size(stellarFunctions));
-    Assert.assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper"));
+    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig, enrichmentType));
+    assertEquals(1, size(stellarFunctions, group));
+    assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper", group));
   }
 
-  @Test
-  public void testAddHasExisting() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testAddHasExisting(String enrichmentType, String group) {
     String newConfig = (String) run(
             "ENRICHMENT_STELLAR_TRANSFORM_ADD(config, type, SHELL_VARS2MAP('upper'), group)"
             ,toMap( "config", configStr
@@ -169,14 +163,15 @@ public class EnrichmentConfigFunctionsTest {
                     , "group", group
             )
     );
-    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
-    Assert.assertEquals(2, size(stellarFunctions));
-    Assert.assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper"));
-    Assert.assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower"));
+    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig, enrichmentType));
+    assertEquals(2, size(stellarFunctions, group));
+    assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper", group));
+    assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower", group));
   }
 
-  @Test
-  public void testAddMalformed() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testAddMalformed(String enrichmentType, String group) {
     String newConfig = (String) run(
             "ENRICHMENT_STELLAR_TRANSFORM_ADD(config, type, SHELL_VARS2MAP('foo'), group)"
             , toMap("config", configStr
@@ -184,12 +179,13 @@ public class EnrichmentConfigFunctionsTest {
                     , "group", group
             )
     );
-    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
-    Assert.assertEquals(0, size(stellarFunctions));
+    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig, enrichmentType));
+    assertEquals(0, size(stellarFunctions, group));
   }
 
-  @Test
-  public void testAddDuplicate() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testAddDuplicate(String enrichmentType, String group) {
     String newConfig = (String) run(
             "ENRICHMENT_STELLAR_TRANSFORM_ADD(config, type, SHELL_VARS2MAP('upper'), group)"
             , toMap("config", configStr
@@ -204,13 +200,14 @@ public class EnrichmentConfigFunctionsTest {
                     , "group", group
             )
     );
-    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
-    Assert.assertEquals(1, size(stellarFunctions));
-    Assert.assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper"));
+    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig, enrichmentType));
+    assertEquals(1, size(stellarFunctions, group));
+    assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper", group));
   }
 
-  @Test
-  public void testRemove() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testRemove(String enrichmentType, String group) {
     String newConfig = (String) run(
             "ENRICHMENT_STELLAR_TRANSFORM_ADD(config, type, SHELL_VARS2MAP('upper', 'lower'), group)"
             , toMap("config", configStr
@@ -225,13 +222,14 @@ public class EnrichmentConfigFunctionsTest {
                     , "group", group
             )
     );
-    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
-    Assert.assertEquals(1, size(stellarFunctions));
-    Assert.assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower"));
+    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig, enrichmentType));
+    assertEquals(1, size(stellarFunctions, group));
+    assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower", group));
   }
 
-  @Test
-  public void testRemoveMultiple() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testRemoveMultiple(String enrichmentType, String group) {
     String newConfig = (String) run(
             "ENRICHMENT_STELLAR_TRANSFORM_ADD(config, type, SHELL_VARS2MAP('upper', 'lower'), group)"
             , toMap("config", configStr
@@ -246,12 +244,13 @@ public class EnrichmentConfigFunctionsTest {
                     , "group", group
             )
     );
-    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
-    Assert.assertEquals(0, size(stellarFunctions));
+    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig, enrichmentType));
+    assertEquals(0, size(stellarFunctions, group));
   }
 
-  @Test
-  public void testRemoveMissing() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testRemoveMissing(String enrichmentType, String group) {
     String newConfig = (String) run(
             "ENRICHMENT_STELLAR_TRANSFORM_ADD(config, type, SHELL_VARS2MAP('lower'), group)"
             , toMap("config", configStr
@@ -266,9 +265,9 @@ public class EnrichmentConfigFunctionsTest {
                     , "group", group
             )
     );
-    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
-    Assert.assertEquals(1, size(stellarFunctions));
-    Assert.assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower"));
+    Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig, enrichmentType));
+    assertEquals(1, size(stellarFunctions, group));
+    assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower", group));
   }
 
   /**
@@ -289,8 +288,10 @@ public class EnrichmentConfigFunctionsTest {
    */
   @Multiline
   static String testPrintExpectedWithoutGroup;
-  @Test
-  public void testPrint() {
+
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testPrint(String enrichmentType, String group) {
     String newConfig = (String) run(
             "ENRICHMENT_STELLAR_TRANSFORM_ADD(config, type, SHELL_VARS2MAP('upper'), group)"
             , toMap("config", configStr
@@ -304,10 +305,10 @@ public class EnrichmentConfigFunctionsTest {
                   )
     );
     if(group == null) {
-      Assert.assertEquals(testPrintExpectedWithoutGroup, out);
+      assertEquals(testPrintExpectedWithoutGroup, out);
     }
     else {
-      Assert.assertEquals(testPrintExpectedWithGroup, out);
+      assertEquals(testPrintExpectedWithGroup, out);
     }
   }
 
@@ -321,23 +322,25 @@ public class EnrichmentConfigFunctionsTest {
   @Multiline
   static String testPrintEmptyExpected;
 
-  @Test
-  public void testPrintEmpty() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testPrintEmpty(String enrichmentType) {
     String out = (String) run("ENRICHMENT_STELLAR_TRANSFORM_PRINT(config, type)"
             , toMap("config", configStr
                    ,"type", enrichmentType
                   )
     );
-    Assert.assertEquals(testPrintEmptyExpected, out);
+    assertEquals(testPrintEmptyExpected, out);
   }
 
-  @Test
-  public void testPrintNull() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testPrintNull(String enrichmentType) {
 
     String out = (String) run("ENRICHMENT_STELLAR_TRANSFORM_PRINT(config, type)"
             , toMap("config", configStr ,"type", enrichmentType)
     );
-    Assert.assertEquals(testPrintEmptyExpected, out);
+    assertEquals(testPrintEmptyExpected, out);
   }
 
 

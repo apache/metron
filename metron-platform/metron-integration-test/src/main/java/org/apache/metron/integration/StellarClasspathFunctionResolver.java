@@ -18,28 +18,28 @@
 
 package org.apache.metron.integration;
 
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
 import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Properties;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Properties;
-
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class StellarClasspathFunctionResolver {
   static MRComponent component;
   static Configuration configuration;
-  @BeforeClass
+  @BeforeAll
   public static void setup() {
     component = new MRComponent().withBasePath("target");
     component.start();
@@ -54,7 +54,7 @@ public class StellarClasspathFunctionResolver {
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void teardown() {
     component.stop();
   }
@@ -77,7 +77,7 @@ public class StellarClasspathFunctionResolver {
     config.put(STELLAR_VFS_PATHS.param(), configuration.get("fs.defaultFS") + "/classpath-resources/.*.jar");
     ClasspathFunctionResolver resolver = create(config);
     HashSet<String> functions = new HashSet<>(Lists.newArrayList(resolver.getFunctions()));
-    Assert.assertTrue(functions.contains("NOW"));
+    assertTrue(functions.contains("NOW"));
   }
 
 }

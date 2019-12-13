@@ -111,7 +111,8 @@
         <global_elasticsearch_version>5.6.14</global_elasticsearch_version>
         <global_json_simple_version>1.1.1</global_json_simple_version>
         <global_metrics_version>3.0.2</global_metrics_version>
-        <global_junit_version>4.12</global_junit_version>
+        <global_junit_jupiter_version>5.5.2</global_junit_jupiter_version>
+        <global_hamcrest_version>2.2</global_hamcrest_version>
         <global_guava_version>17.0</global_guava_version>
         <global_hbase_guava_version>12.0</global_hbase_guava_version>
         <global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
@@ -119,13 +120,12 @@
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_java_version>1.8</global_java_version>
         <global_solr_version>6.6.2</global_solr_version>
-        <global_mockito_version>1.10.19</global_mockito_version>
-        <global_powermock_version>1.7.0</global_powermock_version>
+        <global_mockito_version>3.1.0</global_mockito_version>
         <global_shade_version>3.2.0</global_shade_version>
         <global_jackson_version>2.7.4</global_jackson_version>
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
-        <global_surefire_version>2.18</global_surefire_version>
+        <global_surefire_version>3.0.0-M4</global_surefire_version>
         <global_maven_version>[3.3.1,)</global_maven_version>
         <global_kryo_version>3.0.3</global_kryo_version>
         <global_kryo_serializers_version>0.38</global_kryo_serializers_version>

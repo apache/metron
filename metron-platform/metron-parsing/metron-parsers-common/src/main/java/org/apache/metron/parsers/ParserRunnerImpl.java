@@ -201,23 +201,33 @@ public class ParserRunnerImpl implements ParserRunner<JSONObject>, Serializable 
               sensorType, parserConfig.getParserClassName(), parserConfig.getFilterClassName());
 
       // create message parser
-      MessageParser<JSONObject> parser = ReflectionUtils
-              .createInstance(parserConfig.getParserClassName());
+      MessageParser<JSONObject> parser = createParserInstance(parserConfig);
 
       // create message filter
       MessageFilter<JSONObject> filter = null;
       parserConfig.getParserConfig().putIfAbsent("stellarContext", stellarContext);
-      if (!StringUtils.isEmpty(parserConfig.getFilterClassName())) {
-        filter = Filters.get(
-                parserConfig.getFilterClassName(),
-                parserConfig.getParserConfig()
-        );
-      }
+      filter = getMessageFilter(parserConfig, filter);
 
       parser.configure(parserConfig.getParserConfig());
       parser.init();
       sensorToParserComponentMap.put(sensorType, new ParserComponent(parser, filter));
     }
+  }
+
+  // Can be mocked for testing
+  protected MessageParser<JSONObject> createParserInstance(SensorParserConfig parserConfig) {
+    return ReflectionUtils.createInstance(parserConfig.getParserClassName());
+  }
+
+  // Can be mocked for testing
+  protected MessageFilter<JSONObject> getMessageFilter(SensorParserConfig parserConfig, MessageFilter<JSONObject> filter) {
+    if (!StringUtils.isEmpty(parserConfig.getFilterClassName())) {
+      filter = Filters.get(
+              parserConfig.getFilterClassName(),
+              parserConfig.getParserConfig()
+      );
+    }
+    return filter;
   }
 
   /**

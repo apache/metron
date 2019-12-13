@@ -17,13 +17,14 @@
  */
 package org.apache.metron.common.configuration;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.metron.TestConstants;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SensorParserConfigTest {
 
@@ -37,7 +38,7 @@ public class SensorParserConfigTest {
       }
       SensorParserConfig config2 = SensorParserConfig.fromBytes(config.toJSON().getBytes(
           StandardCharsets.UTF_8));
-      Assert.assertEquals(config2, config);
+      assertEquals(config2, config);
     }
   }
 }

@@ -55,8 +55,13 @@ public class HBaseConfig {
         } catch (RestException e) {
           throw new IllegalStateException("Unable to retrieve the global config.", e);
         }
-      }, new HTableProvider());
+      }, getTableProvider());
       return userSettingsClient;
+    }
+
+    // Used for testing
+    protected HTableProvider getTableProvider() {
+        return new HTableProvider();
     }
 
     @Bean()

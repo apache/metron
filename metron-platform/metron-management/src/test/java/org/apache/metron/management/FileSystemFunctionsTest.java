@@ -17,22 +17,27 @@
  */
 package org.apache.metron.management;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.metron.stellar.dsl.Context;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.metron.stellar.dsl.Context;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class FileSystemFunctionsTest {
-  private FileSystemFunctions.FS_TYPE type;
   private FileSystemFunctions.FileSystemGetter fsGetter = null;
   private static File hdfsBaseDir;
   private static File localBaseDir;
@@ -47,11 +52,6 @@ public class FileSystemFunctionsTest {
   private FileSystemFunctions.FileSystemPut put;
   private FileSystemFunctions.FileSystemRm rm;
 
-  public FileSystemFunctionsTest(FileSystemFunctions.FS_TYPE type) {
-    this.type = type;
-  }
-
-  @Parameterized.Parameters
   public static Collection<Object[]> types() {
     return Arrays.asList(new Object[][]{
       {FileSystemFunctions.FS_TYPE.HDFS}
@@ -59,7 +59,7 @@ public class FileSystemFunctionsTest {
     });
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupFS() throws IOException {
     {
       hdfsBaseDir = Files.createTempDirectory("test_hdfs").toFile().getAbsoluteFile();
@@ -78,8 +78,18 @@ public class FileSystemFunctionsTest {
     }
   }
 
-  @Before
-  public void setup() throws IOException {
+  @AfterAll
+  public static void teardown() {
+    {
+      hdfsCluster.shutdown();
+      FileUtil.fullyDelete(hdfsBaseDir);
+    }
+    {
+      new File(localPrefix).delete();
+    }
+  }
+
+  private void setupFsTypeAndFunctions(FileSystemFunctions.FS_TYPE type) {
     if(type == FileSystemFunctions.FS_TYPE.HDFS) {
       prefix=hdfsPrefix;
       fsGetter = () -> hdfsCluster.getFileSystem();
@@ -88,7 +98,6 @@ public class FileSystemFunctionsTest {
       prefix=localPrefix;
       fsGetter = FileSystemFunctions.FS_TYPE.LOCAL;
     }
-
     get = new FileSystemFunctions.FileSystemGet(fsGetter);
     get.initialize(null);
     getList = new FileSystemFunctions.FileSystemGetList(fsGetter);
@@ -101,75 +110,74 @@ public class FileSystemFunctionsTest {
     rm.initialize(null);
   }
 
-  @AfterClass
-  public static void teardown() {
-    {
-      hdfsCluster.shutdown();
-      FileUtil.fullyDelete(hdfsBaseDir);
-    }
-    {
-      new File(localPrefix).delete();
-    }
-  }
-
-  @Test
-  public void testHappyPath() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testHappyPath(FileSystemFunctions.FS_TYPE type) {
+    setupFsTypeAndFunctions(type);
     Object putOut = put.apply(Arrays.asList("foo", prefix + "testPut.dat"), null);
-    Assert.assertTrue((Boolean) putOut);
+    assertTrue((Boolean) putOut);
     String getOut = (String)get.apply(Arrays.asList(prefix + "testPut.dat"), null);
-    Assert.assertEquals("foo", getOut);
+    assertEquals("foo", getOut);
     String lsOut = (String) ls.apply(Arrays.asList(prefix), null);
-    Assert.assertFalse(lsOut.contains("(empty)"));
+    assertFalse(lsOut.contains("(empty)"));
     Boolean rmRet = (Boolean)rm.apply(Arrays.asList(prefix + "testPut.dat"), null);
-    Assert.assertTrue(rmRet);
+    assertTrue(rmRet);
     lsOut = (String) ls.apply(Arrays.asList(prefix), null);
-    Assert.assertTrue(lsOut.contains("(empty)"));
+    assertTrue(lsOut.contains("(empty)"));
   }
 
-  @Test
-  public void testGetList() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testGetList(FileSystemFunctions.FS_TYPE type) {
+    setupFsTypeAndFunctions(type);
     Object putOut = put.apply(Arrays.asList("foo\nbar", prefix + "testPut.dat"), null);
-    Assert.assertTrue((Boolean) putOut);
+    assertTrue((Boolean) putOut);
     String getOut = (String)get.apply(Arrays.asList(prefix + "testPut.dat"), null);
-    Assert.assertEquals("foo\nbar", getOut);
+    assertEquals("foo\nbar", getOut);
     List<String> list = (List<String>) getList.apply(Arrays.asList(prefix + "testPut.dat"), null);
-    Assert.assertEquals(2,list.size());
-    Assert.assertEquals("foo",list.get(0));
-    Assert.assertEquals("bar",list.get(1));
+    assertEquals(2,list.size());
+    assertEquals("foo",list.get(0));
+    assertEquals("bar",list.get(1));
   }
 
-  @Test
-  public void testPutMissingFile() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testPutMissingFile(FileSystemFunctions.FS_TYPE type) {
+    setupFsTypeAndFunctions(type);
     Object o = put.apply(Arrays.asList("foo", null), null);
-    Assert.assertFalse((Boolean) o);
+    assertFalse((Boolean) o);
     String lsOut = (String) ls.apply(Arrays.asList(prefix), null);
-    Assert.assertTrue(lsOut.contains("(empty)"));
+    assertTrue(lsOut.contains("(empty)"));
   }
 
-  @Test
-  public void testRmTwice() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testRmTwice(FileSystemFunctions.FS_TYPE type) {
+    setupFsTypeAndFunctions(type);
     Object putOut = put.apply(Arrays.asList("foo", prefix + "testPut.dat"), null);
-    Assert.assertTrue((Boolean) putOut);
+    assertTrue((Boolean) putOut);
     Boolean rmRet = (Boolean)rm.apply(Arrays.asList(prefix + "testPut.dat"), null);
-    Assert.assertTrue(rmRet);
+    assertTrue(rmRet);
     rmRet = (Boolean)rm.apply(Arrays.asList(prefix + "testPut.dat"), null);
-    Assert.assertTrue(rmRet);
+    assertTrue(rmRet);
     String lsOut = (String) ls.apply(Arrays.asList(prefix), null);
-    Assert.assertTrue(lsOut.contains("(empty)"));
+    assertTrue(lsOut.contains("(empty)"));
   }
 
-  @Test
-  public void testRecursiveRm() {
+  @ParameterizedTest
+  @MethodSource("types")
+  public void testRecursiveRm(FileSystemFunctions.FS_TYPE type) {
+    setupFsTypeAndFunctions(type);
     Object putOut = put.apply(Arrays.asList("foo", prefix + "blah/testPut.dat"), null);
-    Assert.assertTrue((Boolean) putOut);
+    assertTrue((Boolean) putOut);
     putOut = put.apply(Arrays.asList("grok", prefix + "blah/testPut2.dat"), null);
-    Assert.assertTrue((Boolean) putOut);
-    Assert.assertEquals("foo", (String)get.apply(Arrays.asList(prefix + "blah/testPut.dat"), null));
-    Assert.assertEquals("grok", (String)get.apply(Arrays.asList(prefix + "blah/testPut2.dat"), null));
+    assertTrue((Boolean) putOut);
+    assertEquals("foo", get.apply(Arrays.asList(prefix + "blah/testPut.dat"), null));
+    assertEquals("grok", get.apply(Arrays.asList(prefix + "blah/testPut2.dat"), null));
     boolean rmRet = (Boolean)rm.apply(Arrays.asList(prefix + "blah", true), null);
-    Assert.assertTrue(rmRet);
+    assertTrue(rmRet);
     String lsOut = (String) ls.apply(Arrays.asList(prefix), null);
-    Assert.assertTrue(lsOut.contains("(empty)"));
+    assertTrue(lsOut.contains("(empty)"));
   }
 
 }

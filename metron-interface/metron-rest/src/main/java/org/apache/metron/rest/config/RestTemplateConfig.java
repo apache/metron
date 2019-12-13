@@ -44,11 +44,16 @@ public class RestTemplateConfig {
         if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
             String keyTabLocation = environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY);
             String userPrincipal = environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY);
-            return new KerberosRestTemplate(keyTabLocation, userPrincipal);
+            return getKerberosRestTemplate(keyTabLocation, userPrincipal);
         } else {
             return new RestTemplate();
         }
 
+    }
+
+    // Exposed for testing
+    protected KerberosRestTemplate getKerberosRestTemplate(String keyTabLocation, String userPrincipal) {
+        return new KerberosRestTemplate(keyTabLocation, userPrincipal);
     }
 
 }

@@ -21,7 +21,7 @@ package org.apache.metron.stellar.common;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,9 +30,7 @@ import java.util.stream.Stream;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("ALL")
 public class StellarComparisonExpressionWithOperatorTest {
@@ -242,28 +240,48 @@ public class StellarComparisonExpressionWithOperatorTest {
     assertEquals(0.1 + 0.2 == 0.3, runPredicate("0.1 + 0.2 == 0.3", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void differentTypesShouldThrowErrorWhenUsingLT() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    runPredicate("1 < '1'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey));
+    assertThrows(
+        ParseException.class,
+        () ->
+            runPredicate(
+                "1 < '1'",
+                new DefaultVariableResolver(variableMap::get, variableMap::containsKey)));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void differentTypesShouldThrowErrorWhenUsingLTE() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    runPredicate("'1' <= 1", new DefaultVariableResolver(variableMap::get,variableMap::containsKey));
+    assertThrows(
+        ParseException.class,
+        () ->
+            runPredicate(
+                "'1' <= 1",
+                new DefaultVariableResolver(variableMap::get, variableMap::containsKey)));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void differentTypesShouldThrowErrorWhenUsingGT() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    runPredicate("1 > '1'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey));
+    assertThrows(
+        ParseException.class,
+        () ->
+            runPredicate(
+                "1 > '1'",
+                new DefaultVariableResolver(variableMap::get, variableMap::containsKey)));
   }
 
-  @Test(expected = ParseException.class)
+  @Test
   public void differentTypesShouldThrowErrorWhenUsingGTE() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    runPredicate("'1' >= 1", new DefaultVariableResolver(variableMap::get,variableMap::containsKey));
+    assertThrows(
+        ParseException.class,
+        () ->
+            runPredicate(
+                "'1' >= 1",
+                new DefaultVariableResolver(variableMap::get, variableMap::containsKey)));
   }
 
   @Test

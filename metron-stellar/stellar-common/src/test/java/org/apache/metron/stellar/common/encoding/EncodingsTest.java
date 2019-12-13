@@ -18,8 +18,10 @@
 
 package org.apache.metron.stellar.common.encoding;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class EncodingsTest {
 
@@ -32,73 +34,73 @@ public class EncodingsTest {
   public static final String HEX_FIXTURE = "48656c6c6f20576f726c64";
 
   @Test
-  public void is() throws Exception {
+  public void is() {
 
     // base32
-    Assert.assertTrue(Encodings.BASE32.is(BASE32_FIXTURE));
-    Assert.assertFalse(Encodings.BASE32.is(STRING_FIXTURE));
+    assertTrue(Encodings.BASE32.is(BASE32_FIXTURE));
+    assertFalse(Encodings.BASE32.is(STRING_FIXTURE));
 
     // base32 hex
-    Assert.assertTrue(Encodings.BASE32HEX.is(BASE32HEX_FIXTURE));
-    Assert.assertFalse(Encodings.BASE32HEX.is(STRING_FIXTURE));
+    assertTrue(Encodings.BASE32HEX.is(BASE32HEX_FIXTURE));
+    assertFalse(Encodings.BASE32HEX.is(STRING_FIXTURE));
 
     // base 64
-    Assert.assertTrue(Encodings.BASE64.is(BASE64_FIXTURE));
-    Assert.assertFalse(Encodings.BASE64.is(STRING_FIXTURE + "\0"));
+    assertTrue(Encodings.BASE64.is(BASE64_FIXTURE));
+    assertFalse(Encodings.BASE64.is(STRING_FIXTURE + "\0"));
 
     // binary
-    Assert.assertTrue(Encodings.BINARY.is(BINARY_FIXTURE));
-    Assert.assertFalse(Encodings.BINARY.is(STRING_FIXTURE));
+    assertTrue(Encodings.BINARY.is(BINARY_FIXTURE));
+    assertFalse(Encodings.BINARY.is(STRING_FIXTURE));
 
     // hex
-    Assert.assertTrue(Encodings.HEX.is(HEX_FIXTURE));
-    Assert.assertFalse(Encodings.HEX.is("AAA"));
+    assertTrue(Encodings.HEX.is(HEX_FIXTURE));
+    assertFalse(Encodings.HEX.is("AAA"));
   }
 
   @Test
-  public void decode() throws Exception {
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BASE32.decode(BASE32_FIXTURE));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BASE32HEX.decode(BASE32HEX_FIXTURE));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BASE64.decode(BASE64_FIXTURE));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(BINARY_FIXTURE));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.HEX.decode(HEX_FIXTURE));
+  public void decode() {
+    assertEquals(STRING_FIXTURE,Encodings.BASE32.decode(BASE32_FIXTURE));
+    assertEquals(STRING_FIXTURE,Encodings.BASE32HEX.decode(BASE32HEX_FIXTURE));
+    assertEquals(STRING_FIXTURE,Encodings.BASE64.decode(BASE64_FIXTURE));
+    assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(BINARY_FIXTURE));
+    assertEquals(STRING_FIXTURE,Encodings.HEX.decode(HEX_FIXTURE));
 
     // these codecs will just decode away... and return garbage without verification
-    Assert.assertNotEquals(STRING_FIXTURE,Encodings.BASE32.decode(STRING_FIXTURE));
-    Assert.assertNotEquals(STRING_FIXTURE,Encodings.BASE32HEX.decode(STRING_FIXTURE));
-    Assert.assertNotEquals(STRING_FIXTURE,Encodings.BASE64.decode(STRING_FIXTURE));
+    assertNotEquals(STRING_FIXTURE,Encodings.BASE32.decode(STRING_FIXTURE));
+    assertNotEquals(STRING_FIXTURE,Encodings.BASE32HEX.decode(STRING_FIXTURE));
+    assertNotEquals(STRING_FIXTURE,Encodings.BASE64.decode(STRING_FIXTURE));
 
     // these codecs will fail to decode and return the original string without
     // verification
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(STRING_FIXTURE));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.HEX.decode(STRING_FIXTURE));
+    assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(STRING_FIXTURE));
+    assertEquals(STRING_FIXTURE,Encodings.HEX.decode(STRING_FIXTURE));
   }
 
   @Test
-  public void decodeWithVerify() throws Exception {
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BASE32.decode(BASE32_FIXTURE,true));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BASE32HEX.decode(BASE32HEX_FIXTURE,true));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BASE64.decode(BASE64_FIXTURE,true));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(BINARY_FIXTURE,true));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.HEX.decode(HEX_FIXTURE,true));
+  public void decodeWithVerify() {
+    assertEquals(STRING_FIXTURE,Encodings.BASE32.decode(BASE32_FIXTURE,true));
+    assertEquals(STRING_FIXTURE,Encodings.BASE32HEX.decode(BASE32HEX_FIXTURE,true));
+    assertEquals(STRING_FIXTURE,Encodings.BASE64.decode(BASE64_FIXTURE,true));
+    assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(BINARY_FIXTURE,true));
+    assertEquals(STRING_FIXTURE,Encodings.HEX.decode(HEX_FIXTURE,true));
 
     // with verification, we will get back the original string
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BASE32.decode(STRING_FIXTURE,true));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BASE32HEX.decode(STRING_FIXTURE,true));
+    assertEquals(STRING_FIXTURE,Encodings.BASE32.decode(STRING_FIXTURE,true));
+    assertEquals(STRING_FIXTURE,Encodings.BASE32HEX.decode(STRING_FIXTURE,true));
     // if the string IS coincidentally compatable with base64, then it will decode away
-    Assert.assertNotEquals(STRING_FIXTURE,Encodings.BASE64.decode(STRING_FIXTURE,true));
+    assertNotEquals(STRING_FIXTURE,Encodings.BASE64.decode(STRING_FIXTURE,true));
     // if the string would fail... then we get the original
-    Assert.assertEquals(STRING_FIXTURE + "\0",Encodings.BASE64.decode(STRING_FIXTURE + "\0",true));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(STRING_FIXTURE,true));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.HEX.decode(STRING_FIXTURE,true));
+    assertEquals(STRING_FIXTURE + "\0",Encodings.BASE64.decode(STRING_FIXTURE + "\0",true));
+    assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(STRING_FIXTURE,true));
+    assertEquals(STRING_FIXTURE,Encodings.HEX.decode(STRING_FIXTURE,true));
   }
 
   @Test
-  public void testEncode() throws Exception{
-    Assert.assertEquals(BASE32_FIXTURE,Encodings.BASE32.encode(STRING_FIXTURE));
-    Assert.assertEquals(BASE32HEX_FIXTURE,Encodings.BASE32HEX.encode(STRING_FIXTURE));
-    Assert.assertEquals(BASE64_FIXTURE,Encodings.BASE64.encode(STRING_FIXTURE));
-    Assert.assertEquals(BINARY_FIXTURE,Encodings.BINARY.encode(STRING_FIXTURE));
-    Assert.assertEquals(HEX_FIXTURE,Encodings.HEX.encode(STRING_FIXTURE));
+  public void testEncode() {
+    assertEquals(BASE32_FIXTURE,Encodings.BASE32.encode(STRING_FIXTURE));
+    assertEquals(BASE32HEX_FIXTURE,Encodings.BASE32HEX.encode(STRING_FIXTURE));
+    assertEquals(BASE64_FIXTURE,Encodings.BASE64.encode(STRING_FIXTURE));
+    assertEquals(BINARY_FIXTURE,Encodings.BINARY.encode(STRING_FIXTURE));
+    assertEquals(HEX_FIXTURE,Encodings.HEX.encode(STRING_FIXTURE));
   }
 }

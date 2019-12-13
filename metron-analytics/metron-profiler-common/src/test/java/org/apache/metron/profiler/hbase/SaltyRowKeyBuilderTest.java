@@ -20,23 +20,22 @@
 
 package org.apache.metron.profiler.hbase;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Formatter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 /**
  * Tests the SaltyRowKeyBuilder.
@@ -53,10 +52,10 @@ public class SaltyRowKeyBuilderTest {
   /**
    * Thu, Aug 25 2016 13:27:10 GMT
    */
-  private long AUG2016 = 1472131630748L;
+  private static final long AUG2016 = 1472131630748L;
 
-  @Before
-  public void setup() throws Exception {
+  @BeforeEach
+  public void setup() {
 
     // a profile measurement
     measurement = new ProfileMeasurement()
@@ -71,9 +70,9 @@ public class SaltyRowKeyBuilderTest {
    * Build a row key that includes only one group.
    */
   @Test
-  public void testRowKeyWithOneGroup() throws Exception {
+  public void testRowKeyWithOneGroup() {
     // setup
-    measurement.withGroups(Arrays.asList("group1"));
+    measurement.withGroups(Collections.singletonList("group1"));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -90,14 +89,14 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertTrue(Arrays.equals(expected, actual));
+    assertArrayEquals(expected, actual);
   }
 
   /**
    * Build a row key that includes two groups.
    */
   @Test
-  public void testRowKeyWithTwoGroups() throws Exception {
+  public void testRowKeyWithTwoGroups() {
     // setup
     measurement.withGroups(Arrays.asList("group1","group2"));
 
@@ -117,16 +116,16 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertTrue(Arrays.equals(expected, actual));
+    assertArrayEquals(expected, actual);
   }
 
   /**
    * Build a row key that includes a single group that is an integer.
    */
   @Test
-  public void testRowKeyWithOneIntegerGroup() throws Exception {
+  public void testRowKeyWithOneIntegerGroup() {
     // setup
-    measurement.withGroups(Arrays.asList(200));
+    measurement.withGroups(Collections.singletonList(200));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
@@ -143,14 +142,14 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertTrue(Arrays.equals(expected, actual));
+    assertArrayEquals(expected, actual);
   }
 
   /**
    * Build a row key that includes a single group that is an integer.
    */
   @Test
-  public void testRowKeyWithMixedGroups() throws Exception {
+  public void testRowKeyWithMixedGroups() {
     // setup
     measurement.withGroups(Arrays.asList(200, "group1"));
 
@@ -170,14 +169,14 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertTrue(Arrays.equals(expected, actual));
+    assertArrayEquals(expected, actual);
   }
 
   /**
    * Build a row key that does not include any groups.
    */
   @Test
-  public void testRowKeyWithNoGroup() throws Exception {
+  public void testRowKeyWithNoGroup() {
     // setup
     measurement.withGroups(Collections.emptyList());
 
@@ -195,14 +194,14 @@ public class SaltyRowKeyBuilderTest {
 
     // validate
     byte[] actual = rowKeyBuilder.rowKey(measurement);
-    Assert.assertTrue(Arrays.equals(expected, actual));
+    assertArrayEquals(expected, actual);
   }
 
   /**
    * `rowKeys` should return all of the row keys needed to retrieve the profile values over a given time horizon.
    */
   @Test
-  public void testRowKeys() throws Exception {
+  public void testRowKeys() {
     int hoursAgo = 1;
 
     // setup
@@ -243,14 +242,5 @@ public class SaltyRowKeyBuilderTest {
       byte[] expected = expectedKeys.get(i);
       assertThat(actual, equalTo(expected));
     }
-  }
-
-  private void printBytes(byte[] bytes) {
-    StringBuilder sb = new StringBuilder(bytes.length * 2);
-    Formatter formatter = new Formatter(sb);
-    for (byte b : bytes) {
-      formatter.format("%02x ", b);
-    }
-    System.out.println(sb.toString());
   }
 }

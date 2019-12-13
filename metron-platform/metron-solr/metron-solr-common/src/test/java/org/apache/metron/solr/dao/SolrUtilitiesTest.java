@@ -18,13 +18,13 @@
 
 package org.apache.metron.solr.dao;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.common.SolrDocument;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SolrUtilitiesTest {
 

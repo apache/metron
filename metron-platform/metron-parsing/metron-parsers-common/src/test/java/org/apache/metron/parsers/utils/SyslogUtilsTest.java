@@ -18,13 +18,13 @@
 package org.apache.metron.parsers.utils;
 
 import org.apache.metron.parsers.ParseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SyslogUtilsTest {
 

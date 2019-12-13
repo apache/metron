@@ -17,16 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.maxmind.geo;
 
-import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_MMDB_GZ;
-import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_TAR_GZ;
-
 import com.google.common.collect.ImmutableMap;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -36,14 +27,27 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_MMDB_GZ;
+import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_TAR_GZ;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+@EnableRuleMigrationSupport
 public class GeoLiteCityDatabaseTest {
 
   private static Context context;
@@ -110,7 +114,7 @@ public class GeoLiteCityDatabaseTest {
   @Rule
   public TemporaryFolder testFolder = new TemporaryFolder();
 
-  @BeforeClass
+  @BeforeAll
   public static void setupOnce() throws ParseException, IOException {
     JSONParser jsonParser = new JSONParser();
     expectedNoDmaMessage = (JSONObject) jsonParser.parse(expectedNoDmaMessageString);
@@ -127,12 +131,12 @@ public class GeoLiteCityDatabaseTest {
     fs = FileSystem.get(config);
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     FileUtils.deleteQuietly(geoHdfsFile_update);
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     testFolder.create();
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG
@@ -146,7 +150,7 @@ public class GeoLiteCityDatabaseTest {
     GeoLiteCityDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
 
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get("192.168.0.1");
-    Assert.assertFalse("Local address result should be empty", result.isPresent());
+    assertFalse(result.isPresent(), "Local address result should be empty");
   }
 
   @Test
@@ -155,7 +159,7 @@ public class GeoLiteCityDatabaseTest {
 
     // the range 203.0.113.0/24 is assigned as "TEST-NET-3" and should never be locatable
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get("203.0.113.1");
-    Assert.assertFalse("External address not found", result.isPresent());
+    assertFalse(result.isPresent(), "External address not found");
   }
 
   @Test
@@ -163,7 +167,7 @@ public class GeoLiteCityDatabaseTest {
     GeoLiteCityDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
 
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(IP_WITH_DMA);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedDmaMessage, result.get());
+    assertEquals(expectedDmaMessage, result.get(), "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -171,7 +175,7 @@ public class GeoLiteCityDatabaseTest {
     GeoLiteCityDatabase.INSTANCE.update(geoHdfsFileTarGz.getAbsolutePath());
 
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(IP_WITH_DMA);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedMessageTarGz, result.get());
+    assertEquals(expectedMessageTarGz, result.get(), "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -179,7 +183,7 @@ public class GeoLiteCityDatabaseTest {
     GeoLiteCityDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
 
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(IP_NO_DMA);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
+    assertEquals(expectedNoDmaMessage, result.get(), "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -188,7 +192,7 @@ public class GeoLiteCityDatabaseTest {
     GeoLiteCityDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
 
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(IP_NO_DMA);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
+    assertEquals(expectedNoDmaMessage, result.get(), "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -198,7 +202,7 @@ public class GeoLiteCityDatabaseTest {
     GeoLiteCityDatabase.INSTANCE.updateIfNecessary(globalConfig);
 
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(IP_NO_DMA);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
+    assertEquals(expectedNoDmaMessage, result.get(), "Remote Local IP should return result based on DB");
   }
 
 
@@ -210,7 +214,7 @@ public class GeoLiteCityDatabaseTest {
     GeoLiteCityDatabase.INSTANCE.updateIfNecessary(globalConfig);
 
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(IP_NO_DMA);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
+    assertEquals(expectedNoDmaMessage, result.get(), "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -219,20 +223,20 @@ public class GeoLiteCityDatabaseTest {
     globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile.getAbsolutePath());
     GeoLiteCityDatabase.INSTANCE.updateIfNecessary(globalConfig);
     Optional<Map<String, String>> result = GeoLiteCityDatabase.INSTANCE.get(IP_NO_DMA);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
+    assertEquals(expectedNoDmaMessage, result.get(), "Remote Local IP should return result based on DB");
 
     globalConfig.put(GeoLiteCityDatabase.GEO_HDFS_FILE, geoHdfsFile_update.getAbsolutePath());
     GeoLiteCityDatabase.INSTANCE.updateIfNecessary(globalConfig);
     result = GeoLiteCityDatabase.INSTANCE.get(IP_NO_DMA);
 
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedNoDmaMessage, result.get());
+    assertEquals(expectedNoDmaMessage, result.get(), "Remote Local IP should return result based on DB");
   }
 
   @Test
   public void testFallbackUnnecessary() {
     String fakeFile = "fakefile.geolitecitydbtest";
     Map<String, Object> globalConfig = Collections.singletonMap(GeoLiteCityDatabase.GEO_HDFS_FILE, fakeFile);
-    Assert.assertEquals(
+    assertEquals(
         GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(globalConfig, fakeFile, ""),
         fakeFile);
   }
@@ -241,7 +245,7 @@ public class GeoLiteCityDatabaseTest {
   public void testFallbackUnncessaryAlreadyDefault() {
     String defaultFile = GeoLiteCityDatabase.GEO_HDFS_FILE_DEFAULT;
     Map<String, Object> globalConfig = Collections.singletonMap(GeoLiteCityDatabase.GEO_HDFS_FILE, defaultFile);
-    Assert.assertEquals(
+    assertEquals(
         GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(globalConfig, defaultFile, ""),
         defaultFile);
   }
@@ -249,7 +253,7 @@ public class GeoLiteCityDatabaseTest {
   @Test
   public void testFallbackToDefault() {
     String defaultFile = GeoLiteCityDatabase.GEO_HDFS_FILE_DEFAULT;
-    Assert.assertEquals(GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(Collections.emptyMap(), defaultFile, "fallback"), defaultFile);
+    assertEquals(GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(Collections.emptyMap(), defaultFile, "fallback"), defaultFile);
   }
 
   @Test
@@ -258,6 +262,6 @@ public class GeoLiteCityDatabaseTest {
     File file = File.createTempFile( this.getClass().getSimpleName(), "testfile");
     file.deleteOnExit();
     String fileName = file.getAbsolutePath();
-    Assert.assertEquals(GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(Collections.emptyMap(), fakeFile, fileName), fileName);
+    assertEquals(GeoLiteCityDatabase.INSTANCE.determineHdfsDirWithFallback(Collections.emptyMap(), fakeFile, fileName), fileName);
   }
 }

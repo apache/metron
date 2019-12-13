@@ -21,12 +21,13 @@ package org.apache.metron.common.field.validation.network;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.field.validation.BaseValidationTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class IPValidationTest extends BaseValidationTest {
   /**
@@ -80,37 +81,37 @@ public class IPValidationTest extends BaseValidationTest {
 
   @Test
   public void positiveTest_single() throws IOException {
-    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "127.0.0.1")));
-    Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "127.0.0.1")));
+    assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "127.0.0.1")));
+    assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "127.0.0.1")));
   }
   @Test
   public void negativeTest_single() throws IOException {
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "2014/05/01")));
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014/05/01")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.3f)));
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.3f)));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "2014/05/01")));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014/05/01")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.3f)));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.3f)));
   }
   @Test
   public void positiveTest_multiple() throws IOException {
-    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
-    Assert.assertTrue(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
+    assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
+    assertTrue(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
   }
 
   @Test
   public void negativeTest_multiple() throws IOException {
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
+    assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
   }
 
   @Test
   public void positiveTest_multiplex2() throws IOException {
-    Assert.assertTrue(execute(validWithMultipleFieldsMultipleTypes, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
-    Assert.assertTrue(runPredicate(validWithMultipleFieldsMultipleTypes_MQL, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
+    assertTrue(execute(validWithMultipleFieldsMultipleTypes, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
+    assertTrue(runPredicate(validWithMultipleFieldsMultipleTypes_MQL, ImmutableMap.of("field1", "192.168.0.1", "field2", "127.0.0.2")));
   }
 
   @Test
   public void negativeTest_multiplex2() throws IOException {
-    Assert.assertFalse(execute(validWithMultipleFieldsMultipleTypes, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
-    Assert.assertFalse(runPredicate(validWithMultipleFieldsMultipleTypes_MQL, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
+    assertFalse(execute(validWithMultipleFieldsMultipleTypes, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
+    assertFalse(runPredicate(validWithMultipleFieldsMultipleTypes_MQL, ImmutableMap.of("field1", 1, "field2", "192.168.1")));
   }
 }

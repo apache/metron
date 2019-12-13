@@ -22,22 +22,20 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.InputStream;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-@RunWith(Parameterized.class)
+import static org.junit.jupiter.api.Assertions.*;
+
 public class TyposquattingStrategiesTest {
 
   /*
@@ -55,7 +53,7 @@ public class TyposquattingStrategiesTest {
     put("github", new EnumMap<>(TyposquattingStrategies.class));
   }};
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() throws Exception {
     for(Map.Entry<String, EnumMap<TyposquattingStrategies, Set<String>>> kv : expected.entrySet()) {
       try(BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("src/test/resources/typosquat/" + kv.getKey() + ".csv"), StandardCharsets.UTF_8) ) )
@@ -73,7 +71,7 @@ public class TyposquattingStrategiesTest {
             continue;
           }
           TyposquattingStrategies strategy = TyposquattingStrategies.byName(name);
-          Assert.assertNotNull("Couldn't find " + name, strategy);
+          assertNotNull(strategy, "Couldn't find " + name);
           Set<String> s = expectedValues.get(strategy);
           if(s == null) {
             s = new HashSet<>();
@@ -85,33 +83,24 @@ public class TyposquattingStrategiesTest {
     }
   }
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> strategies() {
-    List<Object[]> ret = new ArrayList<>();
-    for(TyposquattingStrategies strategy : TyposquattingStrategies.values()) {
-      ret.add(new Object[] { strategy });
-    }
-    return ret;
-  }
-
-  TyposquattingStrategies strategy;
-  public TyposquattingStrategiesTest(TyposquattingStrategies strategy) {
-    this.strategy = strategy;
-  }
-
   public void assertExpected(String domain, TyposquattingStrategies strategy) {
     Set<String> expectedValues = expected.get(domain).get(strategy);
     Set<String> actualValues = strategy.generateCandidates(domain);
-    Assert.assertFalse(actualValues.contains(domain));
+    assertFalse(actualValues.contains(domain));
     {
       Sets.SetView<String> vals = Sets.difference(expectedValues, actualValues);
       String diff = Joiner.on(",").join(vals);
-      Assert.assertTrue(strategy.name() + ": Found values expected but not generated: " + diff, vals.isEmpty());
+      assertTrue(vals.isEmpty(), strategy.name() + ": Found values expected but not generated: " + diff);
     }
   }
 
-  @Test
-  public void test() {
+  public static TyposquattingStrategies[] strategies() {
+    return TyposquattingStrategies.values();
+  }
+
+  @ParameterizedTest
+  @MethodSource("strategies")
+  public void test(TyposquattingStrategies strategy) {
     for(String domain : expected.keySet()) {
       assertExpected(domain, strategy);
     }
@@ -122,7 +111,7 @@ public class TyposquattingStrategiesTest {
     for(String domain : expected.keySet()) {
       Set<String> expectedAll = TyposquattingStrategies.generateAllCandidates(domain);
       Set<String> generatedAll = (Set<String>) StellarProcessorUtils.run("DOMAIN_TYPOSQUAT(domain)", ImmutableMap.of("domain", domain));
-      Assert.assertTrue(Sets.symmetricDifference(expectedAll, generatedAll).isEmpty());
+      assertTrue(Sets.symmetricDifference(expectedAll, generatedAll).isEmpty());
     }
   }
 }

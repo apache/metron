@@ -22,7 +22,6 @@ This project contains tools for building, packaging, and deploying Apache Metron
  * [How do I deploy Metron on a single VM?](#how-do-i-deploy-metron-on-a-single-vm)
  * [How do I build RPM packages?](#how-do-i-build-rpm-packages)
  * [How do I build DEB packages?](#how-do-i-build-deb-packages)
- * [How do I deploy Metron within AWS?](#how-do-i-deploy-metron-within-aws)
  * [How do I build Metron with Docker?](#how-do-i-build-metron-with-docker)
 
 
@@ -147,30 +146,6 @@ This builds installable DEB packages that allow you to install Metron on an APT-
 #### How?
 
 To build the DEB packages, follow the instructions at [packaging/docker/deb-docker](packaging/docker/deb-docker).
-
-
-How do I deploy Metron within AWS?
-----------------------------------
-
-This deploys Apache Metron on an automatically provisioned 10-node cluster running in Amazon Web Service's EC2 platform.
-
-This installs real sources of telemetry like Bro, Snort, and YAF, but feeds those sensors with canned pcap data.
-
-#### What is this good for?
-
-* If you are a Metron developer wanting to test at-scale on a multi-node cluster, then this is the right option for you.
-
-#### What is this **not** good for?
-
-* If you want to run Metron in AWS with real data for either testing or production, then this is NOT the right option for you.
-
-* **WARNING** This is only intended for creating an ephemeral cluster for brief periods of testing.  This deployment method has the following severe limitations.
-    * The cluster is not secured in any way. It is up to you to manually secure it.
-    * The cluster will not survive a reboot.
-
-#### How?
-
-Follow the instructions available at [amazon-ec2](amazon-ec2).
 
 
 How do I build Metron with Docker?

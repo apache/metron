@@ -25,6 +25,7 @@ limitations under the License.
 * [Topology Errors](topology-errors)
 * [Performance Logging](#performance-logging)
 * [Metron Debugging](#metron-debugging)
+* [Metron Upgrade Helper](#metron-upgrade-helper)
 
 # Stellar Language
 
@@ -470,4 +471,37 @@ Options:
                         Metron home directory
   -p DIRECTORY, --hdp_home=DIRECTORY
                         HDP home directory
+```
+
+# Metron Upgrade Helper
+
+A bash script is provided to assist in performing backup and restore operations for Metron Ambari configurations and configurations stored in Zookeeper.
+
+If your Ambari Server is installed on a separate host from Metron, you may need to scp the upgrade_helper.sh script to the Ambari host along with the file `/etc/default/metron`.
+There is an optional argument, `directory_base`, that allows you to specify where you would like backups to be written to and restored from. Be aware that while it's optional, the 
+default is to write the data to the directory from which you're executing the script, i.e. `./metron-backup`.
+
+```
+# $METRON_HOME/bin/upgrade_helper.sh -h
+5 args required
+Usage:
+  mode: [backup|restore] - backup will save configs to a directory named "metron-backup". Restore will take those same configs and restore them to Ambari.
+  ambari_address: host and port for Ambari server, e.g. "node1:8080"
+  username: Ambari admin username
+  password: Ambari admin user password
+  cluster_name: hadoop cluster name. Can be found in Ambari under "Admin > Manage Ambari"
+  directory_base: (Optional) root directory location where the backup will be written to and read from. Default is the executing directory, ".", with backup data stored to a subdirectory named "metron-backup"
+```
+
+```
+Examples:
+# backup
+$METRON_HOME/bin/upgrade_helper.sh backup node1:8080 admin admin metron_cluster
+# restore
+$METRON_HOME/bin/upgrade_helper.sh restore node1:8080 admin admin metron_cluster
+```
+
+Note: Before issuing a restore, you should verify that the backup completed successfully. If there is an issue connecting to the Ambari server, the following message will appear in the script output.
+```
+**ERROR:** Unable to get cluster detail from Ambari. Check your username, password, and cluster name. Skipping.
 ```

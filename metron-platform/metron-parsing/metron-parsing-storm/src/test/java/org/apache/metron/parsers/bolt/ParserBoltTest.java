@@ -22,56 +22,34 @@ import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.error.MetronError;
-import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.metadata.RawMessage;
 import org.apache.metron.common.writer.BulkMessage;
-import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.metron.parsers.DefaultParserRunnerResults;
 import org.apache.metron.parsers.ParserRunnerImpl;
 import org.apache.metron.parsers.ParserRunnerResults;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.storm.common.message.MessageGetStrategy;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder.FieldsConfiguration;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
+import org.apache.metron.writer.AckTuplesPolicy;
 import org.apache.storm.Config;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 public class ParserBoltTest extends BaseBoltTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Mock
   private Tuple t1;
 
@@ -137,17 +115,23 @@ public class ParserBoltTest extends BaseBoltTest {
       put("yaf", writerHandler);
     }}).withBatchTimeoutDivisor(5);
 
-    Assert.assertEquals(5, parserBolt.getBatchTimeoutDivisor());
+    assertEquals(5, parserBolt.getBatchTimeoutDivisor());
   }
 
   @Test
   public void shouldThrowExceptionOnInvalidBatchTimeoutDivisor() {
-    exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("batchTimeoutDivisor must be positive. Value provided was -1");
-
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserRunner, new HashMap<String, WriterHandler>() {{
-      put("yaf", writerHandler);
-    }}).withBatchTimeoutDivisor(-1);
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new ParserBolt(
+                        "zookeeperUrl",
+                        parserRunner,
+                        new HashMap<String, WriterHandler>() {{
+                          put("yaf", writerHandler);
+                        }})
+                    .withBatchTimeoutDivisor(-1));
+    assertEquals("batchTimeoutDivisor must be positive. Value provided was -1", e.getMessage());
   }
 
   @Test
@@ -169,8 +153,8 @@ public class ParserBoltTest extends BaseBoltTest {
     };
 
     Map<String, Object> componentConfiguration = parserBolt.getComponentConfiguration();
-    Assert.assertEquals(1, componentConfiguration.size());
-    Assert.assertEquals( 14, componentConfiguration.get(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS));
+    assertEquals(1, componentConfiguration.size());
+    assertEquals( 14, componentConfiguration.get(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS));
   }
 
   @Test
@@ -210,16 +194,13 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(parserRunner, times(1)).init(any(Supplier.class), eq(stellarContext));
     verify(yafConfig, times(1)).init();
     Map<String, String> topicToSensorMap = parserBolt.getTopicToSensorMap();
-    Assert.assertEquals(1, topicToSensorMap.size());
-    Assert.assertEquals("yaf", topicToSensorMap.get("yafTopic"));
+    assertEquals(1, topicToSensorMap.size());
+    assertEquals("yaf", topicToSensorMap.get("yafTopic"));
     verify(writerHandler).init(eq(stormConf), eq(topologyContext), eq(outputCollector), eq(parserConfigurations), any(AckTuplesPolicy.class), eq(14));
   }
 
   @Test
   public void shouldThrowExceptionOnMissingConfig() {
-    exception.expect(IllegalStateException.class);
-    exception.expectMessage("Unable to retrieve a parser config for yaf");
-
     Map stormConf = mock(Map.class);
 
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", parserRunner, new HashMap<String, WriterHandler>() {{
@@ -229,7 +210,8 @@ public class ParserBoltTest extends BaseBoltTest {
     parserBolt.setCuratorFramework(client);
     parserBolt.setZKCache(cache);
 
-    parserBolt.prepare(stormConf, topologyContext, outputCollector);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> parserBolt.prepare(stormConf, topologyContext, outputCollector));
+    assertEquals("Unable to retrieve a parser config for yaf", e.getMessage());
   }
 
 
@@ -292,7 +274,7 @@ public class ParserBoltTest extends BaseBoltTest {
     {
       parserBolt.execute(t1);
 
-      Assert.assertEquals(expectedRawMessage, mockParserRunner.getRawMessage());
+      assertEquals(expectedRawMessage, mockParserRunner.getRawMessage());
       verify(bulkWriterResponseHandler).addTupleMessageIds(t1, Collections.singletonList("messageId"));
       verify(writerHandler, times(1)).write("yaf", new BulkMessage<>("messageId", message), parserConfigurations);
     }
@@ -339,7 +321,7 @@ public class ParserBoltTest extends BaseBoltTest {
       // Verify the correct message is written and ack is handled
       parserBolt.execute(t1);
 
-      Assert.assertEquals(expectedRawMessage, mockParserRunner.getRawMessage());
+      assertEquals(expectedRawMessage, mockParserRunner.getRawMessage());
 
       InOrder inOrder = inOrder(bulkWriterResponseHandler, writerHandler);
 
@@ -390,7 +372,7 @@ public class ParserBoltTest extends BaseBoltTest {
 
     parserBolt.execute(t1);
 
-    Assert.assertEquals(expectedRawMessage, mockParserRunner.getRawMessage());
+    assertEquals(expectedRawMessage, mockParserRunner.getRawMessage());
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM),
             argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
     verify(outputCollector, times(1)).ack(t1);

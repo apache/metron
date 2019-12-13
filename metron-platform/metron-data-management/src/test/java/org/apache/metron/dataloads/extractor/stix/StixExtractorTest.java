@@ -19,26 +19,29 @@ package org.apache.metron.dataloads.extractor.stix;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StixExtractorTest {
   private String stixDoc;
 
   private String stixDocWithoutCondition;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     stixDoc = Joiner.on("\n").join(IOUtils.readLines(new InputStreamReader(new FileInputStream(new File("src/test/resources/stix_example.xml")),
         StandardCharsets.UTF_8)));
@@ -93,10 +96,10 @@ public class StixExtractorTest {
         Extractor extractor = handler.getExtractor();
         Iterable<LookupKV> results = extractor.extract(stixDoc);
 
-        Assert.assertEquals(3, Iterables.size(results));
-        Assert.assertEquals("10.0.0.0", ((EnrichmentKey) (Iterables.get(results, 0).getKey())).indicator);
-        Assert.assertEquals("10.0.0.1", ((EnrichmentKey) (Iterables.get(results, 1).getKey())).indicator);
-        Assert.assertEquals("10.0.0.2", ((EnrichmentKey) (Iterables.get(results, 2).getKey())).indicator);
+        assertEquals(3, Iterables.size(results));
+        assertEquals("10.0.0.0", ((EnrichmentKey) (Iterables.get(results, 0).getKey())).indicator);
+        assertEquals("10.0.0.1", ((EnrichmentKey) (Iterables.get(results, 1).getKey())).indicator);
+        assertEquals("10.0.0.2", ((EnrichmentKey) (Iterables.get(results, 2).getKey())).indicator);
       }
       catch(Exception ex) {
         throw new RuntimeException(ex.getMessage(), ex);
@@ -108,10 +111,10 @@ public class StixExtractorTest {
         ExtractorHandler handler = ExtractorHandler.load(stixConfig);
         Extractor extractor = handler.getExtractor();
         Iterable<LookupKV> results = extractor.extract(stixDoc);
-        Assert.assertEquals(3, Iterables.size(results));
-        Assert.assertEquals("10.0.0.0", ((EnrichmentKey) (Iterables.get(results, 0).getKey())).indicator);
-        Assert.assertEquals("10.0.0.1", ((EnrichmentKey) (Iterables.get(results, 1).getKey())).indicator);
-        Assert.assertEquals("10.0.0.2", ((EnrichmentKey) (Iterables.get(results, 2).getKey())).indicator);
+        assertEquals(3, Iterables.size(results));
+        assertEquals("10.0.0.0", ((EnrichmentKey) (Iterables.get(results, 0).getKey())).indicator);
+        assertEquals("10.0.0.1", ((EnrichmentKey) (Iterables.get(results, 1).getKey())).indicator);
+        assertEquals("10.0.0.2", ((EnrichmentKey) (Iterables.get(results, 2).getKey())).indicator);
       }
       catch(Exception ex) {
         throw new RuntimeException(ex.getMessage(), ex);
@@ -123,7 +126,7 @@ public class StixExtractorTest {
         ExtractorHandler handler = ExtractorHandler.load(stixConfigOnlyIPV6);
         Extractor extractor = handler.getExtractor();
         Iterable<LookupKV> results = extractor.extract(stixDoc);
-        Assert.assertEquals(0, Iterables.size(results));
+        assertEquals(0, Iterables.size(results));
       }
       catch(Exception ex) {
         throw new RuntimeException(ex.getMessage(), ex);

@@ -38,3 +38,20 @@
   padding: 0.3rem 3px;
 }
 
+.below-table-area {
+  display: flex;
+  justify-content: center;
+}
+
+.no-result-box {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  width: 200px;
+  height: 70px;
+  text-align: center;
+}
+
+.find-btn::before {
+  color: #32ABDF;
+}

@@ -20,12 +20,6 @@
 
 package org.apache.metron.profiler.client;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -35,9 +29,16 @@ import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests the HBaseProfilerClient.
@@ -61,8 +62,8 @@ public class HBaseProfilerClientTest {
   private MockHBaseTableProvider provider;
   private ProfileWriter profileWriter;
 
-  @Before
-  public void setup() throws Exception {
+  @BeforeEach
+  public void setup() {
     provider = new MockHBaseTableProvider();
     executor = new DefaultStellarStatefulExecutor();
     MockHBaseTableProvider.addToCache(tableName, columnFamily);
@@ -78,13 +79,13 @@ public class HBaseProfilerClientTest {
         tableName, null);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     ((MockHTable) provider.getTable(null, tableName)).clear();
   }
 
   @Test
-  public void Should_ReturnMeasurements_When_DataExistsForAGroup() throws Exception {
+  public void Should_ReturnMeasurements_When_DataExistsForAGroup() {
     final String profile = "profile1";
     final String entity = "entity1";
     final int expectedValue = 2302;
@@ -129,7 +130,7 @@ public class HBaseProfilerClientTest {
   }
 
   @Test
-  public void Should_ReturnResultFromGroup_When_MultipleGroupsExist() throws Exception {
+  public void Should_ReturnResultFromGroup_When_MultipleGroupsExist() {
     final String profile = "profile1";
     final String entity = "entity1";
     final int periodsPerHour = 4;
@@ -181,7 +182,7 @@ public class HBaseProfilerClientTest {
   }
 
   @Test
-  public void Should_ReturnNoResults_When_NoDataInStartToEnd() throws Exception {
+  public void Should_ReturnNoResults_When_NoDataInStartToEnd() {
     final String profile = "profile1";
     final String entity = "entity1";
     final int hours = 2;
