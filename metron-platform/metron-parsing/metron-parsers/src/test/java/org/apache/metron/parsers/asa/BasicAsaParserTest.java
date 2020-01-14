@@ -17,12 +17,12 @@
  */
 package org.apache.metron.parsers.asa;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import org.apache.log4j.Level;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.json.simple.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
@@ -31,21 +31,17 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.log4j.Level;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.test.utils.UnitTestHelper;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicAsaParserTest {
 
     private static BasicAsaParser asaParser;
     private Map<String, Object> parserConfig;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         parserConfig = new HashMap<>();
         asaParser = new BasicAsaParser();
@@ -58,7 +54,7 @@ public class BasicAsaParserTest {
         BasicAsaParser testParser = new BasicAsaParser();
         testParser.configure(parserConfig);
         testParser.init();
-        assertTrue(testParser.deviceClock.getZone().equals(ZoneOffset.UTC));
+        assertEquals(testParser.deviceClock.getZone(), ZoneOffset.UTC);
     }
 
     @Test
@@ -88,11 +84,11 @@ public class BasicAsaParserTest {
         String rawMessage = "<164>Aug 05 2016 01:01:34: %ASA-4-106023: Deny tcp src Inside:10.30.9.121/54580 dst Outside:192.168.135.51/42028 by access-group \"Inside_access_in\" [0x962df600, 0x0]";
         JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
         assertEquals(asaJson.get("original_string"), rawMessage);
-        assertTrue(asaJson.get("ip_src_addr").equals("10.30.9.121"));
-        assertTrue(asaJson.get("ip_dst_addr").equals("192.168.135.51"));
-        assertTrue(asaJson.get("ip_src_port").equals(54580));
-        assertTrue(asaJson.get("ip_dst_port").equals(42028));
-        assertTrue((long) asaJson.get("timestamp") == 1470358894000L);
+        assertEquals("10.30.9.121", asaJson.get("ip_src_addr"));
+        assertEquals("192.168.135.51", asaJson.get("ip_dst_addr"));
+        assertEquals(54580, asaJson.get("ip_src_port"));
+        assertEquals(42028, asaJson.get("ip_dst_port"));
+        assertEquals(1470358894000L, (long) asaJson.get("timestamp"));
     }
 
     @Test
@@ -100,11 +96,11 @@ public class BasicAsaParserTest {
         String rawMessage = "<162>Aug 05 2016 01:02:25: %ASA-2-106006: Deny inbound UDP from 10.25.177.164/63279 to 10.2.52.71/161 on interface Inside";
         JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
         assertEquals(asaJson.get("original_string"), rawMessage);
-        assertTrue(asaJson.get("ip_src_addr").equals("10.25.177.164"));
-        assertTrue(asaJson.get("ip_dst_addr").equals("10.2.52.71"));
-        assertTrue(asaJson.get("ip_src_port").equals(63279));
-        assertTrue(asaJson.get("ip_dst_port").equals(161));
-        assertTrue((long) asaJson.get("timestamp") == 1470358945000L);
+        assertEquals("10.25.177.164", asaJson.get("ip_src_addr"));
+        assertEquals("10.2.52.71", asaJson.get("ip_dst_addr"));
+        assertEquals(63279, asaJson.get("ip_src_port"));
+        assertEquals(161, asaJson.get("ip_dst_port"));
+        assertEquals(1470358945000L, (long) asaJson.get("timestamp"));
     }
 
     @Test
@@ -121,11 +117,11 @@ public class BasicAsaParserTest {
 
         JSONObject asaJson = fixedClockParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
         assertEquals(asaJson.get("original_string"), rawMessage);
-        assertTrue(asaJson.get("ip_src_addr").equals("10.22.8.110"));
-        assertTrue(asaJson.get("ip_dst_addr").equals("192.111.72.8"));
-        assertTrue(asaJson.get("ip_src_port").equals(49886));
-        assertTrue(asaJson.get("ip_dst_port").equals(8612));
-        assertTrue((long) asaJson.get("timestamp") == 1452005555000L);
+        assertEquals("10.22.8.110", asaJson.get("ip_src_addr"));
+        assertEquals("192.111.72.8", asaJson.get("ip_dst_addr"));
+        assertEquals(49886, asaJson.get("ip_src_port"));
+        assertEquals(8612, asaJson.get("ip_dst_port"));
+        assertEquals(1452005555000L, (long) asaJson.get("timestamp"));
     }
 
     @Test
@@ -133,7 +129,7 @@ public class BasicAsaParserTest {
         String rawMessage = "<165>Aug 16 2016 04:08:36: %ASA-5-713049: Group = 172.22.136.20, IP = 172.22.136.20, Security negotiation complete for LAN-to-LAN Group (172.22.136.20)  Initiator, Inbound SPI = 0x891fb03f, Outbound SPI = 0xbe4b5d8d";
         JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
         assertEquals(asaJson.get("original_string"), rawMessage);
-        assertTrue((long) asaJson.get("timestamp") == 1471320516000L);
+        assertEquals(1471320516000L, (long) asaJson.get("timestamp"));
     }
 
     @Test
@@ -141,7 +137,7 @@ public class BasicAsaParserTest {
         String rawMessage = "<164>Aug 05 2016 01:01:34: %ASA-4-106023: Deny tcp src Inside:10.30.9.121/54580 dst Outside:192.168.256.51/42028 by access-group \"Inside_access_in\" [0x962df600, 0x0]";
         JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
         assertEquals(asaJson.get("original_string"), rawMessage);
-        assertTrue((long) asaJson.get("timestamp") == 1470358894000L);
+        assertEquals(1470358894000L, (long) asaJson.get("timestamp"));
         assertNull(asaJson.get("ip_dst_addr"));
     }
 
@@ -157,38 +153,35 @@ public class BasicAsaParserTest {
         assertEquals(1452005555000L, asaJson.get("timestamp"));
     }
 
-    @Test 
+    @Test
     public void testSyslogIpHost() {
     	String rawMessage = "<174>Jan  5 14:52:35 10.22.8.212 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.8/8612 (192.111.72.8/8612) (user.name)";
     	JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
         assertEquals("10.22.8.212", asaJson.get("syslog_host"));
     }
-    
-    @Test 
+
+    @Test
     public void testSyslogHost() {
     	String rawMessage = "<174>Jan  5 14:52:35 hostname-2 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.8/8612 (192.111.72.8/8612) (user.name)";
     	JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
         assertEquals("hostname-2", asaJson.get("syslog_host"));
     }
-    
-    @Test 
+
+    @Test
     public void testSyslogHostAndProg() {
     	String rawMessage = "<174>Jan  5 14:52:35 hostname-2 progName-2 %ASA-6-302015: Built inbound UDP connection 76245506 for outside:10.22.8.110/49886 (10.22.8.110/49886) to inside:192.111.72.8/8612 (192.111.72.8/8612) (user.name)";
     	JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
     	assertEquals("hostname-2", asaJson.get("syslog_host"));
     	assertEquals("progName-2", asaJson.get("syslog_prog"));
     }
-    
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testUnexpectedMessage() {
         String rawMessage = "-- MARK --";
         UnitTestHelper.setLog4jLevel(BasicAsaParser.class, Level.FATAL);
-        thrown.expect(RuntimeException.class);
-        thrown.expectMessage(startsWith("[Metron] Message '-- MARK --'"));
-        JSONObject asaJson = asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0);
+        RuntimeException e = assertThrows(RuntimeException.class,
+                () -> asaParser.parse(rawMessage.getBytes(StandardCharsets.UTF_8)).get(0));
+        assertTrue(e.getMessage().startsWith("[Metron] Message '-- MARK --'"));
         UnitTestHelper.setLog4jLevel(BasicAsaParser.class, Level.ERROR);
     }
 

@@ -18,10 +18,9 @@
 package org.apache.metron.solr.matcher;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.hamcrest.Description;
 import org.mockito.ArgumentMatcher;
 
-public class ModifiableSolrParamsMatcher extends ArgumentMatcher<ModifiableSolrParams> {
+public class ModifiableSolrParamsMatcher implements ArgumentMatcher<ModifiableSolrParams> {
 
   private ModifiableSolrParams expectedModifiableSolrParams;
 
@@ -30,8 +29,7 @@ public class ModifiableSolrParamsMatcher extends ArgumentMatcher<ModifiableSolrP
   }
 
   @Override
-  public boolean matches(Object o) {
-    ModifiableSolrParams modifiableSolrParams = (ModifiableSolrParams) o;
+  public boolean matches(ModifiableSolrParams modifiableSolrParams) {
     for(String name: expectedModifiableSolrParams.getParameterNames()) {
       String expectedValue = expectedModifiableSolrParams.get(name);
       String value = modifiableSolrParams.get(name);
@@ -49,7 +47,7 @@ public class ModifiableSolrParamsMatcher extends ArgumentMatcher<ModifiableSolrP
   }
 
   @Override
-  public void describeTo(Description description) {
-    description.appendValue(expectedModifiableSolrParams);
+  public String toString() {
+    return expectedModifiableSolrParams.toString();
   }
 }

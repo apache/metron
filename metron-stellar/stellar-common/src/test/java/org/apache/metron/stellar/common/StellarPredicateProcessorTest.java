@@ -18,19 +18,17 @@
 
 package org.apache.metron.stellar.common;
 
-import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.junit.Assert.fail;
+
+import org.apache.metron.stellar.dsl.ParseException;
+import org.junit.jupiter.api.Test;
 
 public class StellarPredicateProcessorTest {
-  @SuppressWarnings("EmptyCatchBlock")
   @Test
-  public void testValidation() throws Exception {
+  public void testValidation() {
     StellarPredicateProcessor processor = new StellarPredicateProcessor();
-    try {
-      processor.validate("enrichedField1 == 'enrichedValue1");
-      fail("Invalid rule found to be valid - unclosed single quotes.");
-    } catch(ParseException e) {}
+    assertThrows(ParseException.class, () -> processor.validate("enrichedField1 == 'enrichedValue1"),
+        "Invalid rule found to be valid - unclosed single quotes.");
   }
 }

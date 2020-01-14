@@ -25,12 +25,12 @@ export class MetronDialogBox {
                   <div class="modal-dialog modal-sm" role="document">
                     <div class="modal-content">
                       <div class="modal-header">
+                        <span class="modal-title"><b>` + title + `</b></span>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        <span class="modal-title"><b>` + title + `</b></span>
                       </div>
-                      <div class="modal-body">
+                      <div class="modal-body pt-0 pb-0">
                         <p>` +  message + `</p>
                       </div>
                       <div class="modal-footer">

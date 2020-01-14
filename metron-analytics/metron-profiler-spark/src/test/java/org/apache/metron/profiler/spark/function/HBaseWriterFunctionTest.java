@@ -23,11 +23,10 @@ import org.apache.commons.collections4.IteratorUtils;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.spark.ProfileMeasurementAdapter;
+import org.apache.metron.statistics.OnlineStatisticsProvider;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,12 +36,13 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_COLUMN_FAMILY;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.HBASE_TABLE_NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HBaseWriterFunctionTest {
 
   Properties profilerProperties;
 
-  @Before
+  @BeforeEach
   public void setup() {
     profilerProperties = getProfilerProperties();
 
@@ -61,7 +61,7 @@ public class HBaseWriterFunctionTest {
     ProfileConfig profile = getProfile();
 
     // setup the profile measurements that will be written
-    List<ProfileMeasurementAdapter> measurements = createMeasurements(1, entity, timestamp, profile);
+    List<ProfileMeasurement> measurements = createMeasurements(1, entity, timestamp, profile);
 
     // setup the function to test
     HBaseWriterFunction function = new HBaseWriterFunction(profilerProperties);
@@ -72,8 +72,8 @@ public class HBaseWriterFunctionTest {
 
     // validate the result
     List<Integer> counts = IteratorUtils.toList(results);
-    Assert.assertEquals(1, counts.size());
-    Assert.assertEquals(1, counts.get(0).intValue());
+    assertEquals(1, counts.size());
+    assertEquals(1, counts.get(0).intValue());
   }
 
   @Test
@@ -85,7 +85,7 @@ public class HBaseWriterFunctionTest {
     ProfileConfig profile = getProfile();
 
     // setup the profile measurements that will be written
-    List<ProfileMeasurementAdapter> measurements = createMeasurements(10, entity, timestamp, profile);
+    List<ProfileMeasurement> measurements = createMeasurements(10, entity, timestamp, profile);
 
     // setup the function to test
     HBaseWriterFunction function = new HBaseWriterFunction(profilerProperties);
@@ -96,15 +96,15 @@ public class HBaseWriterFunctionTest {
 
     // validate the result
     List<Integer> counts = IteratorUtils.toList(results);
-    Assert.assertEquals(1, counts.size());
-    Assert.assertEquals(10, counts.get(0).intValue());
+    assertEquals(1, counts.size());
+    assertEquals(10, counts.get(0).intValue());
   }
 
   @Test
   public void testWriteNone() throws Exception {
 
     // there are no profile measurements to write
-    List<ProfileMeasurementAdapter> measurements = new ArrayList<>();
+    List<ProfileMeasurement> measurements = new ArrayList<>();
 
     // setup the function to test
     HBaseWriterFunction function = new HBaseWriterFunction(profilerProperties);
@@ -115,8 +115,8 @@ public class HBaseWriterFunctionTest {
 
     // validate the result
     List<Integer> counts = IteratorUtils.toList(results);
-    Assert.assertEquals(1, counts.size());
-    Assert.assertEquals(0, counts.get(0).intValue());
+    assertEquals(1, counts.size());
+    assertEquals(0, counts.get(0).intValue());
   }
 
   /**
@@ -128,17 +128,15 @@ public class HBaseWriterFunctionTest {
    * @param profile The profile definition.
    * @return
    */
-  private List<ProfileMeasurementAdapter> createMeasurements(int count, String entity, long timestamp, ProfileConfig profile) {
-    List<ProfileMeasurementAdapter> measurements = new ArrayList<>();
+  private List<ProfileMeasurement> createMeasurements(int count, String entity, long timestamp, ProfileConfig profile) {
+    List<ProfileMeasurement> measurements = new ArrayList<>();
 
     for(int i=0; i<count; i++) {
-      ProfileMeasurement measurement = new ProfileMeasurement()
+      measurements.add(new ProfileMeasurement()
               .withProfileName(profile.getProfile())
               .withEntity(entity)
-              .withPeriod(timestamp, 15, TimeUnit.MINUTES);
-
-      // wrap the measurement using the adapter
-      measurements.add(new ProfileMeasurementAdapter(measurement));
+              .withPeriod(timestamp, 15, TimeUnit.MINUTES)
+              .withProfileValue(new OnlineStatisticsProvider()));
     }
 
     return measurements;
@@ -171,6 +169,5 @@ public class HBaseWriterFunctionTest {
             .withForeach("ip_src_addr")
             .withUpdate("count", "count + 1")
             .withResult("count");
-
   }
 }

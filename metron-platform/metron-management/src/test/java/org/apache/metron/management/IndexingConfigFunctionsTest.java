@@ -19,21 +19,21 @@ package org.apache.metron.management;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.common.StellarProcessor;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
 import static org.apache.metron.management.EnrichmentConfigFunctionsTest.toMap;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class IndexingConfigFunctionsTest {
 
@@ -45,7 +45,7 @@ public class IndexingConfigFunctionsTest {
     return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     variables = ImmutableMap.of(
             "upper", VariableResult.withExpression("FOO", "TO_UPPER('foo')"),
@@ -63,7 +63,7 @@ public class IndexingConfigFunctionsTest {
                              , toMap("config", "{}")
     );
     Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
-    Assert.assertEquals(10, IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")));
+    assertEquals(10, IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")));
   }
 
   @Test
@@ -72,18 +72,16 @@ public class IndexingConfigFunctionsTest {
                              , toMap("config", "{}")
     );
     Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
-    Assert.assertEquals(10, IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")));
-    Assert.assertEquals(2,  IndexingConfigurations.getBatchTimeout((Map<String, Object>) config.get("hdfs")));
+    assertEquals(10, IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")));
+    assertEquals(2,  IndexingConfigurations.getBatchTimeout((Map<String, Object>) config.get("hdfs")));
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void testSetBatchBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);
     }};
-    run("INDEXING_SET_BATCH(config, 'hdfs', 10)"
-                             , variables
-    );
+    assertThrows(ParseException.class, () -> run("INDEXING_SET_BATCH(config, 'hdfs', 10)", variables));
   }
 
   @Test
@@ -92,17 +90,15 @@ public class IndexingConfigFunctionsTest {
                              , toMap("config", "{}")
     );
     Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
-    Assert.assertTrue(IndexingConfigurations.isEnabled((Map<String, Object>) config.get("hdfs")));
+    assertTrue(IndexingConfigurations.isEnabled((Map<String, Object>) config.get("hdfs")));
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void testSetEnabledBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);
     }};
-    run("INDEXING_SET_ENABLED(config, 'hdfs', 10)"
-                             , variables
-    );
+    assertThrows(ParseException.class, () -> run("INDEXING_SET_ENABLED(config, 'hdfs', 10)", variables));
   }
 
   @Test
@@ -111,16 +107,14 @@ public class IndexingConfigFunctionsTest {
             , toMap("config", "{}")
     );
     Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
-    Assert.assertEquals("foo", IndexingConfigurations.getIndex((Map<String, Object>)config.get("hdfs"), null));
+    assertEquals("foo", IndexingConfigurations.getIndex((Map<String, Object>)config.get("hdfs"), null));
   }
 
-  @Test(expected= ParseException.class)
+  @Test
   public void testSetIndexBad() {
     Map<String,Object> variables = new HashMap<String,Object>(){{
       put("config",null);
     }};
-    run("INDEXING_SET_INDEX(config, 'hdfs', NULL)"
-            , variables
-    );
+    assertThrows(ParseException.class, () -> run("INDEXING_SET_INDEX(config, 'hdfs', NULL)", variables));
   }
 }

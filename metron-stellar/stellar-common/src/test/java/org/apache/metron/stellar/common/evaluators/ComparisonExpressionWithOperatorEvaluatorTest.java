@@ -19,32 +19,21 @@
 package org.apache.metron.stellar.common.evaluators;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.metron.stellar.common.generated.StellarParser;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Token;
-import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"unchecked"})
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ComparisonExpressionWithOperatorEvaluator.class, ComparisonExpressionWithOperatorEvaluator.Strategy.class})
 public class ComparisonExpressionWithOperatorEvaluatorTest {
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   final ComparisonExpressionWithOperatorEvaluator evaluator = ComparisonExpressionWithOperatorEvaluator.INSTANCE;
 
   @Test
-  public void evaluateEqShouldProperlyCallEqualityOperatorsEvaluator() throws Exception {
+  public void evaluateEqShouldProperlyCallEqualityOperatorsEvaluator() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(1D);
 
@@ -60,7 +49,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
   }
 
   @Test
-  public void evaluateNotEqShouldProperlyCallEqualityOperatorsEvaluator() throws Exception {
+  public void evaluateNotEqShouldProperlyCallEqualityOperatorsEvaluator() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(1D);
 
@@ -76,7 +65,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
   }
 
   @Test
-  public void evaluateLessThanEqShouldProperlyCallEqualityOperatorsEvaluator() throws Exception {
+  public void evaluateLessThanEqShouldProperlyCallEqualityOperatorsEvaluator() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(0D);
 
@@ -92,10 +81,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
   }
 
   @Test
-  public void unexpectedOperatorShouldThrowException() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operations. The following expression is invalid: ");
-
+  public void unexpectedOperatorShouldThrowException() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(0D);
 
@@ -104,14 +90,12 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
 
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
 
-    evaluator.evaluate(left, right, op, null);
+    ParseException e = assertThrows(ParseException.class, () -> evaluator.evaluate(left, right, op, null));
+    assertTrue(e.getMessage().contains("Unsupported operations. The following expression is invalid: "));
   }
 
   @Test
-  public void nonExpectedOperatorShouldThrowException() throws Exception {
-    exception.expect(ParseException.class);
-    exception.expectMessage("Unsupported operations. The following expression is invalid: ");
-
+  public void nonExpectedOperatorShouldThrowException() {
     Token<String> left = mock(Token.class);
     when(left.getValue()).thenReturn("adsf");
 
@@ -121,6 +105,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.LTE()).thenReturn(mock(TerminalNode.class));
 
-    evaluator.evaluate(left, right, op, null);
+    ParseException e = assertThrows(ParseException.class, () -> evaluator.evaluate(left, right, op, null));
+    assertTrue(e.getMessage().contains("Unsupported operations. The following expression is invalid: "));
   }
 }

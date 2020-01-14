@@ -22,9 +22,9 @@ import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.ALERT_
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_SORT_DEFAULT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +35,7 @@ import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MetaScoresTest {
   @Test

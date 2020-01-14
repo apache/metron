@@ -33,60 +33,48 @@ import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.json.simple.JSONObject;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ElasticsearchBulkDocumentWriterIntegrationTest {
 
-    @ClassRule
-    public static TemporaryFolder indexDir = new TemporaryFolder();
+    @TempDir
+    static File indexDir;
+
     private static String broTemplatePath = "../../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/bro_index.template";
     private static ElasticSearchComponent elasticsearch;
     private ElasticsearchClient client;
     private ElasticsearchBulkDocumentWriter<Document> writer;
     private ElasticsearchRetrieveLatestDao retrieveDao;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupElasticsearch() throws Exception {
         AccessConfig accessConfig = new AccessConfig();
         accessConfig.setGlobalConfigSupplier(() -> globals());
 
         elasticsearch = new ElasticSearchComponent.Builder()
                 .withHttpPort(9211)
-                .withIndexDir(indexDir.getRoot())
+                .withIndexDir(indexDir)
                 .withAccessConfig(accessConfig)
                 .build();
         elasticsearch.start();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownElasticsearch() {
         if(elasticsearch != null) {
             elasticsearch.stop();
         }
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         client = ElasticsearchClientFactory.create(globals());
         retrieveDao = new ElasticsearchRetrieveLatestDao(client);
@@ -103,7 +91,7 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
         assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.equalTo(200));
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws IOException {
         if(client != null) {
             client.close();
@@ -128,7 +116,7 @@ public class ElasticsearchBulkDocumentWriterIntegrationTest {
         // ensure the documents were written
         for(Document expected: documents) {
             Document actual = retrieveDao.getLatest(expected.getGuid(), expected.getSensorType());
-            assertNotNull("No document found", actual);
+            assertNotNull(actual, "No document found");
             assertEquals(expected.getGuid(), actual.getGuid());
             assertEquals(expected.getSensorType(), actual.getSensorType());
             assertEquals(expected.getDocument(), actual.getDocument());

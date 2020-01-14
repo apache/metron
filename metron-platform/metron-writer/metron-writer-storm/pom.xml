@@ -123,5 +123,11 @@
             <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-migrationsupport</artifactId>
+            <version>${global_junit_jupiter_version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

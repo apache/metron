@@ -18,7 +18,7 @@ name: "profiler"
 
 config:
     topology.workers: ${profiler.workers}
-    topology.acker.executors: ${profiler.executors}
+    topology.acker.executors: ${profiler.acker.executors}
     topology.worker.childopts: ${topology.worker.childopts}
     topology.auto-credentials: ${topology.auto-credentials}
     topology.message.timeout.secs: ${topology.message.timeout.secs}
@@ -143,6 +143,7 @@ spouts:
         className: "org.apache.metron.storm.kafka.flux.StormKafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
+        parallelism: ${profiler.spout.parallelism}
 
 bolts:
 
@@ -150,6 +151,7 @@ bolts:
         className: "org.apache.metron.profiler.storm.ProfileSplitterBolt"
         constructorArgs:
             - "${kafka.zk}"
+        parallelism: ${profiler.splitter.parallelism}
 
     -   id: "builderBolt"
         className: "org.apache.metron.profiler.storm.ProfileBuilderBolt"
@@ -172,6 +174,7 @@ bolts:
               args: [${profiler.max.routes.per.bolt}]
             - name: "withTimestampField"
               args: ["timestamp"]
+        parallelism: ${profiler.builder.parallelism}
 
     -   id: "hbaseBolt"
         className: "org.apache.metron.hbase.bolt.HBaseBolt"
@@ -185,6 +188,7 @@ bolts:
               args: [${profiler.hbase.batch}]
             - name: "withFlushIntervalSecs"
               args: [${profiler.hbase.flush.interval.seconds}]
+        parallelism: ${profiler.hbase.writer.parallelism}
 
     -   id: "kafkaBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
@@ -194,6 +198,7 @@ bolts:
         configMethods:
             -   name: "withBulkMessageWriter"
                 args: [ref: "kafkaWriter"]
+        parallelism: ${profiler.kafka.writer.parallelism}
 
 streams:
 

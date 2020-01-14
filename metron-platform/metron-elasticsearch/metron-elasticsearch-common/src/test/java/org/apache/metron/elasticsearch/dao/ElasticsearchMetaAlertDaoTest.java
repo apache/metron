@@ -18,39 +18,27 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertConfig;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.search.GroupRequest;
-import org.apache.metron.indexing.dao.search.GroupResponse;
-import org.apache.metron.indexing.dao.search.InvalidCreateException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.update.CommentAddRemoveRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.index.IndexNotFoundException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 public class ElasticsearchMetaAlertDaoTest {
 
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testInvalidInit() {
     IndexDao dao = new IndexDao() {
       @Override
@@ -114,28 +102,28 @@ public class ElasticsearchMetaAlertDaoTest {
       }
     };
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
-    metaAlertDao.init(dao);
+    assertThrows(IllegalArgumentException.class, () -> metaAlertDao.init(dao));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testInitInvalidDao() {
     HBaseDao dao = new HBaseDao();
     ElasticsearchMetaAlertDao esDao = new ElasticsearchMetaAlertDao();
-    esDao.init(dao, Optional.empty());
+    assertThrows(IllegalArgumentException.class, () -> esDao.init(dao, Optional.empty()));
   }
 
-  @Test(expected = InvalidCreateException.class)
-  public void testCreateMetaAlertEmptyGuids() throws InvalidCreateException, IOException {
+  @Test
+  public void testCreateMetaAlertEmptyGuids() {
     ElasticsearchDao esDao = new ElasticsearchDao();
     ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
     emaDao.init(esDao);
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
-    emaDao.createMetaAlert(createRequest);
+    assertThrows(InvalidCreateException.class, () -> emaDao.createMetaAlert(createRequest));
   }
 
-  @Test(expected = InvalidCreateException.class)
-  public void testCreateMetaAlertEmptyGroups() throws InvalidCreateException, IOException {
+  @Test
+  public void testCreateMetaAlertEmptyGroups() {
     ElasticsearchDao esDao = new ElasticsearchDao();
     MultiIndexDao miDao = new MultiIndexDao(esDao);
     ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
@@ -143,7 +131,7 @@ public class ElasticsearchMetaAlertDaoTest {
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
     createRequest.setAlerts(Collections.singletonList(new GetRequest("don't", "care")));
-    emaDao.createMetaAlert(createRequest);
+    assertThrows(InvalidCreateException.class, () -> emaDao.createMetaAlert(createRequest));
   }
 
   @Test
@@ -164,7 +152,7 @@ public class ElasticsearchMetaAlertDaoTest {
     verify(elasticsearchDao).batchUpdate(expectedUpdate);
   }
 
-  @Test(expected = IndexNotFoundException.class)
+  @Test
   public void testUpdateShouldThrowExceptionOnMissingSensorIndex() throws Exception {
     ElasticsearchDao elasticsearchDao = mock(ElasticsearchDao.class);
     ElasticsearchMetaAlertRetrieveLatestDao elasticsearchMetaAlertRetrieveLatestDao = mock(ElasticsearchMetaAlertRetrieveLatestDao.class);
@@ -174,6 +162,6 @@ public class ElasticsearchMetaAlertDaoTest {
     doThrow(new IndexNotFoundException("bro")).when(emauDao).getMetaAlertsForAlert("alert_one");
 
     Document update = new Document(new HashMap<>(), "alert_one", "", 0L);
-    emauDao.update(update, Optional.empty());
+    assertThrows(IndexNotFoundException.class, () -> emauDao.update(update, Optional.empty()));
   }
 }

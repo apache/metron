@@ -17,8 +17,16 @@
  */
 package org.apache.metron.enrichment.parallel;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
@@ -29,13 +37,8 @@ import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class ParallelEnricherTest {
   /**
@@ -106,7 +109,7 @@ public class ParallelEnricherTest {
     }
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() {
     ConcurrencyContext infrastructure = new ConcurrencyContext();
     infrastructure.initialize(5, 100, 10, null, null, false);
@@ -133,7 +136,7 @@ public class ParallelEnricherTest {
       ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     }
     //we only want 2 actual instances of the adapter.enrich being run due to the cache.
-    Assert.assertTrue(2 >= numAccesses.get());
+    assertTrue(2 >= numAccesses.get());
   }
 
   @Test
@@ -145,19 +148,19 @@ public class ParallelEnricherTest {
     }};
     ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals("Got the wrong result count: " + ret, 11, ret.size());
-    Assert.assertEquals(1, ret.get("map.blah"));
-    Assert.assertEquals("test", ret.get("source.type"));
-    Assert.assertEquals(1, ret.get("one"));
-    Assert.assertEquals(2, ret.get("foo"));
-    Assert.assertEquals("TEST", ret.get("ALL_CAPS"));
-    Assert.assertEquals(0, result.getEnrichmentErrors().size());
-    Assert.assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.end.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
+    assertEquals(11, ret.size(), "Got the wrong result count: " + ret);
+    assertEquals(1, ret.get("map.blah"));
+    assertEquals("test", ret.get("source.type"));
+    assertEquals(1, ret.get("one"));
+    assertEquals(2, ret.get("foo"));
+    assertEquals("TEST", ret.get("ALL_CAPS"));
+    assertEquals(0, result.getEnrichmentErrors().size());
+    assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.begin.ts"));
+    assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.end.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
   }
 /**
    * {
@@ -182,13 +185,13 @@ public class ParallelEnricherTest {
     }};
     ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals("Got the wrong result count: " + ret, 7, ret.size());
-    Assert.assertTrue(result.getResult().containsKey("adapter.dummyenrichmentadapter.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("adapter.dummyenrichmentadapter.end.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
+    assertEquals(7, ret.size(), "Got the wrong result count: " + ret);
+    assertTrue(result.getResult().containsKey("adapter.dummyenrichmentadapter.begin.ts"));
+    assertTrue(result.getResult().containsKey("adapter.dummyenrichmentadapter.end.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
   }
 
   /**
@@ -226,19 +229,19 @@ public class ParallelEnricherTest {
     }};
     ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals(ret + " is not what I expected", 11, ret.size());
-    Assert.assertEquals(1, ret.get("map.blah"));
-    Assert.assertEquals("test", ret.get("source.type"));
-    Assert.assertEquals(1, ret.get("one"));
-    Assert.assertEquals(2, ret.get("foo"));
-    Assert.assertEquals("TEST", ret.get("ALL_CAPS"));
-    Assert.assertEquals(1, result.getEnrichmentErrors().size());
-    Assert.assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.end.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
-    Assert.assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
+    assertEquals(11, ret.size(), ret + " is not what I expected");
+    assertEquals(1, ret.get("map.blah"));
+    assertEquals("test", ret.get("source.type"));
+    assertEquals(1, ret.get("one"));
+    assertEquals(2, ret.get("foo"));
+    assertEquals("TEST", ret.get("ALL_CAPS"));
+    assertEquals(1, result.getEnrichmentErrors().size());
+    assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.begin.ts"));
+    assertTrue(result.getResult().containsKey("adapter.accessloggingstellaradapter.end.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.splitter.begin.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.splitter.end.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.enrich.begin.ts"));
+    assertTrue(result.getResult().containsKey("parallelenricher.enrich.end.ts"));
   }
 
   /**
@@ -262,14 +265,7 @@ public class ParallelEnricherTest {
     JSONObject message = new JSONObject() {{
       put(Constants.SENSOR_TYPE, "test");
     }};
-    try {
-      enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
-      Assert.fail("This is an invalid config, we should have failed.");
-    }
-    catch(IllegalStateException ise) {
-      Assert.assertEquals(ise.getMessage()
-              , "Unable to find an adapter for hbaseThreatIntel, possible adapters are: " + Joiner.on(",").join(enrichmentsByType.keySet())
-      );
-    }
+    IllegalStateException ise = assertThrows(IllegalStateException.class, () -> enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null));
+    assertEquals(ise.getMessage(), "Unable to find an adapter for hbaseThreatIntel, possible adapters are: " + Joiner.on(",").join(enrichmentsByType.keySet()));
   }
 }

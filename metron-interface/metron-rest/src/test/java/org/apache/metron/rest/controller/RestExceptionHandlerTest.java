@@ -14,15 +14,15 @@
  */
 package org.apache.metron.rest.controller;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.metron.rest.model.RestError;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -31,7 +31,7 @@ public class RestExceptionHandlerTest {
   private RestExceptionHandler restExceptionHandler;
   private HttpServletRequest request;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     restExceptionHandler = new RestExceptionHandler();
     request = mock(HttpServletRequest.class);

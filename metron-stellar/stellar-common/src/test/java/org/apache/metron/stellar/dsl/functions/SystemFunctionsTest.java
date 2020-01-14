@@ -19,12 +19,12 @@ package org.apache.metron.stellar.dsl.functions;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.stellar.common.system.Environment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

@@ -25,42 +25,22 @@ import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.common.writer.MessageId;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriter;
 import org.apache.metron.elasticsearch.bulk.BulkDocumentWriterResults;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ElasticsearchWriter.class, ElasticsearchUtils.class})
 public class ElasticsearchWriterTest {
 
     Map stormConf;
     WriterConfiguration writerConfiguration;
 
-    @Before
+    @BeforeEach
     public void setup() {
         writerConfiguration = mock(WriterConfiguration.class);
         when(writerConfiguration.getGlobalConfig()).thenReturn(globals());
@@ -260,10 +240,6 @@ public class ElasticsearchWriterTest {
         when(writerConfiguration.isSetDocumentId("bro")).thenReturn(true);
         when(writerConfiguration.getFieldNameConverter("bro")).thenReturn("NOOP");
 
-        mockStatic(ElasticsearchUtils.class);
-        when(ElasticsearchUtils.getIndexFormat(globals())).thenReturn(new SimpleDateFormat());
-        when(ElasticsearchUtils.getIndexName(eq("bro"), any(), eq(writerConfiguration))).thenReturn("bro_index");
-
         // create a few message ids and the messages associated with the ids
         List<BulkMessage<JSONObject>> messages = createMessages(3);
 
@@ -286,7 +262,9 @@ public class ElasticsearchWriterTest {
         when(docWriter.write()).thenReturn(results);
 
         // attempt to write
-        ElasticsearchWriter esWriter = new ElasticsearchWriter();
+        ElasticsearchWriter esWriter = spy(ElasticsearchWriter.class);
+        doReturn(new SimpleDateFormat()).when(esWriter).getIndexFormat(globals());
+        doReturn("bro_index").when(esWriter).getIndexName(eq("bro"), any(), eq(writerConfiguration));
         esWriter.setDocumentWriter(docWriter);
         esWriter.init(stormConf, writerConfiguration);
         BulkWriterResponse response = esWriter.write("bro", writerConfiguration, messages);

@@ -18,32 +18,31 @@
 
 package org.apache.metron.job.manager;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.apache.hadoop.fs.Path;
+import org.apache.metron.job.*;
+import org.apache.metron.job.JobStatus.State;
+import org.apache.metron.job.Statusable.JobType;
+import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.job.Finalizer;
-import org.apache.metron.job.JobException;
-import org.apache.metron.job.JobStatus;
-import org.apache.metron.job.JobStatus.State;
-import org.apache.metron.job.Pageable;
-import org.apache.metron.job.Statusable;
-import org.apache.metron.job.Statusable.JobType;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@EnableRuleMigrationSupport
 public class InMemoryJobManagerTest {
 
   @Rule
@@ -68,7 +67,7 @@ public class InMemoryJobManagerTest {
   private String emptyJobId;
   private String basePath;
 
-  @Before
+  @BeforeEach
   public void setup() throws JobException {
     MockitoAnnotations.initMocks(this);
     jm = new InMemoryJobManager<Path>();

@@ -17,18 +17,19 @@
  */
 package org.apache.metron.stellar.common.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class ConcatMapTest {
 
   @Test
-  public void testToString() throws Exception {
+  public void testToString() {
     Map<String, Object> v1 = new HashMap<>();
     v1.put("k1", "v1");
     Map<String, Object> v2 = new HashMap<>();
@@ -39,7 +40,7 @@ public class ConcatMapTest {
       put("k2", "v2");
     }};
     ConcatMap c = create(v1, v2);
-    Assert.assertEquals(c.toString(), union.toString());
+    assertEquals(c.toString(), union.toString());
   }
 
   private ConcatMap create(Map... ms) {
@@ -53,7 +54,7 @@ public class ConcatMapTest {
   private void assertKryoserializable(ConcatMap c) {
     byte[] serialized = SerDeUtils.toBytes(c);
     ConcatMap deserialized = SerDeUtils.fromBytes(serialized, ConcatMap.class);
-    Assert.assertEquals(deserialized, c);
+    assertEquals(deserialized, c);
   }
 
   @Test

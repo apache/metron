@@ -18,27 +18,27 @@
 
 package org.apache.metron.parsers;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
+import org.apache.commons.io.FileUtils;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.json.simple.JSONObject;
+import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.commons.io.FileUtils;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.parsers.interfaces.MessageParserResult;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import java.util.*;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+@EnableRuleMigrationSupport
 public class BasicParserTest {
 
   private static final String KEY1 = "key1";
@@ -60,8 +60,8 @@ public class BasicParserTest {
       String message = new String(parseMessage, getReadCharset());
       Map<String, Object> out = new HashMap<>();
       out.put(KEY1, message);
-      MessageParserResult<JSONObject> result = new DefaultMessageParserResult<JSONObject>(
-          Arrays.asList(new JSONObject(out)));
+      MessageParserResult<JSONObject> result = new DefaultMessageParserResult<>(
+              Collections.singletonList(new JSONObject(out)));
       return Optional.of(result);
     }
   }
@@ -84,8 +84,8 @@ public class BasicParserTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
-  @Before
-  public void setup() throws IOException, InterruptedException {
+  @BeforeEach
+  public void setup() throws IOException {
     tempFolder.create();
     parserWithCharset = new SomeParserWithCharset();
     parserNoCharset = new SomeParserNoCharset();

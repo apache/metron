@@ -153,6 +153,12 @@
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
             <version>${global_json_simple_version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -230,11 +236,28 @@
             <version>${global_httpclient_version}</version>
         </dependency>
         <dependency>
-            <!-- junit dependency added with default scope to allow inclusion of StellarProcessorUtils in main jar.
-                 It is excluded from the uber-jar. -->
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${global_junit_version}</version>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>${global_hamcrest_version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${global_junit_jupiter_version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${global_junit_jupiter_version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-migrationsupport</artifactId>
+            <version>${global_junit_jupiter_version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.mock-server</groupId>
@@ -299,7 +322,9 @@
                     <artifactSet>
                         <excludes>
                             <exclude>*slf4j*</exclude>
+                            <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
                             <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>
@@ -362,7 +387,9 @@
                                 <excludes>
                                     <exclude>org.slf4j.impl*</exclude>
                                     <exclude>org.slf4j:slf4j-log4j*</exclude>
+                                    <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
                                     <exclude>junit</exclude>
+                                    <exclude>org.junit*:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <transformers>

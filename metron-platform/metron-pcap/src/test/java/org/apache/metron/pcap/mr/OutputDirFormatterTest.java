@@ -18,21 +18,22 @@
 
 package org.apache.metron.pcap.mr;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
-
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 
 public class OutputDirFormatterTest {
 
   @Test
-  public void formats_directory_name_for_query_filter_types() throws Exception {
+  public void formats_directory_name_for_query_filter_types() {
     long beginNS = TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis());
     long endNS = TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis());
     String query = "ip_dst_addr == '207.28.210.1' and protocol == 'PROTOCOL: ICMP(1)";
@@ -45,7 +46,7 @@ public class OutputDirFormatterTest {
   }
 
   @Test
-  public void formats_directory_name_for_fixed_filter_types() throws Exception {
+  public void formats_directory_name_for_fixed_filter_types() {
     long beginNS = TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis());
     long endNS = TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis());
     Map<String, String> fields = new HashMap<>();

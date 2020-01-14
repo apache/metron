@@ -23,17 +23,15 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
-import org.mockserver.client.server.MockServerClient;
-import org.mockserver.junit.MockServerRule;
-import org.mockserver.junit.ProxyRule;
+import org.mockserver.integration.ClientAndServer;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,26 +40,22 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.dsl.functions.RestConfig.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+
+@EnableRuleMigrationSupport
 public class RestFunctionsIntegrationTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
-  @Rule
-  public MockServerRule mockServerRule = new MockServerRule(this);
+  private static final int MOCK_PROXY_PORT = 1080;
 
-  @Rule
-  public ProxyRule proxyRule = new ProxyRule(1080, this);
+  // Use plain Java API, because we can't use the @Rule and the JUnit5 extension isn't released.
+  private ClientAndServer mockServerClient;
 
-  private MockServerClient mockServerClient;
   private String baseUri;
   private String getUri;
   private String emptyGetUri;
@@ -74,8 +68,10 @@ public class RestFunctionsIntegrationTest {
   private File proxyBasicAuthPasswordFile;
   private String proxyAuthPassword = "proxyPassword";
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
+    mockServerClient = startClientAndServer(MOCK_PROXY_PORT);
+
     context = new Context.Builder()
             .with(Context.Capabilities.GLOBAL_CONFIG, HashMap::new)
             .build();
@@ -87,7 +83,7 @@ public class RestFunctionsIntegrationTest {
     FileUtils.writeStringToFile(proxyBasicAuthPasswordFile, proxyAuthPassword, StandardCharsets.UTF_8);
 
     // By default, the mock server expects a GET request with the path set to /get
-    baseUri = String.format("http://localhost:%d", mockServerRule.getPort());
+    baseUri = String.format("http://localhost:%d", MOCK_PROXY_PORT);
     getUri = baseUri + "/get";
     emptyGetUri = baseUri + "/get/empty";
     postUri = baseUri + "/post";
@@ -120,12 +116,17 @@ public class RestFunctionsIntegrationTest {
                     .withStatusCode(404));
   }
 
+  @AfterEach
+  public void teardown() {
+    mockServerClient.stop();
+  }
+
   /**
    * The REST_GET function should perform a get request and parse the results.
    */
   @Test
   @SuppressWarnings("unchecked")
-  public void restGetShouldSucceed() throws Exception {
+  public void restGetShouldSucceed() {
     Map<String, Object> actual = (Map<String, Object>) run(String.format("REST_GET('%s')", getUri), context);
 
     assertEquals(1, actual.size());
@@ -137,7 +138,7 @@ public class RestFunctionsIntegrationTest {
    */
   @Test
   @SuppressWarnings("unchecked")
-  public void restGetShouldSucceedWithQueryParameters() throws Exception {
+  public void restGetShouldSucceedWithQueryParameters() {
     mockServerClient.when(
             request()
                     .withMethod("GET")
@@ -169,7 +170,7 @@ public class RestFunctionsIntegrationTest {
 
     context.addCapability(Context.Capabilities.GLOBAL_CONFIG, () -> new HashMap<String, Object>() {{
       put(PROXY_HOST, "localhost");
-      put(PROXY_PORT, proxyRule.getHttpPort());
+      put(PROXY_PORT, MOCK_PROXY_PORT);
     }});
 
     Map<String, Object> actual = (Map<String, Object>) run(String.format("REST_GET('%s')", getUri), context);
@@ -240,7 +241,8 @@ public class RestFunctionsIntegrationTest {
   @Test
   @SuppressWarnings("unchecked")
   public void restGetShouldTimeout() {
-    String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
+    String uri = String.format("http://localhost:%d/get", MOCK_PROXY_PORT);
+
     mockServerClient.when(
             request()
                     .withMethod("GET")
@@ -275,7 +277,7 @@ public class RestFunctionsIntegrationTest {
   @Test
   @SuppressWarnings("unchecked")
   public void restGetShouldTimeoutWithSuppliedTimeout() {
-    String uri = String.format("http://localhost:%d/get", mockServerRule.getPort());
+    String uri = String.format("http://localhost:%d/get", MOCK_PROXY_PORT);
     mockServerClient.when(
             request()
                     .withMethod("GET")
@@ -291,15 +293,11 @@ public class RestFunctionsIntegrationTest {
 
   /**
    * The REST_GET function should throw an exception on a malformed uri.
-   * @throws IllegalArgumentException
-   * @throws IOException
    */
   @Test
-  public void restGetShouldHandleURISyntaxException() throws IllegalArgumentException, IOException {
-    thrown.expect(ParseException.class);
-    thrown.expectMessage("Unable to parse REST_GET('some invalid uri'): Unable to parse: REST_GET('some invalid uri') due to: Illegal character in path at index 4: some invalid uri");
-
-    run("REST_GET('some invalid uri')", context);
+  public void restGetShouldHandleURISyntaxException() {
+    ParseException e = assertThrows(ParseException.class, () -> run("REST_GET('some invalid uri')", context));
+    assertEquals("Unable to parse REST_GET('some invalid uri'): Unable to parse: REST_GET('some invalid uri') due to: Illegal character in path at index 4: some invalid uri", e.getMessage());
   }
 
 
@@ -309,10 +307,8 @@ public class RestFunctionsIntegrationTest {
    */
   @Test
   public void restGetShouldThrownExceptionOnMissingParameter() {
-    thrown.expect(ParseException.class);
-    thrown.expectMessage("Unable to parse REST_GET(): Unable to parse: REST_GET() due to: Expected at least 1 argument(s), found 0");
-
-    run("REST_GET()", context);
+    ParseException e = assertThrows(ParseException.class, () -> run("REST_GET()", context));
+    assertEquals("Unable to parse REST_GET(): Unable to parse: REST_GET() due to: Expected at least 1 argument(s), found 0", e.getMessage());
   }
 
   /**
@@ -374,7 +370,7 @@ public class RestFunctionsIntegrationTest {
    */
   @Test
   @SuppressWarnings("unchecked")
-  public void restPostShouldSucceed() throws Exception {
+  public void restPostShouldSucceed() {
     Map<String, Object> actual = (Map<String, Object>) run(String.format("REST_POST('%s', '{\"key\":\"value\"}')", postUri), context);
 
     assertEquals(1, actual.size());
@@ -386,7 +382,7 @@ public class RestFunctionsIntegrationTest {
    */
   @Test
   @SuppressWarnings("unchecked")
-  public void restPostShouldSucceedWithQueryParameters() throws Exception {
+  public void restPostShouldSucceedWithQueryParameters() {
     mockServerClient.when(
             request()
                     .withMethod("POST")
@@ -408,7 +404,7 @@ public class RestFunctionsIntegrationTest {
    */
   @Test
   @SuppressWarnings("unchecked")
-  public void restPostShouldSucceedWithStellarMap() throws Exception {
+  public void restPostShouldSucceedWithStellarMap() {
     Map<String, Object> variables = ImmutableMap.of("body", ImmutableMap.of("key", "value"));
     Map<String, Object> actual = (Map<String, Object>) run(String.format("REST_POST('%s', body)", postUri), variables, context);
 
@@ -418,29 +414,26 @@ public class RestFunctionsIntegrationTest {
 
   /**
    * The REST_POST function should throw an exception on a malformed uri.
-   * @throws IllegalArgumentException
-   * @throws IOException
    */
   @Test
-  public void restPostShouldHandleURISyntaxException() throws IllegalArgumentException, IOException {
-    thrown.expect(ParseException.class);
-    thrown.expectMessage("Unable to parse REST_POST('some invalid uri', {}): Unable to parse: REST_POST('some invalid uri', {}) due to: Illegal character in path at index 4: some invalid uri");
-
-    run("REST_POST('some invalid uri', {})", context);
+  public void restPostShouldHandleURISyntaxException() {
+    ParseException e = assertThrows(ParseException.class, () -> run("REST_POST('some invalid uri', {})", context));
+    assertEquals("Unable to parse REST_POST('some invalid uri', {}): Unable to parse: REST_POST('some invalid uri', {}) due to: Illegal character in path at index 4: some invalid uri", e.getMessage());
   }
 
   /**
    * The REST_POST function should throw an exception when POST data is not well-formed JSON and 'enforce.json' is set to true.
-   * @throws IllegalArgumentException
-   * @throws IOException
    */
   @Test
-  public void restPostShouldThrowExceptionOnMalformedJson() throws IllegalArgumentException, IOException {
-    thrown.expect(ParseException.class);
-    thrown.expectMessage(String.format("Unable to parse: REST_POST('%s', 'malformed json') due to: POST data 'malformed json' must be properly formatted JSON.  " +
-            "Set the 'enforce.json' property to false to disable this check.", postUri));
-
-    run(String.format("REST_POST('%s', 'malformed json')", postUri), context);
+  public void restPostShouldThrowExceptionOnMalformedJson() {
+    ParseException e = assertThrows(ParseException.class, () -> run(String.format("REST_POST('%s', 'malformed json')", postUri), context));
+    assertEquals(
+        String.format(
+            "Unable to parse REST_POST('http://localhost:1080/post', 'malformed json'): " +
+                    "Unable to parse: REST_POST('%s', 'malformed json') due to: POST data 'malformed json' must be properly formatted JSON.  " +
+                    "Set the 'enforce.json' property to false to disable this check.",
+            postUri),
+        e.getMessage());
   }
 
   /**

@@ -35,9 +35,9 @@ import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Map;
@@ -49,10 +49,7 @@ import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 import static org.apache.metron.common.configuration.ConfigurationsUtils.writeProfilerConfigToZookeeper;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the ConfigurationFunctions class.
@@ -87,7 +84,7 @@ public class ConfigurationFunctionsTest {
   @Multiline
   private static String goodProfilerConfig;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupZookeeper() throws Exception {
 
     // zookeeper server
@@ -99,7 +96,7 @@ public class ConfigurationFunctionsTest {
     client.start();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     context = new Context.Builder()
@@ -409,16 +406,12 @@ public class ConfigurationFunctionsTest {
     assertEquals(expected, actual);
   }
 
-  @Test(expected=ParseException.class)
+  @Test
   public void testPutGlobalBad() {
     {
       UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
-      try {
-        run("CONFIG_PUT('GLOBAL', 'foo bar')", context);
-      } catch(ParseException e) {
-        UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
-        throw e;
-      }
+      assertThrows(ParseException.class, () -> run("CONFIG_PUT('GLOBAL', 'foo bar')", context));
+      UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
     }
   }
 
@@ -438,17 +431,19 @@ public class ConfigurationFunctionsTest {
     assertTrue(foundMatch);
   }
 
-  @Test(expected= ParseException.class)
-  public void testPutIndexingBad() throws InterruptedException {
+  @Test
+  public void testPutIndexingBad() {
     {
       {
         UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
-        try {
-          run("CONFIG_PUT('INDEXING', config, 'brop')", ImmutableMap.of("config", "foo bar"), context);
-        } catch(ParseException e) {
-          UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
-          throw e;
-        }
+        assertThrows(
+            ParseException.class,
+            () ->
+                run(
+                    "CONFIG_PUT('INDEXING', config, 'brop')",
+                    ImmutableMap.of("config", "foo bar"),
+                    context));
+        UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
       }
     }
   }
@@ -472,17 +467,19 @@ public class ConfigurationFunctionsTest {
     assertTrue(foundMatch);
   }
 
-  @Test(expected= ParseException.class)
-  public void testPutEnrichmentBad() throws InterruptedException {
+  @Test
+  public void testPutEnrichmentBad() {
     {
       {
         UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
-        try {
-          run("CONFIG_PUT('ENRICHMENT', config, 'brop')", ImmutableMap.of("config", "foo bar"), context);
-        } catch(ParseException e) {
-          UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
-          throw e;
-        }
+        assertThrows(
+            ParseException.class,
+            () ->
+                run(
+                    "CONFIG_PUT('ENRICHMENT', config, 'brop')",
+                    ImmutableMap.of("config", "foo bar"),
+                    context));
+        UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
       }
     }
   }
@@ -503,16 +500,18 @@ public class ConfigurationFunctionsTest {
     assertTrue(foundMatch);
   }
 
-  @Test(expected= ParseException.class)
-  public void testPutParserBad() throws InterruptedException {
+  @Test
+  public void testPutParserBad() {
     {
       UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.FATAL);
-      try {
-        run("CONFIG_PUT('PARSER', config, 'brop')", ImmutableMap.of("config", "foo bar"), context);
-      } catch(ParseException e) {
-        UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
-        throw e;
-      }
+      assertThrows(
+          ParseException.class,
+          () ->
+              run(
+                  "CONFIG_PUT('PARSER', config, 'brop')",
+                  ImmutableMap.of("config", "foo bar"),
+                  context));
+      UnitTestHelper.setLog4jLevel(ConfigurationFunctions.class, Level.ERROR);
     }
   }
 }

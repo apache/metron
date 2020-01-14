@@ -17,15 +17,17 @@ package org.apache.metron.common.utils;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
-import java.util.Map;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.json.simple.JSONObject;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Performance test for lazy logging.
@@ -42,7 +44,7 @@ public class LazzyLoggerImplPerfTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   public void calcTimes() {
     Map<String, Object> smallMap = new HashMap<>();
     for (int i = 0; i < 10; i++) {

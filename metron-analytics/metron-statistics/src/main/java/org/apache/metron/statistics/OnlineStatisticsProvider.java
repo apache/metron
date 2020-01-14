@@ -118,7 +118,7 @@ public class OnlineStatisticsProvider implements StatisticsProvider, KryoSeriali
     //underflow.  It is sufficient to check sumOfSquares because sumOfSquares is going to converge to 0 faster than sum
     //in the situation where we're looking at an underflow.
     if(sumOfSquares == 0.0 && sum > 0) {
-      throw new IllegalStateException("Double overflow!");
+      throw new IllegalStateException("Double underflow!");
     }
   }
 

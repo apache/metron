@@ -122,8 +122,7 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${global_mockito_version}</version>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -155,6 +154,9 @@
                     <artifactSet>
                         <excludes>
                             <exclude>*slf4j*</exclude>
+                            <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+                            <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

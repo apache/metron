@@ -18,9 +18,11 @@
 
 package org.apache.metron.parsers.websphere;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.parsers.interfaces.MessageParserResult;
+import org.json.simple.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Year;
@@ -30,12 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.parsers.interfaces.MessageParserResult;
-import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GrokWebSphereParserTest {
 
@@ -43,7 +43,7 @@ public class GrokWebSphereParserTest {
 	private Map<String, Object> parserConfig;
 	private GrokWebSphereParser parser;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		parserConfig = new HashMap<>();
 		parserConfig.put("grokPath", "src/main/resources/patterns/websphere");
@@ -55,13 +55,13 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseLoginLine() throws Exception {
+	public void testParseLoginLine() {
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] user(rick007): "
 				+ "[120.43.200.6]: User logged into 'cohlOut'.";
 		Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(testString.getBytes(
         StandardCharsets.UTF_8));
-		Assert.assertNotNull(resultOptional);
-		Assert.assertTrue(resultOptional.isPresent());
+		assertNotNull(resultOptional);
+		assertTrue(resultOptional.isPresent());
 		List<JSONObject> result = resultOptional.get().getMessages();
 		JSONObject parsedJSON = result.get(0);
 
@@ -81,13 +81,13 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseLogoutLine() throws Exception {
+	public void testParseLogoutLine() {
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201]: "
 				+ "User 'hjpotter' logged out from 'default'.";
 		Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(testString.getBytes(
         StandardCharsets.UTF_8));
-		Assert.assertNotNull(resultOptional);
-		Assert.assertTrue(resultOptional.isPresent());
+		assertNotNull(resultOptional);
+		assertTrue(resultOptional.isPresent());
 		List<JSONObject> result = resultOptional.get().getMessages();
 		JSONObject parsedJSON = result.get(0);
 
@@ -106,13 +106,13 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseRBMLine() throws Exception {
+	public void testParseRBMLine() {
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbm(RBM-Settings): "
 				+ "trans(3502888135)[request] gtid(3502888135): RBM: Resource access denied.";
 		Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(testString.getBytes(
         StandardCharsets.UTF_8));
-		Assert.assertNotNull(resultOptional);
-		Assert.assertTrue(resultOptional.isPresent());
+		assertNotNull(resultOptional);
+		assertTrue(resultOptional.isPresent());
 		List<JSONObject> result = resultOptional.get().getMessages();
 		JSONObject parsedJSON = result.get(0);
 
@@ -130,13 +130,13 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseOtherLine() throws Exception {
+	public void testParseOtherLine() {
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans(191): (admin:default:system:*): "
 				+ "ntp-service 'NTP Service' - Operational state down";
 		Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(testString.getBytes(
         StandardCharsets.UTF_8));
-		Assert.assertNotNull(resultOptional);
-		Assert.assertTrue(resultOptional.isPresent());
+		assertNotNull(resultOptional);
+		assertTrue(resultOptional.isPresent());
 		List<JSONObject> result = resultOptional.get().getMessages();
 		JSONObject parsedJSON = result.get(0);
 		long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 4, 15, 17, 17, 34, 0, UTC).toInstant().toEpochMilli();
@@ -153,13 +153,13 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseMalformedLoginLine() throws Exception {
+	public void testParseMalformedLoginLine() {
 		String testString = "<133>Apr 15 17:47:28 ABCXML1413 [rojOut][0x81000033][auth][notice] rick007): "
 				+ "[120.43.200. User logged into 'cohlOut'.";
 		Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(testString.getBytes(
         StandardCharsets.UTF_8));
-		Assert.assertNotNull(resultOptional);
-		Assert.assertTrue(resultOptional.isPresent());
+		assertNotNull(resultOptional);
+		assertTrue(resultOptional.isPresent());
 		List<JSONObject> result = resultOptional.get().getMessages();
 		JSONObject parsedJSON = result.get(0);
 
@@ -179,13 +179,13 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseMalformedLogoutLine() throws Exception {
+	public void testParseMalformedLogoutLine() {
 		String testString = "<134>Apr 15 18:02:27 PHIXML3RWD [0x81000019][auth][info] [14.122.2.201: "
 				+ "User 'hjpotter' logged out from 'default.";
 		Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(testString.getBytes(
         StandardCharsets.UTF_8));
-		Assert.assertNotNull(resultOptional);
-		Assert.assertTrue(resultOptional.isPresent());
+		assertNotNull(resultOptional);
+		assertTrue(resultOptional.isPresent());
 		List<JSONObject> result = resultOptional.get().getMessages();
 		JSONObject parsedJSON = result.get(0);
 
@@ -204,13 +204,13 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseMalformedRBMLine() throws Exception {
+	public void testParseMalformedRBMLine() {
 		String testString = "<131>Apr 15 17:36:35 ROBXML3QRS [0x80800018][auth][error] rbmRBM-Settings): "
 				+ "trans3502888135)[request] gtid3502888135) RBM: Resource access denied.";
 		Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(testString.getBytes(
         StandardCharsets.UTF_8));
-		Assert.assertNotNull(resultOptional);
-		Assert.assertTrue(resultOptional.isPresent());
+		assertNotNull(resultOptional);
+		assertTrue(resultOptional.isPresent());
 		List<JSONObject> result = resultOptional.get().getMessages();
 		JSONObject parsedJSON = result.get(0);
 
@@ -228,13 +228,13 @@ public class GrokWebSphereParserTest {
 	}
 	
 	@Test
-	public void testParseMalformedOtherLine() throws Exception {
+	public void testParseMalformedOtherLine() {
 		String testString = "<134>Apr 15 17:17:34 SAGPXMLQA333 [0x8240001c][audit][info] trans 191)  admindefaultsystem*): "
 				+ "ntp-service 'NTP Service' - Operational state down:";
 		Optional<MessageParserResult<JSONObject>> resultOptional = parser.parseOptionalResult(testString.getBytes(
         StandardCharsets.UTF_8));
-		Assert.assertNotNull(resultOptional);
-		Assert.assertTrue(resultOptional.isPresent());
+		assertNotNull(resultOptional);
+		assertTrue(resultOptional.isPresent());
 		List<JSONObject> result = resultOptional.get().getMessages();
 		JSONObject parsedJSON = result.get(0);
 

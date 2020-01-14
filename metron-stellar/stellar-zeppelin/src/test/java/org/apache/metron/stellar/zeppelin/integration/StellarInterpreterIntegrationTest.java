@@ -23,9 +23,9 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.zeppelin.StellarInterpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static org.apache.metron.stellar.zeppelin.StellarInterpreterProperty.ZOOKEEPER_URL;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -48,7 +48,7 @@ public class StellarInterpreterIntegrationTest extends BaseIntegrationTest {
   private ZKServerComponent zkServer;
   private ComponentRunner runner;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     // a component that uploads the global configuration
@@ -76,7 +76,7 @@ public class StellarInterpreterIntegrationTest extends BaseIntegrationTest {
     context = mock(InterpreterContext.class);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     runner.stop();
   }

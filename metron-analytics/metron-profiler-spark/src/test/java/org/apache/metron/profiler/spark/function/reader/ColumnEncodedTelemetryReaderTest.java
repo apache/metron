@@ -22,22 +22,24 @@ import org.apache.metron.profiler.spark.reader.TelemetryReaders;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SparkSession;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.Properties;
 
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_FORMAT;
 import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INPUT_PATH;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests the {@link org.apache.metron.profiler.spark.reader.ColumnEncodedTelemetryReader} class.
  */
+@EnableRuleMigrationSupport
 public class ColumnEncodedTelemetryReaderTest {
 
   @Rule
@@ -46,7 +48,7 @@ public class ColumnEncodedTelemetryReaderTest {
   private Properties profilerProperties;
   private Properties readerProperties;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupSpark() {
     SparkConf conf = new SparkConf()
             .setMaster("local")
@@ -58,14 +60,14 @@ public class ColumnEncodedTelemetryReaderTest {
             .getOrCreate();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownSpark() {
     if(spark != null) {
       spark.close();
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     readerProperties = new Properties();
     profilerProperties = new Properties();
@@ -92,7 +94,7 @@ public class ColumnEncodedTelemetryReaderTest {
 
     // there should be 100 valid JSON records
     Dataset<String> telemetry = TelemetryReaders.COLUMNAR.read(spark, profilerProperties, readerProperties);
-    Assert.assertEquals(100, telemetry.filter(new IsValidJSON()).count());
+    assertEquals(100, telemetry.filter(new IsValidJSON()).count());
   }
 
   @Test
@@ -113,6 +115,6 @@ public class ColumnEncodedTelemetryReaderTest {
 
     // there should be 100 valid JSON records
     Dataset<String> telemetry = TelemetryReaders.COLUMNAR.read(spark, profilerProperties, readerProperties);
-    Assert.assertEquals(100, telemetry.filter(new IsValidJSON()).count());
+    assertEquals(100, telemetry.filter(new IsValidJSON()).count());
   }
 }

@@ -20,21 +20,18 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarResult;
+import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
@@ -45,7 +42,7 @@ public class AssignmentCommandTest {
   AssignmentCommand command;
   StellarShellExecutor executor;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     command = new AssignmentCommand();
 
@@ -69,7 +66,7 @@ public class AssignmentCommandTest {
             " x := "
     );
     for(String in : inputs) {
-      assertTrue("failed: " + in, command.getMatcher().apply(in));
+      assertTrue(command.getMatcher().apply(in), "failed: " + in);
     }
   }
 
@@ -81,7 +78,7 @@ public class AssignmentCommandTest {
             "x"
     );
     for(String in : inputs) {
-      assertFalse("failed: " + in, command.getMatcher().apply(in));
+      assertFalse(command.getMatcher().apply(in), "failed: " + in);
     }
   }
 

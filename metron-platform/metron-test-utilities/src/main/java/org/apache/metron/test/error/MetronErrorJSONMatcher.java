@@ -21,7 +21,7 @@ import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.mockito.ArgumentMatcher;
 
-public class MetronErrorJSONMatcher extends ArgumentMatcher<Values> {
+public class MetronErrorJSONMatcher implements ArgumentMatcher<Values> {
 
   private JSONObject expected;
 
@@ -30,8 +30,7 @@ public class MetronErrorJSONMatcher extends ArgumentMatcher<Values> {
   }
 
   @Override
-  public boolean matches(Object o) {
-    Values values = (Values) o;
+  public boolean matches(Values values) {
     JSONObject actual = (JSONObject) values.get(0);
     actual.remove("timestamp");
     expected.remove("timestamp");

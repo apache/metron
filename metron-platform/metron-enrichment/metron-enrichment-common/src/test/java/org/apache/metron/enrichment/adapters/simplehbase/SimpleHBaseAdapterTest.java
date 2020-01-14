@@ -34,13 +34,14 @@ import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker
 import org.apache.metron.common.utils.JSONUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SimpleHBaseAdapterTest {
 
@@ -101,7 +102,7 @@ public class SimpleHBaseAdapterTest {
   private String sourceConfigWithCFStr;
   private JSONObject expectedMessage;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(atTableName, cf);
     final MockHTable hbaseTable = (MockHTable) MockHBaseTableProvider.addToCache(hbaseTableName, cf);
@@ -130,10 +131,10 @@ public class SimpleHBaseAdapterTest {
     sha.lookup = lookup;
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
+    assertEquals(actualMessage, new JSONObject());
     actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.3", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(expectedMessage, actualMessage);
+    assertNotNull(actualMessage);
+    assertEquals(expectedMessage, actualMessage);
   }
 
   @Test
@@ -142,9 +143,9 @@ public class SimpleHBaseAdapterTest {
     sha.lookup = lookup;
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
+    assertEquals(actualMessage, new JSONObject());
     actualMessage = sha.enrich(new CacheKey("ip_dst_addr", 10L, broSc));
-    Assert.assertEquals(actualMessage,new JSONObject());
+    assertEquals(actualMessage,new JSONObject());
   }
 
   @Test
@@ -153,10 +154,10 @@ public class SimpleHBaseAdapterTest {
     sha.lookup = lookup;
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigWithCFStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
+    assertEquals(actualMessage, new JSONObject());
     actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.4", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(new JSONObject(ImmutableMap.of("cf1.key", "value")), actualMessage);
+    assertNotNull(actualMessage);
+    assertEquals(new JSONObject(ImmutableMap.of("cf1.key", "value")), actualMessage);
   }
 
   @Test
@@ -165,16 +166,16 @@ public class SimpleHBaseAdapterTest {
     sha.lookup = lookup;
     SensorEnrichmentConfig broSc = JSONUtils.INSTANCE.load(sourceConfigStr, SensorEnrichmentConfig.class);
     JSONObject actualMessage = sha.enrich(new CacheKey("test", "test", broSc));
-    Assert.assertEquals(actualMessage, new JSONObject());
+    assertEquals(actualMessage, new JSONObject());
     actualMessage = sha.enrich(new CacheKey("ip_dst_addr", "10.0.2.4", broSc));
-    Assert.assertNotNull(actualMessage);
-    Assert.assertEquals(new JSONObject(new HashMap<String, Object>()), actualMessage);
+    assertNotNull(actualMessage);
+    assertEquals(new JSONObject(new HashMap<String, Object>()), actualMessage);
   }
-  @Test(expected = Exception.class)
+  @Test
   public void testInitializeAdapter() {
     SimpleHBaseConfig config = new SimpleHBaseConfig();
     SimpleHBaseAdapter sha = new SimpleHBaseAdapter(config);
-    sha.initializeAdapter(null);
+    assertThrows(Exception.class, () -> sha.initializeAdapter(null));
   }
 
 }

@@ -19,13 +19,8 @@ package org.apache.metron.rest.service.impl;
 
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 
 import java.io.ByteArrayInputStream;
@@ -35,41 +30,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
-@SuppressWarnings("unchecked")
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})
 public class StormCLIWrapperTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   private ProcessBuilder processBuilder;
   private Environment environment;
   private Process process;
   private StormCLIWrapper stormCLIWrapper;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     processBuilder = mock(ProcessBuilder.class);
     environment = mock(Environment.class);
     process = mock(Process.class);
-    stormCLIWrapper = new StormCLIWrapper();
+    stormCLIWrapper = mock(StormCLIWrapper.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
     stormCLIWrapper.setEnvironment(environment);
+    doReturn(processBuilder).when(stormCLIWrapper).getProcessBuilder(any());
   }
 
   @Test
   public void startParserTopologyShouldRunCommandProperly() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_parser");
     when(environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY)).thenReturn("kafka_broker_url");
@@ -80,7 +62,7 @@ public class StormCLIWrapperTest {
 
     assertEquals(0, stormCLIWrapper.startParserTopology("bro"));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("/start_parser",
+    verify(stormCLIWrapper).getProcessBuilder("/start_parser",
             "-s", "bro",
             "-z", "zookeeper_url",
             "-k", "kafka_broker_url",
@@ -93,9 +75,6 @@ public class StormCLIWrapperTest {
    */
   @Test
   public void startParserTopologyWithExtraTopologyOptions() throws Exception {
-
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_parser");
     when(environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY)).thenReturn("kafka_broker_url");
@@ -107,7 +86,7 @@ public class StormCLIWrapperTest {
 
     assertEquals(0, stormCLIWrapper.startParserTopology("bro"));
     verify(process, times(2)).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("/start_parser",
+    verify(stormCLIWrapper).getProcessBuilder("/start_parser",
             "-s", "bro",
             "-z", "zookeeper_url",
             "-k", "kafka_broker_url",
@@ -117,34 +96,28 @@ public class StormCLIWrapperTest {
 
   @Test
   public void stopParserTopologyShouldRunCommandProperly() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.stopParserTopology("bro", false));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("storm", "kill", "bro");
+    verify(stormCLIWrapper).getProcessBuilder("storm", "kill", "bro");
   }
 
   @Test
   public void stopParserTopologyNowShouldRunCommandProperly() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.stopParserTopology("bro", true));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("storm", "kill", "bro", "-w", "0");
+    verify(stormCLIWrapper).getProcessBuilder("storm", "kill", "bro", "-w", "0");
   }
 
   @Test
   public void startEnrichmentTopologyShouldRunCommandProperly() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_enrichment");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
@@ -152,27 +125,22 @@ public class StormCLIWrapperTest {
 
     assertEquals(0, stormCLIWrapper.startEnrichmentTopology());
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("/start_enrichment");
-
+    verify(stormCLIWrapper).getProcessBuilder("/start_enrichment");
   }
 
   @Test
   public void stopEnrichmentTopologyShouldRunCommandProperly() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.stopEnrichmentTopology(false));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("storm", "kill", MetronRestConstants.ENRICHMENT_TOPOLOGY_NAME);
+    verify(stormCLIWrapper).getProcessBuilder("storm", "kill", MetronRestConstants.ENRICHMENT_TOPOLOGY_NAME);
   }
 
   @Test
   public void startIndexingTopologyShouldRunCommandProperly() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_indexing");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
@@ -180,27 +148,22 @@ public class StormCLIWrapperTest {
 
     assertEquals(0, stormCLIWrapper.startIndexingTopology(MetronRestConstants.RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("/start_indexing");
-
+    verify(stormCLIWrapper).getProcessBuilder("/start_indexing");
   }
 
   @Test
   public void stopIndexingTopologyShouldRunCommandProperly() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.stopIndexingTopology("random_access_indexing", false));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("storm", "kill", MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME);
+    verify(stormCLIWrapper).getProcessBuilder("storm", "kill", MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME);
   }
 
   @Test
   public void getStormClientStatusShouldReturnCorrectStatus() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     Process process = mock(Process.class);
     InputStream inputStream = new ByteArrayInputStream("\nStorm 1.1".getBytes(UTF_8));
 
@@ -221,12 +184,11 @@ public class StormCLIWrapperTest {
       put("batchIndexingScriptPath", "/start_hdfs");
 
     }}, actual);
-    verifyNew(ProcessBuilder.class).withArguments("storm", "version");
+    verify(stormCLIWrapper).getProcessBuilder("storm", "version");
   }
 
   @Test
   public void stormClientVersionInstalledShouldReturnDefault() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
 
     Process process = mock(Process.class);
     InputStream inputStream = new ByteArrayInputStream("".getBytes(UTF_8));
@@ -238,28 +200,20 @@ public class StormCLIWrapperTest {
 
   @Test
   public void runCommandShouldReturnRestExceptionOnError() throws Exception {
-    exception.expect(RestException.class);
-
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
     when(processBuilder.start()).thenThrow(new IOException());
 
-    stormCLIWrapper.runCommand(new String[]{"storm", "kill"});
+    assertThrows(RestException.class, () -> stormCLIWrapper.runCommand(new String[]{"storm", "kill"}));
   }
 
   @Test
   public void stormClientVersionInstalledShouldReturnRestExceptionOnError() throws Exception {
-    exception.expect(RestException.class);
-
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
     when(processBuilder.start()).thenThrow(new IOException());
 
-    stormCLIWrapper.stormClientVersionInstalled();
+    assertThrows(RestException.class, () -> stormCLIWrapper.stormClientVersionInstalled());
   }
 
   @Test
   public void kinitShouldRunCommandProperly() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
-
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
     when(environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY)).thenReturn("metron keytabLocation");
@@ -268,6 +222,6 @@ public class StormCLIWrapperTest {
 
     stormCLIWrapper.kinit();
     verify(process, times(1)).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("kinit", "-kt", "metron keytabLocation", "metron principal");
+    verify(stormCLIWrapper).getProcessBuilder("kinit", "-kt", "metron keytabLocation", "metron principal");
   }
 }

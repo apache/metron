@@ -21,13 +21,13 @@ package org.apache.metron.stellar.common.utils;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.dsl.ParseException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BloomFilterTest {
   private Map<String, Object> variables = new HashMap<String, Object>() {{
@@ -52,9 +52,9 @@ public class BloomFilterTest {
                                                           ,"mapFilter", bloomMap
                                                           )
                                          );
-    Assert.assertNotNull(merged);
+    assertNotNull(merged);
     for(Object val : variables.values()) {
-      Assert.assertTrue(merged.mightContain(val));
+      assertTrue(merged.mightContain(val));
     }
   }
 
@@ -63,32 +63,32 @@ public class BloomFilterTest {
   public void testAdd() {
     BloomFilter result = (BloomFilter)run("BLOOM_ADD(BLOOM_INIT(), string, double, integer, map)", variables);
     for(Object val : variables.values()) {
-      Assert.assertTrue(result.mightContain(val));
+      assertTrue(result.mightContain(val));
     }
-    Assert.assertTrue(result.mightContain(ImmutableMap.of("key1", "value1", "key2", "value2")));
+    assertTrue(result.mightContain(ImmutableMap.of("key1", "value1", "key2", "value2")));
   }
 
   @Test
   public void testExists() {
     {
       Boolean result = (Boolean) run("BLOOM_EXISTS(BLOOM_ADD(BLOOM_INIT(), string, double, integer, map), 'casey')", variables);
-      Assert.assertTrue(result);
+      assertTrue(result);
     }
     {
       Boolean result = (Boolean) run("BLOOM_EXISTS(BLOOM_ADD(BLOOM_INIT(), string, double, integer, map), double)", variables);
-      Assert.assertTrue(result);
+      assertTrue(result);
     }
     {
       Boolean result = (Boolean) run("BLOOM_EXISTS(BLOOM_ADD(BLOOM_INIT(), string, double, integer, map), integer)", variables);
-      Assert.assertTrue(result);
+      assertTrue(result);
     }
     {
       Boolean result = (Boolean) run("BLOOM_EXISTS(BLOOM_ADD(BLOOM_INIT(), string, double, integer, map), map)", variables);
-      Assert.assertTrue(result);
+      assertTrue(result);
     }
     {
       Boolean result = (Boolean) run("BLOOM_EXISTS(BLOOM_ADD(BLOOM_INIT(), string, double, integer, map), 'samantha')", variables);
-      Assert.assertFalse(result);
+      assertFalse(result);
     }
     {
       boolean thrown = false;
@@ -97,7 +97,7 @@ public class BloomFilterTest {
       }catch(ParseException pe){
         thrown = true;
       }
-      Assert.assertTrue(thrown);
+      assertTrue(thrown);
     }
   }
 }

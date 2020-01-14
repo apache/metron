@@ -17,45 +17,38 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import java.nio.charset.StandardCharsets;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
+import static org.mockito.Mockito.*;
 
-@SuppressWarnings("unchecked")
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DockerStormCLIWrapper.class, ProcessBuilder.class})
 public class DockerStormCLIWrapperTest {
   private ProcessBuilder processBuilder;
   private Environment environment;
   private DockerStormCLIWrapper dockerStormCLIWrapper;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     processBuilder = mock(ProcessBuilder.class);
     environment = mock(Environment.class);
 
-    dockerStormCLIWrapper = new DockerStormCLIWrapper(environment);
+    dockerStormCLIWrapper = mock(DockerStormCLIWrapper.class,
+            withSettings().useConstructor(environment).defaultAnswer(CALLS_REAL_METHODS));
   }
 
   @Test
   public void getProcessBuilderShouldProperlyGenerateProcessorBuilder() throws Exception {
-    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
+    doReturn(processBuilder).when(dockerStormCLIWrapper).getDockerEnvironmentProcessBuilder();
 
     when(processBuilder.environment()).thenReturn(new HashMap<>());
     when(processBuilder.command()).thenReturn(new ArrayList<>());
@@ -71,12 +64,11 @@ public class DockerStormCLIWrapperTest {
 
 
     ProcessBuilder actualBuilder = dockerStormCLIWrapper.getProcessBuilder("oo", "ooo");
+    assertThat(actualBuilder.environment(), hasEntry("METRON_VERSION", "1"));
+    assertThat(actualBuilder.environment(), hasEntry("DOCKER_HOST", "tcp://192.168.99.100:2376"));
 
-    assertEquals(new HashMap<String, String>() {{
-      put("METRON_VERSION", "1");
-      put("DOCKER_HOST", "tcp://192.168.99.100:2376");
-    }}, actualBuilder.environment());
-    assertEquals(new ArrayList<>(), actualBuilder.command());
+      // Needs to contain what we normally construct + what we passed in.
+    assertThat(actualBuilder.command(), contains("docker-compose", "-f", "/test", "-p", "metron", "exec", "storm", "oo", "ooo"));
 
     verify(process).waitFor();
   }

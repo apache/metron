@@ -20,11 +20,6 @@
 
 package org.apache.metron.profiler.client;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
@@ -38,6 +33,12 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * Writes ProfileMeasurement values that can be read during automated testing.
@@ -99,7 +100,7 @@ public class ProfileWriter {
     hbaseClient.mutate();
   }
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
     ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder();
 

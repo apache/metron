@@ -26,22 +26,17 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the HBaseEmitter class.
@@ -64,7 +59,7 @@ public class HBaseEmitterTest {
   private ProfileConfig profile;
   private OutputCollector collector;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     emitter = new HBaseEmitter();
     profile = createDefinition(profileDefinition);
@@ -76,7 +71,7 @@ public class HBaseEmitterTest {
    * the 'result/profile' expression.
    */
   @Test
-  public void testEmit() throws Exception {
+  public void testEmit() {
 
     // create a measurement that has triage values
     ProfileMeasurement measurement = new ProfileMeasurement()

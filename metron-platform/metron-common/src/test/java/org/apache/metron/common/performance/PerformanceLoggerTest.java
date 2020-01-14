@@ -19,21 +19,22 @@
 package org.apache.metron.common.performance;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class PerformanceLoggerTest {
   private Logger logger;
   private PerformanceLogger perfLogger;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
     configSupplier = () -> ImmutableMap.of("performance.logging.percent.records", thresholdPercent);
@@ -62,29 +63,29 @@ public class PerformanceLoggerTest {
   }
 
   @Test
-  public void logs_on_threshold() throws Exception {
+  public void logs_on_threshold() {
     when(timing.getElapsed("t1")).thenReturn(111L).thenReturn(222L).thenReturn(333L);
     perfLogger.mark("t1");
     perfLogger.log("t1");
     perfLogger.log("t1");
     perfLogger.log("t1");
     verify(timing).mark("t1");
-    verify(logger, times(1)).debug(anyString(), anyObject(), eq(111L), eq(""));
+    verify(logger, times(1)).debug(anyString(), any(), eq(111L), eq(""));
   }
 
   @Test
-  public void logs_on_threshold_with_message() throws Exception {
+  public void logs_on_threshold_with_message() {
     when(timing.getElapsed("t1")).thenReturn(111L).thenReturn(222L).thenReturn(333L);
     perfLogger.mark("t1");
     perfLogger.log("t1", "my message");
     perfLogger.log("t1", "my message");
     perfLogger.log("t1", "my message");
     verify(timing).mark("t1");
-    verify(logger, times(1)).debug(anyString(), anyObject(), eq(111L), eq("my message"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(111L), eq("my message"));
   }
 
   @Test
-  public void warns_when_logging_nonexisting_marks() throws Exception {
+  public void warns_when_logging_nonexisting_marks() {
     when(thresholdCalc.isPast(thresholdPercent)).thenReturn(true);
     when(timing.getElapsed("t1")).thenReturn(111L);
     when(timing.getElapsed("t2")).thenReturn(222L);
@@ -99,7 +100,7 @@ public class PerformanceLoggerTest {
     verify(timing).mark("t1");
     verify(timing, never()).mark("t2");
     verify(timing, never()).mark("t3");
-    verify(logger).debug(anyString(), anyObject(), eq(111L), eq("my message"));
+    verify(logger).debug(anyString(), any(), eq(111L), eq("my message"));
     verify(logger)
         .debug(anyString(), eq("WARNING - MARK NOT SET"), eq(222L), eq("my message"));
     verify(logger)
@@ -107,7 +108,7 @@ public class PerformanceLoggerTest {
   }
 
   @Test
-  public void logs_with_multiple_markers() throws Exception {
+  public void logs_with_multiple_markers() {
     when(thresholdCalc.isPast(thresholdPercent)).thenReturn(true);
     when(timing.getElapsed("t1")).thenReturn(111L);
     when(timing.getElapsed("t2")).thenReturn(222L);
@@ -117,12 +118,12 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my message 1");
     verify(timing).mark("t1");
     verify(timing).mark("t2");
-    verify(logger).debug(anyString(), anyObject(), eq(111L), eq("my message 1"));
-    verify(logger).debug(anyString(), anyObject(), eq(222L), eq("my message 2"));
+    verify(logger).debug(anyString(), any(), eq(111L), eq("my message 1"));
+    verify(logger).debug(anyString(), any(), eq(222L), eq("my message 2"));
   }
 
   @Test
-  public void defaults_to_1_percent_threshold() throws Exception {
+  public void defaults_to_1_percent_threshold() {
     configSupplier = () -> new HashMap<>();
     when(thresholdCalc.isPast(1)).thenReturn(false).thenReturn(false)
         .thenReturn(true);
@@ -132,11 +133,11 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my message");
     perfLogger.log("t1", "my message");
     verify(timing).mark("t1");
-    verify(logger, times(1)).debug(anyString(), anyObject(), eq(111L), eq("my message"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(111L), eq("my message"));
   }
 
   @Test
-  public void does_not_log_when_debugging_disabled() throws Exception {
+  public void does_not_log_when_debugging_disabled() {
     when(logger.isDebugEnabled()).thenReturn(false);
     when(timing.getElapsed("t1")).thenReturn(111L).thenReturn(222L).thenReturn(333L);
     perfLogger.mark("t1");
@@ -144,11 +145,11 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my message");
     perfLogger.log("t1", "my message");
     verify(timing).mark("t1");
-    verify(logger, times(0)).debug(anyString(), anyObject(), eq(111L), eq("my message"));
+    verify(logger, times(0)).debug(anyString(), any(), eq(111L), eq("my message"));
   }
 
   @Test
-  public void logs_formatted_message_provided_format_args() throws Exception {
+  public void logs_formatted_message_provided_format_args() {
     when(thresholdCalc.isPast(thresholdPercent)).thenReturn(true);
     when(timing.getElapsed("t1")).thenReturn(111L).thenReturn(222L).thenReturn(333L)
         .thenReturn(444L);
@@ -158,10 +159,10 @@ public class PerformanceLoggerTest {
     perfLogger.log("t1", "my {} message {} {}", "1", "2", "3");
     perfLogger.log("t1", "my {} message {} {} {}", "1", "2", "3", "4");
     verify(timing).mark("t1");
-    verify(logger, times(1)).debug(anyString(), anyObject(), eq(111L), eq("my 1 message"));
-    verify(logger, times(1)).debug(anyString(), anyObject(), eq(222L), eq("my 1 message 2"));
-    verify(logger, times(1)).debug(anyString(), anyObject(), eq(333L), eq("my 1 message 2 3"));
-    verify(logger, times(1)).debug(anyString(), anyObject(), eq(444L), eq("my 1 message 2 3 4"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(111L), eq("my 1 message"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(222L), eq("my 1 message 2"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(333L), eq("my 1 message 2 3"));
+    verify(logger, times(1)).debug(anyString(), any(), eq(444L), eq("my 1 message 2 3 4"));
   }
 
   @Test

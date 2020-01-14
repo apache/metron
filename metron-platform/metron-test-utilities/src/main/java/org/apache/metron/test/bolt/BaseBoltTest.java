@@ -17,19 +17,17 @@
  */
 package org.apache.metron.test.bolt;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.zookeeper.ZKCache;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.TreeCache;
-import org.hamcrest.Description;
 import org.json.simple.JSONObject;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -57,12 +55,12 @@ public abstract class BaseBoltTest {
   @Mock
   protected ZKCache cache;
 
-  @Before
+  @BeforeEach
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
   }
 
-  protected static class FieldsMatcher extends ArgumentMatcher<Fields> {
+  protected static class FieldsMatcher implements ArgumentMatcher<Fields> {
 
     private List<String> expectedFields;
 
@@ -71,16 +69,14 @@ public abstract class BaseBoltTest {
     }
 
     @Override
-    public boolean matches(Object o) {
-      Fields fields = (Fields) o;
-      return expectedFields.equals(fields.toList());
+    public boolean matches(Fields o) {
+      return expectedFields.equals(o.toList());
     }
 
     @Override
-    public void describeTo(Description description) {
-      description.appendText(String.format("[%s]", Joiner.on(",").join(expectedFields)));
+    public String toString() {
+        return String.format("[%s]", Joiner.on(",").join(expectedFields));
     }
-
   }
 
   public void removeTimingFields(JSONObject message) {

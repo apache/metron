@@ -17,14 +17,15 @@
  */
 package org.apache.metron.common.system;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import org.junit.Test;
-import org.mockito.Mockito;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ClockTest {
 

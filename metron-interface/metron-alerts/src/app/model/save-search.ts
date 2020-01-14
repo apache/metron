@@ -27,6 +27,7 @@ export class SaveSearch {
   searchRequest: SearchRequest;
   tableColumns: ColumnMetadata[];
   filters: Filter[];
+  isManual = false
 
   public static fromJSON(obj: SaveSearch): SaveSearch {
     let saveSearch = new SaveSearch();
@@ -35,6 +36,7 @@ export class SaveSearch {
     saveSearch.searchRequest = obj.searchRequest;
     saveSearch.filters = Filter.fromJSON(obj.filters);
     saveSearch.tableColumns = ColumnMetadata.fromJSON(obj.tableColumns);
+    saveSearch.isManual = obj.isManual;
 
     return saveSearch;
   }

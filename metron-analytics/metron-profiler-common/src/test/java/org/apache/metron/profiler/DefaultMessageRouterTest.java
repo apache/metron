@@ -25,13 +25,13 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DefaultMessageRouterTest {
 
@@ -214,7 +214,7 @@ public class DefaultMessageRouterTest {
     return JSONUtils.INSTANCE.load(json, ProfilerConfig.class);
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     this.router = new DefaultMessageRouter(Context.EMPTY_CONTEXT());
     this.context = Context.EMPTY_CONTEXT();
@@ -303,7 +303,7 @@ public class DefaultMessageRouterTest {
    */
   @Test
   public void testMessageWithTimestamp() throws Exception {
-    List<MessageRoute> routes = router.route(messageWithTimestamp, createConfig(profileWithEventTime), context);;
+    List<MessageRoute> routes = router.route(messageWithTimestamp, createConfig(profileWithEventTime), context);
 
     assertEquals(1, routes.size());
     MessageRoute route1 = routes.get(0);

@@ -24,8 +24,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator;
@@ -34,22 +34,27 @@ import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.junit.*;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class TaxiiIntegrationTest {
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         MockTaxiiService.start(8282);
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         MockTaxiiService.shutdown();
         MockHBaseTableProvider.clear();
@@ -83,12 +88,12 @@ public class TaxiiIntegrationTest {
         String[] otherArgs = new GenericOptionsParser(conf, argv).getRemainingArgs();
 
         CommandLine cli = TaxiiLoader.TaxiiOptions.parse(new PosixParser(), otherArgs);
-        Assert.assertEquals(extractorJson,TaxiiLoader.TaxiiOptions.EXTRACTOR_CONFIG.get(cli).trim());
-        Assert.assertEquals(connectionConfig, TaxiiLoader.TaxiiOptions.CONNECTION_CONFIG.get(cli).trim());
-        Assert.assertEquals(beginTime,TaxiiLoader.TaxiiOptions.BEGIN_TIME.get(cli).trim());
-        Assert.assertEquals(enrichmentJson,TaxiiLoader.TaxiiOptions.ENRICHMENT_CONFIG.get(cli).trim());
-        Assert.assertEquals(timeInteval,TaxiiLoader.TaxiiOptions.TIME_BETWEEN_POLLS.get(cli).trim());
-        Assert.assertEquals(log4jProperty, TaxiiLoader.TaxiiOptions.LOG4J_PROPERTIES.get(cli).trim());
+        assertEquals(extractorJson,TaxiiLoader.TaxiiOptions.EXTRACTOR_CONFIG.get(cli).trim());
+        assertEquals(connectionConfig, TaxiiLoader.TaxiiOptions.CONNECTION_CONFIG.get(cli).trim());
+        assertEquals(beginTime,TaxiiLoader.TaxiiOptions.BEGIN_TIME.get(cli).trim());
+        assertEquals(enrichmentJson,TaxiiLoader.TaxiiOptions.ENRICHMENT_CONFIG.get(cli).trim());
+        assertEquals(timeInteval,TaxiiLoader.TaxiiOptions.TIME_BETWEEN_POLLS.get(cli).trim());
+        assertEquals(log4jProperty, TaxiiLoader.TaxiiOptions.LOG4J_PROPERTIES.get(cli).trim());
     }
 
     @Test
@@ -110,15 +115,15 @@ public class TaxiiIntegrationTest {
             MockHTable table = (MockHTable) provider.getTable(config, "threat_intel");
             maliciousDomains = getIndicators("domainname:FQDN", table.getPutLog(), "cf");
         }
-        Assert.assertTrue(maliciousDomains.contains("www.office-112.com"));
-        Assert.assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "DomainNameObj:Value condition=\"Equals\""), maliciousDomains.size());
+        assertTrue(maliciousDomains.contains("www.office-112.com"));
+        assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "DomainNameObj:Value condition=\"Equals\""), maliciousDomains.size());
         Set<String> maliciousAddresses;
         {
             MockHTable table = (MockHTable) provider.getTable(config, "threat_intel");
             maliciousAddresses= getIndicators("address:IPV_4_ADDR", table.getPutLog(), "cf");
         }
-        Assert.assertTrue(maliciousAddresses.contains("94.102.53.142"));
-        Assert.assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "AddressObj:Address_Value condition=\"Equal\""), maliciousAddresses.size());
+        assertTrue(maliciousAddresses.contains("94.102.53.142"));
+        assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "AddressObj:Address_Value condition=\"Equal\""), maliciousAddresses.size());
         MockHBaseTableProvider.clear();
 
         // Ensure that the handler can be run multiple times without connection issues.

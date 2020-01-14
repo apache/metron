@@ -18,23 +18,21 @@
 package org.apache.metron.stellar.common.shell.cli;
 
 import com.google.common.collect.Iterables;
-import java.nio.charset.StandardCharsets;
 import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.console.AeshContext;
 import org.jboss.aesh.console.ConsoleOperation;
 import org.jboss.aesh.console.operator.ControlOperator;
 import org.jboss.aesh.console.settings.DefaultAeshContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the StellarShell class.
@@ -45,7 +43,7 @@ public class StellarShellTest {
   private ByteArrayOutputStream out;
   private ByteArrayOutputStream err;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     out = new ByteArrayOutputStream();
@@ -59,7 +57,7 @@ public class StellarShellTest {
     stellarShell = new StellarShell(args);
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     System.setOut(null);
     System.setErr(null);

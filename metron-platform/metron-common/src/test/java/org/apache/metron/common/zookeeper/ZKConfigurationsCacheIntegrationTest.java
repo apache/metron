@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.zookeeper;
 
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.IOUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -28,13 +27,18 @@ import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.components.ZKServerComponent;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.apache.metron.integration.utils.TestUtils.assertEventually;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ZKConfigurationsCacheIntegrationTest {
   private CuratorFramework client;
@@ -124,7 +128,7 @@ public class ZKConfigurationsCacheIntegrationTest {
 
   public ZKServerComponent zkComponent;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     zkComponent = new ZKServerComponent();
     zkComponent.start();
@@ -164,7 +168,7 @@ public class ZKConfigurationsCacheIntegrationTest {
     }
   }
 
-  @After
+  @AfterEach
   public void teardown() throws Exception {
     if(cache != null) {
       cache.close();
@@ -188,31 +192,31 @@ public class ZKConfigurationsCacheIntegrationTest {
     //global
     {
       IndexingConfigurations config = cache.get( IndexingConfigurations.class);
-      assertEventually(() -> Assert.assertNull(config.getGlobalConfig(false)));
+      assertEventually(() -> assertNull(config.getGlobalConfig(false)));
     }
     //indexing
     {
       IndexingConfigurations config = cache.get( IndexingConfigurations.class);
-      assertEventually(() -> Assert.assertNull(config.getSensorIndexingConfig("test", false)));
-      assertEventually(() -> Assert.assertNull(config.getGlobalConfig(false)));
+      assertEventually(() -> assertNull(config.getSensorIndexingConfig("test", false)));
+      assertEventually(() -> assertNull(config.getGlobalConfig(false)));
     }
     //enrichment
     {
       EnrichmentConfigurations config = cache.get( EnrichmentConfigurations.class);
-      assertEventually(() -> Assert.assertNull(config.getSensorEnrichmentConfig("test")));
-      assertEventually(()-> Assert.assertNull(config.getGlobalConfig(false)));
+      assertEventually(() -> assertNull(config.getSensorEnrichmentConfig("test")));
+      assertEventually(()-> assertNull(config.getGlobalConfig(false)));
     }
     //parser
     {
       ParserConfigurations config = cache.get( ParserConfigurations.class);
-      assertEventually(() -> Assert.assertNull(config.getSensorParserConfig("bro")));
-      assertEventually(() -> Assert.assertNull(config.getGlobalConfig(false)));
+      assertEventually(() -> assertNull(config.getSensorParserConfig("bro")));
+      assertEventually(() -> assertNull(config.getGlobalConfig(false)));
     }
     //profiler
     {
       ProfilerConfigurations config = cache.get( ProfilerConfigurations.class);
-      assertEventually(() -> Assert.assertNull(config.getProfilerConfig()));
-      assertEventually(() -> Assert.assertNull(config.getGlobalConfig(false)));
+      assertEventually(() -> assertNull(config.getProfilerConfig()));
+      assertEventually(() -> assertNull(config.getGlobalConfig(false)));
     }
   }
 
@@ -231,27 +235,27 @@ public class ZKConfigurationsCacheIntegrationTest {
     {
       Map<String, Object> expectedConfig = JSONUtils.INSTANCE.load(testIndexingConfig, JSONUtils.MAP_SUPPLIER);
       IndexingConfigurations config = cache.get( IndexingConfigurations.class);
-      assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorIndexingConfig("test")));
+      assertEventually(() -> assertEquals(expectedConfig, config.getSensorIndexingConfig("test")));
     }
     //enrichment
     {
       SensorEnrichmentConfig expectedConfig = JSONUtils.INSTANCE.load(testEnrichmentConfig, SensorEnrichmentConfig.class);
       Map<String, Object> expectedGlobalConfig = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
       EnrichmentConfigurations config = cache.get( EnrichmentConfigurations.class);
-      assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorEnrichmentConfig("test")));
-      assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
+      assertEventually(() -> assertEquals(expectedConfig, config.getSensorEnrichmentConfig("test")));
+      assertEventually(() -> assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
     }
     //parsers
     {
       SensorParserConfig expectedConfig = JSONUtils.INSTANCE.load(testParserConfig, SensorParserConfig.class);
       ParserConfigurations config = cache.get( ParserConfigurations.class);
-      assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorParserConfig("bro")));
+      assertEventually(() -> assertEquals(expectedConfig, config.getSensorParserConfig("bro")));
     }
     //profiler
     {
       ProfilerConfig expectedConfig = JSONUtils.INSTANCE.load(profilerConfig, ProfilerConfig.class);
       ProfilerConfigurations config = cache.get( ProfilerConfigurations.class);
-      assertEventually(() -> Assert.assertEquals(expectedConfig, config.getProfilerConfig()));
+      assertEventually(() -> assertEquals(expectedConfig, config.getProfilerConfig()));
     }
   }
 
@@ -264,35 +268,35 @@ public class ZKConfigurationsCacheIntegrationTest {
       File inFile = new File(TestConstants.SAMPLE_CONFIG_PATH + "/indexing/test.json");
       Map<String, Object> expectedConfig = JSONUtils.INSTANCE.load(inFile, JSONUtils.MAP_SUPPLIER);
       IndexingConfigurations config = cache.get( IndexingConfigurations.class);
-      assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorIndexingConfig("test")));
-      assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
-      assertEventually(() -> Assert.assertNull(config.getSensorIndexingConfig("notthere", false)));
+      assertEventually(() -> assertEquals(expectedConfig, config.getSensorIndexingConfig("test")));
+      assertEventually(() -> assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
+      assertEventually(() -> assertNull(config.getSensorIndexingConfig("notthere", false)));
     }
     //enrichment
     {
       File inFile = new File(TestConstants.SAMPLE_CONFIG_PATH + "/enrichments/test.json");
       SensorEnrichmentConfig expectedConfig = JSONUtils.INSTANCE.load(inFile, SensorEnrichmentConfig.class);
       EnrichmentConfigurations config = cache.get( EnrichmentConfigurations.class);
-      assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorEnrichmentConfig("test")));
-      assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
-      assertEventually(() -> Assert.assertNull(config.getSensorEnrichmentConfig("notthere")));
+      assertEventually(() -> assertEquals(expectedConfig, config.getSensorEnrichmentConfig("test")));
+      assertEventually(() -> assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
+      assertEventually(() -> assertNull(config.getSensorEnrichmentConfig("notthere")));
     }
     //parsers
     {
       File inFile = new File(TestConstants.PARSER_CONFIGS_PATH + "/parsers/bro.json");
       SensorParserConfig expectedConfig = JSONUtils.INSTANCE.load(inFile, SensorParserConfig.class);
       ParserConfigurations config = cache.get( ParserConfigurations.class);
-      assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorParserConfig("bro")));
-      assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
-      assertEventually(() -> Assert.assertNull(config.getSensorParserConfig("notthere")));
+      assertEventually(() -> assertEquals(expectedConfig, config.getSensorParserConfig("bro")));
+      assertEventually(() -> assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
+      assertEventually(() -> assertNull(config.getSensorParserConfig("notthere")));
     }
     //profiler
     {
       File inFile = new File("src/test/resources/profiler/profiler.json");
       ProfilerConfig expectedConfig = JSONUtils.INSTANCE.load(inFile, ProfilerConfig.class);
       ProfilerConfigurations config = cache.get( ProfilerConfigurations.class);
-      assertEventually(() -> Assert.assertEquals(expectedConfig, config.getProfilerConfig()));
-      assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
+      assertEventually(() -> assertEquals(expectedConfig, config.getProfilerConfig()));
+      assertEventually(() -> assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
     }
   }
 }

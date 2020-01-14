@@ -17,44 +17,25 @@
  */
 package org.apache.metron.writer;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.writer.BulkMessage;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.common.writer.BulkWriterResponse;
+import org.apache.metron.common.writer.MessageId;
+import org.json.simple.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.writer.BulkMessage;
-import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.common.writer.MessageId;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BulkWriterComponent.class})
 public class BulkWriterComponentTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   @Mock
   private FlushPolicy<JSONObject> flushPolicy;
 
@@ -72,7 +53,7 @@ public class BulkWriterComponentTest {
   private JSONObject message1 = new JSONObject();
   private JSONObject message2 = new JSONObject();
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
     message1.put("value", "message1");

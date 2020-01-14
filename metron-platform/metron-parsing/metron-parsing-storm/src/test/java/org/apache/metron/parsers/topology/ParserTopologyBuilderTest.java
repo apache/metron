@@ -18,50 +18,35 @@
 
 package org.apache.metron.parsers.topology;
 
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
-import org.apache.metron.parsers.bolt.WriterHandler;
-import org.apache.metron.writer.NoopWriter;
-import org.apache.metron.writer.kafka.KafkaWriter;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.writer.BulkMessageWriter;
+import org.apache.metron.parsers.bolt.WriterHandler;
+import org.apache.metron.writer.NoopWriter;
+import org.apache.metron.writer.kafka.KafkaWriter;
+import org.json.simple.JSONObject;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ParserTopologyBuilder.class)
 public class ParserTopologyBuilderTest {
 
-  @Mock
-  private ParserConfigurations configs;
+  private static ParserConfigurations configs;
+  private static KafkaWriter kafkaWriter;
 
-  @Mock
-  private KafkaWriter kafkaWriter;
-
-  @Before
-  public void setup() {
-    spy(ParserTopologyBuilder.class);
-    when(ParserTopologyBuilder.createKafkaWriter(Optional.of("brokerUrl"), "zookeeperUrl", Optional.of("securityProtocol")))
-            .thenReturn(kafkaWriter);
+  @BeforeAll
+  public static void setupAll() {
+      configs = mock(ParserConfigurations.class);
+      kafkaWriter = mock(KafkaWriter.class);
   }
 
   @Test
@@ -69,8 +54,6 @@ public class ParserTopologyBuilderTest {
     SensorParserConfig broConfig = new SensorParserConfig();
     broConfig.setSensorTopic("bro");
     when(configs.getSensorParserConfig("bro")).thenReturn(broConfig);
-    KafkaWriter enrichmentWriter = mock(KafkaWriter.class);
-    when(kafkaWriter.withTopic(Constants.ENRICHMENT_TOPIC)).thenReturn(enrichmentWriter);
 
     Map<String, SensorParserConfig> sensorTypeToParserConfig = new HashMap<String, SensorParserConfig>() {{
       put("bro", broConfig);
@@ -85,9 +68,12 @@ public class ParserTopologyBuilderTest {
                     Optional.empty());
 
     assertEquals(1, writerConfigs.size());
-    assertEquals(enrichmentWriter, writerConfigs.get("bro").getBulkMessageWriter());
-    verify(enrichmentWriter, times(1)).configure(eq("bro"), any(ParserWriterConfiguration.class));
-    verifyNoMoreInteractions(enrichmentWriter);
+
+    // Can't directly verify against mocks because this is all static. However, knowing that we have a KafkaWriter
+    // and the appropriate topic lets us know we've created the underlying config.
+    BulkMessageWriter writer = writerConfigs.get("bro").getBulkMessageWriter();
+    assertTrue(writer instanceof KafkaWriter);
+    assertEquals(Constants.ENRICHMENT_TOPIC, ((KafkaWriter) writer).getKafkaTopic(new JSONObject()).get());
   }
 
   @Test
@@ -96,8 +82,6 @@ public class ParserTopologyBuilderTest {
     snortConfig.setSensorTopic("snort");
     snortConfig.setOutputTopic("snort_topic");
     when(configs.getSensorParserConfig("snort")).thenReturn(snortConfig);
-    KafkaWriter snortTestWriter = mock(KafkaWriter.class);
-    when(kafkaWriter.withTopic("snort_topic")).thenReturn(snortTestWriter);
 
     Map<String, SensorParserConfig> sensorTypeToParserConfig = new HashMap<String, SensorParserConfig>() {{
       put("snort", snortConfig);
@@ -112,9 +96,12 @@ public class ParserTopologyBuilderTest {
                     Optional.empty());
 
     assertEquals(1, writerConfigs.size());
-    assertEquals(snortTestWriter, writerConfigs.get("snort").getBulkMessageWriter());
-    verify(snortTestWriter, times(1)).configure(eq("snort"), any(ParserWriterConfiguration.class));
-    verifyNoMoreInteractions(snortTestWriter);
+
+    // Can't directly verify against mocks because this is all static. However, knowing that we have a KafkaWriter
+    // and the appropriate topic lets us know we've created the underlying config.
+    BulkMessageWriter writer = writerConfigs.get("snort").getBulkMessageWriter();
+    assertTrue(writer instanceof KafkaWriter);
+    assertEquals("snort_topic", ((KafkaWriter) writer).getKafkaTopic(new JSONObject()).get());
   }
 
   @Test
@@ -122,8 +109,6 @@ public class ParserTopologyBuilderTest {
     SensorParserConfig snortConfig = new SensorParserConfig();
     snortConfig.setSensorTopic("snort");
     when(configs.getSensorParserConfig("snort")).thenReturn(snortConfig);
-    KafkaWriter suppliedTopicWriter = mock(KafkaWriter.class);
-    when(kafkaWriter.withTopic("supplied_topic")).thenReturn(suppliedTopicWriter);
 
     Map<String, SensorParserConfig> sensorTypeToParserConfig = new HashMap<String, SensorParserConfig>() {{
       put("snort", snortConfig);
@@ -138,9 +123,11 @@ public class ParserTopologyBuilderTest {
                     Optional.of("supplied_topic"));
 
     assertEquals(1, writerConfigs.size());
-    assertEquals(suppliedTopicWriter, writerConfigs.get("snort").getBulkMessageWriter());
-    verify(suppliedTopicWriter, times(1)).configure(eq("snort"), any(ParserWriterConfiguration.class));
-    verifyNoMoreInteractions(suppliedTopicWriter);
+    // Can't directly verify against mocks because this is all static. However, knowing that we have a KafkaWriter
+    // and the appropriate topic lets us know we've created the underlying config.
+    BulkMessageWriter writer = writerConfigs.get("snort").getBulkMessageWriter();
+    assertTrue(writer instanceof KafkaWriter);
+    assertEquals("supplied_topic", ((KafkaWriter) writer).getKafkaTopic(new JSONObject()).get());
   }
 
   @Test

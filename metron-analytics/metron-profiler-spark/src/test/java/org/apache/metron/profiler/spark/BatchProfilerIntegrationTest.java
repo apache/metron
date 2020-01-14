@@ -19,34 +19,6 @@
  */
 package org.apache.metron.profiler.spark;
 
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
-import org.apache.metron.profiler.client.stellar.FixedLookback;
-import org.apache.metron.profiler.client.stellar.GetProfile;
-import org.apache.metron.profiler.client.stellar.WindowLookback;
-import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
-import org.apache.metron.stellar.common.StellarStatefulExecutor;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.apache.spark.SparkConf;
-import org.apache.spark.SparkException;
-import org.apache.spark.sql.Encoders;
-import org.apache.spark.sql.SparkSession;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.invoke.MethodHandles;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import static org.apache.metron.common.configuration.profiler.ProfilerConfig.fromJSON;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
@@ -62,11 +34,45 @@ import static org.apache.metron.profiler.spark.BatchProfilerConfig.TELEMETRY_INP
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.JSON;
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.ORC;
 import static org.apache.metron.profiler.spark.reader.TelemetryReaders.PARQUET;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
+import java.lang.invoke.MethodHandles;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.profiler.client.stellar.FixedLookback;
+import org.apache.metron.profiler.client.stellar.GetProfile;
+import org.apache.metron.profiler.client.stellar.WindowLookback;
+import org.apache.metron.statistics.StellarStatisticsFunctions;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.functions.DataStructureFunctions;
+import org.apache.metron.stellar.dsl.functions.StringFunctions;
+import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.spark.SparkConf;
+import org.apache.spark.SparkException;
+import org.apache.spark.sql.Encoders;
+import org.apache.spark.sql.SparkSession;
+import org.junit.Rule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An integration test for the {@link BatchProfiler}.
  */
+@EnableRuleMigrationSupport
 public class BatchProfilerIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -78,7 +84,7 @@ public class BatchProfilerIntegrationTest {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
-  @BeforeClass
+  @BeforeAll
   public static void setupSpark() {
     SparkConf conf = new SparkConf()
             .setMaster("local")
@@ -90,14 +96,14 @@ public class BatchProfilerIntegrationTest {
             .getOrCreate();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownSpark() {
     if(spark != null) {
       spark.close();
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     readerProperties = new Properties();
     profilerProperties = new Properties();
@@ -122,7 +128,11 @@ public class BatchProfilerIntegrationTest {
             new SimpleFunctionResolver()
                     .withClass(GetProfile.class)
                     .withClass(FixedLookback.class)
-                    .withClass(WindowLookback.class),
+                    .withClass(WindowLookback.class)
+                    .withClass(DataStructureFunctions.Length.class)
+                    .withClass(StringFunctions.GetFirst.class)
+                    .withClass(StellarStatisticsFunctions.Count.class)
+                    .withClass(StellarStatisticsFunctions.Sum.class),
             new Context.Builder()
                     .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
                     .build());
@@ -145,6 +155,14 @@ public class BatchProfilerIntegrationTest {
    *        "init": { "count": 0 },
    *        "update": { "count": "count + 1" },
    *        "result": "count"
+   *      },
+   *      {
+   *        "profile": "response-body-len",
+   *        "onlyif": "exists(response_body_len)",
+   *        "foreach": "ip_src_addr",
+   *        "init": { "len": 0 },
+   *        "update": { "len": "len + response_body_len" },
+   *        "result": "TO_INTEGER(len)"
    *      }
    *   ]
    * }
@@ -318,14 +336,22 @@ public class BatchProfilerIntegrationTest {
   @Multiline
   private static String invalidProfileJson;
 
-  @Test(expected = SparkException.class)
-  public void testBatchProfilerWithInvalidProfile() throws Exception {
+  @Test
+  public void testBatchProfilerWithInvalidProfile() {
     profilerProperties.put(TELEMETRY_INPUT_READER.getKey(), JSON.toString());
     profilerProperties.put(TELEMETRY_INPUT_PATH.getKey(), "src/test/resources/telemetry.json");
 
     // the batch profiler should error out, if there is a bug in *any* of the profiles
     BatchProfiler profiler = new BatchProfiler();
-    profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(invalidProfileJson));
+    assertThrows(
+        SparkException.class,
+        () ->
+            profiler.run(
+                spark,
+                profilerProperties,
+                getGlobals(),
+                readerProperties,
+                fromJSON(invalidProfileJson)));
   }
 
   /**
@@ -337,15 +363,23 @@ public class BatchProfilerIntegrationTest {
     *        "foreach": "ip_src_addr",
     *        "init": { "count": "STATS_INIT()" },
     *        "update": { "count" : "STATS_ADD(count, 1)" },
-    *        "result": "TO_INTEGER(STATS_COUNT(count))"
+    *        "result": "count"
     *      },
     *      {
     *        "profile": "total-count",
     *        "foreach": "'total'",
     *        "init": { "count": "STATS_INIT()" },
     *        "update": { "count": "STATS_ADD(count, 1)" },
-    *        "result": "TO_INTEGER(STATS_COUNT(count))"
-    *      }
+    *        "result": "count"
+    *      },
+    *      {
+    *        "profile": "response-body-len",
+    *        "onlyif": "exists(response_body_len)",
+    *        "foreach": "ip_src_addr",
+    *        "init": { "len": "STATS_INIT()" },
+    *        "update": { "len": "STATS_ADD(len, response_body_len)" },
+    *        "result": "len"
+    *       }
     *   ]
     * }
     */
@@ -360,8 +394,36 @@ public class BatchProfilerIntegrationTest {
     BatchProfiler profiler = new BatchProfiler();
     profiler.run(spark, profilerProperties, getGlobals(), readerProperties, fromJSON(statsProfileJson));
 
-    // the profiles do the exact same counting, but using the STATS functions
-    validateProfiles();
+    /*
+     * the profiles here do the exact same counting as the other test cases, but instead use the STATS
+     * functions. the profiles actually store a data sketch, rather than a single numerical value.
+     * the data sketch is then retrieved and used to calculate the expected counts as part of the test
+     * case validation.
+     */
+
+    // the 'window' looks up to 5 hours before the max timestamp, which in the test data is around July 7, 2018
+    assign("maxTimestamp", "1530978728982L");
+    assign("window", "PROFILE_WINDOW('from 5 hours ago', maxTimestamp)");
+
+    // there are 26 messages where ip_src_addr = 192.168.66.1
+    assign("sketches","PROFILE_GET('count-by-ip', '192.168.66.1', window)");
+    assign("sketch", "GET_FIRST(sketches)");
+    assertTrue(execute("26 == STATS_COUNT(sketch)", Boolean.class));
+
+    // there are 74 messages where ip_src_addr = 192.168.138.158
+    assign("sketches","PROFILE_GET('count-by-ip', '192.168.138.158', window)");
+    assign("sketch", "GET_FIRST(sketches)");
+    assertTrue(execute("74 == STATS_COUNT(sketch)", Boolean.class));
+
+    // there are 100 messages in all
+    assign("sketches","PROFILE_GET('total-count', 'total', window)");
+    assign("sketch", "GET_FIRST(sketches)");
+    assertTrue(execute("100 == STATS_COUNT(sketch)", Boolean.class));
+
+    // check the sum of the `response_body_len` field
+    assign("sketches","PROFILE_GET('response-body-len', '192.168.138.158', window)");
+    assign("sketch", "GET_FIRST(sketches)");
+    assertTrue(execute("1029726 == STATS_SUM(sketch)", Boolean.class));
   }
 
   /**
@@ -386,6 +448,9 @@ public class BatchProfilerIntegrationTest {
 
     // there are 100 messages in all
     assertTrue(execute("[100] == PROFILE_GET('total-count', 'total', window)", Boolean.class));
+
+    // check the sum of the `response_body_len` field
+    assertTrue(execute("[1029726] == PROFILE_GET('response-body-len', '192.168.138.158', window)", Boolean.class));
   }
 
   private Properties getGlobals() {
@@ -400,6 +465,7 @@ public class BatchProfilerIntegrationTest {
    */
   private void assign(String var, String expression) {
     executor.assign(var, expression, Collections.emptyMap());
+    LOG.debug("{} = {}", var, executor.getState().get(var));
   }
 
   /**

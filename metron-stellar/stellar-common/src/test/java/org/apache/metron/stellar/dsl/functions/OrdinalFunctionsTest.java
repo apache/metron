@@ -25,12 +25,12 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import static org.hamcrest.core.Is.is;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class OrdinalFunctionsTest {
@@ -38,12 +38,12 @@ public class OrdinalFunctionsTest {
 
   private static Context context;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     context = new Context.Builder().build();
   }
   @Test
-  public void testMaxOfMixedNumerical() throws Exception {
+  public void testMaxOfMixedNumerical() {
 
     List<Object> inputList = new ArrayList<Object>(){{
       add(12L);
@@ -52,12 +52,12 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
-    Assert.assertNotNull(res);
-    Assert.assertEquals(56.3, res);
+    assertNotNull(res);
+    assertEquals(56.3, res);
   }
 
   @Test
-  public void testMinOfMixedNumerical() throws Exception {
+  public void testMinOfMixedNumerical() {
 
     List<Object> inputList = new ArrayList<Object>(){{
       add(12L);
@@ -66,11 +66,11 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MIN(input_list)", ImmutableMap.of("input_list", inputList));
-    Assert.assertNotNull(res);
-    Assert.assertEquals(res, 12L);
+    assertNotNull(res);
+    assertEquals(res, 12L);
   }
   @Test
-  public void testMaxOfStringList() throws Exception {
+  public void testMaxOfStringList() {
 
     List<Object> inputList = new ArrayList<Object>(){{
       add("value3");
@@ -80,12 +80,12 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals("value3"));
+    assertNotNull(res);
+    assertEquals("value3", res);
   }
 
   @Test
-  public void testMaxOfIntegerList() throws Exception {
+  public void testMaxOfIntegerList() {
 
     List<Object> inputList = new ArrayList<Object>(){{
       add(12);
@@ -93,20 +93,20 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(56));
+    assertNotNull(res);
+    assertEquals(56, res);
   }
 
   @Test
-  public void testMaxWithVarList() throws Exception {
+  public void testMaxWithVarList() {
 
     Object res = run("MAX([string1,string2])", ImmutableMap.of("string1","abc","string2","def"));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals("def"));
+    assertNotNull(res);
+    assertEquals("def", res);
   }
 
   @Test
-  public void testMinWithNullInList() throws Exception {
+  public void testMinWithNullInList() {
 
     List<Object> inputList = new ArrayList<Object>(){{
       add(145);
@@ -114,12 +114,12 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MIN(input_list)", ImmutableMap.of("input_list", inputList));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(145));
+    assertNotNull(res);
+    assertEquals(145, res);
   }
 
   @Test
-  public void testAllNullList() throws Exception {
+  public void testAllNullList() {
 
     List<Object> inputList = new ArrayList<Object>(){{
       add(null);
@@ -127,11 +127,11 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
-    Assert.assertNull(res);
+    assertNull(res);
   }
 
   @Test
-  public void testMinOfIntegerList() throws Exception {
+  public void testMinOfIntegerList() {
 
     List<Object> inputList = new ArrayList<Object>(){{
       add(56);
@@ -141,13 +141,13 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MIN(input_list)", ImmutableMap.of("input_list", inputList));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(12));
+    assertNotNull(res);
+    assertEquals(12, res);
   }
 
 
   @Test
-  public void testMaxOfLongList() throws Exception {
+  public void testMaxOfLongList() {
 
     List<Object> inputList = new ArrayList<Object>(){{
       add(12L);
@@ -156,31 +156,27 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(457L));
+    assertNotNull(res);
+    assertEquals(457L, res);
   }
 
   @Test
-  public void testMaxOfMixedList() throws Exception {
-
+  public void testMaxOfMixedList() {
     List<Object> inputList = new ArrayList<Object>(){{
       add(12);
       add("string");
       add(457L);
     }};
 
-    Object res = null;
-
-    try {
-      res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
-    } catch(ParseException e) {
-      Assert.assertTrue(e.getMessage().contains("Incomparable objects were submitted to MAX: class java.lang.String is incomparable to class java.lang.Long"));
-      Assert.assertNull(res);
-    }
+    ParseException e = assertThrows(ParseException.class, () -> {
+      Object res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
+      assertNull(res);
+    });
+    assertTrue(e.getMessage().contains("Incomparable objects were submitted to MAX: class java.lang.String is incomparable to class java.lang.Long"));
   }
 
   @Test
-  public void testSetInput() throws Exception {
+  public void testSetInput() {
 
     Set<Object> inputSet = new HashSet<Object>(){{
       add(14L);
@@ -189,12 +185,12 @@ public class OrdinalFunctionsTest {
     }};
 
     Object res = run("MAX(input_set)", ImmutableMap.of("input_set", inputSet));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(15.3d));
+    assertNotNull(res);
+    assertEquals(15.3d, res);
   }
 
   @Test
-  public void testNonComparableList() throws Exception {
+  public void testNonComparableList() {
 
     class TestObject {
       private String arg;
@@ -209,19 +205,15 @@ public class OrdinalFunctionsTest {
       add(new TestObject("three"));
     }};
 
-    Object res = null;
-
-    try {
-      res = run("MIN(input_list)", ImmutableMap.of("input_list", inputList));
-    } catch(ParseException e) {
-      Assert.assertTrue(e.getMessage().contains("Noncomparable object type org.apache.metron.stellar.dsl.functions.OrdinalFunctionsTest$1TestObject submitted to MIN"));
-      Assert.assertNull(res);
-    }
+    ParseException e = assertThrows(ParseException.class, () -> {
+      Object res = run("MIN(input_list)", ImmutableMap.of("input_list", inputList));
+      assertNull(res);
+    });
+    assertTrue(e.getMessage().contains("Noncomparable object type org.apache.metron.stellar.dsl.functions.OrdinalFunctionsTest$1TestObject submitted to MIN"));
   }
 
-
   @Test
-  public void testMaxOfStats() throws Exception {
+  public void testMaxOfStats() {
     Ordinal provider = new Ordinal() {
       @Override
       public double getMin() {
@@ -235,12 +227,12 @@ public class OrdinalFunctionsTest {
     };
 
     Object res = run("MAX(input_list)", ImmutableMap.of("input_list", provider));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(100.0d));
+    assertNotNull(res);
+    assertEquals(100.0d, res);
   }
 
   @Test
-  public void testMinOfStats() throws Exception {
+  public void testMinOfStats() {
     Ordinal provider = new Ordinal() {
       @Override
       public double getMin() {
@@ -254,11 +246,11 @@ public class OrdinalFunctionsTest {
     };
 
     Object res = run("MIN(input_list)", ImmutableMap.of("input_list", provider));
-    Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(10.0d));
+    assertNotNull(res);
+    assertEquals(10.0d, res);
   }
 
-  public Object run(String rule, Map<String, Object> variables) throws Exception {
+  public Object run(String rule, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
     return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x), x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }

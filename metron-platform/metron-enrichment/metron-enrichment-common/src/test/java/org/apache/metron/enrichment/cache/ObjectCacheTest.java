@@ -24,29 +24,26 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.integration.utils.TestUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ObjectCacheTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   private FileSystem fs;
   private List<String> data;
   private ObjectCache cache;
   private File tempDir;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     fs = FileSystem.get(new Configuration());
     data = new ArrayList<>();
@@ -63,7 +60,7 @@ public class ObjectCacheTest {
   @Test
   public void test() throws Exception {
     String filename = "test.ser";
-    Assert.assertTrue(cache.isEmpty() || !cache.containsKey(filename));
+    assertTrue(cache.isEmpty() || !cache.containsKey(filename));
     assertDataIsReadCorrectly(filename);
   }
 
@@ -74,14 +71,14 @@ public class ObjectCacheTest {
     }
     cache.initialize(new ObjectCacheConfig(new HashMap<>()));
     List<String> readData = (List<String>) cache.get(file.getAbsolutePath());
-    Assert.assertEquals(readData, data);
-    Assert.assertTrue(cache.containsKey(file.getAbsolutePath()));
+    assertEquals(readData, data);
+    assertTrue(cache.containsKey(file.getAbsolutePath()));
   }
 
   @Test
   public void testMultithreaded() throws Exception {
     String filename = "testmulti.ser";
-    Assert.assertTrue(cache.isEmpty() || !cache.containsKey(filename));
+    assertTrue(cache.isEmpty() || !cache.containsKey(filename));
     Thread[] ts = new Thread[10];
     for(int i = 0;i < ts.length;++i) {
       ts[i] = new Thread(() -> {
@@ -103,10 +100,6 @@ public class ObjectCacheTest {
     String filename = "maxSizeException.ser";
     File file = new File(tempDir, filename);
 
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(String.format("File at path '%s' is larger than the configured max file size of 1", file.getAbsolutePath()));
-
-
     try(BufferedOutputStream bos = new BufferedOutputStream(fs.create(new Path(file.getAbsolutePath()), true))) {
       IOUtils.write(SerDeUtils.toBytes(data), bos);
     }
@@ -114,6 +107,8 @@ public class ObjectCacheTest {
     objectCacheConfig.setMaxFileSize(1);
     cache.initialize(objectCacheConfig);
 
-    cache.get(file.getAbsolutePath());
+    IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> cache.get(file.getAbsolutePath()));
+    assertTrue(e.getMessage().contains(
+            String.format("File at path '%s' is larger than the configured max file size of 1", file.getAbsolutePath())));
   }
 }

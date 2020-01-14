@@ -77,7 +77,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   private manualQueryFieldChangeSubs: Subscription;
   private manualQueryInputEl: ElementRef;
   @ViewChild('manualQuery') set manualQuery(el: ElementRef) {
-    if (el && !this.manualQueryInputEl) {
+    if (el) {
       this.manualQueryInputEl = el;
       this.manualQueryFieldChangeSubs = this.addManualQueryFieldChangeStream(el.nativeElement);
     }
@@ -147,6 +147,13 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   addLoadSavedSearchListener() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
+      if (savedSearch.isManual === true) {
+        this.queryBuilder.setFilteringMode(FilteringMode.MANUAL);
+        this.queryBuilder.setManualQuery(savedSearch.searchRequest.query);
+      } else {
+        this.queryBuilder.setFilteringMode(FilteringMode.BUILDER);
+      }
+
       this.queryBuilder.searchRequest = savedSearch.searchRequest;
       this.queryBuilder.filters = savedSearch.filters;
       this.setSelectedTimeRange(savedSearch.filters);
@@ -190,6 +197,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
       this.prepareData(response[0], response[1]);
+      this.setSearchRequestSize();
       this.refreshAlertData(resetPaginationForSearch);
     });
   }
@@ -198,13 +206,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     if (this.alerts.length) {
       this.search(resetPaginationForSearch);
     }
-  }
-
-  getColumnNamesForQuery() {
-    let fieldNames = this.alertsColumns.map(columnMetadata => columnMetadata.name);
-    fieldNames = fieldNames.filter(name => !(name === 'id' || name === 'alert_status'));
-    fieldNames.push(this.globalConfig['threat.score.field.name']);
-    return fieldNames;
   }
 
   ngOnDestroy() {
@@ -439,19 +440,19 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  saveCurrentSearch(savedSearch: SaveSearch) {
+  saveCurrentSearch(savedSearch?: SaveSearch) {
+    const isManual = () => this.queryBuilder.getFilteringMode() === FilteringMode.MANUAL;
     if (this.queryBuilder.query !== '*') {
       if (!savedSearch) {
         savedSearch = new SaveSearch();
         savedSearch.searchRequest = this.queryBuilder.searchRequest;
         savedSearch.tableColumns = this.alertsColumns;
         savedSearch.filters = this.queryBuilder.filters;
-        savedSearch.searchRequest.query = '';
+        savedSearch.searchRequest.query = isManual() ? this.queryBuilder.query : '';
         savedSearch.name = this.queryBuilder.generateNameForSearchRequest();
+        savedSearch.isManual = isManual();
       }
-
-      this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {
-      });
+      this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe();
     }
   }
 
@@ -525,18 +526,18 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   getStaleDataWarning() {
     if (this.autoPollingSvc.getIsPollingActive()) {
       return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
+        Automatic refresh is turned on. Your filter and/or time-range changes will apply automatically on next refresh.`;
+      } else {
+      return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
         Click <i class="fa fa-search" aria-hidden="true"></i> to update your view based
         on your current filter and time-range configuration!`;
-    } else {
-      return `<i class="fa fa-warning" aria-hidden="true"></i> Data is in a stale state!
-        Automatic refresh is turned on. Your filter and/or time-range changes will apply automatically on next refresh.`;
     }
   }
 
   getPollingCongestionWarning() {
     return `<i class="fa fa-warning" aria-hidden="true"></i> Refresh interval is shorter than the response time.
       Please increase the refresh interval in the <i class="fa fa-sliders" aria-hidden="true"></i> menu above,
-      or try to simplify your query filter.`;
+      or try to optimize your query filter.`;
   }
 
   private updatePollingInterval(refreshInterval: number): void {
@@ -560,14 +561,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.queryBuilder.setFilteringMode(FilteringMode.MANUAL);
     } else {
       this.queryBuilder.setFilteringMode(FilteringMode.BUILDER);
-      // FIXME: this could lead to a large blocking load depending on the response time
-      this.queryBuilder.clearSearch();
-      this.search();
     }
   }
 
   queryForTreeView() {
     return this.queryBuilder.query;
+  }
+
+  onBuilderQueryChanged(query: string) {
+    this.staleDataState = true;
   }
 
 }

@@ -21,11 +21,12 @@ package org.apache.metron.common.configuration.profiler;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.adrianwalker.multilinestring.Multiline;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests the {@link ProfileConfig} class.
@@ -85,9 +86,9 @@ public class ProfileConfigTest {
   /**
    * The 'name' of the profile must be defined.
    */
-  @Test(expected = JsonMappingException.class)
-  public void testFromJSONWithNameMissing() throws IOException {
-    ProfileConfig.fromJSON(nameMissing);
+  @Test
+  public void testFromJSONWithNameMissing() {
+    assertThrows(JsonMappingException.class, () -> ProfileConfig.fromJSON(nameMissing));
   }
 
   /**
@@ -103,9 +104,9 @@ public class ProfileConfigTest {
   /**
    * The 'foreach' field must be defined.
    */
-  @Test(expected = JsonMappingException.class)
-  public void testFromJSONWithForeachMissing() throws IOException {
-    ProfileConfig.fromJSON(foreachMissing);
+  @Test
+  public void testFromJSONWithForeachMissing() {
+    assertThrows(JsonMappingException.class, () -> ProfileConfig.fromJSON(foreachMissing));
   }
 
   /**
@@ -121,9 +122,9 @@ public class ProfileConfigTest {
   /**
    * The 'result' field must be defined.
    */
-  @Test(expected = JsonMappingException.class)
-  public void testFromJSONWithResultMissing() throws IOException {
-    ProfileConfig.fromJSON(resultMissing);
+  @Test
+  public void testFromJSONWithResultMissing() {
+    assertThrows(JsonMappingException.class, () -> ProfileConfig.fromJSON(resultMissing));
   }
 
   /**
@@ -140,9 +141,9 @@ public class ProfileConfigTest {
   /**
    * The 'result' field must contain the 'profile' expression used to store the profile measurement.
    */
-  @Test(expected = JsonMappingException.class)
-  public void testFromJSONWithResultMissingProfileExpression() throws IOException {
-    ProfileConfig.fromJSON(resultMissingProfileExpression);
+  @Test
+  public void testFromJSONWithResultMissingProfileExpression() {
+    assertThrows(JsonMappingException.class, () -> ProfileConfig.fromJSON(resultMissingProfileExpression));
   }
 
   /**

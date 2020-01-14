@@ -18,10 +18,13 @@
 
 package org.apache.metron.test.utils;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+
 import java.io.IOException;
 import java.util.Map;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.Assert;
 
 public class ValidationUtils {
 
@@ -44,12 +47,10 @@ public class ValidationUtils {
       Object v1 = m1.get(k);
       Object v2 = m2.get(k);
 
-      if (v2 == null) {
-        Assert.fail("Unable to find key: " + k + " in output");
-      }
+      assertNotNull(v2, "Unable to find key: " + k + " in output");
       if (k.equals("timestamp") || k.equals("guid")) {
         //TODO: Take the ?!?@ timestamps out of the reference file.
-        Assert.assertEquals(v1.toString().length(), v2.toString().length());
+        assertEquals(v1.toString().length(), v2.toString().length());
       } else if (!v2.equals(v1)) {
         boolean goodDeepDown = false;
         // if this fails, but is the original_string it may be in json format
@@ -64,10 +65,10 @@ public class ValidationUtils {
           }
         }
         if (!goodDeepDown) {
-          Assert.assertEquals("value mismatch for " + k, v1, v2);
+          assertEquals(v1, v2, "value mismatch for " + k);
         }
       }
     }
-    Assert.assertEquals(m1.size(), m2.size());
+    assertEquals(m1.size(), m2.size());
   }
 }

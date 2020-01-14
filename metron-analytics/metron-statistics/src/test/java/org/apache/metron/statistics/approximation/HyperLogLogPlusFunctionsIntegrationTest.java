@@ -19,13 +19,13 @@ package org.apache.metron.statistics.approximation;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class HyperLogLogPlusFunctionsIntegrationTest {
 
@@ -54,7 +54,7 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
   @Test
   public void cardinality_gives_distinct_value_estimate_for_default_constructor() {
     Long estimate = (Long) StellarProcessorUtils.run(hllpDefaultConstructorRule, values);
-    Assert.assertThat("Incorrect cardinality returned", estimate, equalTo(2L));
+    assertThat("Incorrect cardinality returned", estimate, equalTo(2L));
   }
 
   /**
@@ -74,7 +74,7 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
   @Test
   public void cardinality_gives_distinct_value_estimate_with_precisions_set() {
     Long estimate = (Long) StellarProcessorUtils.run(hllpBasicRule, values);
-    Assert.assertThat("Incorrect cardinality returned", estimate, equalTo(2L));
+    assertThat("Incorrect cardinality returned", estimate, equalTo(2L));
   }
 
   /**
@@ -96,7 +96,7 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
   @Test
   public void hllp_add_accepts_multiple_items() {
     Long estimate = (Long) StellarProcessorUtils.run(hllpMultipleAddItems, values);
-    Assert.assertThat("Incorrect cardinality returned", estimate, equalTo(4L));
+    assertThat("Incorrect cardinality returned", estimate, equalTo(4L));
   }
 
   /**
@@ -115,7 +115,7 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
   @Test
   public void merges_estimators() {
     Long estimate = (Long) StellarProcessorUtils.run(hllpMergeRule, values);
-    Assert.assertThat("Incorrect cardinality returned", estimate, equalTo(4L));
+    assertThat("Incorrect cardinality returned", estimate, equalTo(4L));
   }
 
   /**
@@ -127,7 +127,7 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
   @Test
   public void cardinality_of_null_value_is_0() {
     Long estimate = (Long) StellarProcessorUtils.run(zeroCardinalityRule, values);
-    Assert.assertThat("Incorrect cardinality returned", estimate, equalTo(0L));
+    assertThat("Incorrect cardinality returned", estimate, equalTo(0L));
   }
 
 }

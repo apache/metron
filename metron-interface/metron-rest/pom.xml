@@ -28,7 +28,6 @@
         <java.version>1.8</java.version>
         <antlr.version>4.5</antlr.version>
         <curator.version>2.7.1</curator.version>
-        <powermock.version>1.6.4</powermock.version>
         <spring.boot.version>2.0.1.RELEASE</spring.boot.version>
         <spring.kerberos.version>1.0.1.RELEASE</spring.kerberos.version>
         <spring.ldap.core.version>2.3.2.RELEASE</spring.ldap.core.version>
@@ -43,9 +42,6 @@
     </properties>
     <dependencies>
         <dependency>
-            <!-- There's an issue with the Javassist versions used by our version of Powermock. Keep the explicit test dep at the top
-            so it takes precedence during testing - https://github.com/powermock/powermock/issues/729
-            -->
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>3.20.0-GA</version>
@@ -143,6 +139,12 @@
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
             <version>${global_json_simple_version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.antlr</groupId>
@@ -370,6 +372,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -378,24 +386,6 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>${powermock.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>javassist</artifactId>
-                    <groupId>org.javassist</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -515,6 +505,13 @@
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>${jwt.version}</version>
         </dependency>
+        <!-- Needed to fix Mockito issue: https://github.com/mockito/mockito/issues/1606 -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.10.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -558,6 +555,13 @@
                     <shadedClassifierName>uber</shadedClassifierName>
                     <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <artifactSet>
+                        <excludes>
+                            <!-- Exclude all JUnit deps from the uber jar. Exclude both JUnit 4 and 5 -->
+                            <exclude>junit</exclude>
+                            <exclude>org.junit*:*</exclude>
+                        </excludes>
+                    </artifactSet>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
@@ -565,6 +569,9 @@
                                 <exclude>META-INF/*.SF</exclude>
                                 <exclude>META-INF/*.DSA</exclude>
                                 <exclude>META-INF/*.RSA</exclude>
+                                <!-- Need to exclude by class, because of the shaded hbase jar -->
+                                <exclude>junit/**</exclude>
+                                <exclude>org/junit/**</exclude>
                             </excludes>
                         </filter>
                     </filters>

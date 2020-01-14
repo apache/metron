@@ -18,23 +18,7 @@
 
 package org.apache.metron.hbase.coprocessor;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.github.benmanes.caffeine.cache.CacheWriter;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Put;
@@ -44,12 +28,25 @@ import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.hbase.TableProvider;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.*;
 
 public class EnrichmentCoprocessorTest {
 
@@ -65,7 +62,7 @@ public class EnrichmentCoprocessorTest {
   private Configuration config;
   private static boolean instantiatedCustomTableProvider;
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
     cop = new EnrichmentCoprocessor(cacheWriter, globalConfigService);
@@ -138,24 +135,18 @@ public class EnrichmentCoprocessorTest {
     assertThat(instantiatedCustomTableProvider, equalTo(true));
   }
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void bad_enrichment_key_exceptions_thrown_as_IOException() throws Exception {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Error occurred while processing enrichment Put.");
-    thrown.expectCause(instanceOf(RuntimeException.class));
     cop.start(copEnv);
-    cop.postPut(observerContext, new Put("foo".getBytes(StandardCharsets.UTF_8)), null, null);
+    IOException e = assertThrows(IOException.class,
+            () -> cop.postPut(observerContext, new Put("foo".getBytes(StandardCharsets.UTF_8)), null, null));
+    assertEquals("Error occurred while processing enrichment Put.", e.getMessage());
+    assertThat(e.getCause(), instanceOf(RuntimeException.class));
   }
 
   @Test
   public void general_exceptions_thrown_as_IOException() throws Exception {
     Throwable cause = new Throwable("Bad things happened.");
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Error occurred while processing enrichment Put.");
-    thrown.expectCause(equalTo(cause));
     // strictly speaking, this is a checked exception not in the api for CacheWriter, but it allows
     // us to test catching all Throwable types
     willAnswer(i -> {
@@ -163,7 +154,10 @@ public class EnrichmentCoprocessorTest {
     }).given(cacheWriter).write(any(), any());
     cop.start(copEnv);
     EnrichmentKey ek = new EnrichmentKey("foo", "bar");
-    cop.postPut(observerContext, new Put(ek.toBytes()), null, null);
+    IOException e = assertThrows(IOException.class,
+            () -> cop.postPut(observerContext, new Put(ek.toBytes()), null, null));
+    assertEquals("Error occurred while processing enrichment Put.", e.getMessage());
+    assertEquals(e.getCause(), cause);
   }
 
 }

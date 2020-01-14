@@ -20,13 +20,13 @@ package org.apache.metron.common.configuration.enrichment.threatintel;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 public class ThreatTriageConfigTest {

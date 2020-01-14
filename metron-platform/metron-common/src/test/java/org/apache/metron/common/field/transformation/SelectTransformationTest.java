@@ -18,17 +18,17 @@
 
 package org.apache.metron.common.field.transformation;
 
-import java.util.HashMap;
-
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Iterables;
+import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SelectTransformationTest {
 	
@@ -48,9 +48,9 @@ public class SelectTransformationTest {
 		});
 		handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
 
-		Assert.assertTrue(input.containsKey("field1"));
-		Assert.assertFalse(input.containsKey("field2"));
-		Assert.assertEquals(1, input.size());
+		assertTrue(input.containsKey("field1"));
+		assertFalse(input.containsKey("field2"));
+		assertEquals(1, input.size());
 	}
 
 	@Test
@@ -66,10 +66,10 @@ public class SelectTransformationTest {
 		});
 		handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
 
-		Assert.assertTrue(input.containsKey("field1"));
-		Assert.assertTrue(input.containsKey("field2"));
-		Assert.assertFalse(input.containsKey("field3"));
-		Assert.assertEquals(2, input.size());
+		assertTrue(input.containsKey("field1"));
+		assertTrue(input.containsKey("field2"));
+		assertFalse(input.containsKey("field3"));
+		assertEquals(2, input.size());
 	}
 	
 	@Test
@@ -87,12 +87,12 @@ public class SelectTransformationTest {
 		});
 		handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
 		
-		Assert.assertTrue(input.containsKey("timestamp"));
-		Assert.assertTrue(input.containsKey("original_string"));
-		Assert.assertTrue(input.containsKey("source.type"));
-		Assert.assertTrue(input.containsKey("field1"));
-		Assert.assertFalse(input.containsKey("field2"));
-		Assert.assertEquals(4, input.size());
+		assertTrue(input.containsKey("timestamp"));
+		assertTrue(input.containsKey("original_string"));
+		assertTrue(input.containsKey("source.type"));
+		assertTrue(input.containsKey("field1"));
+		assertFalse(input.containsKey("field2"));
+		assertEquals(4, input.size());
 	}
 
 }

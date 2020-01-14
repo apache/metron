@@ -18,27 +18,25 @@
 
 package org.apache.metron.pcap.mr;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import com.google.common.collect.Iterables;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.pcap.utils.FileFilterUtil;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FileFilterUtilTest {
 
   private List<Path> filesIn;
 
-  @Before
+  @BeforeEach
   public void setup() {
     filesIn = new ArrayList<>();
     filesIn.add(new Path("/apath/pcap_pcap5_1495135372055519000_2_pcap-9-1495134910"));
@@ -51,7 +49,7 @@ public class FileFilterUtilTest {
   @Test
   public void returns_files_by_partition() {
     Map<Integer, List<Path>> filesByPartition = FileFilterUtil.getFilesByPartition(filesIn);
-    Map<Integer, List<Path>> expectedFilesPartitioned = new HashMap() {{
+    Map<Integer, List<Path>> expectedFilesPartitioned = new HashMap<Integer, List<Path>>() {{
       put(0, toList("/apath/pcap_pcap5_1495135377055375000_0_pcap-9-1495134910"));
       put(1, toList("/apath/pcap_pcap5_1495135372168719000_1_pcap-9-1495134910"));
       put(2, toList("/apath/pcap_pcap5_1495135372055519000_2_pcap-9-1495134910"));
@@ -67,7 +65,7 @@ public class FileFilterUtilTest {
 
   @Test
   public void returns_left_trailing_filtered_list() {
-    Map<Integer, List<Path>> filesByPartition = new HashMap() {{
+    Map<Integer, List<Path>> filesByPartition = new HashMap<Integer, List<Path>>() {{
       put(0, toList("/apath/pcap_pcap5_1495135377055375000_0_pcap-9-1495134910"));
       put(1, toList("/apath/pcap_pcap5_1495135372168719000_1_pcap-9-1495134910"));
       put(2, toList("/apath/pcap_pcap5_1495135372055519000_2_pcap-9-1495134910"));
@@ -99,14 +97,14 @@ public class FileFilterUtilTest {
   }
 
   @Test
-  public void test_getPaths_NoFiles() throws Exception {
-    final List<Path> inputFiles = new ArrayList<Path>();
+  public void test_getPaths_NoFiles() {
+    final List<Path> inputFiles = new ArrayList<>();
     Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(0, 1000, inputFiles);
-    Assert.assertTrue(Iterables.isEmpty(paths));
+    assertTrue(Iterables.isEmpty(paths));
   }
 
   @Test
-  public void test_getPaths_leftEdge() throws Exception {
+  public void test_getPaths_leftEdge() {
     final long firstFileTSNanos = 1461589332993573000L;
     final long secondFileTSNanos = 1561589332993573000L;
     final List<Path> inputFiles = new ArrayList<Path>() {{
@@ -114,11 +112,11 @@ public class FileFilterUtilTest {
       add(new Path("/apps/metron/pcap/pcap_pcap_" + secondFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
     }};
     Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(0, secondFileTSNanos - 1L, inputFiles);
-    Assert.assertEquals(1, Iterables.size(paths));
+    assertEquals(1, Iterables.size(paths));
   }
 
   @Test
-  public void test_getPaths_rightEdge() throws Exception {
+  public void test_getPaths_rightEdge() {
     final long firstFileTSNanos = 1461589332993573000L;
     final long secondFileTSNanos = 1461589333993573000L;
     final long thirdFileTSNanos = 1461589334993573000L;
@@ -128,7 +126,7 @@ public class FileFilterUtilTest {
         add(new Path("/apps/metron/pcap/pcap1_pcap_" + secondFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
       }};
       Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(secondFileTSNanos - 1L, secondFileTSNanos + 1L, inputFiles);
-      Assert.assertEquals(2, Iterables.size(paths));
+      assertEquals(2, Iterables.size(paths));
     }
     {
       final List<Path> inputFiles = new ArrayList<Path>() {{
@@ -137,12 +135,12 @@ public class FileFilterUtilTest {
         add(new Path("/apps/metron/pcap/pcap1_pcap_" + thirdFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
       }};
       Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(thirdFileTSNanos - 1L, thirdFileTSNanos + 1L, inputFiles);
-      Assert.assertEquals(2, Iterables.size(paths));
+      assertEquals(2, Iterables.size(paths));
     }
   }
 
   @Test
-  public void test_getPaths_bothEdges() throws Exception {
+  public void test_getPaths_bothEdges() {
     final long firstFileTSNanos = 1461589332993573000L;
     final long secondFileTSNanos = 1461589333993573000L;
     final long thirdFileTSNanos = 1461589334993573000L;
@@ -152,6 +150,6 @@ public class FileFilterUtilTest {
       add(new Path("/apps/metron/pcap/pcap1_pcap_" + thirdFileTSNanos + "_0_73686171-64a1-46e5-9e67-66cf603fb094"));
     }};
     Iterable<String> paths = FileFilterUtil.getPathsInTimeRange(0, thirdFileTSNanos + 1L, inputFiles);
-    Assert.assertEquals(3, Iterables.size(paths));
+    assertEquals(3, Iterables.size(paths));
   }
 }

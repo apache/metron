@@ -20,11 +20,11 @@
 package org.apache.metron.profiler.clock;
 
 import org.json.simple.JSONObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class WallClockTest {
 

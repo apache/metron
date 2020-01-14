@@ -20,8 +20,10 @@ package org.apache.metron.writer.hdfs;
 
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ClonedSyncPolicyCreatorTest {
 
@@ -32,11 +34,11 @@ public class ClonedSyncPolicyCreatorTest {
     //ensure cloned policy continues to work and adheres to the contract: mark on 5th call.
     SyncPolicy clonedPolicy = creator.create("blah", null);
     for(int i = 0;i < 4;++i) {
-      Assert.assertFalse(clonedPolicy.mark(null, i));
+      assertFalse(clonedPolicy.mark(null, i));
     }
-    Assert.assertTrue(clonedPolicy.mark(null, 5));
+    assertTrue(clonedPolicy.mark(null, 5));
     //reclone policy and ensure it adheres to the original contract.
     clonedPolicy = creator.create("blah", null);
-    Assert.assertFalse(clonedPolicy.mark(null, 0));
+    assertFalse(clonedPolicy.mark(null, 0));
   }
 }

@@ -796,6 +796,26 @@
           "subsection-name": "subsection-profiler-storm"
         },
         {
+          "config": "metron-profiler-env/profiler_spout_parallelism",
+          "subsection-name": "subsection-profiler-storm"
+        },
+        {
+          "config": "metron-profiler-env/profiler_splitter_parallelism",
+          "subsection-name": "subsection-profiler-storm"
+        },
+        {
+          "config": "metron-profiler-env/profiler_builder_parallelism",
+          "subsection-name": "subsection-profiler-storm"
+        },
+        {
+          "config": "metron-profiler-env/profiler_hbase_writer_parallelism",
+          "subsection-name": "subsection-profiler-storm"
+        },
+        {
+          "config": "metron-profiler-env/profiler_kafka_writer_parallelism",
+          "subsection-name": "subsection-profiler-storm"
+        },
+        {
           "config": "metron-rest-env/metron_rest_port",
           "subsection-name": "subsection-rest"
         },
@@ -1502,6 +1522,36 @@
       },
       {
         "config": "metron-profiler-env/profiler_acker_executors",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_spout_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_splitter_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_builder_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_writer_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_kafka_writer_parallelism",
         "widget": {
           "type": "text-field"
         }

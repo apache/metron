@@ -26,6 +26,9 @@ import { Spy } from 'jasmine-core';
 import { DialogService } from 'app/service/dialog.service';
 import { RestError } from 'app/model/rest-error';
 import { DialogType } from 'app/model/dialog-type';
+import { RefreshInterval } from 'app/alerts/configure-rows/configure-rows-enums';
+
+const DEFAULT_POLLING_INTERVAL = RefreshInterval.TEN_MIN;
 
 class QueryBuilderFake {
   private _filter = '';
@@ -447,13 +450,13 @@ describe('AutoPollingService', () => {
     it('should persist polling state on start', () => {
       spyOn(localStorage, 'setItem');
       autoPollingService.start();
-      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', '{"isActive":true,"refreshInterval":10}');
+      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', `{"isActive":true,"refreshInterval":${DEFAULT_POLLING_INTERVAL}}`);
     });
 
     it('should persist polling state on stop', () => {
       spyOn(localStorage, 'setItem');
       autoPollingService.stop();
-      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', '{"isActive":false,"refreshInterval":10}');
+      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', `{"isActive":false,"refreshInterval":${DEFAULT_POLLING_INTERVAL}}`);
     });
 
     it('should persist polling state on interval change', () => {
@@ -462,34 +465,40 @@ describe('AutoPollingService', () => {
       expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', '{"isActive":false,"refreshInterval":4}');
     });
 
-    it('should restore polling state on construction', () => {
+    it('should restore polling state on construction with a delay', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
-      const dialogServiceFake = TestBed.get(QueryBuilder);
+      const dialogServiceFake = TestBed.get(DialogService);
 
       spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":443}');
 
       const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
 
+      tick(localAutoPollingSvc.AUTO_START_DELAY);
+
       expect(localStorage.getItem).toHaveBeenCalledWith('autoPolling');
       expect(localAutoPollingSvc.getIsPollingActive()).toBe(true);
       expect(localAutoPollingSvc.getInterval()).toBe(443);
-    });
+
+      localAutoPollingSvc.stop();
+    }));
 
     it('should start polling on construction when persisted isActive==true', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
-      const dialogServiceFake = TestBed.get(QueryBuilder);
+      const dialogServiceFake = TestBed.get(DialogService);
 
       spyOn(searchServiceFake, 'search').and.callThrough();
       spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":10}');
 
       const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
 
+      tick(localAutoPollingSvc.AUTO_START_DELAY);
+
       expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
 
-      tick(getIntervalInMS());
+      tick(localAutoPollingSvc.getInterval() * 1000);
       expect(searchServiceFake.search).toHaveBeenCalledTimes(2);
 
-      tick(getIntervalInMS());
+      tick(localAutoPollingSvc.getInterval() * 1000);
       expect(searchServiceFake.search).toHaveBeenCalledTimes(3);
 
       localAutoPollingSvc.stop();
@@ -497,12 +506,14 @@ describe('AutoPollingService', () => {
 
     it('should start polling on construction with the persisted interval', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
-      const dialogServiceFake = TestBed.get(QueryBuilder);
+      const dialogServiceFake = TestBed.get(DialogService);
 
       spyOn(searchServiceFake, 'search').and.callThrough();
       spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":4}');
 
       const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
+
+      tick(localAutoPollingSvc.AUTO_START_DELAY);
 
       expect(searchServiceFake.search).toHaveBeenCalledTimes(1);
 

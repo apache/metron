@@ -25,11 +25,13 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class GeoAdapterTest {
   private static final String IP = "216.160.83.56";
@@ -54,7 +56,7 @@ public class GeoAdapterTest {
   private static GeoAdapter geo;
   private static File geoHdfsFile;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupOnce() throws ParseException {
     JSONParser jsonParser = new JSONParser();
     expectedMessage = (JSONObject) jsonParser.parse(expectedMessageString);
@@ -67,16 +69,16 @@ public class GeoAdapterTest {
   }
 
   @Test
-  public void testEnrich() throws Exception {
+  public void testEnrich() {
     JSONObject actualMessage = geo.enrich(new CacheKey("dummy", IP, null));
 
-    Assert.assertNotNull(actualMessage.get("locID"));
-    Assert.assertEquals(expectedMessage, actualMessage);
+    assertNotNull(actualMessage.get("locID"));
+    assertEquals(expectedMessage, actualMessage);
   }
 
   @Test
-  public void testEnrichNonString() throws Exception {
+  public void testEnrichNonString() {
     JSONObject actualMessage = geo.enrich(new CacheKey("dummy", 10L, null));
-    Assert.assertEquals(new JSONObject(), actualMessage);
+    assertEquals(new JSONObject(), actualMessage);
   }
 }

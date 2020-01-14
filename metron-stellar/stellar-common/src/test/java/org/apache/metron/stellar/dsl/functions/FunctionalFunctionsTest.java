@@ -21,15 +21,15 @@ package org.apache.metron.stellar.dsl.functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FunctionalFunctionsTest {
 
@@ -45,7 +45,7 @@ public class FunctionalFunctionsTest {
             )
     {
       List<List<Object>> o = (List<List<Object>>) run(expr, new HashMap<>());
-      Assert.assertEquals(0, o.size());
+      assertEquals(0, o.size());
     }
   }
 
@@ -62,11 +62,11 @@ public class FunctionalFunctionsTest {
             )
     {
       List<List<Object>> o = (List<List<Object>>) run(expr, variables);
-      Assert.assertEquals(3, o.size());
+      assertEquals(3, o.size());
       for (int i = 0; i < 3; ++i) {
         List l = o.get(i);
-        Assert.assertEquals(1, l.size());
-        Assert.assertEquals(i+1, l.get(0));
+        assertEquals(1, l.size());
+        assertEquals(i+1, l.get(0));
       }
 
     }
@@ -77,19 +77,19 @@ public class FunctionalFunctionsTest {
             )
     {
       List<List<Object>> o = (List<List<Object>>) run(expr, variables);
-      Assert.assertEquals(4, o.size());
+      assertEquals(4, o.size());
       for (int i = 0; i < 3; ++i) {
         List l = o.get(i);
-        Assert.assertEquals(2, l.size());
-        Assert.assertEquals(i+1, l.get(0));
-        Assert.assertEquals(i+4, l.get(1));
+        assertEquals(2, l.size());
+        assertEquals(i+1, l.get(0));
+        assertEquals(i+4, l.get(1));
       }
       {
         int i = 3;
         List l = o.get(i);
-        Assert.assertEquals(2, l.size());
-        Assert.assertNull(l.get(0));
-        Assert.assertEquals(i+4, l.get(1));
+        assertEquals(2, l.size());
+        assertNull(l.get(0));
+        assertEquals(i+4, l.get(1));
       }
     }
 
@@ -103,7 +103,7 @@ public class FunctionalFunctionsTest {
             )
     {
       int o = (int) run(expr, variables);
-      Assert.assertEquals(1*4 + 2*5 + 3*6, o, 1e-7);
+      assertEquals(1*4 + 2*5 + 3*6, o, 1e-7);
     }
 
   }
@@ -120,7 +120,7 @@ public class FunctionalFunctionsTest {
             )
     {
       List<List<Object>> o = (List<List<Object>>) run(expr, new HashMap<>());
-      Assert.assertEquals(0, o.size());
+      assertEquals(0, o.size());
     }
   }
 
@@ -138,11 +138,11 @@ public class FunctionalFunctionsTest {
             )
     {
       List<List<Object>> o = (List<List<Object>>) run(expr, variables);
-      Assert.assertEquals(3, o.size());
+      assertEquals(3, o.size());
       for (int i = 0; i < 3; ++i) {
         List l = o.get(i);
-        Assert.assertEquals(1, l.size());
-        Assert.assertEquals(i+1, l.get(0));
+        assertEquals(1, l.size());
+        assertEquals(i+1, l.get(0));
       }
 
     }
@@ -153,12 +153,12 @@ public class FunctionalFunctionsTest {
             )
     {
       List<List<Object>> o = (List<List<Object>>) run(expr, variables);
-      Assert.assertEquals(3, o.size());
+      assertEquals(3, o.size());
       for (int i = 0; i < 3; ++i) {
         List l = o.get(i);
-        Assert.assertEquals(2, l.size());
-        Assert.assertEquals(i+1, l.get(0));
-        Assert.assertEquals(i+4, l.get(1));
+        assertEquals(2, l.size());
+        assertEquals(i+1, l.get(0));
+        assertEquals(i+4, l.get(1));
       }
     }
 
@@ -170,7 +170,7 @@ public class FunctionalFunctionsTest {
             )
     {
       int o = (int) run(expr, variables);
-      Assert.assertEquals(1*4 + 2*5 + 3*6, o, 1e-7);
+      assertEquals(1*4 + 2*5 + 3*6, o, 1e-7);
     }
 
   }
@@ -184,11 +184,11 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("list", ImmutableList.of(ImmutableList.of(1, 2, 3), ImmutableList.of(4, 5, 6))));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<Number> result = (List<Number>) o;
-      Assert.assertEquals(2, result.size());
-      Assert.assertEquals(6, result.get(0));
-      Assert.assertEquals(15, result.get(1));
+      assertEquals(2, result.size());
+      assertEquals(6, result.get(0));
+      assertEquals(15, result.get(1));
     }
   }
 
@@ -207,12 +207,12 @@ public class FunctionalFunctionsTest {
         put("baz",null);
       }};
       Object o = run(expr,variableMap);
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(3, result.size());
-      Assert.assertEquals(2, result.get(0));
-      Assert.assertEquals(4, result.get(1));
-      Assert.assertEquals(0, result.get(2));
+      assertEquals(3, result.size());
+      assertEquals(2, result.get(0));
+      assertEquals(4, result.get(1));
+      assertEquals(0, result.get(2));
     }
   }
 
@@ -230,11 +230,11 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(2, result.size());
-      Assert.assertEquals("FOO", result.get(0));
-      Assert.assertEquals("BAR", result.get(1));
+      assertEquals(2, result.size());
+      assertEquals("FOO", result.get(0));
+      assertEquals("BAR", result.get(1));
     }
   }
 
@@ -250,11 +250,11 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<Boolean> result = (List<Boolean>) o;
-      Assert.assertEquals(2, result.size());
-      Assert.assertEquals(true, result.get(0));
-      Assert.assertEquals(false, result.get(1));
+      assertEquals(2, result.size());
+      assertEquals(true, result.get(0));
+      assertEquals(false, result.get(1));
     }
   }
 
@@ -271,10 +271,10 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(1, result.size());
-      Assert.assertEquals("foo", result.get(0));
+      assertEquals(1, result.size());
+      assertEquals("foo", result.get(0));
     }
   }
 
@@ -288,10 +288,10 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(1, result.size());
-      Assert.assertEquals("foo", result.get(0));
+      assertEquals(1, result.size());
+      assertEquals("foo", result.get(0));
     }
   }
 
@@ -309,10 +309,10 @@ public class FunctionalFunctionsTest {
         put("baz",null);
       }};
       Object o = run(expr,variableMap);
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(1, result.size());
-      Assert.assertEquals(null, result.get(0));
+      assertEquals(1, result.size());
+      assertNull(result.get(0));
     }
   }
 
@@ -331,10 +331,10 @@ public class FunctionalFunctionsTest {
         put("baz",null);
       }};
       Object o = run(expr,variableMap);
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(1, result.size());
-      Assert.assertEquals("foo", result.get(0));
+      assertEquals(1, result.size());
+      assertEquals("foo", result.get(0));
     }
   }
 
@@ -351,9 +351,9 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(0, result.size());
+      assertEquals(0, result.size());
     }
   }
 
@@ -369,11 +369,11 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(2, result.size());
-      Assert.assertEquals("foo", result.get(0));
-      Assert.assertEquals("bar", result.get(1));
+      assertEquals(2, result.size());
+      assertEquals("foo", result.get(0));
+      assertEquals("bar", result.get(1));
     }
   }
 
@@ -390,9 +390,9 @@ public class FunctionalFunctionsTest {
         put("baz",null);
       }};
       Object o = run(expr,variableMap);
-      Assert.assertTrue(o instanceof Number);
+      assertTrue(o instanceof Number);
       Number result = (Number) o;
-      Assert.assertEquals(6, result.intValue());
+      assertEquals(6, result.intValue());
     }
   }
 
@@ -404,35 +404,34 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2));
-      Assert.assertTrue(o instanceof Number);
+      assertTrue(o instanceof Number);
       Number result = (Number) o;
-      Assert.assertEquals(6, result.intValue());
+      assertEquals(6, result.intValue());
     }
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testReduce_on_various_list_sizes() {
     {
       String expr = "REDUCE([ 1, 2, 3, 4 ], (x, y) -> x + y , 0 )";
       Object o = run(expr, ImmutableMap.of());
-      Assert.assertTrue(o instanceof Number);
+      assertTrue(o instanceof Number);
       Number result = (Number) o;
-      Assert.assertEquals(10, result.intValue());
+      assertEquals(10, result.intValue());
     }
     {
       String expr = "REDUCE([ 1, 2 ], (x, y) -> x + y , 0 )";
       Object o = run(expr, ImmutableMap.of());
-      Assert.assertTrue(o instanceof Number);
+      assertTrue(o instanceof Number);
       Number result = (Number) o;
-      Assert.assertEquals(3, result.intValue());
+      assertEquals(3, result.intValue());
     }
     {
       String expr = "REDUCE([ 1 ], (x, y) -> x + y , 0 )";
       Object o = run(expr, ImmutableMap.of());
-      Assert.assertTrue(o instanceof Number);
+      assertTrue(o instanceof Number);
       Number result = (Number) o;
-      Assert.assertEquals(1, result.intValue());
+      assertEquals(1, result.intValue());
     }
   }
 
@@ -444,12 +443,12 @@ public class FunctionalFunctionsTest {
         )
     {
       Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2,"x",0,"y",0));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
-      Assert.assertEquals(3, result.size());
-      Assert.assertEquals("foo", result.get(0));
-      Assert.assertEquals("bar", result.get(1));
-      Assert.assertEquals("grok", result.get(2));
+      assertEquals(3, result.size());
+      assertEquals("foo", result.get(0));
+      assertEquals("bar", result.get(1));
+      assertEquals("grok", result.get(2));
     }
   }
 
@@ -457,11 +456,11 @@ public class FunctionalFunctionsTest {
   public void testReduce_returns_null_when_less_than_3_args() {
     {
       String expr = "REDUCE([ 1, 2, 3 ], (x, y) -> LIST_ADD(x, y))";
-      Assert.assertThat(run(expr, ImmutableMap.of()), CoreMatchers.equalTo(null));
+      assertThat(run(expr, ImmutableMap.of()), CoreMatchers.equalTo(null));
     }
     {
       String expr = "REDUCE([ 1, 2, 3 ])";
-      Assert.assertThat(run(expr, ImmutableMap.of()), CoreMatchers.equalTo(null));
+      assertThat(run(expr, ImmutableMap.of()), CoreMatchers.equalTo(null));
     }
   }
 

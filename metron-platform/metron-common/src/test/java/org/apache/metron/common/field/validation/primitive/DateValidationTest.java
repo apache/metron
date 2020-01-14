@@ -21,12 +21,13 @@ package org.apache.metron.common.field.validation.primitive;
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.field.validation.BaseValidationTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DateValidationTest extends BaseValidationTest{
   /**
@@ -66,34 +67,34 @@ public class DateValidationTest extends BaseValidationTest{
 
   @Test
   public void positiveTest_single() throws IOException {
-    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "2014-05-01")));
-    Assert.assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014-05-01")));
+    assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "2014-05-01")));
+    assertTrue(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014-05-01")));
   }
   @Test
   public void negativeTest_single() throws IOException {
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.3f)));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "2014/05/01")));
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014/05/01")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.3f)));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", 2.3f)));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "2014/05/01")));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014/05/01")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", 2.3f)));
     //invalid month
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014-25-01")));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014-25-01")));
     //invalid date
-    Assert.assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014-05-32")));
+    assertFalse(runPredicate(validWithSingleField_MQL, ImmutableMap.of("field1", "2014-05-32")));
   }
   @Test
   public void positiveTest_multiple() throws IOException {
-    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", "2014-06-01", "field2", "2014-06-02")));
-    Assert.assertTrue(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "2014-06-01", "field2", "2014-06-02")));
+    assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", "2014-06-01", "field2", "2014-06-02")));
+    assertTrue(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", "2014-06-01", "field2", "2014-06-02")));
   }
 
   @Test
   public void negativeTest_multiple() throws IOException {
 
-    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field2", "2014-06-02")));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field2", "2014-06-02")));
-    Assert.assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "2014-06-02")));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "2014-06-02")));
-    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field3", "2014-06-02")));
-    Assert.assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field3", "2014-06-02")));
+    assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field2", "2014-06-02")));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field2", "2014-06-02")));
+    assertFalse(execute(validWithMultipleFields, ImmutableMap.of("field1", 1, "field2", "2014-06-02")));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field1", 1, "field2", "2014-06-02")));
+    assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field3", "2014-06-02")));
+    assertFalse(runPredicate(validWithMultipleFields_MQL, ImmutableMap.of("field3", "2014-06-02")));
   }
 }

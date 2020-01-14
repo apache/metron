@@ -18,19 +18,6 @@
 
 package org.apache.metron.parsers.topology;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
@@ -43,8 +30,15 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.topology.config.ValueSupplier;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.Config;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ParserTopologyCLITest {
 
@@ -108,9 +102,9 @@ public class ParserTopologyCLITest {
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
                                       .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor")
                                       .build(longOpt);
-    Assert.assertEquals("myzk", ParserTopologyCLI.ParserOptions.ZK_QUORUM.get(cli));
-    Assert.assertEquals("mybroker", ParserTopologyCLI.ParserOptions.BROKER_URL.get(cli));
-    Assert.assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPES.get(cli));
+    assertEquals("myzk", ParserTopologyCLI.ParserOptions.ZK_QUORUM.get(cli));
+    assertEquals("mybroker", ParserTopologyCLI.ParserOptions.BROKER_URL.get(cli));
+    assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPES.get(cli));
   }
   @Test
   public void testCLI_happyPath() throws ParseException {
@@ -118,12 +112,13 @@ public class ParserTopologyCLITest {
     happyPath(false);
   }
 
-  @Test(expected=ParseException.class)
-  public void testCLI_insufficientArg() throws ParseException {
+  @Test
+  public void testCLI_insufficientArg() {
     UnitTestHelper.setLog4jLevel(Parser.class, Level.FATAL);
-    CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
-                                      .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
-                                      .build(true);
+      assertThrows(ParseException.class, () ->
+              new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
+              .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
+              .build(true));
     UnitTestHelper.setLog4jLevel(Parser.class, Level.ERROR);
   }
 
@@ -132,9 +127,9 @@ public class ParserTopologyCLITest {
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
                                       .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor")
                                       .build(longOpt);
-    Assert.assertEquals("myzk", ParserTopologyCLI.ParserOptions.ZK_QUORUM.get(cli));
-    Assert.assertEquals("mybroker", ParserTopologyCLI.ParserOptions.BROKER_URL.get(cli));
-    Assert.assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPES.get(cli));
+    assertEquals("myzk", ParserTopologyCLI.ParserOptions.ZK_QUORUM.get(cli));
+    assertEquals("mybroker", ParserTopologyCLI.ParserOptions.BROKER_URL.get(cli));
+    assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPES.get(cli));
   }
 
   @Test
@@ -154,10 +149,10 @@ public class ParserTopologyCLITest {
                                      .build(longOpt);
     Optional<Config> configOptional = ParserTopologyCLI.ParserOptions.getConfig(cli);
     Config config = configOptional.get();
-    Assert.assertEquals(1, config.get(Config.TOPOLOGY_WORKERS));
-    Assert.assertEquals(2, config.get(Config.TOPOLOGY_ACKER_EXECUTORS));
-    Assert.assertEquals(3, config.get(Config.TOPOLOGY_MAX_TASK_PARALLELISM));
-    Assert.assertEquals(4, config.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS));
+    assertEquals(1, config.get(Config.TOPOLOGY_WORKERS));
+    assertEquals(2, config.get(Config.TOPOLOGY_ACKER_EXECUTORS));
+    assertEquals(3, config.get(Config.TOPOLOGY_MAX_TASK_PARALLELISM));
+    assertEquals(4, config.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS));
   }
 
   @Test
@@ -172,7 +167,7 @@ public class ParserTopologyCLITest {
                                       .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor")
                                       .with(ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC, "my_topic")
                                       .build(longOpt);
-    Assert.assertEquals("my_topic", ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC.get(cli));
+    assertEquals("my_topic", ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC.get(cli));
   }
 
   /**
@@ -202,9 +197,9 @@ public class ParserTopologyCLITest {
               .build(longOpt);
       Optional<Config> configOptional = ParserTopologyCLI.ParserOptions.getConfig(cli);
       Config config = configOptional.get();
-      Assert.assertEquals(4, config.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS));
-      Assert.assertEquals("foo", config.get("string"));
-      Assert.assertEquals(1, config.get("integer"));
+      assertEquals(4, config.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS));
+      assertEquals("foo", config.get("string"));
+      assertEquals(1, config.get("integer"));
     } finally{
       extraFile.deleteOnExit();
     }
@@ -738,7 +733,7 @@ public class ParserTopologyCLITest {
       }
       CommandLine cmd = builder.build(true);
       ParserInput input = getInput(cmd, configs);
-      Assert.assertTrue(cliOverrideCondition.test(input));
+      assertTrue(cliOverrideCondition.test(input));
     }
     // Config Override
     {
@@ -747,7 +742,7 @@ public class ParserTopologyCLITest {
               .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPES, "mysensor");
       CommandLine cmd = builder.build(true);
       ParserInput input = getInput(cmd, configs);
-      Assert.assertTrue(configOverrideCondition.test(input));
+      assertTrue(configOverrideCondition.test(input));
     }
   }
 

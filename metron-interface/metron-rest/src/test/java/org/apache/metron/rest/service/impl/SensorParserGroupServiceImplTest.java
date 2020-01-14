@@ -25,37 +25,23 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.rest.service.SensorParserGroupService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.metron.common.configuration.ParserConfigurations.PARSER_GROUPS_CONF;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class SensorParserGroupServiceImplTest {
-
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
-
   private ConfigurationsCache cache;
   private GlobalConfigService globalConfigService;
   private SensorParserConfigService sensorParserConfigService;
   private SensorParserGroupService sensorParserGroupService;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     cache = mock(ConfigurationsCache.class);
     globalConfigService = mock(GlobalConfigService.class);
     sensorParserConfigService = mock(SensorParserConfigService.class);
@@ -112,33 +98,26 @@ public class SensorParserGroupServiceImplTest {
   }
 
   @Test
-  public void saveShouldThrowExceptionOnMissingSensor() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("A parser group must contain sensors");
-
+  public void saveShouldThrowExceptionOnMissingSensor() {
     when(cache.get(ParserConfigurations.class)).thenReturn(new ParserConfigurations());
 
-    sensorParserGroupService.save(new SensorParserGroup());
+    RestException e = assertThrows(RestException.class, () -> sensorParserGroupService.save(new SensorParserGroup()));
+    assertEquals("A parser group must contain sensors", e.getMessage());
   }
 
   @Test
-  public void saveShouldThrowExceptionOnMissingConfig() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("Could not find config for sensor bro");
-
+  public void saveShouldThrowExceptionOnMissingConfig() {
     when(cache.get(ParserConfigurations.class)).thenReturn(new ParserConfigurations());
 
     SensorParserGroup sensorParserGroup = new SensorParserGroup();
     sensorParserGroup.setSensors(Collections.singleton("bro"));
 
-    sensorParserGroupService.save(sensorParserGroup);
+    RestException e = assertThrows(RestException.class, () -> sensorParserGroupService.save(sensorParserGroup));
+    assertEquals("Could not find config for sensor bro", e.getMessage());
   }
 
   @Test
   public void saveShouldThrowExceptionOnSensorInAnotherGroup() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("Sensor bro is already in group existingGroup");
-
     SensorParserGroup existingGroup = new SensorParserGroup();
     existingGroup.setName("existingGroup");
     existingGroup.setSensors(Collections.singleton("bro"));
@@ -153,11 +132,12 @@ public class SensorParserGroupServiceImplTest {
     newGroup.setName("newGroup");
     newGroup.setSensors(Collections.singleton("bro"));
 
-    sensorParserGroupService.save(newGroup);
+    RestException e = assertThrows(RestException.class, () -> sensorParserGroupService.save(newGroup));
+    assertEquals("Sensor bro is already in group existingGroup", e.getMessage());
   }
 
   @Test
-  public void shouldFindSensorParserGroup() throws Exception {
+  public void shouldFindSensorParserGroup() {
     ParserConfigurations parserConfigurations = mock(ParserConfigurations.class);
     SensorParserGroup group1 = new SensorParserGroup();
     group1.setName("group1");
@@ -192,8 +172,8 @@ public class SensorParserGroupServiceImplTest {
     Map<String, Object> expectedGlobalConfig = new HashMap<>();
     expectedGlobalConfig.put(PARSER_GROUPS_CONF, new HashSet<>());
 
-    assertEquals(true, sensorParserGroupService.delete("group1"));
-    assertEquals(false, sensorParserGroupService.delete("group2"));
+    assertTrue(sensorParserGroupService.delete("group1"));
+    assertFalse(sensorParserGroupService.delete("group2"));
 
     verify(globalConfigService, times(1)).save(expectedGlobalConfig);
     verifyNoMoreInteractions(globalConfigService);

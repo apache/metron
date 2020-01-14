@@ -23,8 +23,8 @@ import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.rest.model.SensorParserContext;
 import org.apache.metron.rest.service.StellarService;
 import org.apache.storm.shade.com.google.common.collect.ImmutableList;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,8 +32,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 public class StellarServiceImplTest {
@@ -41,7 +41,7 @@ public class StellarServiceImplTest {
   private StellarService stellarService;
   CuratorFramework curatorFramework;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     curatorFramework = mock(CuratorFramework.class);
     stellarService = new StellarServiceImpl(curatorFramework);

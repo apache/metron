@@ -18,28 +18,29 @@
 
 package org.apache.metron.common.configuration.writer;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.configuration.ParserConfigurations;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.configuration.ParserConfigurations;
-import org.junit.Assert;
-import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ParserWriterConfigurationTest {
 
   @Test
   public void testDefaultBatchSize() {
     ParserWriterConfiguration config = new ParserWriterConfiguration( new ParserConfigurations() );
-    Assert.assertEquals(1, config.getBatchSize("foo"));
+    assertEquals(1, config.getBatchSize("foo"));
   }
 
   @Test
   public void testDefaultIndex() {
     ParserWriterConfiguration config = new ParserWriterConfiguration( new ParserConfigurations() );
-    Assert.assertEquals("foo", config.getIndex("foo"));
+    assertEquals("foo", config.getIndex("foo"));
   }
 
   /**

@@ -19,13 +19,13 @@
 package org.apache.metron.stellar.common.evaluators;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.metron.stellar.dsl.Token;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,13 +33,13 @@ import static org.mockito.Mockito.when;
 public class EqualityOperatorsEvaluatorTest {
   ComparisonExpressionEvaluator evaluator;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     evaluator = new EqualityOperatorsEvaluator();
   }
 
   @Test
-  public void leftAndRightNullShouldBeTrue() throws Exception {
+  public void leftAndRightNullShouldBeTrue() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(null);
 
@@ -55,7 +55,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void leftNullAndRightNotShouldBeFalse() throws Exception {
+  public void leftNullAndRightNotShouldBeFalse() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(null);
 
@@ -71,7 +71,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void leftNotNullAndRightNullShouldBeFalse() throws Exception {
+  public void leftNotNullAndRightNullShouldBeFalse() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(1D);
 
@@ -87,7 +87,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void eqTestForTwoLongs() throws Exception {
+  public void eqTestForTwoLongs() {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
 
@@ -101,7 +101,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void eqTestForTwoDoubles() throws Exception {
+  public void eqTestForTwoDoubles() {
     Token<Double> left = mock(Token.class);
     when(left.getValue()).thenReturn(1D);
 
@@ -115,7 +115,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void eqTestForTwoFloats() throws Exception {
+  public void eqTestForTwoFloats() {
     Token<Float> left = mock(Token.class);
     when(left.getValue()).thenReturn(1F);
 
@@ -129,7 +129,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void eqTestForTwoIntegers() throws Exception {
+  public void eqTestForTwoIntegers() {
     Token<Integer> left = mock(Token.class);
     when(left.getValue()).thenReturn(1);
 
@@ -143,7 +143,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void eqTestForTwoStrings() throws Exception {
+  public void eqTestForTwoStrings() {
     Token<String> left = mock(Token.class);
     when(left.getValue()).thenReturn("1");
 
@@ -157,7 +157,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void eqTestForUnlikeTypes() throws Exception {
+  public void eqTestForUnlikeTypes() {
     Token<String> left = mock(Token.class);
     when(left.getValue()).thenReturn("1");
 
@@ -171,7 +171,7 @@ public class EqualityOperatorsEvaluatorTest {
   }
 
   @Test
-  public void eqTestForUnlikeTypesLongString() throws Exception {
+  public void eqTestForUnlikeTypesLongString() {
     Token<Long> left = mock(Token.class);
     when(left.getValue()).thenReturn(1L);
 

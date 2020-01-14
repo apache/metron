@@ -76,13 +76,18 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   @Override
   public void init(Map stormConf, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
-    dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
+    dateFormat = getIndexFormat(globalConfiguration);
 
     // only create the document writer, if one does not already exist. useful for testing.
     if(documentWriter == null) {
       client = ElasticsearchClientFactory.create(globalConfiguration);
       documentWriter = new ElasticsearchBulkDocumentWriter<>(client);
     }
+  }
+
+  // Used for testing
+  protected SimpleDateFormat getIndexFormat(Map<String, Object> globalConfiguration) {
+    return ElasticsearchUtils.getIndexFormat(globalConfiguration);
   }
 
   @Override
@@ -93,7 +98,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     // fetch the field name converter for this sensor type
     FieldNameConverter fieldNameConverter = FieldNameConverters.create(sensorType, configurations);
     String indexPostfix = dateFormat.format(new Date());
-    String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
+    String indexName = getIndexName(sensorType, indexPostfix, configurations);
 
     // create a document from each message
     for(BulkMessage<JSONObject> bulkWriterMessage: messages) {
@@ -113,6 +118,11 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       response.addError(failure.getCause(), failure.getDocument().getMessageId());
     }
     return response;
+  }
+
+  // Used for testing
+  protected String getIndexName(String sensorType, String indexPostfix, WriterConfiguration configurations) {
+    return ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
   }
 
   private MessageIdBasedDocument createDocument(BulkMessage<JSONObject> bulkWriterMessage,

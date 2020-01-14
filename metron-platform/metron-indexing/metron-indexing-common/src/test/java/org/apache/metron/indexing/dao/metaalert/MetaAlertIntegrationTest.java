@@ -23,6 +23,14 @@ import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAAL
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.METAALERT_TYPE;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.STATUS_FIELD;
 import static org.apache.metron.indexing.dao.metaalert.MetaAlertConstants.THREAT_FIELD_DEFAULT;
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -55,12 +63,8 @@ import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
-import org.apache.metron.integration.utils.TestUtils;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.Test;
-
-import static org.apache.metron.integration.utils.TestUtils.assertEventually;
+import org.junit.jupiter.api.Test;
 
 public abstract class MetaAlertIntegrationTest {
 
@@ -177,23 +181,23 @@ public abstract class MetaAlertIntegrationTest {
       // Verify searches successfully return more than 10 results
       SearchResponse searchResponse0 = metaDao.getAllMetaAlertsForAlert("message_0");
       List<SearchResult> searchResults0 = searchResponse0.getResults();
-      Assert.assertEquals(13, searchResults0.size());
+      assertEquals(13, searchResults0.size());
       Set<Map<String, Object>> resultSet = new HashSet<>();
       Iterables.addAll(resultSet, Iterables.transform(searchResults0, r -> r.getSource()));
       StringBuffer reason = new StringBuffer("Unable to find " + metaAlerts.get(0) + "\n");
       reason.append(Joiner.on("\n").join(resultSet));
-      Assert.assertTrue(reason.toString(), resultSet.contains(metaAlerts.get(0)));
+      assertTrue(resultSet.contains(metaAlerts.get(0)), reason.toString());
 
       // Verify no meta alerts are returned because message_1 was not added to any
       SearchResponse searchResponse1 = metaDao.getAllMetaAlertsForAlert("message_1");
       List<SearchResult> searchResults1 = searchResponse1.getResults();
-      Assert.assertEquals(0, searchResults1.size());
+      assertEquals(0, searchResults1.size());
 
       // Verify only the meta alert message_2 was added to is returned
       SearchResponse searchResponse2 = metaDao.getAllMetaAlertsForAlert("message_2");
       List<SearchResult> searchResults2 = searchResponse2.getResults();
-      Assert.assertEquals(1, searchResults2.size());
-      Assert.assertEquals(metaAlerts.get(12), searchResults2.get(0).getSource());
+      assertEquals(1, searchResults2.size());
+      assertEquals(metaAlerts.get(12), searchResults2.get(0).getSource());
     }
   }
 
@@ -231,9 +235,9 @@ public abstract class MetaAlertIntegrationTest {
 
     SearchResponse result = metaDao.search(sr);
     List<SearchResult> results = result.getResults();
-    Assert.assertEquals(2, results.size());
-    Assert.assertEquals("meta_active_0", results.get((0)).getSource().get(Constants.GUID));
-    Assert.assertEquals("message_1", results.get((1)).getSource().get(Constants.GUID));
+    assertEquals(2, results.size());
+    assertEquals("meta_active_0", results.get((0)).getSource().get(Constants.GUID));
+    assertEquals("message_1", results.get((1)).getSource().get(Constants.GUID));
 
     // Test ascending
     SortField sfAsc = new SortField();
@@ -246,19 +250,15 @@ public abstract class MetaAlertIntegrationTest {
     srAsc.setSort(Collections.singletonList(sfAsc));
     result = metaDao.search(srAsc);
     results = result.getResults();
-    Assert.assertEquals("message_1", results.get((0)).getSource().get(Constants.GUID));
-    Assert.assertEquals("meta_active_0", results.get((1)).getSource().get(Constants.GUID));
-    Assert.assertEquals(2, results.size());
+    assertEquals("message_1", results.get((0)).getSource().get(Constants.GUID));
+    assertEquals("meta_active_0", results.get((1)).getSource().get(Constants.GUID));
+    assertEquals(2, results.size());
   }
 
   @Test
-  public void getAllMetaAlertsForAlertShouldThrowExceptionForEmptyGuid() throws Exception {
-    try {
-      metaDao.getAllMetaAlertsForAlert("");
-      Assert.fail("An exception should be thrown for empty guid");
-    } catch (InvalidSearchException ise) {
-      Assert.assertEquals("Guid cannot be empty", ise.getMessage());
-    }
+  public void getAllMetaAlertsForAlertShouldThrowExceptionForEmptyGuid() {
+    InvalidSearchException ise = assertThrows(InvalidSearchException.class, () -> metaDao.getAllMetaAlertsForAlert(""));
+    assertEquals("Guid cannot be empty", ise.getMessage());
   }
 
   @Test
@@ -313,14 +313,14 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put(getThreatTriageField(), 3.0d);
       {
         // Verify metaAlert was created
-        assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+        assertDocumentEquals(expectedMetaAlert, actualMetaAlert.getDocument());
         findCreatedDoc(actualMetaAlert.getGuid(), METAALERT_TYPE);
       }
       {
         // Verify alert 0 was not updated with metaalert field
         Document alert = metaDao.getLatest("message_0", SENSOR_NAME);
-        Assert.assertEquals(4, alert.getDocument().size());
-        Assert.assertNull(alert.getDocument().get(METAALERT_FIELD));
+        assertEquals(4, alert.getDocument().size());
+        assertNull(alert.getDocument().get(METAALERT_FIELD));
       }
       {
         // Verify alert 1 was properly updated with metaalert field
@@ -390,7 +390,7 @@ public abstract class MetaAlertIntegrationTest {
       Document actualMetaAlert = metaDao.addAlertsToMetaAlert("meta_alert", Arrays
               .asList(new GetRequest("message_1", SENSOR_NAME),
                       new GetRequest("message_2", SENSOR_NAME)));
-      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+      assertDocumentEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -399,7 +399,7 @@ public abstract class MetaAlertIntegrationTest {
       Document actualMetaAlert = metaDao.addAlertsToMetaAlert("meta_alert", Arrays
               .asList(new GetRequest("message_0", SENSOR_NAME),
                       new GetRequest("message_1", SENSOR_NAME)));
-      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+      assertDocumentEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -422,7 +422,7 @@ public abstract class MetaAlertIntegrationTest {
       Document actualMetaAlert = metaDao.addAlertsToMetaAlert("meta_alert", Arrays
               .asList(new GetRequest("message_2", SENSOR_NAME),
                       new GetRequest("message_3", SENSOR_NAME)));
-      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+      assertDocumentEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
   }
@@ -475,7 +475,7 @@ public abstract class MetaAlertIntegrationTest {
       Document actualMetaAlert = metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
               .asList(new GetRequest("message_0", SENSOR_NAME),
                       new GetRequest("message_1", SENSOR_NAME)));
-      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+      assertDocumentEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -484,7 +484,7 @@ public abstract class MetaAlertIntegrationTest {
       Document actualMetaAlert = metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
               .asList(new GetRequest("message_0", SENSOR_NAME),
                       new GetRequest("message_1", SENSOR_NAME)));
-      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+      assertDocumentEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -506,7 +506,7 @@ public abstract class MetaAlertIntegrationTest {
       Document actualMetaAlert = metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays
               .asList(new GetRequest("message_0", SENSOR_NAME),
                       new GetRequest("message_2", SENSOR_NAME)));
-      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+      assertDocumentEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -538,14 +538,10 @@ public abstract class MetaAlertIntegrationTest {
       }
 
       // Verify removing alerts cannot result in an empty meta alert
-      try {
-        metaDao.removeAlertsFromMetaAlert("meta_alert",
-                Collections.singletonList(new GetRequest("message_3", SENSOR_NAME)));
-        Assert.fail("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.");
-      } catch (IllegalStateException ise) {
-        Assert.assertEquals("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.",
-                ise.getMessage());
-      }
+      IllegalStateException ise = assertThrows(IllegalStateException.class, () -> metaDao.removeAlertsFromMetaAlert("meta_alert",
+          Collections.singletonList(new GetRequest("message_3", SENSOR_NAME))));
+      assertEquals("Removing these alerts will result in an empty meta alert.  Empty meta alerts are not allowed.",
+          ise.getMessage());
     }
   }
 
@@ -567,29 +563,15 @@ public abstract class MetaAlertIntegrationTest {
         new GetRequest("message_1", SENSOR_NAME),
         new GetRequest("meta_alert", METAALERT_TYPE)));
 
-    {
-      // Verify alerts cannot be added to an INACTIVE meta alert
-      try {
-        metaDao.addAlertsToMetaAlert("meta_alert",
-            Collections.singletonList(new GetRequest("message_1", SENSOR_NAME)));
-        Assert.fail("Adding alerts to an inactive meta alert should throw an exception");
-      } catch (IllegalStateException ise) {
-        Assert.assertEquals("Adding alerts to an INACTIVE meta alert is not allowed",
-            ise.getMessage());
-      }
-    }
+    // Verify alerts cannot be added to an INACTIVE meta alert
+    IllegalStateException ise = assertThrows(IllegalStateException.class, () -> metaDao.addAlertsToMetaAlert("meta_alert",
+        Collections.singletonList(new GetRequest("message_1", SENSOR_NAME))));
+    assertEquals("Adding alerts to an INACTIVE meta alert is not allowed", ise.getMessage());
 
-    {
-      // Verify alerts cannot be removed from an INACTIVE meta alert
-      try {
-        metaDao.removeAlertsFromMetaAlert("meta_alert",
-            Collections.singletonList(new GetRequest("message_0", SENSOR_NAME)));
-        Assert.fail("Removing alerts from an inactive meta alert should throw an exception");
-      } catch (IllegalStateException ise) {
-        Assert.assertEquals("Removing alerts from an INACTIVE meta alert is not allowed",
-            ise.getMessage());
-      }
-    }
+    // Verify alerts cannot be removed from an INACTIVE meta alert
+    ise = assertThrows(IllegalStateException.class, () -> metaDao.removeAlertsFromMetaAlert("meta_alert",
+        Collections.singletonList(new GetRequest("message_0", SENSOR_NAME))));
+    assertEquals("Removing alerts from an INACTIVE meta alert is not allowed", ise.getMessage());
   }
 
   @Test
@@ -629,7 +611,7 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.INACTIVE.getStatusString());
 
       Document actualMetaAlert = metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.INACTIVE);
-      Assert.assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
       for (int i = 0; i < numChildAlerts; ++i) {
@@ -652,7 +634,7 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
       Document actualMetaAlert = metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE);
-      Assert.assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+      assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
       for (int i = 0; i < numChildAlerts; ++i) {
@@ -675,7 +657,7 @@ public abstract class MetaAlertIntegrationTest {
         expectedMetaAlert.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
         Document actualMetaAlert = metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE);
-        Assert.assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
+        assertEquals(expectedMetaAlert, actualMetaAlert.getDocument());
         findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
         for (int i = 0; i < numChildAlerts; ++i) {
@@ -731,8 +713,8 @@ public abstract class MetaAlertIntegrationTest {
     });
 
     // Verify only active meta alerts are returned
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals(MetaAlertStatus.ACTIVE.getStatusString(),
+    assertEquals(1, searchResponse.getTotal());
+    assertEquals(MetaAlertStatus.ACTIVE.getStatusString(),
         searchResponse.getResults().get(0).getSource().get(STATUS_FIELD));
   }
 
@@ -747,15 +729,15 @@ public abstract class MetaAlertIntegrationTest {
     sortField.setSortOrder("asc");
 
     // when no meta-alerts exist, it should work
-    Assert.assertEquals(0, searchForSortedMetaAlerts(sortField).getTotal());
+    assertEquals(0, searchForSortedMetaAlerts(sortField).getTotal());
 
     // when meta-alert just created, it should work
     createMetaAlert(guid);
-    Assert.assertEquals(1, searchForSortedMetaAlerts(sortField).getTotal());
+    assertEquals(1, searchForSortedMetaAlerts(sortField).getTotal());
 
     // when meta-alert 'esclated', it should work
     escalateMetaAlert(guid);
-    Assert.assertEquals(1, searchForSortedMetaAlerts(sortField).getTotal());
+    assertEquals(1, searchForSortedMetaAlerts(sortField).getTotal());
   }
 
   private Map<String, Object> createMetaAlert(String guid) throws Exception {
@@ -795,7 +777,7 @@ public abstract class MetaAlertIntegrationTest {
     // ensure the alert status was changed to 'escalate'
     assertEventually(() -> {
       Document updated = metaDao.getLatest(guid, METAALERT_TYPE);
-      Assert.assertEquals("escalate", updated.getDocument().get("alert_status"));
+      assertEquals("escalate", updated.getDocument().get("alert_status"));
     });
   }
 
@@ -846,14 +828,16 @@ public abstract class MetaAlertIntegrationTest {
 
     // Should only return the standalone alert in the group
     GroupResult result = groupResponse.getGroupResults().get(0);
-    Assert.assertEquals(1, result.getTotal());
-    Assert.assertEquals("192.168.1.1", result.getKey());
+    assertEquals(1, result.getTotal());
+    assertEquals("192.168.1.1", result.getKey());
     // No delta, since no ops happen
-    Assert.assertEquals(10.0d, result.getScore(), 0.0d);
+    assertEquals(10.0d, result.getScore(), 0.0d);
   }
 
   // This test is important enough that everyone should implement it, but is pretty specific to
   // implementation
+  // The function is provided for any store specific translation of queryIndice in parameterized tests, e.g. ES appends "_index"
+  // and "*"
   @Test
   public abstract void shouldSearchByNestedAlert() throws Exception;
 
@@ -900,8 +884,8 @@ public abstract class MetaAlertIntegrationTest {
     // ensure the original 'normal' alert was itself updated
     assertEventually(() -> {
       Document message0 = metaDao.getLatest("message_0", SENSOR_NAME);
-      Assert.assertNotNull(message0);
-      Assert.assertEquals(expectedFieldValue, message0.getDocument().get(NEW_FIELD));
+      assertNotNull(message0);
+      assertEquals(expectedFieldValue, message0.getDocument().get(NEW_FIELD));
     });
 
     // the 'active' meta-alert, which contains a copy of the updated alert should also be updated
@@ -909,9 +893,9 @@ public abstract class MetaAlertIntegrationTest {
       Document active = metaDao.getLatest("meta_active", METAALERT_TYPE);
       Object value = active.getDocument().get(ALERT_FIELD);
       List<Map<String, Object>> children = List.class.cast(value);
-      Assert.assertNotNull(children);
-      Assert.assertEquals(1, children.size());
-      Assert.assertEquals(expectedFieldValue, children.get(0).get(NEW_FIELD));
+      assertNotNull(children);
+      assertEquals(1, children.size());
+      assertEquals(expectedFieldValue, children.get(0).get(NEW_FIELD));
     });
 
     // the 'inactive' meta-alert, which contains a copy of the updated alert should NOT be updated
@@ -919,22 +903,19 @@ public abstract class MetaAlertIntegrationTest {
       Document inactive = metaDao.getLatest("meta_inactive", METAALERT_TYPE);
       Object value = inactive.getDocument().get(ALERT_FIELD);
       List<Map<String, Object>> children = List.class.cast(value);
-      Assert.assertNotNull(children);
-      Assert.assertEquals(1, children.size());
-      Assert.assertFalse(children.get(0).containsKey(NEW_FIELD));
+      assertNotNull(children);
+      assertEquals(1, children.size());
+      assertFalse(children.get(0).containsKey(NEW_FIELD));
     });
   }
 
   @Test
   public void shouldThrowExceptionOnMetaAlertUpdate() throws Exception {
     Document metaAlert = new Document(new HashMap<>(), "meta_alert", METAALERT_TYPE, 0L);
-    try {
-      // Verify a meta alert cannot be updated in the meta alert dao
-      metaDao.update(metaAlert, Optional.empty());
-      Assert.fail("Direct meta alert update should throw an exception");
-    } catch (UnsupportedOperationException uoe) {
-      Assert.assertEquals("Meta alerts cannot be directly updated", uoe.getMessage());
-    }
+    // Verify a meta alert cannot be updated in the meta alert dao
+    UnsupportedOperationException uoe = assertThrows(UnsupportedOperationException.class,
+        () -> metaDao.update(metaAlert, Optional.empty()));
+    assertEquals("Meta alerts cannot be directly updated", uoe.getMessage());
   }
 
   @Test
@@ -968,7 +949,7 @@ public abstract class MetaAlertIntegrationTest {
     // ensure the alert was patched
     assertEventually(() -> {
       Document updated = metaDao.getLatest("meta_alert", METAALERT_TYPE);
-      Assert.assertEquals("New Meta Alert", updated.getDocument().get(NAME_FIELD));
+      assertEquals("New Meta Alert", updated.getDocument().get(NAME_FIELD));
     });
   }
 
@@ -994,22 +975,18 @@ public abstract class MetaAlertIntegrationTest {
             new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // attempt to patch the alert field
-    try {
-      String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
-      PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatch, PatchRequest.class);
-      metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
-      Assert.fail("A patch on the alert field should throw an exception");
-
-    } catch (IllegalArgumentException iae) {
-      Assert.assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
-                      + "Please use the add/remove alert or update status functions instead.",
-              iae.getMessage());
-    }
+    String alertPatch = alertPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
+    PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatch, PatchRequest.class);
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+        () -> metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis())));
+    assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
+            + "Please use the add/remove alert or update status functions instead.",
+        iae.getMessage());
 
     // ensure the alert field was NOT changed
     assertEventually(() -> {
       Document updated = metaDao.getLatest("meta_alert", METAALERT_TYPE);
-      Assert.assertEquals(metaAlert.get(ALERT_FIELD), updated.getDocument().get(ALERT_FIELD));
+      assertEquals(metaAlert.get(ALERT_FIELD), updated.getDocument().get(ALERT_FIELD));
     });
   }
 
@@ -1035,22 +1012,19 @@ public abstract class MetaAlertIntegrationTest {
             new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // Verify a patch to a status field should throw an exception
-    try {
-      String statusPatch = statusPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
-      PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
-      metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis()));
-      Assert.fail("A patch on the status field should throw an exception");
+    String statusPatch = statusPatchRequest.replace(META_INDEX_FLAG, getMetaAlertIndex());
+    PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatch, PatchRequest.class);
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class,
+        () -> metaDao.patch(metaDao, patchRequest, Optional.of(System.currentTimeMillis())));
 
-    } catch (IllegalArgumentException iae) {
-      Assert.assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
-                      + "Please use the add/remove alert or update status functions instead.",
-              iae.getMessage());
-    }
+    assertEquals("Meta alert patches are not allowed for /alert or /status paths.  "
+            + "Please use the add/remove alert or update status functions instead.",
+        iae.getMessage());
 
     // ensure the status field was NOT changed
     assertEventually(() -> {
       Document updated = metaDao.getLatest("meta_alert", METAALERT_TYPE);
-      Assert.assertEquals(metaAlert.get(STATUS_FIELD), updated.getDocument().get(STATUS_FIELD));
+      assertEquals(metaAlert.get(STATUS_FIELD), updated.getDocument().get(STATUS_FIELD));
     });
   }
 
@@ -1125,27 +1099,27 @@ public abstract class MetaAlertIntegrationTest {
   }
 
   @SuppressWarnings("unchecked")
-  protected void assertEquals(Map<String, Object> expected, Map<String, Object> actual) {
-    Assert.assertEquals(expected.get(Constants.GUID), actual.get(Constants.GUID));
-    Assert.assertEquals(expected.get(getSourceTypeField()), actual.get(getSourceTypeField()));
+  protected void assertDocumentEquals(Map<String, Object> expected, Map<String, Object> actual) {
+    assertEquals(expected.get(Constants.GUID), actual.get(Constants.GUID));
+    assertEquals(expected.get(getSourceTypeField()), actual.get(getSourceTypeField()));
     Double actualThreatTriageField = actual.get(getThreatTriageField()) instanceof Float ?
             ((Float) actual.get(getThreatTriageField())).doubleValue() : (Double) actual.get(getThreatTriageField());
-    Assert.assertEquals(expected.get(getThreatTriageField()), actualThreatTriageField);
+    assertEquals(expected.get(getThreatTriageField()), actualThreatTriageField);
 
     List<Map<String, Object>> expectedAlerts = (List<Map<String, Object>>) expected.get(ALERT_FIELD);
     List<Map<String, Object>> actualAlerts = (List<Map<String, Object>>) actual.get(ALERT_FIELD);
     expectedAlerts.sort(Comparator.comparing(o -> ((String) o.get(Constants.GUID))));
     actualAlerts.sort(Comparator.comparing(o -> ((String) o.get(Constants.GUID))));
-    Assert.assertEquals(expectedAlerts, actualAlerts);
-    Assert.assertEquals(expected.get(STATUS_FIELD), actual.get(STATUS_FIELD));
-    Assert.assertEquals(expected.get("average"), actual.get("average"));
-    Assert.assertEquals(expected.get("min"), actual.get("min"));
-    Assert.assertEquals(expected.get("median"), actual.get("median"));
-    Assert.assertEquals(expected.get("max"), actual.get("max"));
+    assertEquals(expectedAlerts, actualAlerts);
+    assertEquals(expected.get(STATUS_FIELD), actual.get(STATUS_FIELD));
+    assertEquals(expected.get("average"), actual.get("average"));
+    assertEquals(expected.get("min"), actual.get("min"));
+    assertEquals(expected.get("median"), actual.get("median"));
+    assertEquals(expected.get("max"), actual.get("max"));
     Integer actualCountField = actual.get("count") instanceof Long ? ((Long) actual.get("count")).intValue() :
             (Integer) actual.get("count");
-    Assert.assertEquals(expected.get("count"), actualCountField);
-    Assert.assertEquals(expected.get("sum"), actual.get("sum"));
+    assertEquals(expected.get("count"), actualCountField);
+    assertEquals(expected.get("sum"), actual.get("sum"));
   }
 
   protected List<Map<String, Object>> buildAlerts(int count) {

@@ -17,26 +17,30 @@
  */
 package org.apache.metron.enrichment.adapters.maxmind.asn;
 
-import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_TAR_GZ;
-
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.FileUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.json.simple.JSONObject;
+import org.junit.Rule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.junit.rules.TemporaryFolder;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.io.FileUtils;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.test.utils.UnitTestHelper;
-import org.json.simple.JSONObject;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
+import static org.apache.metron.enrichment.adapters.maxmind.MaxMindDatabase.EXTENSION_TAR_GZ;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+@EnableRuleMigrationSupport
 public class GeoLiteAsnDatabaseTest {
 
   private static Context context;
@@ -52,7 +56,7 @@ public class GeoLiteAsnDatabaseTest {
   @Rule
   public TemporaryFolder testFolder = new TemporaryFolder();
 
-  @BeforeClass
+  @BeforeAll
   @SuppressWarnings("unchecked")
   public static void setupOnce() throws IOException {
     // Construct this explicitly here, otherwise it'll be a Long instead of Integer.
@@ -66,12 +70,12 @@ public class GeoLiteAsnDatabaseTest {
     FileUtils.copyFile(asnHdfsFile, asnHdfsFile_update);
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     FileUtils.deleteQuietly(asnHdfsFile_update);
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     testFolder.create();
     context = new Context.Builder().with(Context.Capabilities.GLOBAL_CONFIG,
@@ -84,7 +88,7 @@ public class GeoLiteAsnDatabaseTest {
     GeoLiteAsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
 
     Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get("192.168.0.1");
-    Assert.assertFalse("Local address result should be empty", result.isPresent());
+    assertFalse(result.isPresent(), "Local address result should be empty");
   }
 
   @Test
@@ -93,7 +97,7 @@ public class GeoLiteAsnDatabaseTest {
 
     // the range 203.0.113.0/24 is assigned as "TEST-NET-3" and should never be locatable
     Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get("203.0.113.1");
-    Assert.assertFalse("External address not found", result.isPresent());
+    assertFalse(result.isPresent(), "External address not found");
   }
 
   @Test
@@ -101,8 +105,8 @@ public class GeoLiteAsnDatabaseTest {
     GeoLiteAsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
 
     Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
-        result.get());
+    assertEquals(expectedAsnMessage,
+        result.get(), "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -111,8 +115,8 @@ public class GeoLiteAsnDatabaseTest {
     GeoLiteAsnDatabase.INSTANCE.update(asnHdfsFile.getAbsolutePath());
 
     Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
-        result.get());
+    assertEquals(expectedAsnMessage, result.get(),
+            "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -122,8 +126,8 @@ public class GeoLiteAsnDatabaseTest {
     GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
 
     Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
-        result.get());
+    assertEquals(expectedAsnMessage, result.get(),
+            "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -134,8 +138,8 @@ public class GeoLiteAsnDatabaseTest {
     GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
 
     Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
-        result.get());
+    assertEquals(expectedAsnMessage, result.get(),
+            "Remote Local IP should return result based on DB");
   }
 
   @Test
@@ -144,14 +148,14 @@ public class GeoLiteAsnDatabaseTest {
     globalConfig.put(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile.getAbsolutePath());
     GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
     Optional<Map<String, Object>> result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
-        result.get());
+    assertEquals(expectedAsnMessage, result.get(),
+            "Remote Local IP should return result based on DB");
 
     globalConfig.put(GeoLiteAsnDatabase.ASN_HDFS_FILE, asnHdfsFile_update.getAbsolutePath());
     GeoLiteAsnDatabase.INSTANCE.updateIfNecessary(globalConfig);
     result = GeoLiteAsnDatabase.INSTANCE.get(IP_ADDR);
 
-    Assert.assertEquals("Remote Local IP should return result based on DB", expectedAsnMessage,
-        result.get());
+    assertEquals(expectedAsnMessage, result.get(),
+            "Remote Local IP should return result based on DB");
   }
 }

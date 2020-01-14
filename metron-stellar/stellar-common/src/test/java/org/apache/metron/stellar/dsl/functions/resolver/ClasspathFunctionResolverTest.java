@@ -21,13 +21,10 @@ package org.apache.metron.stellar.dsl.functions.resolver;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.apache.commons.vfs2.FileSystemException;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunction;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.reflections.util.FilterBuilder;
 
 import java.io.File;
@@ -37,14 +34,15 @@ import java.util.Properties;
 import java.util.Set;
 
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ClasspathFunctionResolverTest {
 
   private static List<String> expectedFunctions;
 
-  @BeforeClass
+  @BeforeAll
   public static void setup() {
 
     // search the entire classpath for functions - provides a baseline to test against
@@ -82,7 +80,7 @@ public class ClasspathFunctionResolverTest {
     List<String> actual = Lists.newArrayList(resolver.getFunctions());
 
     // validate - should have found all of the functions
-    Assert.assertEquals(expectedFunctions, actual);
+    assertEquals(expectedFunctions, actual);
   }
 
   @Test
@@ -97,8 +95,8 @@ public class ClasspathFunctionResolverTest {
     List<String> actual = Lists.newArrayList(resolver.getFunctions());
 
     // validate - should have found all of the functions
-    Assert.assertTrue(actual.size() > 0);
-    Assert.assertTrue(actual.size() <= expectedFunctions.size());
+    assertTrue(actual.size() > 0);
+    assertTrue(actual.size() <= expectedFunctions.size());
   }
 
   @Test
@@ -113,23 +111,23 @@ public class ClasspathFunctionResolverTest {
     List<String> actual = Lists.newArrayList(resolver.getFunctions());
 
     // both should have resolved the same functions
-    Assert.assertEquals(0, actual.size());
+    assertEquals(0, actual.size());
   }
 
   @Test
-  public void testExternalLocal() throws FileSystemException, ClassNotFoundException {
+  public void testExternalLocal() {
     File jar = new File("src/test/classpath-resources");
-    Assert.assertTrue(jar.exists());
+    assertTrue(jar.exists());
     Properties config = new Properties();
     config.put(STELLAR_VFS_PATHS.param(), jar.toURI() + "/.*.jar");
 
     ClasspathFunctionResolver resolver = create(config);
     HashSet<String> functions = new HashSet<>(Lists.newArrayList(resolver.getFunctions()));
-    Assert.assertTrue(functions.contains("NOW"));
+    assertTrue(functions.contains("NOW"));
   }
 
   @Test
-  public void testInvalidStellarClass() throws Exception {
+  public void testInvalidStellarClass() {
     StellarFunction goodFunc = mock(StellarFunction.class);
     StellarFunction badFunc = mock(StellarFunction.class);
     ClasspathFunctionResolver resolver = new ClasspathFunctionResolver() {
@@ -147,8 +145,8 @@ public class ClasspathFunctionResolverTest {
       }
     };
     Set<Class<? extends StellarFunction>> funcs = resolver.resolvables();
-    Assert.assertEquals(1, funcs.size());
-    Assert.assertEquals(goodFunc.getClass(), Iterables.getFirst(funcs, null));
+    assertEquals(1, funcs.size());
+    assertEquals(goodFunc.getClass(), Iterables.getFirst(funcs, null));
   }
 
 }

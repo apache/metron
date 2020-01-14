@@ -46,9 +46,8 @@ import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -57,6 +56,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration test for the enrichment topology.
@@ -107,7 +108,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupOnce() throws ParseException {
     String baseDir = UnitTestHelper.findDir(new File("../metron-enrichment-common"), "GeoLite");
     geoHdfsFile = new File(new File(baseDir), "GeoLite2-City.mmdb.gz");
@@ -247,10 +248,10 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       ProcessorResult<Map<String, List<Map<String, Object>>>> result = runner.process(getProcessor());
       Map<String,List<Map<String, Object>>> outputMessages = result.getResult();
       List<Map<String, Object>> docs = outputMessages.get(Constants.INDEXING_TOPIC);
-      Assert.assertEquals(inputMessages.size(), docs.size());
+      assertEquals(inputMessages.size(), docs.size());
       validateAll(docs);
       List<Map<String, Object>> errors = outputMessages.get(ERROR_TOPIC);
-      Assert.assertEquals(inputMessages.size(), errors.size());
+      assertEquals(inputMessages.size(), errors.size());
       validateErrors(errors);
     } finally {
       runner.stop();
@@ -278,10 +279,10 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   protected void validateErrors(List<Map<String, Object>> errors) {
     for(Map<String, Object> error : errors) {
-      Assert.assertTrue(error.get(Constants.ErrorFields.MESSAGE.getName()).toString(), error.get(Constants.ErrorFields.MESSAGE.getName()).toString().contains("/ by zero") );
-      Assert.assertTrue(error.get(Constants.ErrorFields.EXCEPTION.getName()).toString().contains("/ by zero"));
-      Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
-      Assert.assertEquals("{\"error_test\":{},\"source.type\":\"test\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
+      assertTrue(error.get(Constants.ErrorFields.MESSAGE.getName()).toString().contains("/ by zero"), error.get(Constants.ErrorFields.MESSAGE.getName()).toString());
+      assertTrue(error.get(Constants.ErrorFields.EXCEPTION.getName()).toString().contains("/ by zero"));
+      assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
+      assertEquals("{\"error_test\":{},\"source.type\":\"test\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }
   }
 
@@ -292,23 +293,23 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     //ensure no values are empty
     for(Map.Entry<String, Object> kv : jsonDoc.entrySet()) {
       String actual = Objects.toString(kv.getValue(), "");
-      Assert.assertTrue(String.format("Value of '%s' is empty: '%s'", kv.getKey(), actual), StringUtils.isNotEmpty(actual));
+      assertTrue(StringUtils.isNotEmpty(actual), String.format("Value of '%s' is empty: '%s'", kv.getKey(), actual));
     }
 
     //ensure we always have a source ip and destination ip
-    Assert.assertNotNull(jsonDoc.get(SRC_IP));
-    Assert.assertNotNull(jsonDoc.get("ALL_CAPS"));
-    Assert.assertNotNull(jsonDoc.get("map.blah"));
-    Assert.assertNull(jsonDoc.get("map"));
-    Assert.assertNotNull(jsonDoc.get("one"));
-    Assert.assertEquals(1, jsonDoc.get("one"));
-    Assert.assertEquals(1, jsonDoc.get("map.blah"));
-    Assert.assertNotNull(jsonDoc.get("foo"));
-    Assert.assertNotNull(jsonDoc.get("alt_src_type"));
-    Assert.assertEquals("test", jsonDoc.get("alt_src_type"));
-    Assert.assertEquals("TEST", jsonDoc.get("ALL_CAPS"));
-    Assert.assertNotNull(jsonDoc.get("bar"));
-    Assert.assertEquals("TEST", jsonDoc.get("bar"));
+    assertNotNull(jsonDoc.get(SRC_IP));
+    assertNotNull(jsonDoc.get("ALL_CAPS"));
+    assertNotNull(jsonDoc.get("map.blah"));
+    assertNull(jsonDoc.get("map"));
+    assertNotNull(jsonDoc.get("one"));
+    assertEquals(1, jsonDoc.get("one"));
+    assertEquals(1, jsonDoc.get("map.blah"));
+    assertNotNull(jsonDoc.get("foo"));
+    assertNotNull(jsonDoc.get("alt_src_type"));
+    assertEquals("test", jsonDoc.get("alt_src_type"));
+    assertEquals("TEST", jsonDoc.get("ALL_CAPS"));
+    assertNotNull(jsonDoc.get("bar"));
+    assertEquals("TEST", jsonDoc.get("bar"));
   }
 
   private static class EvaluationPayload {
@@ -385,7 +386,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                        + Joiner.on(",").join(expectedEnrichments) + "), but it was not there.  If you've created a new"
                        + " enrichment, then please add a validation method to this unit test.  Otherwise, it's a solid error"
                        + " and should be investigated.";
-        Assert.assertTrue( message, expectedEnrichments.contains(secondLevel));
+        assertTrue(expectedEnrichments.contains(secondLevel), message);
       }
     }
   }
@@ -393,31 +394,31 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     if(indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3")
             || indexedDoc.getOrDefault(DST_IP,"").equals("10.0.2.3")
             ) {
-      Assert.assertTrue(keyPatternExists("enrichments.hbaseEnrichment", indexedDoc));
+      assertTrue(keyPatternExists("enrichments.hbaseEnrichment", indexedDoc));
       if(indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("enrichments.hbaseEnrichment." + SRC_IP + "." + PLAYFUL_CLASSIFICATION_TYPE+ ".orientation")
+        assertEquals(indexedDoc.get("enrichments.hbaseEnrichment." + SRC_IP + "." + PLAYFUL_CLASSIFICATION_TYPE+ ".orientation")
                 , PLAYFUL_ENRICHMENT.get("orientation")
         );
-        Assert.assertEquals(indexedDoc.get("src_classification.orientation")
+        assertEquals(indexedDoc.get("src_classification.orientation")
                 , PLAYFUL_ENRICHMENT.get("orientation"));
-        Assert.assertEquals(indexedDoc.get("is_src_malicious")
+        assertEquals(indexedDoc.get("is_src_malicious")
                 , true);
       }
       else if(indexedDoc.getOrDefault(DST_IP,"").equals("10.0.2.3")) {
-        Assert.assertEquals( indexedDoc.get("enrichments.hbaseEnrichment." + DST_IP + "." + PLAYFUL_CLASSIFICATION_TYPE + ".orientation")
+        assertEquals( indexedDoc.get("enrichments.hbaseEnrichment." + DST_IP + "." + PLAYFUL_CLASSIFICATION_TYPE + ".orientation")
                 , PLAYFUL_ENRICHMENT.get("orientation")
         );
-        Assert.assertEquals(indexedDoc.get("dst_classification.orientation")
+        assertEquals(indexedDoc.get("dst_classification.orientation")
                 , PLAYFUL_ENRICHMENT.get("orientation"));
 
       }
       if(!indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("is_src_malicious")
+        assertEquals(indexedDoc.get("is_src_malicious")
                 , false);
       }
     }
     else {
-      Assert.assertEquals(indexedDoc.get("is_src_malicious")
+      assertEquals(indexedDoc.get("is_src_malicious")
               , false);
     }
   }
@@ -426,13 +427,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             indexedDoc.getOrDefault(DST_IP,"").equals("10.0.2.3")) {
 
       //if we have any threat intel messages, we want to tag is_alert to true
-      Assert.assertTrue(keyPatternExists("threatintels.", indexedDoc));
-      Assert.assertEquals(indexedDoc.getOrDefault("is_alert",""), "true");
+      assertTrue(keyPatternExists("threatintels.", indexedDoc));
+      assertEquals(indexedDoc.getOrDefault("is_alert",""), "true");
 
       // validate threat triage score
-      Assert.assertTrue(indexedDoc.containsKey(ThreatIntelUtils.THREAT_TRIAGE_SCORE_KEY));
+      assertTrue(indexedDoc.containsKey(ThreatIntelUtils.THREAT_TRIAGE_SCORE_KEY));
       Double score = (Double) indexedDoc.get(ThreatIntelUtils.THREAT_TRIAGE_SCORE_KEY);
-      Assert.assertEquals(score, 10d, 1e-7);
+      assertEquals(score, 10d, 1e-7);
 
       // validate threat triage rules
       Joiner joiner = Joiner.on(".");
@@ -442,24 +443,24 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
               joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_REASON),
               joiner.join(ThreatIntelUtils.THREAT_TRIAGE_RULES_KEY, 0, ThreatIntelUtils.THREAT_TRIAGE_RULE_SCORE))
               .forEach(key ->
-                      Assert.assertTrue(String.format("Missing expected key: '%s'", key), indexedDoc.containsKey(key)));
+                      assertTrue(indexedDoc.containsKey(key), String.format("Missing expected key: '%s'", key)));
     }
     else {
       //For YAF this is the case, but if we do snort later on, this will be invalid.
-      Assert.assertNull(indexedDoc.get("is_alert"));
-      Assert.assertFalse(keyPatternExists("threatintels.", indexedDoc));
+      assertNull(indexedDoc.get("is_alert"));
+      assertFalse(keyPatternExists("threatintels.", indexedDoc));
     }
 
     //ip threat intels
     if(keyPatternExists("threatintels.hbaseThreatIntel.", indexedDoc)) {
       if(indexedDoc.getOrDefault(SRC_IP,"").equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("threatintels.hbaseThreatIntel." + SRC_IP + "." + MALICIOUS_IP_TYPE), "alert");
+        assertEquals(indexedDoc.get("threatintels.hbaseThreatIntel." + SRC_IP + "." + MALICIOUS_IP_TYPE), "alert");
       }
       else if(indexedDoc.getOrDefault(DST_IP,"").equals("10.0.2.3")) {
-        Assert.assertEquals(indexedDoc.get("threatintels.hbaseThreatIntel." + DST_IP + "." + MALICIOUS_IP_TYPE), "alert");
+        assertEquals(indexedDoc.get("threatintels.hbaseThreatIntel." + DST_IP + "." + MALICIOUS_IP_TYPE), "alert");
       }
       else {
-        Assert.fail("There was a threat intels that I did not expect: " + indexedDoc);
+        fail("There was a threat intels that I did not expect: " + indexedDoc);
       }
     }
 
@@ -468,22 +469,22 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static void geoEnrichmentValidation(Map<String, Object> indexedDoc) {
     // Need to check both separately. Local IPs will have no Geo entries
     if(indexedDoc.containsKey("enrichments.geo." + DST_IP + ".location_point")) {
-      Assert.assertEquals(DEFAULT_LOCATION_POINT, indexedDoc.get("enrichments.geo." + DST_IP + ".location_point"));
-      Assert.assertEquals(DEFAULT_LONGITUDE, indexedDoc.get("enrichments.geo." + DST_IP + ".longitude"));
-      Assert.assertEquals(DEFAULT_CITY, indexedDoc.get("enrichments.geo." + DST_IP + ".city"));
-      Assert.assertEquals(DEFAULT_LATITUDE, indexedDoc.get("enrichments.geo." + DST_IP + ".latitude"));
-      Assert.assertEquals(DEFAULT_COUNTRY, indexedDoc.get("enrichments.geo." + DST_IP + ".country"));
-      Assert.assertEquals(DEFAULT_DMACODE, indexedDoc.get("enrichments.geo." + DST_IP + ".dmaCode"));
-      Assert.assertEquals(DEFAULT_POSTAL_CODE, indexedDoc.get("enrichments.geo." + DST_IP + ".postalCode"));
+      assertEquals(DEFAULT_LOCATION_POINT, indexedDoc.get("enrichments.geo." + DST_IP + ".location_point"));
+      assertEquals(DEFAULT_LONGITUDE, indexedDoc.get("enrichments.geo." + DST_IP + ".longitude"));
+      assertEquals(DEFAULT_CITY, indexedDoc.get("enrichments.geo." + DST_IP + ".city"));
+      assertEquals(DEFAULT_LATITUDE, indexedDoc.get("enrichments.geo." + DST_IP + ".latitude"));
+      assertEquals(DEFAULT_COUNTRY, indexedDoc.get("enrichments.geo." + DST_IP + ".country"));
+      assertEquals(DEFAULT_DMACODE, indexedDoc.get("enrichments.geo." + DST_IP + ".dmaCode"));
+      assertEquals(DEFAULT_POSTAL_CODE, indexedDoc.get("enrichments.geo." + DST_IP + ".postalCode"));
     }
     if(indexedDoc.containsKey("enrichments.geo." + SRC_IP + ".location_point")) {
-      Assert.assertEquals(DEFAULT_LOCATION_POINT, indexedDoc.get("enrichments.geo." + SRC_IP + ".location_point"));
-      Assert.assertEquals(DEFAULT_LONGITUDE, indexedDoc.get("enrichments.geo." + SRC_IP + ".longitude"));
-      Assert.assertEquals(DEFAULT_CITY, indexedDoc.get("enrichments.geo." + SRC_IP + ".city"));
-      Assert.assertEquals(DEFAULT_LATITUDE, indexedDoc.get("enrichments.geo." + SRC_IP + ".latitude"));
-      Assert.assertEquals(DEFAULT_COUNTRY, indexedDoc.get("enrichments.geo." + SRC_IP + ".country"));
-      Assert.assertEquals(DEFAULT_DMACODE, indexedDoc.get("enrichments.geo." + SRC_IP + ".dmaCode"));
-      Assert.assertEquals(DEFAULT_POSTAL_CODE, indexedDoc.get("enrichments.geo." + SRC_IP + ".postalCode"));
+      assertEquals(DEFAULT_LOCATION_POINT, indexedDoc.get("enrichments.geo." + SRC_IP + ".location_point"));
+      assertEquals(DEFAULT_LONGITUDE, indexedDoc.get("enrichments.geo." + SRC_IP + ".longitude"));
+      assertEquals(DEFAULT_CITY, indexedDoc.get("enrichments.geo." + SRC_IP + ".city"));
+      assertEquals(DEFAULT_LATITUDE, indexedDoc.get("enrichments.geo." + SRC_IP + ".latitude"));
+      assertEquals(DEFAULT_COUNTRY, indexedDoc.get("enrichments.geo." + SRC_IP + ".country"));
+      assertEquals(DEFAULT_DMACODE, indexedDoc.get("enrichments.geo." + SRC_IP + ".dmaCode"));
+      assertEquals(DEFAULT_POSTAL_CODE, indexedDoc.get("enrichments.geo." + SRC_IP + ".postalCode"));
     }
   }
 
@@ -494,7 +495,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Set<String> ips = setOf("10.0.2.15", "10.60.10.254");
       if (ips.contains(indexedDoc.get(SRC_IP))) {
         //this is a local, important, printer
-        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+        assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.PRINTER_TYPE
                 ).apply(new EvaluationPayload(indexedDoc, SRC_IP))
@@ -506,7 +507,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.PRINTER_TYPE
                 ).apply(new EvaluationPayload(indexedDoc, DST_IP));
-        Assert.assertTrue(isEnriched);
+        assertTrue(isEnriched);
         enriched = true;
       }
     }
@@ -515,7 +516,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       Set<String> ips = setOf("10.1.128.236");
       if (ips.contains(indexedDoc.get(SRC_IP))) {
         //this is a local, important, printer
-        Assert.assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
+        assertTrue(Predicates.and(HostEnrichments.LOCAL_LOCATION
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.WEBSERVER_TYPE
                 ).apply(new EvaluationPayload(indexedDoc, SRC_IP))
@@ -527,12 +528,12 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                 ,HostEnrichments.IMPORTANT
                 ,HostEnrichments.WEBSERVER_TYPE
                 ).apply(new EvaluationPayload(indexedDoc, DST_IP));
-        Assert.assertTrue(isEnriched);
+        assertTrue(isEnriched);
         enriched = true;
       }
     }
     if(!enriched) {
-      Assert.assertFalse(keyPatternExists("enrichments.host", indexedDoc));
+      assertFalse(keyPatternExists("enrichments.host", indexedDoc));
     }
   }
 

@@ -18,16 +18,11 @@
 
 package org.apache.metron.test.spouts;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.test.converters.BinaryConverters;
 import org.apache.metron.test.converters.IConverter;
 import org.apache.metron.test.filereaders.FileReader;
-
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -35,6 +30,10 @@ import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.Utils;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 
 public class GenericInternalTestSpout extends BaseRichSpout {

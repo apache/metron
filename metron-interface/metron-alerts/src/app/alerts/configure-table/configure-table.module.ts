@@ -21,10 +21,11 @@ import {SharedModule} from '../../shared/shared.module';
 import {ConfigureTableComponent} from './configure-table.component';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
 import {ColumnNamesService} from '../../service/column-names.service';
+import { DragulaModule, DragulaService } from 'ng2-dragula';
 
 @NgModule ({
-    imports: [ routing,  SharedModule],
+    imports: [ routing,  SharedModule, DragulaModule ],
     declarations: [ ConfigureTableComponent ],
-    providers: [ ClusterMetaDataService, ColumnNamesService ]
+    providers: [ ClusterMetaDataService, ColumnNamesService, DragulaService ]
 })
 export class ConfigureTableModule { }

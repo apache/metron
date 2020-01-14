@@ -21,13 +21,15 @@ package org.apache.metron.stellar.dsl.functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DataStructureFunctionsTest {
 
@@ -36,19 +38,19 @@ public class DataStructureFunctionsTest {
     DataStructureFunctions.IsEmpty isEmpty = new DataStructureFunctions.IsEmpty();
     {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of("hello"));
-      Assert.assertThat("should be false", empty, CoreMatchers.equalTo(false));
+      assertThat("should be false", empty, CoreMatchers.equalTo(false));
     }
     {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(ImmutableList.of("hello", "world")));
-      Assert.assertThat("should be false", empty, CoreMatchers.equalTo(false));
+      assertThat("should be false", empty, CoreMatchers.equalTo(false));
     }
     {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(1));
-      Assert.assertThat("should be false", empty, CoreMatchers.equalTo(false));
+      assertThat("should be false", empty, CoreMatchers.equalTo(false));
     }
     {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(ImmutableMap.of("mykey", "myvalue")));
-      Assert.assertThat("should be false", empty, CoreMatchers.equalTo(false));
+      assertThat("should be false", empty, CoreMatchers.equalTo(false));
     }
   }
 
@@ -57,19 +59,19 @@ public class DataStructureFunctionsTest {
     DataStructureFunctions.IsEmpty isEmpty = new DataStructureFunctions.IsEmpty();
     {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of());
-      Assert.assertThat("should be true", empty, CoreMatchers.equalTo(true));
+      assertThat("should be true", empty, CoreMatchers.equalTo(true));
     }
     {
       boolean empty = (boolean) isEmpty.apply(null);
-      Assert.assertThat("should be true", empty, CoreMatchers.equalTo(true));
+      assertThat("should be true", empty, CoreMatchers.equalTo(true));
     }
     {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(""));
-      Assert.assertThat("should be true", empty, CoreMatchers.equalTo(true));
+      assertThat("should be true", empty, CoreMatchers.equalTo(true));
     }
     {
       boolean empty = (boolean) isEmpty.apply(ImmutableList.of(ImmutableMap.of()));
-      Assert.assertThat("should be true", empty, CoreMatchers.equalTo(true));
+      assertThat("should be true", empty, CoreMatchers.equalTo(true));
     }
   }
 
@@ -83,10 +85,10 @@ public class DataStructureFunctionsTest {
        )
     {
       Object o = run(expr, ImmutableMap.of("my_list", new ArrayList<>(), "val", 1));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<Number> result = (List<Number>) o;
-      Assert.assertEquals(1, result.size());
-      Assert.assertEquals(1, result.get(0));
+      assertEquals(1, result.size());
+      assertEquals(1, result.get(0));
     }
   }
 
@@ -102,11 +104,11 @@ public class DataStructureFunctionsTest {
       ArrayList<Object> list = new ArrayList<>();
       list.add("foo");
       Object o = run(expr, ImmutableMap.of("my_list", list, "val", 1));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<Object> result = (List<Object>) o;
-      Assert.assertEquals(2, result.size());
-      Assert.assertEquals("foo", result.get(0));
-      Assert.assertEquals(1, result.get(1));
+      assertEquals(2, result.size());
+      assertEquals("foo", result.get(0));
+      assertEquals(1, result.get(1));
     }
   }
 
@@ -122,11 +124,11 @@ public class DataStructureFunctionsTest {
       ArrayList<Integer> list = new ArrayList<>();
       list.add(1);
       Object o = run(expr, ImmutableMap.of("my_list", list, "val", 2));
-      Assert.assertTrue(o instanceof List);
+      assertTrue(o instanceof List);
       List<Number> result = (List<Number>) o;
-      Assert.assertEquals(2, result.size());
-      Assert.assertEquals(1, result.get(0));
-      Assert.assertEquals(2, result.get(1));
+      assertEquals(2, result.size());
+      assertEquals(1, result.get(0));
+      assertEquals(2, result.get(1));
     }
   }
 }

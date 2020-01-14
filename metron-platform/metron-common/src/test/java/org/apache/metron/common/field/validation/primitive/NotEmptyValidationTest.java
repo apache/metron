@@ -20,14 +20,13 @@ package org.apache.metron.common.field.validation.primitive;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.field.validation.BaseValidationTest;
-import org.json.simple.JSONObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 public class NotEmptyValidationTest extends BaseValidationTest {
@@ -60,24 +59,24 @@ public class NotEmptyValidationTest extends BaseValidationTest {
 
   @Test
   public void positiveTest_single() throws IOException {
-    Assert.assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "foo")));
+    assertTrue(execute(validWithSingleField, ImmutableMap.of("field1", "foo")));
   }
   @Test
   public void negativeTest_single() throws IOException {
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field2", "foo")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", " ")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field2", "foo")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", " ")));
   }
   @Test
   public void positiveTest_multiple() throws IOException {
-    Assert.assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", "foo", "field2", "bar")));
+    assertTrue(execute(validWithMultipleFields, ImmutableMap.of("field1", "foo", "field2", "bar")));
   }
 
   @Test
   public void negativeTest_multiple() throws IOException {
 
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field2", "foo")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "", "field2", "bar")));
-    Assert.assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", " ", "field2", "bar")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field2", "foo")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", "", "field2", "bar")));
+    assertFalse(execute(validWithSingleField, ImmutableMap.of("field1", " ", "field2", "bar")));
   }
 }

@@ -23,7 +23,7 @@ import org.mockito.ArgumentMatcher;
 
 import java.util.List;
 
-public class SolrInputDocumentListMatcher extends ArgumentMatcher<List<SolrInputDocument>> {
+public class SolrInputDocumentListMatcher implements ArgumentMatcher<List<SolrInputDocument>> {
 
   private List<SolrInputDocument> expectedSolrInputDocuments;
 
@@ -32,8 +32,7 @@ public class SolrInputDocumentListMatcher extends ArgumentMatcher<List<SolrInput
   }
 
   @Override
-  public boolean matches(Object o) {
-    List<SolrInputDocument> solrInputDocuments = (List<SolrInputDocument>) o;
+  public boolean matches(List<SolrInputDocument> solrInputDocuments) {
     for(int i = 0; i < solrInputDocuments.size(); i++) {
       SolrInputDocument solrInputDocument = solrInputDocuments.get(i);
       for (int j = 0; j < expectedSolrInputDocuments.size(); j++) {
@@ -54,7 +53,7 @@ public class SolrInputDocumentListMatcher extends ArgumentMatcher<List<SolrInput
   }
 
   @Override
-  public void describeTo(Description description) {
-    description.appendValue(expectedSolrInputDocuments);
+  public String toString() {
+    return expectedSolrInputDocuments.toString();
   }
 }

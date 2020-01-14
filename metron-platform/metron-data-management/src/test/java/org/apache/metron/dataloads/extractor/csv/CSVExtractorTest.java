@@ -23,10 +23,11 @@ import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CSVExtractorTest {
 
@@ -54,12 +55,12 @@ public class CSVExtractorTest {
     ExtractorHandler handler = ExtractorHandler.load(testCSVConfig);
     ex.initialize(handler.getConfig());
 
-    Assert.assertEquals(0, (int)ex.getColumnMap().get("host") );
-    Assert.assertEquals(2, (int)ex.getColumnMap().get("meta") );
-    Assert.assertEquals(0, ex.getTypeColumnIndex() );
-    Assert.assertEquals(0, ex.getIndicatorColumn());
-    Assert.assertEquals("threat", ex.getType() );
-    Assert.assertEquals(',', ex.getParser().getSeparator());
+    assertEquals(0, (int)ex.getColumnMap().get("host") );
+    assertEquals(2, (int)ex.getColumnMap().get("meta") );
+    assertEquals(0, ex.getTypeColumnIndex() );
+    assertEquals(0, ex.getIndicatorColumn());
+    assertEquals("threat", ex.getType() );
+    assertEquals(',', ex.getParser().getSeparator());
 
   }
 
@@ -75,27 +76,27 @@ public class CSVExtractorTest {
       LookupKV results = Iterables.getFirst(handler.getExtractor().extract("google.com,1.0,foo"), null);
       EnrichmentKey key = (EnrichmentKey) results.getKey();
       EnrichmentValue value = (EnrichmentValue) results.getValue();
-      Assert.assertEquals("google.com", key.indicator);
-      Assert.assertEquals("threat", key.type);
-      Assert.assertEquals("google.com", value.getMetadata().get("host"));
-      Assert.assertEquals("foo", value.getMetadata().get("meta"));
-      Assert.assertEquals(2, value.getMetadata().size());
+      assertEquals("google.com", key.indicator);
+      assertEquals("threat", key.type);
+      assertEquals("google.com", value.getMetadata().get("host"));
+      assertEquals("foo", value.getMetadata().get("meta"));
+      assertEquals(2, value.getMetadata().size());
     }
     {
       Iterable<LookupKV> results = handler.getExtractor().extract("#google.com,1.0,foo");
-      Assert.assertEquals(0, Iterables.size(results));
+      assertEquals(0, Iterables.size(results));
     }
     {
       Iterable<LookupKV> results = handler.getExtractor().extract("");
-      Assert.assertEquals(0, Iterables.size(results));
+      assertEquals(0, Iterables.size(results));
     }
     {
       Iterable<LookupKV> results = handler.getExtractor().extract(" ");
-      Assert.assertEquals(0, Iterables.size(results));
+      assertEquals(0, Iterables.size(results));
     }
     {
       Iterable<LookupKV> results = handler.getExtractor().extract(null);
-      Assert.assertEquals(0, Iterables.size(results));
+      assertEquals(0, Iterables.size(results));
     }
   }
 }

@@ -94,8 +94,14 @@ public class EnrichmentObjectGet implements StellarFunction {
     objectCache.initialize(objectCacheConfig);
   }
 
+  // Exposed for testing
+  protected void initialize(ObjectCache objectCache) {
+      this.objectCache = objectCache;
+  }
+
   @Override
   public boolean isInitialized() {
     return objectCache != null && objectCache.isInitialized();
   }
+
 }

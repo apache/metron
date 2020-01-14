@@ -18,7 +18,6 @@
  */
 package org.apache.metron.profiler.repl;
 
-import java.nio.charset.StandardCharsets;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -26,17 +25,18 @@ import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the StandAloneProfiler class.
@@ -104,7 +104,7 @@ public class StandAloneProfilerTest {
 
   private Context context = Context.EMPTY_CONTEXT();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     // parse the input message

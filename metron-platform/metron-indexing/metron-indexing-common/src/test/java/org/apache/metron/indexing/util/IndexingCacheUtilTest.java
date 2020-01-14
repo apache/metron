@@ -20,12 +20,12 @@ package org.apache.metron.indexing.util;
 
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +60,7 @@ public class IndexingCacheUtilTest {
     when(indexingConfigs.getSensorIndexingConfig("bro")).thenReturn(broIndexingConfig);
     when(cache.get(IndexingConfigurations.class)).thenReturn(indexingConfigs);
 
-    assertEquals("Should default to sensor type on missing sensor config", "snort", IndexingCacheUtil.getIndexLookupFunction(cache, "writer").apply("snort"));
-    assertEquals("Should default to sensor type on missing writer config", "bro", IndexingCacheUtil.getIndexLookupFunction(cache, "someWriter").apply("bro"));
+    assertEquals("snort", IndexingCacheUtil.getIndexLookupFunction(cache, "writer").apply("snort"), "Should default to sensor type on missing sensor config");
+    assertEquals("bro", IndexingCacheUtil.getIndexLookupFunction(cache, "someWriter").apply("bro"), "Should default to sensor type on missing writer config");
   }
 }
