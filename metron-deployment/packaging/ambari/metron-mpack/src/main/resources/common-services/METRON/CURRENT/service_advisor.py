@@ -18,7 +18,7 @@ limitations under the License.
 """
 import os
 import traceback
-
+from resource_management.core.logger import Logger
 import imp
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -109,6 +109,57 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ALERTS_UI', "host": metronAlertsUIHost })
 
         return items
+
+    def colocateService(self, hostsComponentsMap, serviceComponents):
+        # colocate Metron with KAFKA_BROKER,SUPERVISOR,HBASE_CLIENT,HDFS_CLIENT,ZOOKEEPER_CLIENT, if no hosts have been allocated for METRONSEGMENT
+        metronParsersSegment = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "METRON_PARSERS"][0]
+        if not self.isComponentHostsPopulated(metronParsersSegment):
+            # if can NOT find any host installed KAFKA_BROKER,SUPERVISOR,HBASE_CLIENT,HDFS_CLIENT,ZOOKEEPER_CLIENT
+            # select the first host to install all MENTRON components
+            useDefault = True
+            for hostName in hostsComponentsMap.keys():
+                hostComponents = hostsComponentsMap[hostName]
+                if ({"name": "KAFKA_BROKER"} in hostComponents and {"name": "SUPERVISOR"} in hostComponents \
+                    and {"name": "HBASE_CLIENT"} in hostComponents and {"name": "HDFS_CLIENT"} in hostComponents \
+                        and {"name": "ZOOKEEPER_CLIENT"} in hostComponents) and {"name": "METRON_PARSERS"} not in hostComponents:
+                    hostsComponentsMap[hostName].append( { "name": "METRON_PARSERS" } )
+                    hostsComponentsMap[hostName].append( { "name": "METRON_ENRICHMENT_MASTER" } )
+                    hostsComponentsMap[hostName].append( { "name": "METRON_PROFILER" } )
+                    hostsComponentsMap[hostName].append( { "name": "METRON_PCAP" } )
+                    hostsComponentsMap[hostName].append( { "name": "METRON_INDEXING" } )
+                    hostsComponentsMap[hostName].append( { "name": "METRON_REST" } )
+                    hostsComponentsMap[hostName].append( { "name": "METRON_MANAGEMENT_UI" } )
+                    hostsComponentsMap[hostName].append( { "name": "METRON_ALERTS_UI" } )
+                    useDefault = False
+                    continue
+
+                if {"name": "METRON_PARSERS"} in hostComponents:
+                    hostComponents.remove({"name": "METRON_PARSERS"})
+                if {"name": "METRON_ENRICHMENT_MASTER"} in hostComponents:
+                    hostComponents.remove({"name": "METRON_ENRICHMENT_MASTER"})
+                if {"name": "METRON_PROFILER"} in hostComponents:
+                    hostComponents.remove({"name": "METRON_PROFILER"})
+                if {"name": "METRON_PCAP"} in hostComponents:
+                    hostComponents.remove({"name": "METRON_PCAP"})
+                if {"name": "METRON_INDEXING"} in hostComponents:
+                    hostComponents.remove({"name": "METRON_INDEXING"})
+                if {"name": "METRON_REST"} in hostComponents:
+                    hostComponents.remove({"name": "METRON_REST"})
+                if {"name": "METRON_MANAGEMENT_UI"} in hostComponents:
+                    hostComponents.remove({"name": "METRON_MANAGEMENT_UI"})
+                if {"name": "METRON_ALERTS_UI"} in hostComponents:
+                    hostComponents.remove({"name": "METRON_ALERTS_UI"})
+
+            if useDefault:
+                defaultHostName = hostsComponentsMap.keys()[0]
+                hostsComponentsMap[defaultHostName].append( { "name": "METRON_PARSERS" } )
+                hostsComponentsMap[defaultHostName].append( { "name": "METRON_ENRICHMENT_MASTER" } )
+                hostsComponentsMap[defaultHostName].append( { "name": "METRON_PROFILER" } )
+                hostsComponentsMap[defaultHostName].append( { "name": "METRON_PCAP" } )
+                hostsComponentsMap[defaultHostName].append( { "name": "METRON_INDEXING" } )
+                hostsComponentsMap[defaultHostName].append( { "name": "METRON_REST" } )
+                hostsComponentsMap[defaultHostName].append( { "name": "METRON_MANAGEMENT_UI" } )
+                hostsComponentsMap[defaultHostName].append( { "name": "METRON_ALERTS_UI" } )
 
     def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
 
