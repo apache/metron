@@ -74,4 +74,4 @@ Navigate to `System Preferences -> Security & Privacy -> Privacy` and add your t
 
 `Warning: Unable to copy remote GeoIP database to local file, attempt 2: java.net.UnknownHostException: geolite.maxmind.com`
 
-In order to correct this you will need to set up an alternative distribution point for Maxmind GeoIP2 Database update as a workaround until a full solution is implemented. See [https://issues.apache.org/jira/projects/METRON/issues/METRON-2340] (https://issues.apache.org/jira/projects/METRON/issues/METRON-2340) for more details.
+In order to correct this you will need to set up an alternative distribution point for Maxmind GeoIP2 Database update as a workaround until a full solution is implemented. See [https://issues.apache.org/jira/projects/METRON/issues/METRON-2340](https://issues.apache.org/jira/projects/METRON/issues/METRON-2340) for more details.
