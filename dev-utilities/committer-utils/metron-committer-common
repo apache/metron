@@ -135,7 +135,7 @@ function read_pull_request {
       exit 1
     fi
 
-    if [[ "$PR_MERGEABLE" != "\"clean\"" ]] || [[ "$PR_MERGEABLE" != "unstable" ]]; then
+    if [[ "$PR_MERGEABLE" != "\"clean\"" ]] && [[ "$PR_MERGEABLE" != "unstable" ]]; then
       echo "Error: pull request #$PR is not mergable. mergeable_state is $PR_MERGEABLE"
       exit 1
     fi
