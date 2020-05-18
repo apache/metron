@@ -128,9 +128,15 @@ function read_pull_request {
     fi
 
     # ensure that the pull request exists
-    PR_EXISTS=$(curl -sI https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | grep Status: | sed 's/[^0-9]//g')
-    if [[ "$PR_EXISTS" != "200" ]]; then
-      echo "Error: pull request #$PR does not exist"
+    PR_STATE=$(curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | jq ".state")
+    PR_MERGEABLE=$(curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/${PR} | jq ".mergeable_state")
+    if [[ "$PR_STATE" != "\"open\"" ]]; then
+      echo "Error: pull request #$PR is not open or does not exist"
+      exit 1
+    fi
+
+    if [[ "$PR_MERGEABLE" != "\"clean\"" ]] && [[ "$PR_MERGEABLE" != "\"unstable\"" ]]; then
+      echo "Error: pull request #$PR is not mergable. mergeable_state is $PR_MERGEABLE"
       exit 1
     fi
 }
