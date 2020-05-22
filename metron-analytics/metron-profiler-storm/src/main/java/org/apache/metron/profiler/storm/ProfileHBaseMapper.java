@@ -44,7 +44,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
   private RowKeyBuilder rowKeyBuilder;
 
   /**
-   * Generates the ColumnList necesary to store profile data in HBase.
+   * Generates the ColumnList necessary to store profile data in HBase.
    */
   private ColumnBuilder columnBuilder;
 
