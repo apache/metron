@@ -77,7 +77,7 @@ public enum DayPredicates {
    */
   HOLIDAY(x -> new HolidaysPredicate(x)),
   /**
-   * True if the day is a specifie ddate, false otherwise.
+   * True if the day is a specified date, false otherwise.
    */
   DATE( x -> new DateSpecifierPredicate(x))
   ;
