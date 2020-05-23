@@ -24,7 +24,10 @@ import io.swagger.annotations.ApiResponses;
 import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.security.SecurityUtils;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +37,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/sensor/enrichment/config")
 public class SensorEnrichmentConfigController {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
   private SensorEnrichmentConfigService sensorEnrichmentConfigService;
@@ -50,6 +56,7 @@ public class SensorEnrichmentConfigController {
   @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   ResponseEntity<SensorEnrichmentConfig> save(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name,
                                               @ApiParam(name="sensorEnrichmentConfig", value="SensorEnrichmentConfig", required=true)@RequestBody SensorEnrichmentConfig sensorEnrichmentConfig) throws RestException {
+    LOG.info(String.format("User '%s' changed the '%s' enrichment config to %s", SecurityUtils.getCurrentUser(), name, sensorEnrichmentConfig.toString()));
     if (sensorEnrichmentConfigService.findOne(name) == null) {
       return new ResponseEntity<>(sensorEnrichmentConfigService.save(name, sensorEnrichmentConfig), HttpStatus.CREATED);
     } else {
@@ -83,6 +90,7 @@ public class SensorEnrichmentConfigController {
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   ResponseEntity<Void> delete(@ApiParam(name="name", value="SensorEnrichmentConfig name", required=true)@PathVariable String name) throws RestException {
     if (sensorEnrichmentConfigService.delete(name)) {
+      LOG.info(String.format("User '%s' deleted the '%s' enrichment config", SecurityUtils.getCurrentUser(), name));
       return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
