@@ -30,6 +30,7 @@ RUN mkdir -p $METRON_HOME
 RUN tar -xzf /parser/metron-parsing-storm-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
 
 RUN tar -xzf /enrichment/metron-enrichment-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
+RUN cp /usr/metron/$METRON_VERSION/config/enrichment-unified.properties /usr/metron/$METRON_VERSION/config/enrichment.properties
 RUN sed -i -e "s/kafka.zk=.*:/kafka.zk=kafkazk:/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
 RUN sed -i -e "s/kafka.broker=.*/kafka.broker=kafkazk:9092/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
 RUN sed -i -e "s/threat.intel.tracker.table=.*/threat.intel.tracker.table=access_tracker/g" /usr/metron/$METRON_VERSION/config/enrichment.properties
