@@ -27,6 +27,9 @@ import { DialogService } from 'app/service/dialog.service';
 import { RestError } from 'app/model/rest-error';
 import { DialogType } from 'app/model/dialog-type';
 import { RefreshInterval } from 'app/alerts/configure-rows/configure-rows-enums';
+import { UserSettingsService } from 'app/service/user-settings.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { AppConfigService } from 'app/service/app-config.service';
 
 const DEFAULT_POLLING_INTERVAL = RefreshInterval.TEN_MIN;
 
@@ -63,11 +66,18 @@ describe('AutoPollingService', () => {
   }
 
   beforeEach(() => {
-    localStorage.getItem = () => null;
-    localStorage.setItem = () => {};
-
     TestBed.configureTestingModule({
+      imports: [
+        HttpClientTestingModule,
+      ],
       providers: [
+        {
+          provide: AppConfigService,
+          useValue: {
+            getApiRoot() { return ''; }
+          }
+        },
+        UserSettingsService,
         AutoPollingService,
         { provide: DialogService, useClass: () => {} },
         { provide: SearchService, useClass: () => { return {
@@ -447,35 +457,27 @@ describe('AutoPollingService', () => {
 
   describe('polling state persisting and restoring', () => {
 
-    it('should persist polling state on start', () => {
-      spyOn(localStorage, 'setItem');
-      autoPollingService.start();
-      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', `{"isActive":true,"refreshInterval":${DEFAULT_POLLING_INTERVAL}}`);
-    });
-
-    it('should persist polling state on stop', () => {
-      spyOn(localStorage, 'setItem');
-      autoPollingService.stop();
-      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', `{"isActive":false,"refreshInterval":${DEFAULT_POLLING_INTERVAL}}`);
-    });
-
     it('should persist polling state on interval change', () => {
-      spyOn(localStorage, 'setItem');
+      const userSettingsService = TestBed.get(UserSettingsService);
+      spyOn(userSettingsService, 'save').and.callThrough();
       autoPollingService.setInterval(4);
-      expect(localStorage.setItem).toHaveBeenCalledWith('autoPolling', '{"isActive":false,"refreshInterval":4}');
+      expect(userSettingsService.save).toHaveBeenCalledWith({
+        autoPolling: '{"isActive":false,"refreshInterval":4}'
+      });
     });
 
     it('should restore polling state on construction with a delay', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
       const dialogServiceFake = TestBed.get(DialogService);
+      const userSettingsService = TestBed.get(UserSettingsService);
 
-      spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":443}');
+      spyOn(userSettingsService, 'get').and.returnValue(of('{"isActive":true,"refreshInterval":443}'));
 
-      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake, userSettingsService);
 
       tick(localAutoPollingSvc.AUTO_START_DELAY);
 
-      expect(localStorage.getItem).toHaveBeenCalledWith('autoPolling');
+      expect(userSettingsService.get).toHaveBeenCalledWith('autoPolling');
       expect(localAutoPollingSvc.getIsPollingActive()).toBe(true);
       expect(localAutoPollingSvc.getInterval()).toBe(443);
 
@@ -485,11 +487,12 @@ describe('AutoPollingService', () => {
     it('should start polling on construction when persisted isActive==true', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
       const dialogServiceFake = TestBed.get(DialogService);
+      const userSettingsService = TestBed.get(UserSettingsService);
 
       spyOn(searchServiceFake, 'search').and.callThrough();
-      spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":10}');
+      spyOn(userSettingsService, 'get').and.returnValue(of('{"isActive":true,"refreshInterval":10}'));
 
-      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake, userSettingsService);
 
       tick(localAutoPollingSvc.AUTO_START_DELAY);
 
@@ -507,11 +510,12 @@ describe('AutoPollingService', () => {
     it('should start polling on construction with the persisted interval', fakeAsync(() => {
       const queryBuilderFake = TestBed.get(QueryBuilder);
       const dialogServiceFake = TestBed.get(DialogService);
+      const userSettingsService = TestBed.get(UserSettingsService);
 
       spyOn(searchServiceFake, 'search').and.callThrough();
-      spyOn(localStorage, 'getItem').and.returnValue('{"isActive":true,"refreshInterval":4}');
+      spyOn(userSettingsService, 'get').and.returnValue(of('{"isActive":true,"refreshInterval":4}'));
 
-      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake);
+      const localAutoPollingSvc = new AutoPollingService(searchServiceFake, queryBuilderFake, dialogServiceFake, userSettingsService);
 
       tick(localAutoPollingSvc.AUTO_START_DELAY);
 
@@ -526,5 +530,4 @@ describe('AutoPollingService', () => {
       localAutoPollingSvc.stop();
     }));
   });
-
 });

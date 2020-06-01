@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
+import { UserSettingsService } from 'app/service/user-settings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -26,14 +27,18 @@ export class TimezoneConfigService {
 
   showLocal = false;
 
-  constructor() {
-    this.showLocal = localStorage.getItem(this.CONVERT_UTC_TO_LOCAL_KEY) === 'true';
-    this.toggleUTCtoLocal(this.showLocal);
+  constructor(private userSettingsService: UserSettingsService) {
+    this.userSettingsService.get(this.CONVERT_UTC_TO_LOCAL_KEY)
+      .subscribe((showLocal) => {
+        this.showLocal = !!showLocal;
+      });
   }
 
   toggleUTCtoLocal(isLocal: boolean) {
     this.showLocal = isLocal;
-    localStorage.setItem(this.CONVERT_UTC_TO_LOCAL_KEY, isLocal.toString());
+    this.userSettingsService.save({
+      [this.CONVERT_UTC_TO_LOCAL_KEY]: isLocal
+    }).subscribe();
   }
 
   getTimezoneConfig() {

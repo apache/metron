@@ -18,12 +18,11 @@
  */
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import {Router} from '@angular/router';
+import { Router } from '@angular/router';
 import { ReplaySubject } from 'rxjs';
 import { GlobalConfigService } from './global-config.service';
-import { DataSource } from './data-source';
 import { AppConfigService } from './app-config.service';
-import {HttpUtil} from "../utils/httpUtil";
+import { HttpUtil } from '../utils/httpUtil';
 
 @Injectable()
 export class AuthenticationService {
@@ -38,7 +37,6 @@ export class AuthenticationService {
   constructor(private http: HttpClient,
               private router: Router,
               private globalConfigService: GlobalConfigService,
-              private dataSource: DataSource,
               private appConfigService: AppConfigService) {
     this.init();
   }
@@ -48,22 +46,23 @@ export class AuthenticationService {
         this.currentUser = response.toString();
         if (this.currentUser) {
           this.onLoginEvent.next(true);
-          this.dataSource.getDefaultAlertTableColumnNames();
         }
-      }, error => {
+      }, () => {
         this.onLoginEvent.next(false);
       });
   }
 
   public login(username: string, password: string, onError): void {
     let credentials = btoa(username + ':' + password);
-    this.getCurrentUser({ headers: new HttpHeaders({'Authorization': `Basic ${credentials}`, 'Accept': 'text/plain'}), responseType: 'text' })
+    this.getCurrentUser({
+      headers: new HttpHeaders({'Authorization': `Basic ${credentials}`, 'Accept': 'text/plain'}),
+      responseType: 'text'
+    })
         .subscribe((response) => {
           this.currentUser = response.toString();
           this.router.navigateByUrl('/alerts-list');
           this.onLoginEvent.next(true);
           this.globalConfigService.get();
-          this.dataSource.getDefaultAlertTableColumnNames();
       },
       error => {
         onError(error);

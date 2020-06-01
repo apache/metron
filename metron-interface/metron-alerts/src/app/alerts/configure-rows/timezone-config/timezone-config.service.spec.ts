@@ -19,37 +19,49 @@ import { TestBed } from '@angular/core/testing';
 
 import { TimezoneConfigService } from './timezone-config.service';
 import { SwitchComponent } from 'app/shared/switch/switch.component';
+import { UserSettingsService } from 'app/service/user-settings.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { AppConfigService } from 'app/service/app-config.service';
 
 describe('TimezoneConfigService', () => {
   let service: TimezoneConfigService;
+  let userSettingsService: UserSettingsService;
 
   beforeEach(() => {
-    spyOn(localStorage, 'getItem').and.returnValues('true');
 
     TestBed.configureTestingModule({
+      imports: [ HttpClientTestingModule ],
       declarations: [ SwitchComponent ],
-      providers: [ TimezoneConfigService ]
+      providers: [
+        {
+          provide: AppConfigService,
+          useValue: {
+            getApiRoot() { return ''; }
+          }
+        },
+        UserSettingsService,
+        TimezoneConfigService
+      ]
     });
 
     spyOn(TimezoneConfigService.prototype, 'toggleUTCtoLocal').and.callThrough();
+    spyOn(UserSettingsService.prototype, 'get').and.callThrough();
+
     service = TestBed.get(TimezoneConfigService);
+    userSettingsService = TestBed.get(UserSettingsService);
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should get persisted state from localStorage', () => {
-    expect(localStorage.getItem).toHaveBeenCalledWith(service.CONVERT_UTC_TO_LOCAL_KEY);
-  });
-
-  it('should set initial switch state', () => {
-    expect(service.toggleUTCtoLocal).toHaveBeenCalledWith(true);
+  it('should get persisted state', () => {
+    expect(userSettingsService.get).toHaveBeenCalledWith(service.CONVERT_UTC_TO_LOCAL_KEY);
   });
 
   it('should return the current timezone configuration with getTimezoneConfig()', () => {
-    expect(service.getTimezoneConfig()).toBe(true);
-    service.showLocal = false;
     expect(service.getTimezoneConfig()).toBe(false);
+    service.showLocal = true;
+    expect(service.getTimezoneConfig()).toBe(true);
   });
 });

@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
-import {ColumnNames} from '../model/column-names';
-import {DataSource} from './data-source';
+import { ColumnNames } from '../model/column-names';
+import { UserSettingsService } from './user-settings.service';
+import { ALERTS_COLUMN_NAMES } from '../utils/constants';
 
 @Injectable()
 export class ColumnNamesService {
@@ -57,9 +58,16 @@ export class ColumnNamesService {
     });
   }
 
-  constructor(private dataSource: DataSource) {}
+  constructor(private userSettingsService: UserSettingsService) {}
 
   save(columns: ColumnNames[]): Observable<{}> {
-    return this.dataSource.saveAlertTableColumnNames(columns);
+    return new Observable((observer) => {
+      this.userSettingsService.save({
+        [ALERTS_COLUMN_NAMES]: columns
+      }).subscribe(() => {
+        observer.next({});
+        observer.complete();
+      });
+    });
   }
 }
