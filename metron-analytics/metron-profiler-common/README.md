@@ -150,6 +150,13 @@ A separate profile is maintained 'for each' of these.  This is effectively the e
 
 For example, if `ip_src_addr` then a separate profile would be maintained for each unique IP source address in the data; 10.0.0.1, 10.0.0.2, etc.
 
+Also, global profile can be declared using Stellar expression that returns a string:
+```
+"foreach": "'global'"
+```
+
+Any other string can be used instead of global.
+
 #### `onlyif`
 
 *Optional*
