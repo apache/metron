@@ -48,7 +48,6 @@
     "karma-phantomjs-launcher": "^1.0.4",
     "ng-zorro-antd": "^7.5.1",
     "popper.js": "^1.15.0",
-    "puppeteer": "^1.19.0",
     "rxjs": "6.5.2",
     "ts-helpers": "^1.1.1",
     "tslib": "^1.9.0",
@@ -70,6 +69,7 @@
     "karma-jasmine-html-reporter": "^0.2.2",
     "phantomjs-prebuilt": "^2.1.14",
     "protractor": "^5.4.1",
+    "puppeteer": "^1.19.0",
     "ts-node": "~5.0.1",
     "tslint": "^5.11.0",
     "typescript": "~3.2.4"
