@@ -20,6 +20,7 @@ limitations under the License.
 This directory contains environments useful for Metron developers.  These environments are not intended for proof-of-concept, testing, or production use.  These are extremely resource constrained and cannot support anything beyond the most basic work loads.
 
 * Metron running on CentOS 6
+* Metron running on CentOS 7
 * Metron running on Ubuntu 14
 * Fastcapa
 
@@ -70,3 +71,7 @@ Now, when you go to Swagger or the UIs, you should be able to give a user and pa
 
 If you have the Mojave OS or newer, you may run into this issue when running `vagrant up`. In order to correct this you will need to grant permissions to your relevant terminal application.
 Navigate to `System Preferences -> Security & Privacy -> Privacy` and add your terminal application to "Full Disk Access". See [https://github.com/hashicorp/vagrant/issues/10234](https://github.com/hashicorp/vagrant/issues/10234) for more details.
+
+`Warning: Unable to copy remote GeoIP database to local file, attempt 2: java.net.UnknownHostException: geolite.maxmind.com`
+
+In order to correct this you will need to set up an alternative distribution point for Maxmind GeoIP2 Database update as a workaround until a full solution is implemented. See [https://issues.apache.org/jira/projects/METRON/issues/METRON-2340](https://issues.apache.org/jira/projects/METRON/issues/METRON-2340) for more details.
