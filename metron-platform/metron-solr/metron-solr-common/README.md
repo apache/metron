@@ -19,11 +19,16 @@ limitations under the License.
 
 ## Table of Contents
 
-* [Introduction](#introduction)
-* [Configuration](#configuration)
-* [Installing](#installing)
-* [Schemas](#schemas)
-* [Collections](#collections)
+* [Introduction](#Introduction)
+* [Configuration](#Configuration)
+    * [The Indexing Topology](#The-Indexing-Topology)
+    * [Performance: Server-side versus Client-side commits](#Performance:_Server-side_versus_Client-side_commits)
+    * [Managing the risk of data loss](#Managing_the_risk_of_data_loss)
+    * [Disabling client-side commits in Metron SOLR](#Disabling_client-side_commits_in_Metron_SOLR)
+    * [Configuring server-side commits](#Configuring_server-side_commits)
+* [Installing](#Installing)
+* [Schemas](#Schemas)
+* [Collections](#Collections)
 
 ## Introduction
 
@@ -38,21 +43,13 @@ via the global config.  The following settings are possible as part of the globa
 * `solr.zookeeper`
   * The zookeeper quorum associated with the SolrCloud instance.  This is a required field with no default.
 * `solr.commitPerBatch`
-  * This is a boolean which defines whether the writer commits every batch.  The default is `true`.
-  * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
-    worker failure *may* result data being acknowledged in storm but not written in Solr.
+  * This is a boolean which defines whether the writer commits every batch.  The default is `false`.
 * `solr.commit.soft`
   * This is a boolean which defines whether the writer makes a soft commit or a durable commit.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `false`.
-  * _WARNING_: If you set this to `true`, then commits will happen based on the SolrClient's internal mechanism and
-    worker failure *may* result data being acknowledged in storm but not written in Solr.
 * `solr.commit.waitSearcher`
-  * This is a boolean which defines whether the writer blocks the commit until the data is available to search.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `true`.
-  * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
-    worker failure *may* result data being acknowledged in storm but not written in Solr.
+  * This is a boolean which defines whether the writer blocks the commit until the data is available to search.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `false`.
 * `solr.commit.waitFlush`
-  * This is a boolean which defines whether the writer blocks the commit until the data is flushed.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `true`.
-  * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
-    worker failure *may* result data being acknowledged in storm but not written in Solr.
+  * This is a boolean which defines whether the writer blocks the commit until the data is flushed.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `false`.
 * `solr.collection`
   * The default solr collection (if unspecified, the name is `metron`).  By default, sensors will write to a collection associated with the index name in the
   indexing config for that sensor.  If that index name is the empty string, then the default collection will be used.
@@ -71,6 +68,89 @@ via the global config.  The following settings are possible as part of the globa
     * `httpBasicAuthUser` : Basic auth username
     * `httpBasicAuthPassword` : Basic auth password
     * `solr.ssl.checkPeerName` : Check peer name
+
+### Performance: Server-side versus Client-side commits
+It is important to note that SOLR is not a ACID compliant database, in particular there is no isolation between transactions.
+This has a major impact on performance if client-side commits are configured, as a commit causes the entire collection to check-pointed
+and written to disk, pausing any other client writing data to the same collection.  
+
+In Metron, it is possible that dozens of storm spouts are writing data to the same SOLR collection simultaneously. 
+Each of these spouts triggering a client-side commit on the same SOLR collection can have a catastrophic effect on performance.
+
+SOLR can manage this issue by removing the responsibility of committing data from the clients, and letting the server 
+trigger regular commits on a collection to flush data to disk.  Because this is server-side as opposed to client-side functionality, it 
+ is controlled via the following parameters in each Collection's `solrconfig.xml` configuration file:
+ 
+* autoCommit : Also called a 'hard' autocommit, this regularly synchronizes ingested data to disk to guarantee data persistence. 
+* autoSoftCommit : Allows data to become visible to searchers without requiring an expensive commit to disk.
+
+`openSearcher=true` is an expensive (hard) autoCommit option that triggers written data to be merged into on-disk indexes and become visible to searchers.
+It is the equivalent of a soft and hard commit performed at the same time. It is rarely used for Near Real Time (NRT) search scenarios
+
+
+The standard mantra for configuring SOLR for Near Real-Time Search is:
+
+* autoCommit (with `openSearcher=false`) for persisting data,
+* autoSoftCommit for making data visible.
+
+These functions can (and nearly always do) have different time periods configured for them.
+For example: 
+* `autoCommit` (with `openSearcher=false` and `maxTime=30000` milliseconds) to persist data,
+* `autoSoftCommit` (with `maxTime=120000` milliseconds) to make newly ingested data visible.
+
+### Managing the risk of data loss
+Experienced admins at this stage would now be asking the question as to what happens if SOLR crashes before a hard commit occurs to 
+persist the data.  While SOLR does write data to its transaction log as soon as it is received, it does not fsync this log to disk until 
+a hard commit is requested. Thus a hardware crash could technically risk the data collected up to the interval that hard autoCommits 
+are configured for.
+
+If the potential for data loss is unacceptable to the business then a common architecture used to manage the risk of
+data loss is to have one or more replicas of each SOLR collection. When ingesting data into a collection that has replicas, SOLR will 
+not return a result to the client until the data has been passed to each replica in a collection. Replicas immediately 
+return acknowledgement as soon as the data is stored in local memory buffers. The configured autoCommit/autoSoftCommit intervals 
+later process and store the data on the replica in exactly the same way it is processed and stored on the primary node.
+
+So if you are using collection replicas you are protected against individual machine failures 
+by the fact that your data is present in the main memory (immediately) and disks (after an interval of time) of other replicas. 
+This type of architecture is similar to how other distributed systems like Kafka manages the performance/reliability trade-offs 
+
+### Disabling client-side commits in Metron SOLR
+To disable client-side commits in Metron's Storm spouts, make sure `solr.commitPerBatch = false` is set in Metron's
+global json configuration section.  For details on how to change Metron's global configuration, please refer to the documentation
+for Metron's `zk_load_config.sh` script.
+
+
+### Configuring server-side commits
+1. Make sure that client-side SOLR commits are disabled in Metron
+
+1. You will need to change each collection's `solrconfig.xml` as described in the next step. Use either:
+
+    1. The destructive option: update the collection template in Metron's schema directory (`$METRON_HOME/config/schema`) and delete and re-create the schema via Metron's 
+delete-collection/create-collection [scripts](#Collections), or
+
+    1. The update option: utilize SOLR's [Config Rest API](https://lucene.apache.org/solr/guide/7_4/config-api.html) to 
+    dynamically modify an existing target collection's `solrconfig.xml` file. An example of using this API to update values is:
+        ```
+        curl http://<SOLR_HOST>>:<SOLR_PORT>/solr/<COLLECTION_NAME>>/config \
+        -H 'Content-type:application/json' -d'{ "set-property" : \
+        {"updateHandler.autoCommit.maxTime":120000, \
+        "updateHandler.autoCommit.openSearcher":false,\
+        "updateHandler.autoSoftCommit.maxTime":30000 }}'
+        ```    
+        Please note that this techniques uses Solr's configuration [variable substitution](https://lucene.apache.org/solr/guide/7_4/configuring-solrconfig-xml.html),
+        and thus only works if the relevant field values in `solrconfig.xml` have not been overridden by the admin with hard-coded values. 
+    
+1. The following items in each collection's `solrconfg.xml` file need to be configured:    
+```
+<autoCommit>
+  <maxTime>AUTOCOMMIT_INTERVAL_IN_MILLISECONDS</maxTime>
+  <openSearcher>false</openSearcher>
+</autoCommit>
+<autoSoftCommit>
+  <maxTime>AUTOSOFTCOMMIT_INTERVAL_IN_MILLISECONDS</maxTime>
+</autoSoftCommit>
+```  
+ 
 
 
 ## Installing
