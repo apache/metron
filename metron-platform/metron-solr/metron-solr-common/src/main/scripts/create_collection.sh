@@ -16,14 +16,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-METRON_VERSION=${project.version}
-METRON_HOME=/usr/metron/$METRON_VERSION
 ZOOKEEPER=${ZOOKEEPER:-localhost:2181}
 ZOOKEEPER_HOME=${ZOOKEEPER_HOME:-/usr/hdp/current/zookeeper-client}
 SECURITY_ENABLED=${SECURITY_ENABLED:-false}
 NEGOTIATE=''
 if [ ${SECURITY_ENABLED,,} == 'true' ]; then
     NEGOTIATE=' --negotiate -u : '
+fi
+
+# test for errors
+if [[ ${SOLR_NODE} =~ .*:null ]]; then
+  echo "Error occurred while attempting to read SOLR Cloud configuration data from Zookeeper.";
+  if ! [[ ${ZOOKEEPER} =~ .*/solr ]]; then
+    echo "Warning! Environment variable ZOOKEEPER=$ZOOKEEPER does not contain a chrooted zookeeper ensemble address - are you sure you do not mean ZOOKEEPER=$ZOOKEEPER/solr?";
+  fi
+  exit 1;
 fi
 
 # Get the first Solr node from the list of live nodes in Zookeeper
