@@ -23,7 +23,7 @@ export class SensorParserConfig {
   writerClassName: string;
   errorWriterClassName: string;
   invalidWriterClassName: string;
-  parserConfig: {};
+  parserConfig: { [key: string]: any; }
   fieldTransformations: FieldTransformer[];
   numWorkers: number;
   numAckers: number;
@@ -35,13 +35,11 @@ export class SensorParserConfig {
   errorWriterNumTasks: number;
   spoutConfig: {};
   stormConfig: {};
-  timestampField: string;
 
   constructor() {
     this.parserConfig = {};
     this.fieldTransformations = [];
     this.spoutConfig = {};
     this.stormConfig = {};
-    this.timestampField = 'timestamp';
   }
 }

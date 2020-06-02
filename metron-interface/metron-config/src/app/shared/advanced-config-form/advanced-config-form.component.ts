@@ -26,6 +26,7 @@ import {FormGroup, Validators, FormControl} from '@angular/forms';
 export class AdvancedConfigFormComponent implements OnInit, OnChanges {
 
   @Input() config: {};
+  @Input() parserClassName: string;
   configKeys: string[] = [];
   newConfigKey: string = 'enter field';
   newConfigValue: string = 'enter value';
@@ -123,6 +124,10 @@ export class AdvancedConfigFormComponent implements OnInit, OnChanges {
         this.config[key] = value;
     }
 
+  }
+
+  isGrokParser(): boolean {
+    return this.parserClassName === 'org.apache.metron.parsers.GrokParser';
   }
 
 }
