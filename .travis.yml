@@ -23,6 +23,8 @@ install: true
 language: java
 jdk:
   - oraclejdk8
+services:
+  - docker
 before_install:
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
@@ -43,6 +45,11 @@ matrix:
       script:
         - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -Dskip.npm -B -V
         - time mvn surefire:test@integration-tests
+
+    - name: Build RPMs
+      script:
+        - time mvn install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+        - time mvn package -Pbuild-rpms -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V 
 
     - name: Alerts UI Tests
       script:
