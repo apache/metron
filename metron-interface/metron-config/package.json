@@ -55,7 +55,7 @@
     "zone.js": "^0.8.29"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.13.0",
+    "@angular-devkit/build-angular": "~20.0.1",
     "@angular/compiler-cli": "^7.2.15",
     "@types/request": "2.0.3",
     "buffer-shims": "^1.0.0",
