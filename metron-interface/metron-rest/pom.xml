@@ -38,7 +38,7 @@
         <spring.version>5.0.5.RELEASE</spring.version>
         <eclipse.link.version>2.6.4</eclipse.link.version>
         <jsonpath.version>2.4.0</jsonpath.version>
-        <jwt.version>7.9</jwt.version>
+        <jwt.version>9.37.4</jwt.version>
     </properties>
     <dependencies>
         <dependency>
